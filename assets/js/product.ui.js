@@ -1,12 +1,24 @@
 document.addEventListener('DOMContentLoaded', async () => {
     // 1. URL'den slug degerini al
+    // Vercel rewrite: /matta/xxx -> product.html?slug=xxx
+    let slug = null;
+    
+    // Once query string'den dene
     const urlParams = new URLSearchParams(window.location.search);
-    const slug = urlParams.get('slug');
-
+    slug = urlParams.get('slug');
+    
+    // Yoksa path'den al: /matta/xxx
     if (!slug) {
-        console.error("Slug bulunamadi!");
+        const pathParts = window.location.pathname.split('/').filter(p => p);
+        slug = pathParts[pathParts.length - 1];
+    }
+
+    if (!slug || slug === 'product.html') {
+        console.error("Slug bulunamadi! URL:", window.location.href);
         return;
     }
+    
+    console.log("Slug bulundu:", slug);
 
     // 2. Airtable'dan slug ile filtreleyerek veriyi cek
     const url = `https://api.airtable.com/v0/${CONFIG.AIRTABLE.BASE_ID}/${CONFIG.AIRTABLE.TABLE_NAME}?filterByFormula=Slug='${slug}'`;
