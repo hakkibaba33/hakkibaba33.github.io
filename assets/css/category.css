@@ -194,8 +194,8 @@
 /* --- 5. Wishlist (Kalp) Butonu --- */
 .wishlist-btn {
     position: absolute;
-    top: 5px;
-    right: 0px;
+    top: 10px;
+    right: 10px;
     background: transparent !important;
     border: none !important;
     z-index: 5;

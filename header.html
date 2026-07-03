@@ -1,26 +1,13 @@
 <!-- ========== SEARCH POPUP ========== -->
 <div class="search-popup" id="search-popup-overlay">
     <div class="search-inner">
-        <!-- Sol İkon -->
         <span class="search-icon-static"><i class="fas fa-search"></i></span>
-        
-        <!-- Input Alanı -->
         <form class="search-form-full" onsubmit="return false;">
-            <input 
-                type="text" 
-                id="live-search-input" 
-                class="search-input-field" 
-                placeholder="Sök namn, stil..." 
-                autocomplete="off"
-            >
+            <input type="text" id="live-search-input" class="search-input-field" placeholder="Sök namn, stil..." autocomplete="off">
         </form>
-        
-        <!-- Sağ Kapatma -->
         <button class="search-close-x" id="close-search-popup">
             <i class="fa-solid fa-xmark"></i>
         </button>
-        
-        <!-- Sonuçlar -->
         <div id="search-results-display" style="display: none;"></div>
     </div>
 </div>
@@ -36,8 +23,10 @@
             <nav class="mobile-nav">
                 <ul class="mobile-menu-list">
                     <li><a href="/">Start</a></li>
-                    <li><a href="/produkt-kategori/mattor/">Mattor</a></li>
-                    <li><a href="#">Kontakt</a></li>
+                    <li><a href="/mattor">Mattor</a></li>
+                    <li><a href="/gardiner">Gardiner</a></li>
+                    <li><a href="/rea" class="menu-sale-mobile">REA</a></li>
+                    <li><a href="/kontakt">Kontakt</a></li>
                 </ul>
             </nav>
         </div>
@@ -108,11 +97,15 @@
             </div>
         </div>
     </div>
+    
+    <!-- ========== DESKTOP NAV - SADE ========== -->
     <nav class="main-nav desktop-only-nav">
         <ul class="main-menu-list">
-            <li><a href="/mattor">Alla Mattor</a></li>
-            <li><a href="#">Om Oss</a></li>
-       </ul>
+            <li><a href="/mattor">Mattor</a></li>
+            <li><a href="/gardiner">Gardiner</a></li>
+            <li><a href="/rea" class="menu-sale">REA</a></li>
+            <li><a href="/kontakt">Kontakt</a></li>
+        </ul>
     </nav>
 </header>
 
