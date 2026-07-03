@@ -169,6 +169,11 @@
             ]);
             document.getElementById('header-placeholder').innerHTML = await headerRes.text();
             document.getElementById('footer-placeholder').innerHTML = await footerRes.text();
+            
+            // 🔥 BURASI EKSIKTİ! Event listenerları başlat
+            if (typeof initEventListeners === 'function') {
+                initEventListeners();
+            }
         }
         loadComponents();
     </script>
