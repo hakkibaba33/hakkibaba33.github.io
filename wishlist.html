@@ -98,7 +98,6 @@
             color: #D30000 !important;
         }
     </style>
-<base target="_blank">
 </head>
 <body>
 
@@ -131,6 +130,11 @@
             ]);
             document.getElementById('header-placeholder').innerHTML = await headerRes.text();
             document.getElementById('footer-placeholder').innerHTML = await footerRes.text();
+            
+            // 🔥 Event listenerları başlat (search popup, mini cart, mobile menu)
+            if (typeof initEventListeners === 'function') {
+                initEventListeners();
+            }
         }
         loadComponents();
     </script>

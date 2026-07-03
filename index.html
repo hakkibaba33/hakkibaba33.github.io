@@ -77,11 +77,16 @@
             const [hRes, fRes] = await Promise.all([fetch('header.html'), fetch('footer.html')]);
             document.getElementById('header-placeholder').innerHTML = await hRes.text();
             document.getElementById('footer-placeholder').innerHTML = await fRes.text();
+            
+            // 🔥 Event listenerları başlat (search popup, mini cart, mobile menu)
+            if (typeof initEventListeners === 'function') {
+                initEventListeners();
+            }
         }
         initPage();
     </script>
 
-    <script src="assets/js/common.js"></script>
-    <script src="assets/js/index.js"></script>
+    <script src="/assets/js/config.js"></script>
+    <script src="/assets/js/common.js"></script>
 </body>
 </html>
