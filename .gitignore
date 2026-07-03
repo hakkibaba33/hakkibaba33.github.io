@@ -1,0 +1,20 @@
+# API Keys & Config
+assets/js/config.js
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Node modules (ileride kullanirsan)
+node_modules/
+
+# Build output
+dist/
+build/

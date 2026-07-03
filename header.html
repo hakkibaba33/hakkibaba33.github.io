@@ -1,0 +1,98 @@
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<div id="search-popup-overlay" class="search-popup">
+    <div class="search-inner">
+        <span class="search-icon-static"><i class="fas fa-search"></i></span>
+        <form class="search-form-full" onsubmit="return false;">
+            <input type="search" id="live-search-input" class="search-input-field" placeholder="Sök produkter..." autocomplete="off">
+        </form>
+        <button id="close-search-popup" class="search-close-x"><i class="fas fa-times"></i></button>
+        <div id="search-results-display" class="search-results-grid"></div>
+    </div>
+</div>
+
+<div class="mobile-menu-overlay" id="mobile-menu-overlay">
+    <div class="mobile-menu-content">
+        <div class="mobile-menu-header">
+            <span class="logo">DKRUG</span>
+            <button id="close-mobile-menu" class="close-btn"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="mobile-menu-body">
+            <!-- BURAYA STATİK MENÜNÜ KOYACAKSIN -->
+            <nav class="mobile-nav">
+                <ul class="mobile-menu-list">
+                    <li><a href="/">Start</a></li>
+                    <li><a href="/produkt-kategori/alla-mattor/">Alla Mattor</a></li>
+                    <li><a href="/kontakta-oss/">Kontakt</a></li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<header class="main-header" id="main-header">
+    <div class="header-main-section">
+        <div class="header-content">
+            <div class="header-icons left-icons">
+                <button class="menu-toggle-btn" id="open-mobile-menu-btn"><i class="fa-solid fa-bars"></i></button>
+            </div>
+            <a href="/" class="logo">DKRUG</a>
+            <div class="header-icons right-icons">
+                <a href="javascript:void(0)" id="search-open-btn"><i class="fas fa-search"></i></a>
+                <a href="/favoriter" class="wishlist-icon-wrapper"><i class="far fa-heart"></i><span class="wishlist-count-badge">0</span></a>
+                <a href="javascript:void(0)" class="cart-icon-wrapper" id="open-mini-cart-btn"><i class="fas fa-shopping-bag"></i><span class="cart-count-badge">0</span></a>
+            </div>
+        </div>
+    </div>
+    <!-- Desktop Menü -->
+    <nav class="main-nav desktop-only-nav">
+        <ul class="main-menu-list">
+            <li><a href="/produkt-kategori/alla-mattor/">Alla Mattor</a></li>
+            <li><a href="/om-oss/">Om Oss</a></li>
+       </ul>
+    </nav>
+</header>
+
+<div class="modal-overlay mini-cart-overlay" id="mini-cart-overlay">
+    <div class="slide-modal mini-cart-drawer" id="mini-cart-drawer">
+        
+        <div class="mini-cart-header">
+            <h3>Din Varukorg</h3> 
+            <button class="close-btn" id="close-mini-cart">
+                <i class="fa-solid fa-xmark" style="color: black !important;"></i>
+            </button>
+        </div>
+        
+        <div class="mini-cart-body">
+            <div class="cart-empty-state" id="cart-empty-state">
+                <p>Din varukorg är tom.</p>
+                <a href="https://dekorist.se/produkt-kategori/alla-mattor/" class="shoppa-nu-btn">Shoppa Nu</a>
+            </div>
+
+            <div class="cart-filled-state" id="cart-filled-state" style="display: none;">
+                </div>
+        </div>
+        
+        <div id="mini-cart-footer" style="display: none;"> <div class="cart-summary-line shipping-line">
+                <span class="summary-label">Frakt</span>
+                <span class="summary-value" id="cart-shipping-cost">Fri frakt</span>
+            </div>
+
+            <div class="cart-summary-line discount-line" id="discount-wrapper" style="display: none;">
+                <span class="summary-label">Rabatt:</span>
+                <span class="summary-value discount-amount" id="cart-total-discount"></span>
+            </div>
+
+            <hr>
+
+            <div class="cart-summary-line grand-total-line">
+                <span class="summary-label">Totalt (inkl moms)</span>
+                <span class="summary-value" id="cart-grand-total"></span>
+            </div>
+            
+            <a href="/kassa" class="checkout-btn">Till kassan</a>
+        </div>
+    </div>
+</div>
+
+

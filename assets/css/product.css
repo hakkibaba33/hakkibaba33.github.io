@@ -1,0 +1,3563 @@
+/* ============================================
+   MATTA (HALI) CALCULATOR - ACCORDION STYLES
+   ============================================ */
+
+/* ============================================
+   0. AKORDİYON YAPISI
+   ============================================ */
+
+.matta-box {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #fafafa;
+}
+
+/* Akordiyon Header */
+.matta-accordion-header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    background: #fafafa;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+}
+
+.matta-accordion-header:hover {
+    background: #f5f5f5;
+}
+
+.matta-accordion-header:active {
+    background: #eeeeee;
+}
+
+.matta-accordion-header.active {
+    background: #f0f0f0;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.matta-accordion-header .accordion-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    min-width: 0;
+}
+
+.matta-accordion-header .accordion-left > i {
+    font-size: 18px;
+    color: #666;
+    width: 22px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.matta-accordion-header .accordion-title-group {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.matta-accordion-header .accordion-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #222;
+}
+
+.matta-accordion-header .accordion-subtitle {
+    font-size: 11px;
+    color: #888;
+    font-weight: 400;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.matta-accordion-header .accordion-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+    margin-left: 8px;
+}
+
+.matta-accordion-header .accordion-status {
+    font-size: 11px;
+    color: #4CAF50;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+}
+
+.matta-accordion-header .accordion-status::before {
+    content: '';
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    background: #4CAF50;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.matta-accordion-header .accordion-chevron {
+    font-size: 13px;
+    color: #999;
+    transition: transform 0.3s ease;
+    flex-shrink: 0;
+}
+
+.matta-accordion-header.active .accordion-chevron {
+    transform: rotate(180deg);
+}
+
+/* Akordiyon Content */
+.matta-accordion-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                padding 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    background: #fafafa;
+}
+
+.matta-accordion-content.open {
+    max-height: 1200px;
+}
+
+.matta-accordion-content .accordion-inner {
+    padding: 16px 0;
+}
+
+.matta-accordion-content .accordion-inner > * {
+    padding-left: 16px;
+    padding-right: 16px;
+}
+
+
+/* ============================================
+   1. FORM SELECTOR (Şekil Seçimi)
+   ============================================ */
+
+.form-selector {
+    margin-bottom: 16px;
+}
+
+.form-selector > .form-label {
+    font-size: 10px;
+    font-weight: bold;
+    display: block;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    color: #555;
+    letter-spacing: 0.3px;
+}
+
+.form-options-grid {
+    display: flex;
+    gap: 8px;
+}
+
+.form-option {
+    flex: 1;
+    cursor: pointer;
+    min-width: 0;
+}
+
+.form-option input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.option-content {
+    padding: 12px 6px;
+    border: 2px solid #e0e0e0;
+    border-radius: 6px;
+    text-align: center;
+    transition: all 0.25s ease;
+    min-height: 60px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    background: #fff;
+}
+
+.option-content:hover {
+    border-color: #bbb;
+    background: #fafafa;
+}
+
+.form-option input[type="radio"]:checked + .option-content {
+    border-color: #4CAF50;
+    background: #f8fff8;
+    box-shadow: 0 2px 6px rgba(76, 175, 80, 0.12);
+}
+
+.option-content svg {
+    width: 24px;
+    height: 24px;
+    stroke: #666;
+    stroke-width: 1.5;
+    fill: none;
+    transition: stroke 0.2s;
+}
+
+.form-option input[type="radio"]:checked + .option-content svg {
+    stroke: #4CAF50;
+}
+
+.option-content span {
+    font-size: 10px;
+    font-weight: 600;
+    color: #444;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+
+/* ============================================
+   2. INPUT GRID (Ölçü Girişleri)
+   ============================================ */
+
+.matta-box .input-grid {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.matta-box .input-group {
+    flex: 1;
+    min-width: 0;
+}
+
+.matta-box .input-group .form-label {
+    font-size: 10px;
+    font-weight: 600;
+    display: block;
+    margin-bottom: 5px;
+    color: #555;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.matta-box .premium-input {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1.5px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    color: #333;
+    background: #fff;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    -webkit-appearance: none;
+    appearance: none;
+    box-sizing: border-box;
+}
+
+.matta-box .premium-input::placeholder {
+    color: #aaa;
+    font-size: 12px;
+}
+
+.matta-box .premium-input:focus {
+    border-color: #4CAF50;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.12);
+}
+
+
+/* ============================================
+   3. QUANTITY SECTION
+   ============================================ */
+
+.matta-box .quantity-section {
+    margin-bottom: 14px;
+}
+
+.matta-box .quantity-section > .form-label {
+    font-size: 10px;
+    font-weight: 600;
+    display: block;
+    margin-bottom: 5px;
+    color: #555;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.matta-box .quantity-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.matta-box .qty-stepper {
+    display: flex;
+    align-items: center;
+    border: 1.5px solid #ddd;
+    border-radius: 6px;
+    overflow: hidden;
+    background: #f8f8f8;
+    width: fit-content;
+    height: 36px;
+}
+
+.matta-box .qty-stepper button {
+    padding: 0 10px;
+    border: none;
+    background: #f0f0f0;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    color: #555;
+    min-width: 32px;
+    height: 100%;
+    transition: background 0.15s;
+    -webkit-tap-highlight-color: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.matta-box .qty-stepper button:hover {
+    background: #e5e5e5;
+}
+
+.matta-box .qty-stepper button:active {
+    background: #d5d5d5;
+}
+
+.matta-box .qty-stepper input {
+    width: 32px;
+    text-align: center;
+    border: none;
+    font-weight: bold;
+    font-size: 13px;
+    color: #333;
+    background: transparent;
+    height: 100%;
+    padding: 0;
+    -moz-appearance: textfield;
+}
+
+.matta-box .qty-stepper input::-webkit-outer-spin-button,
+.matta-box .qty-stepper input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.matta-box .qty-label {
+    font-size: 12px;
+    color: #666;
+}
+
+
+/* ============================================
+   4. ACTION BUTTONS
+   ============================================ */
+
+.matta-box .form-actions {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+#m2-calc-btn {
+    flex: 1;
+    padding: 12px;
+    background: #222;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    transition: all 0.2s ease;
+    min-height: 44px;
+    -webkit-tap-highlight-color: transparent;
+}
+
+#m2-calc-btn:hover {
+    background: #333;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.12);
+}
+
+#m2-calc-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+#m2-reset-btn {
+    width: 100%;
+    padding: 10px;
+    background: none;
+    border: none;
+    color: #999;
+    font-size: 12px;
+    cursor: pointer;
+    text-decoration: underline;
+    transition: color 0.2s;
+    -webkit-tap-highlight-color: transparent;
+}
+
+#m2-reset-btn:hover {
+    color: #666;
+}
+
+
+/* ============================================
+   5. PRICE SUMMARY
+   ============================================ */
+
+#m2-summary {
+    display: none;
+    margin-top: 12px;
+    background: #f0f7f0;
+    border: 1px solid #c8e6c9;
+    border-radius: 6px;
+    padding: 14px;
+}
+
+#m2-summary.visible {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+
+/* ============================================
+   6. MOBILE RESPONSIVE (max-width: 768px)
+   ============================================ */
+
+@media (max-width: 768px) {
+
+    .matta-accordion-header {
+        padding: 12px 14px;
+    }
+
+    .matta-accordion-header .accordion-left {
+        gap: 10px;
+    }
+
+    .matta-accordion-header .accordion-left > i {
+        font-size: 16px;
+        width: 20px;
+    }
+
+    .matta-accordion-header .accordion-title {
+        font-size: 13px;
+    }
+
+    .matta-accordion-header .accordion-subtitle {
+        font-size: 10px;
+    }
+
+    .matta-accordion-header .accordion-right {
+        gap: 8px;
+    }
+
+    .matta-accordion-header .accordion-status {
+        font-size: 10px;
+    }
+
+    .matta-accordion-header .accordion-chevron {
+        font-size: 12px;
+    }
+
+    .matta-accordion-content .accordion-inner {
+        padding: 14px 0;
+    }
+
+    .matta-accordion-content .accordion-inner > * {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
+    /* Form options */
+    .form-options-grid {
+        gap: 6px;
+    }
+
+    .option-content {
+        padding: 10px 4px;
+        min-height: 52px;
+    }
+
+    .option-content svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    .option-content span {
+        font-size: 9px;
+    }
+
+    /* Input grid - stack */
+    .matta-box .input-grid {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .matta-box .premium-input {
+        padding: 10px;
+        font-size: 16px; /* iOS zoom fix */
+    }
+
+    /* Quantity */
+    .matta-box .qty-stepper {
+        height: 40px;
+    }
+
+    .matta-box .qty-stepper button {
+        min-width: 36px;
+        font-size: 16px;
+    }
+
+    .matta-box .qty-stepper input {
+        width: 36px;
+        font-size: 14px;
+    }
+
+    /* Buttons */
+    .matta-box .form-actions {
+        gap: 8px;
+    }
+
+    #m2-calc-btn {
+        padding: 12px;
+        font-size: 13px;
+    }
+}
+
+
+/* ============================================
+   7. SMALL MOBILE (max-width: 480px)
+   ============================================ */
+
+@media (max-width: 480px) {
+
+    .matta-box {
+        border-radius: 6px;
+        margin: 0 -10px;
+        border-left: none;
+        border-right: none;
+    }
+
+    .matta-accordion-header {
+        padding: 11px 12px;
+    }
+
+    .matta-accordion-header .accordion-title {
+        font-size: 12px;
+    }
+
+    .matta-accordion-header .accordion-subtitle {
+        font-size: 9px;
+    }
+
+    .matta-accordion-header .accordion-chevron {
+        font-size: 11px;
+    }
+
+    .matta-accordion-content .accordion-inner {
+        padding: 12px 0;
+    }
+
+    .matta-accordion-content .accordion-inner > * {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
+    /* Form selector */
+    .form-selector > .form-label,
+    .matta-box .input-group .form-label,
+    .matta-box .quantity-section > .form-label {
+        font-size: 9px;
+    }
+
+    .option-content {
+        padding: 8px 4px;
+        min-height: 48px;
+    }
+
+    .option-content svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    .option-content span {
+        font-size: 8px;
+    }
+
+    /* Inputs */
+    .matta-box .premium-input {
+        padding: 9px;
+    }
+
+    /* Quantity */
+    .matta-box .qty-stepper {
+        height: 40px;
+    }
+
+    .matta-box .qty-stepper button {
+        flex: 1;
+        max-width: 60px;
+    }
+
+    .matta-box .qty-stepper input {
+        flex: 1;
+        max-width: 60px;
+    }
+
+    /* Buttons */
+    #m2-calc-btn {
+        padding: 12px;
+        font-size: 12px;
+    }
+
+    #m2-reset-btn {
+        font-size: 11px;
+    }
+
+    /* Summary */
+    #m2-summary {
+        padding: 12px;
+    }
+}
+
+
+/* ============================================
+   8. ACCESSIBILITY & TOUCH
+   ============================================ */
+
+.matta-box button,
+.matta-box input,
+.matta-box label,
+.matta-box select {
+    -webkit-tap-highlight-color: transparent;
+}
+
+.matta-box button:focus-visible,
+.matta-box input:focus-visible,
+.matta-box select:focus-visible {
+    outline: 2px solid #4CAF50;
+    outline-offset: 2px;
+}
+
+.matta-box button {
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .matta-accordion-content {
+        transition: none;
+    }
+
+    .matta-accordion-header .accordion-chevron {
+        transition: none;
+    }
+
+    .option-content,
+    #m2-calc-btn,
+    #m2-reset-btn {
+        transition: none;
+    }
+
+    #m2-summary.visible {
+        animation: none;
+    }
+}
+
+
+/* ============================================
+   9. ESKİ CSS'DEN GELEN EK STILLER
+   ============================================ */
+
+/* Premium Input Active State */
+.matta-box .premium-input.is-active {
+    border-color: #000 !important;
+    box-shadow: 0 0 0 2px rgba(0,0,0,0.1);
+    outline: none;
+}
+
+/* Error Message */
+#m2-error {
+    font-size: 14px;
+    line-height: 1.5;
+    font-weight: 500;
+    color: #b00020;
+    background-color: #fdf2f2;
+    border: 1px solid #f9d5d5;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin: 15px 0;
+    display: none;
+    animation: slideDown 0.3s ease-out;
+}
+
+#m2-error:not(:empty) {
+    display: block;
+}
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Price Styles */
+.matta-box .old-price {
+    text-decoration: line-through;
+    color: #999;
+    margin-right: 8px;
+    font-size: 0.9em;
+}
+
+.matta-box .sale-price {
+    color: #e02020;
+    font-weight: bold;
+}
+
+.matta-box .regular-price {
+    color: #333;
+    font-weight: 600;
+}
+
+/* Summary Enhanced */
+#m2-summary {
+    display: none;
+    margin-top: 15px;
+    padding: 15px;
+    background: #fdfdfd;
+    border: 1px solid #eee;
+    border-left: 4px solid #000;
+    border-radius: 4px;
+}
+
+#m2-summary.visible {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* ============================================
+   0. AKORDİYON YAPISI
+   ============================================ */
+
+.gardin-box {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #fff;
+}
+
+/* Akordiyon Header */
+.gardin-accordion-header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    background: #fafafa;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+}
+
+.gardin-accordion-header:hover {
+    background: #f5f5f5;
+}
+
+.gardin-accordion-header:active {
+    background: #eeeeee;
+}
+
+.gardin-accordion-header.active {
+    background: #f0f0f0;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.accordion-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    min-width: 0; /* Prevent overflow */
+}
+
+.accordion-left > i {
+    font-size: 18px;
+    color: #666;
+    width: 22px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.accordion-title-group {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.accordion-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #222;
+}
+
+.accordion-subtitle {
+    font-size: 11px;
+    color: #888;
+    font-weight: 400;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.accordion-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+    margin-left: 8px;
+}
+
+.accordion-status {
+    font-size: 11px;
+    color: #4CAF50;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+}
+
+.accordion-status::before {
+    content: '';
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    background: #4CAF50;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.accordion-chevron {
+    font-size: 13px;
+    color: #999;
+    transition: transform 0.3s ease;
+    flex-shrink: 0;
+}
+
+.gardin-accordion-header.active .accordion-chevron {
+    transform: rotate(180deg);
+}
+
+/* Akordiyon Content - LESS SIDE PADDING */
+.gardin-accordion-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                padding 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    background: #fafafa;
+}
+
+.gardin-accordion-content.open {
+    max-height: 1200px;
+}
+
+.accordion-inner {
+    padding: 16px 0; /* No side padding, full width */
+}
+
+.accordion-inner > * {
+    padding-left: 16px;
+    padding-right: 16px;
+}
+
+
+/* ============================================
+   1. SUSPENSION SELECTOR (Korniş Seçimi)
+   ============================================ */
+
+.suspension-selector {
+    margin-bottom: 16px;
+}
+
+.suspension-selector > .form-label {
+    font-size: 10px;
+    font-weight: bold;
+    display: block;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    color: #555;
+    letter-spacing: 0.3px;
+}
+
+.suspension-options {
+    display: flex;
+    gap: 8px;
+}
+
+.suspension-option {
+    flex: 1;
+    cursor: pointer;
+    min-width: 0;
+}
+
+.suspension-option input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.suspension-card {
+    padding: 10px 6px;
+    border: 2px solid #e0e0e0;
+    border-radius: 6px;
+    text-align: center;
+    transition: all 0.25s ease;
+    min-height: 56px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    background: #fff;
+}
+
+.suspension-card:hover {
+    border-color: #bbb;
+    background: #fafafa;
+}
+
+.suspension-option input[type="radio"]:checked + .suspension-card,
+.suspension-card.active {
+    border-color: #4CAF50;
+    background: #f8fff8;
+    box-shadow: 0 2px 6px rgba(76, 175, 80, 0.12);
+}
+
+.suspension-card i {
+    font-size: 16px;
+    color: #666;
+    transition: color 0.2s;
+}
+
+.suspension-option input[type="radio"]:checked + .suspension-card i,
+.suspension-card.active i {
+    color: #4CAF50;
+}
+
+.suspension-card span {
+    font-size: 11px;
+    font-weight: 500;
+    color: #444;
+}
+
+
+/* ============================================
+   2. INPUT GRID (Ölçü Girişleri)
+   ============================================ */
+
+.input-grid {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.input-group {
+    flex: 1;
+    min-width: 0;
+}
+
+.input-group .form-label {
+    font-size: 10px;
+    font-weight: 600;
+    display: block;
+    margin-bottom: 5px;
+    color: #555;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.premium-input {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1.5px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    color: #333;
+    background: #fff;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    -webkit-appearance: none;
+    appearance: none;
+    box-sizing: border-box;
+}
+
+.premium-input::placeholder {
+    color: #aaa;
+    font-size: 12px;
+}
+
+.premium-input:focus {
+    border-color: #4CAF50;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.12);
+}
+
+
+/* ============================================
+   3. QUANTITY & NOTE ROW - FIXED
+   ============================================ */
+
+.quantity-section {
+    margin-bottom: 14px;
+}
+
+.quantity-section > .form-label {
+    font-size: 10px;
+    font-weight: 600;
+    display: block;
+    margin-bottom: 5px;
+    color: #555;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.quantity-note-row {
+    display: flex;
+    align-items: center; /* CENTER vertically */
+    gap: 10px;
+}
+
+.m2-quantity-selector {
+    flex: 0 0 auto;
+    width: fit-content;
+}
+
+/* COMPACT QTY STEPPER */
+.qty-stepper {
+    display: flex;
+    align-items: center;
+    border: 1.5px solid #ddd;
+    border-radius: 6px;
+    overflow: hidden;
+    background: #f8f8f8;
+    width: fit-content;
+    height: 36px; /* Fixed height */
+}
+
+.qty-stepper button {
+    padding: 0 10px;
+    border: none;
+    background: #f0f0f0;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    color: #555;
+    min-width: 32px;
+    height: 100%;
+    transition: background 0.15s;
+    -webkit-tap-highlight-color: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.qty-stepper button:hover {
+    background: #e5e5e5;
+}
+
+.qty-stepper button:active {
+    background: #d5d5d5;
+}
+
+.qty-stepper input {
+    width: 32px;
+    text-align: center;
+    border: none;
+    font-weight: bold;
+    font-size: 13px;
+    color: #333;
+    background: transparent;
+    height: 100%;
+    padding: 0;
+    -moz-appearance: textfield;
+}
+
+.qty-stepper input::-webkit-outer-spin-button,
+.qty-stepper input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.note-btn-wrapper {
+    flex: 1;
+    min-width: 0;
+}
+
+#open-note-btn {
+    width: 100%;
+    height: 36px; /* FIXED height matching stepper */
+    padding: 0 12px;
+    background: #fff;
+    border: 1.5px dashed #ccc;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    color: #555;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#open-note-btn:hover {
+    border-color: #999;
+    background: #fafafa;
+}
+
+#open-note-btn:active {
+    background: #f5f5f5;
+}
+
+#open-note-btn.saved {
+    border-color: #2ecc71;
+    border-style: solid;
+    color: #27ae60;
+    background: #f0fff4;
+}
+
+#open-note-btn i {
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+#open-note-btn span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+
+/* ============================================
+   4. LIVE SUMMARY BOX
+   ============================================ */
+
+#gardin-live-summary {
+    background: #f9f9f9;
+    border-radius: 6px;
+    padding: 12px 14px;
+    margin-bottom: 14px;
+    border: 1px solid #eee;
+    display: none;
+}
+
+#gardin-live-summary.visible {
+    display: block;
+    animation: fadeIn 0.25s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+#summary-details {
+    font-size: 12px;
+    line-height: 1.5;
+    color: #555;
+}
+
+#summary-details strong {
+    color: #333;
+}
+
+#summary-note-display {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px dashed #ddd;
+    font-size: 12px;
+    color: #333;
+    display: none;
+}
+
+#summary-note-display.visible {
+    display: block;
+}
+
+#summary-note-display i {
+    color: #666;
+    margin-right: 4px;
+}
+
+
+/* ============================================
+   5. NOTE MODAL (Inline)
+   ============================================ */
+
+#note-modal {
+    display: none;
+    margin-bottom: 14px;
+    animation: fadeIn 0.2s ease;
+}
+
+#note-modal.visible {
+    display: block;
+}
+
+.note-modal-inner {
+    background: #f9f9f9;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 14px;
+}
+
+.note-modal-inner h4 {
+    margin: 0 0 10px 0;
+    font-size: 13px;
+    color: #444;
+    font-weight: 600;
+}
+
+#gardin-note {
+    width: 100%;
+    height: 80px;
+    padding: 8px 10px;
+    border: 1.5px solid #ddd;
+    border-radius: 6px;
+    resize: none;
+    font-family: inherit;
+    font-size: 13px;
+    color: #333;
+    background: #fff;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    -webkit-appearance: none;
+    appearance: none;
+    box-sizing: border-box;
+}
+
+#gardin-note:focus {
+    border-color: #4CAF50;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+}
+
+#gardin-note::placeholder {
+    color: #aaa;
+    font-size: 12px;
+}
+
+#close-note-btn {
+    width: 100%;
+    margin-top: 8px;
+    padding: 9px;
+    background: #333;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 13px;
+    transition: background 0.2s;
+    min-height: 40px;
+    -webkit-tap-highlight-color: transparent;
+}
+
+#close-note-btn:hover {
+    background: #444;
+}
+
+#close-note-btn:active {
+    background: #555;
+}
+
+
+/* ============================================
+   6. PRICE SUMMARY
+   ============================================ */
+
+#gardin-summary {
+    display: none;
+    margin-bottom: 14px;
+    background: #f0f7f0;
+    border: 1px solid #c8e6c9;
+    border-radius: 6px;
+    padding: 14px;
+}
+
+#gardin-summary.visible {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+#gardin-summary .summary-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    font-size: 12px;
+    color: #555;
+}
+
+#gardin-summary .summary-row:last-of-type {
+    margin-bottom: 0;
+}
+
+#gardin-summary .summary-row strong {
+    color: #333;
+    font-weight: 600;
+}
+
+#gardin-summary .summary-divider {
+    border: none;
+    border-top: 1px solid #c8e6c9;
+    margin: 10px 0;
+}
+
+#gardin-summary .summary-total {
+    display: flex;
+    justify-content: space-between;
+    font-size: 15px;
+    font-weight: 700;
+    color: #333;
+}
+
+#gardin-summary .summary-total strong:last-child {
+    color: #2E7D32;
+}
+
+
+/* ============================================
+   7. ACTION BUTTONS
+   ============================================ */
+
+.form-actions {
+    display: flex;
+    gap: 8px;
+}
+
+#gardin-calc-btn {
+    flex: 3;
+    padding: 12px;
+    background: #222;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    transition: all 0.2s ease;
+    min-height: 44px;
+    -webkit-tap-highlight-color: transparent;
+}
+
+#gardin-calc-btn:hover {
+    background: #333;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.12);
+}
+
+#gardin-calc-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+#gardin-calc-btn.calculated {
+    background: #2E7D32;
+}
+
+#gardin-calc-btn.calculated:hover {
+    background: #388E3C;
+}
+
+#gardin-reset-btn {
+    flex: 1;
+    padding: 12px;
+    background: #fff;
+    color: #e74c3c;
+    border: 1.5px solid #e74c3c;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    transition: all 0.2s ease;
+    min-height: 44px;
+    -webkit-tap-highlight-color: transparent;
+}
+
+#gardin-reset-btn:hover {
+    background: #fdf2f2;
+}
+
+#gardin-reset-btn:active {
+    background: #e74c3c;
+    color: #fff;
+}
+
+
+/* ============================================
+   8. MOBILE RESPONSIVE (max-width: 768px)
+   ============================================ */
+
+@media (max-width: 768px) {
+
+    .gardin-accordion-header {
+        padding: 12px 14px;
+    }
+
+    .accordion-left {
+        gap: 10px;
+    }
+
+    .accordion-left > i {
+        font-size: 16px;
+        width: 20px;
+    }
+
+    .accordion-title {
+        font-size: 13px;
+    }
+
+    .accordion-subtitle {
+        font-size: 10px;
+    }
+
+    .accordion-right {
+        gap: 8px;
+    }
+
+    .accordion-status {
+        font-size: 10px;
+    }
+
+    .accordion-chevron {
+        font-size: 12px;
+    }
+
+    .accordion-inner {
+        padding: 14px 0;
+    }
+
+    .accordion-inner > * {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
+    /* Suspension cards */
+    .suspension-options {
+        gap: 6px;
+    }
+
+    .suspension-card {
+        padding: 10px 4px;
+        min-height: 52px;
+    }
+
+    .suspension-card i {
+        font-size: 15px;
+    }
+
+    .suspension-card span {
+        font-size: 10px;
+    }
+
+    /* Input grid - stack */
+    .input-grid {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .premium-input {
+        padding: 10px;
+        font-size: 16px; /* iOS zoom fix */
+    }
+
+    /* Quantity & Note - side by side on tablet */
+    .quantity-note-row {
+        gap: 8px;
+    }
+
+    .qty-stepper {
+        height: 40px;
+    }
+
+    .qty-stepper button {
+        min-width: 36px;
+        font-size: 16px;
+    }
+
+    .qty-stepper input {
+        width: 36px;
+        font-size: 14px;
+    }
+
+    #open-note-btn {
+        height: 40px;
+        font-size: 12px;
+        padding: 0 10px;
+    }
+
+    /* Summary */
+    #gardin-summary {
+        padding: 12px;
+    }
+
+    #gardin-summary .summary-total {
+        font-size: 15px;
+    }
+
+    /* Buttons - side by side on tablet */
+    .form-actions {
+        gap: 8px;
+    }
+
+    #gardin-calc-btn,
+    #gardin-reset-btn {
+        padding: 12px;
+        font-size: 13px;
+    }
+}
+
+
+/* ============================================
+   9. SMALL MOBILE (max-width: 480px)
+   ============================================ */
+
+@media (max-width: 480px) {
+
+    .gardin-box {
+        border-radius: 6px;
+        margin: 0 -10px;
+        border-left: none;
+        border-right: none;
+    }
+
+    .gardin-accordion-header {
+        padding: 11px 12px;
+    }
+
+    .accordion-title {
+        font-size: 12px;
+    }
+
+    .accordion-subtitle {
+        font-size: 9px;
+    }
+
+    .accordion-chevron {
+        font-size: 11px;
+    }
+
+    .accordion-inner {
+        padding: 12px 0;
+    }
+
+    .accordion-inner > * {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
+    /* Suspension */
+    .suspension-selector > .form-label,
+    .input-group .form-label,
+    .m2-quantity-selector > .form-label {
+        font-size: 9px;
+    }
+
+    .suspension-card {
+        padding: 8px 4px;
+        min-height: 48px;
+    }
+
+    .suspension-card i {
+        font-size: 14px;
+    }
+
+    .suspension-card span {
+        font-size: 9px;
+    }
+
+    /* Inputs */
+    .premium-input {
+        padding: 9px;
+    }
+
+    /* Quantity & Note - stack on small mobile */
+    .quantity-note-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
+
+    .m2-quantity-selector {
+        width: 100%;
+    }
+
+    .qty-stepper {
+        height: 40px;
+        width: 100%;
+        justify-content: center;
+    }
+
+    .qty-stepper button {
+        flex: 1;
+        max-width: 60px;
+    }
+
+    .qty-stepper input {
+        flex: 1;
+        max-width: 60px;
+    }
+
+    #open-note-btn {
+        height: 40px;
+        font-size: 12px;
+    }
+
+    /* Note modal inline */
+    .note-modal-inner {
+        padding: 12px;
+    }
+
+    .note-modal-inner h4 {
+        font-size: 12px;
+    }
+
+    #gardin-note {
+        font-size: 16px; /* iOS zoom fix */
+        height: 70px;
+    }
+
+    /* Summary */
+    #gardin-live-summary {
+        padding: 10px;
+    }
+
+    #summary-details {
+        font-size: 11px;
+    }
+
+    #summary-note-display {
+        font-size: 11px;
+    }
+
+    #gardin-summary {
+        padding: 12px;
+    }
+
+    #gardin-summary .summary-row {
+        font-size: 11px;
+    }
+
+    #gardin-summary .summary-total {
+        font-size: 14px;
+    }
+
+    /* Buttons - stack */
+    .form-actions {
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    #gardin-calc-btn,
+    #gardin-reset-btn {
+        width: 100%;
+        flex: none;
+        padding: 12px;
+        font-size: 12px;
+    }
+}
+
+
+/* ============================================
+   10. ACCESSIBILITY & TOUCH
+   ============================================ */
+
+.gardin-box button,
+.gardin-box input,
+.gardin-box label,
+.gardin-box textarea {
+    -webkit-tap-highlight-color: transparent;
+}
+
+.gardin-box button:focus-visible,
+.gardin-box input:focus-visible,
+.gardin-box textarea:focus-visible {
+    outline: 2px solid #4CAF50;
+    outline-offset: 2px;
+}
+
+.gardin-box button {
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .gardin-accordion-content {
+        transition: none;
+    }
+
+    .accordion-chevron {
+        transition: none;
+    }
+
+    .suspension-card,
+    #gardin-calc-btn,
+    #gardin-reset-btn,
+    #open-note-btn {
+        transition: none;
+    }
+
+    #gardin-live-summary.visible,
+    #gardin-summary.visible,
+    #note-modal.visible {
+        animation: none;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.delivery-time-box {
+    border-left: 3px solid #ddd; /* Sol tarafta gri şerit */
+    padding-left: 15px;
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.delivery-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    color: #999;
+    letter-spacing: 1px;
+    margin-bottom: 2px;
+}
+
+.delivery-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+}
+
+
+
+.swatch-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+}
+.color-swatch-link {
+    display: block;
+    border: 2px solid transparent;
+    padding: 2px;
+    border-radius: 50%;
+}
+.color-swatch-link.active-swatch {
+    border-color: #000; /* Seçili olan rengin etrafına siyah halka */
+}
+
+/* Ana Buton Kapsayıcısı */
+.size-option {
+    display: flex !important;
+    align-items: center !important; /* Resim ve metni dikeyde aynı hizaya getirir */
+    gap: 15px !important;         /* Resim ile metin arasındaki boşluk */
+    padding: 10px !important;
+    width: 100%;
+    border: 1px solid #eee;
+    background: #fff;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    text-align: left;
+}
+
+/* 50x70px Özel Resim Alanı */
+.variant-mini-thumb {
+    width: 50px !important;
+    height: 70px !important;
+    object-fit: cover;         /* Resmin oranını bozmadan kutuyu doldurur */
+    border-radius: 4px;        /* Hafif yuvarlatılmış köşeler */
+    border: 1px solid #f0f0f0;
+    flex-shrink: 0;            /* Resmin ezilmesini engeller */
+}
+
+/* Bilgi Kolonu (Ölçü ve Stok) */
+.variant-info-col {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;   /* İçindeki metinleri dikeyde ortalar */
+    flex-grow: 1;              /* Ortadaki alanı doldurur */
+}
+
+/* Sağdaki Fiyat Alanı */
+.variant-price-col {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+
+/* Resim ve metni bir arada tutan sol grup */
+.selected-variant-info {
+    display: flex;
+    align-items: center; /* Resim ve metni kendi içinde dikeyde ortalar */
+    gap: 15px;           /* Resim ile yazı arasındaki boşluk */
+}
+
+/* Akordiyonun içindeki küçük resim */
+#accordion-variant-thumb {
+    width: 30px;         /* Genişlik */
+    height: 42px;        /* Yükseklik (Halı formatı için ideal) */
+    object-fit: cover;
+    border-radius: 2px;
+    border: 1px solid #eee;
+    flex-shrink: 0;      /* Resmin ezilmesini önler */
+    display: block;
+}
+
+/* Seçili ölçü metni için ek ayar (zaten ortalı ama garantiye alalım) */
+#selected-size-display {
+    font-size: 15px;
+    font-weight: 500;
+    color: #000;
+}
+
+/* --- Related Title Masaüstü Ayarları --- */
+.related-title {
+    font-size: 28px !important; /* Masaüstünde tok bir başlık */
+    font-weight: 700 !important;
+    color: #222 !important;
+    text-align: left; /* Genelde sola yaslı daha şık durur */
+    margin-top: 100px !important;    /* Üstteki içerikten uzaklık */
+    margin-bottom: 15px !important; /* Alttaki slider'a olan yakınlık */
+    letter-spacing: -0.5px !important;
+}
+
+/* --- Mobilde Daha Kibar ve Dar Boşluklu --- */
+@media (max-width: 768px) {
+    .related-title {
+        font-size: 20px !important; /* Mobilde çok büyük durmaması için küçülttük */
+        margin-top: 20px !important;    /* Mobilde üst boşluğu azalttık */
+        margin-bottom: 5px !important; /* Slider ile arayı daralttık */
+        padding-left: 10px; /* Kenardan hafif boşluk (isteğe bağlı) */
+    }
+}
+
+
+/* Ana Konteynır - Arka plan ve border kaldırıldı */
+#product-group-wrapper {
+    margin: 20px 0 !important;
+    padding: 0;
+}
+
+/* Üst Bilgi Satırı - Sola ve Sağa yaslama */
+.swatch-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.vald-farg-text {
+    margin: 0;
+    font-size: 14px;
+}
+
+.vald-farg-text .label {
+    font-weight: bold;
+    color: #000;
+}
+
+.vald-farg-text .value {
+    color: #666;
+    margin-left: 4px;
+}
+
+.total-count-text {
+    font-size: 13px;
+    color: #888;
+    font-weight: 500;
+}
+
+/* Renk Kutucukları Listesi */
+.swatch-list {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* Kutucuk Tasarımı - Karemsi yapı */
+/* Kutucuk Tasarımı */
+.color-swatch-link {
+    display: block;
+    width: 50px;
+    height: 50px;
+    border-radius: 4px;
+    position: relative;
+    /* transition: transform ile sadece büyümeyi, border ile renk geçişini yumuşatırız */
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), border-color 0.2s ease;
+    border: 1px solid #e5e5e5;
+    overflow: hidden;
+    z-index: 1;
+}
+
+/* Hover Durumu - Kutunun Tamamı Büyür */
+.color-swatch-link:hover {
+    border-color: #333; /* Çerçeve biraz koyulaşır */
+    transform: scale(1.18); /* Kutuyu %18 oranında büyütür */
+    z-index: 10; /* Büyüyen kutu diğerlerinin üstüne çıksın diye */
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1); /* Hafif gölge ile derinlik katar */
+}
+
+/* Aktif Swatch (Seçili Olan) zaten büyük olduğu için hoverda ekstra büyümesin dersen: */
+.color-swatch-link.active-swatch:hover {
+    transform: scale(1.1); /* Zaten scale 1.1 yapmıştık, sabit kalsın */
+}
+
+/* Masaüstü ayarların (Aynı kalabilir, sadece genel kapsayıcıyı kontrol et) */
+.summary.entry-summary { 
+    position: relative; 
+}
+
+/* Kapsayıcı Satır: Fiyat ve Trust'ı yan yana tutar */
+.product-price-trust-row {
+    display: flex;
+    justify-content: space-between; /* Fiyat sola, Trust sağa */
+    align-items: flex-end;          /* İkisini alt çizgide hizalar */
+    width: 100%;
+    margin-top: 15px;
+    margin-bottom: 15px;
+    position: relative;             /* Artık absolute içermez, akışa dahil */
+}
+
+.google-mini-trust {
+    /* position: absolute;  <-- BUNU SİLDİK */
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    z-index: 5;
+    pointer-events: none;
+}
+
+.g-stars {
+    color: #FBBC05;
+    font-size: 18px;
+    letter-spacing: 1px;
+    line-height: 1;
+}
+
+.g-text {
+    font-size: 12px;
+    color: #999;
+    margin-top: 4px;
+    white-space: nowrap;
+}
+
+.g-brand {
+    font-size: 12px;
+    color: #888;
+    letter-spacing: 0.5px;
+    font-weight: 500;
+}
+
+/* MOBİL DÜZENLEME (768px altı) */
+@media (max-width: 768px) {
+    .product-price-trust-row {
+        align-items: center; /* Mobilde dikeyde ortalamak daha şık durabilir */
+    }
+
+    .google-mini-trust {
+        /* Mobilde de absolute kaldırıldı, fiyatın yanında otomatik duracak */
+    }
+
+    .g-stars {
+        font-size: 15px;
+        letter-spacing: 0.5px;
+    }
+
+    .g-text, .g-brand {
+        font-size: 11px;
+    }
+
+    .product-details {
+        /* padding-right: 80px; <-- BUNU SİLDİK, artık gerek yok */
+        position: relative;
+    }
+}
+
+/* Ana Satır Hizalaması */
+.product-label-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+/* Tooltip Kapsayıcı */
+.custom-tooltip-container {
+    position: relative;
+    display: inline-flex;
+}
+
+/* Tıklanabilir Span (Etrafa çerçeve yapmaz) */
+.tooltip-toggle-span {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    user-select: none;
+    /* İhtiyaca göre biraz yukarı taşımak için: */
+    position: relative;
+    top: 0px; 
+}
+
+.tooltip-label-text {
+    font-size: 13px;
+    color: #000;
+    text-decoration: underline;
+}
+
+/* Açılan Bilgi Kutusu */
+.tooltip-popup-box {
+    display: none; /* JS ile açılacak */
+    position: absolute;
+    bottom: 30px;
+    left: 0;
+    width: 260px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 15px;
+    z-index: 99999;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.tooltip-body {
+    font-size: 14px;
+    color: #333;
+    line-height: 1.5;
+}
+
+.tooltip-body a {
+    color: #007cba;
+    text-decoration: underline;
+    font-weight: bold;
+}
+
+/* Kapatma Butonu */
+.tooltip-close-btn {
+    position: absolute;
+    top: 5px;
+    right: 8px;
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: #999;
+    padding: 0;
+    line-height: 1;
+}
+
+@keyframes slideUpFade {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* MOBİL DÜZENLEME (Ekrana sığması için) */
+@media (max-width: 768px) {
+    .tooltip-popup-box {
+        /* Kutuyu sola çekmek için absolute pozisyonunu değiştiriyoruz */
+        left: -40px;       /* Biraz daha sola kaydırır */
+        width: 70vw;       /* Ekranın %85'i kadar genişlik (taşmayı engeller) */
+        max-width: 300px;  /* Çok büyük ekranlarda devleşmesin */
+        position: absolute;
+        bottom: 40px;      /* Butondan biraz daha yukarıda dursun */
+    }
+
+ }
+
+/* ==================================================== */
+/* 🧱 TEMEL YERLEŞİM (PRODUCT CONTENT & CONTAINER) 🧱 */
+/* ==================================================== */
+
+.container {
+    max-width: 1300px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 10px;
+    padding-right: 20px;
+}
+
+.product-content {
+    display: flex;
+    gap: 30px;
+    margin-top: 10px;
+    align-items: flex-start;
+}
+
+
+
+
+
+/* ---------------------------------------------------- */
+/* 🖼️ SOL ALAN: ÜRÜN GÖRSELİ (GALLERY) - STATİK */
+/* ---------------------------------------------------- */
+.product-gallery {
+    flex: 0 0 65%;
+    max-width: 65%;
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
+    
+    /* 🔥 STATİK YAPILDI: Sayfa ile birlikte kaybolacak */
+    position: static; 
+    height: auto;
+    top: auto;
+    
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* İki Ana Görsel ve Tek Görsel Stilleri */
+.main-display-wrapper {
+    display: flex;
+    gap: 15px;
+}
+
+.main-image-column {
+    flex: 1;
+    cursor: zoom-in;
+}
+
+.main-image {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 3 / 4;
+    object-fit: cover;
+    border: 1px solid #eee;
+    /* Netlik Ayarları */
+    image-rendering: -webkit-optimize-contrast !important;
+    image-rendering: high-quality !important;
+    transform: translateZ(0);
+    /* Solukluğu kıran hafif kontrast */
+    filter: contrast(1.02) brightness(1.01) !important;
+}
+
+/* Yatay Galeri Listesi (Thumbnails) */
+.gallery-thumbnail-list {
+    display: flex;
+    flex-direction: row; 
+    gap: 10px; /* Görseller arası boşluk */
+    
+    /* 🚨 KRİTİK DÜZELTME 1: Sığmayan öğeleri alt satıra at. */
+    flex-wrap: wrap; 
+    
+    /* Eğer galerinin genişliği bir üst element tarafından kısıtlanıyorsa, bunu kaldırabilirsin */
+    /* width: 100%; */
+    
+    /* Yatay kaydırma ayarlarını çoklu satır düzeni için iptal ediyoruz */
+    overflow-x: visible; /* Gizlemesin */
+    padding-bottom: 0; /* Artık alt satıra atladığı için padding gereksiz */
+    
+}
+
+.gallery-thumbnail-list .thumbnail-item {
+    width: 185px;
+    height: 250px;
+    aspect-ratio: 3 / 4;
+    object-fit: cover;
+    border: 1px solid #eee;
+    cursor: pointer;
+    transition: border-color 0.2s;
+    flex-shrink: 0;
+    margin-bottom: 0px; 
+    image-rendering: -webkit-optimize-contrast !important;
+    image-rendering: crisp-edges !important;
+}
+
+.gallery-thumbnail-list .thumbnail-item.selected, 
+.gallery-thumbnail-list .thumbnail-item:hover {
+    border-color: #333;
+}
+
+
+/* ---------------------------------------------------- */
+/* 📝 SAĞ ALAN: ÜRÜN DETAYLARI (DETAILS) - STICKY */
+/* ---------------------------------------------------- */
+.product-details {
+    flex: 0 0 35%;
+    max-width: 35%;
+    display: flex;
+    flex-direction: column;
+    padding-left: 30px;
+    padding-right: 20px;
+
+    /* 🔥 STICKY GÜNCELLEMESİ 🔥 */
+    position: -webkit-sticky; /* Safari desteği için */
+    position: sticky !important;
+    top: 20px !important;
+    
+    /* Sticky'nin çalışması için elemanın esnememesi, içeriği kadar olması lazım */
+    height: fit-content !important;
+    align-self: flex-start !important; 
+    
+    /* Eğer bir z-index çakışması varsa diye */
+    z-index: 10;
+}
+
+/* 1. ÜRÜN İSMİ */
+#product-main-name-desktop {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-top: 25px; /* Tekrar silindi */
+    margin-bottom: 5px;
+    line-height: 1.2;
+}
+
+
+/* 1. KAPSAYICIYI FLEX YAP (Bu şart) */
+#product-price {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: baseline !important;
+    gap: 5px !important;
+}
+
+/* 2. İNDİRİMLİ FİYAT (Kırmızı ve En Başta) */
+#product-price .sale-price {
+    order: 1 !important; /* En küçük numara = En baş */
+    font-size: 1.4rem !important;
+    font-weight: 700 !important;
+    color: #d73636 !important;
+}
+
+/* 3. İNDİRİM OLMAYAN NORMAL FİYAT (Siyah ve En Başta) */
+#product-price .regular-price {
+    font-size: 1.4rem !important;
+    font-weight: 700 !important;
+    color: #000000 !important;
+}
+
+/* 4. ESKİ FİYAT (Gri ve İndirimli Fiyatın Sağında) */
+#product-price .old-price {
+    order: 2 !important; /* 1'den büyük olduğu için sağa geçer */
+    font-size: 1.4rem !important;
+    color: #999 !important;
+    font-weight: 600 !important;
+    text-decoration: line-through !important;
+    margin-left: 5px !important; /* Hafif bir boşluk */
+}
+
+#product-price .sale-price, 
+#product-price .regular-price {
+    /* Font weight 600, sistem fontlarında 'Semi-Bold' durur, tam kıvamındadır */
+    font-weight: 600 !important;
+    /* Harfleri çok hafif yaklaştırarak (sıkıştırarak) o premium havayı veriyoruz */
+    letter-spacing: -0.8px !important;
+}
+
+/* Sayfa açıldığında fiyat alanı tamamen gizli kalsın */
+#product-price.not-loaded {
+    opacity: 0 !important;
+    visibility: hidden !important;
+}
+
+/* JS hazır olduğunda yumuşak bir geçişle görünsün */
+#product-price.loaded {
+    opacity: 1 !important;
+    visibility: visible !important;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.product-price-display {
+    display: flex !important;
+    flex-direction: column !important; /* Üst üste binmelerini sağlar */
+    align-items: flex-start !important; /* Sola yaslar */
+    min-height: 50px; /* Zıplamayı önlemek için alan rezerve et */
+}
+
+/* INKL. MOMS YAZISI */
+.tax-info-static {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #666;
+    margin-top: 3px; /* Fiyat ile arasında 3px boşluk */
+    text-align: left; /* Sticky alanda sola hizalama */
+}
+
+/* Genel Stok Bilgisi Kapsayıcısı (Boşluk ve Hizalama) */
+.stock-display-info {
+    display: flex;
+    align-items: center; 
+    gap: 10px; /* Boşluğu biraz artırdık */
+    margin-top: 15px; 
+    margin-bottom: 0px; 
+    font-size: 1.1rem; /* Metin boyutunu da hafifçe artırabiliriz */
+}
+
+/* İKON STİLİ (fa-check ve fa-xmark ikonlarını hedefle) */
+.stock-display-info .fa-solid.fa-check,
+.stock-display-info .fa-solid.fa-xmark {
+    /* 1. Sembol ve Arka Plan Rengi */
+    color: white !important; /* Sembolü beyaz yap */
+    background-color: currentColor !important; /* Arka planı ana metin rengiyle doldur */
+    
+    /* 2. Daire Şekli ve Dış Boyut (Force Boyutlandırma) */
+    border-radius: 50%; 
+    
+    /* Dairenin dış boyutunu ZORLA 3.5rem yapıyoruz */
+    width: 3.5rem !important; 
+    height: 3.5rem !important;
+    
+    /* Tik/çarpıyı daire içinde ortala */
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    
+    /* 3. İçindeki Sembolün Boyutunu Büyütme */
+    font-size: 1.8rem !important; /* İçindeki tik/çarpıyı net görecek kadar büyüt */
+    font-weight: 900 !important; 
+}
+
+/* 4. AKSİYON BUTONLARI */
+.action-buttons {
+    display: flex;
+    gap: 0px;
+    margin-top: 30px;
+    margin-bottom: 10px;
+}
+.add-to-cart-btn {
+    flex-grow: 1;
+    background-color: #000;
+    color: #fff;
+    padding: 15px 30px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+.add-to-cart-btn:hover {
+    background-color: #444;
+}
+.add-to-cart-btn i {
+    margin-right: 10px;
+}
+
+/* ---------------------------------------------------- */
+/* 📦 EKSTRA BÖLÜMLER (AKORDİYON, PROMISE LİSTESİ) */
+/* ---------------------------------------------------- */
+/* 1. ANA KAPSAYICI */
+.product-accordion-wrapper {
+    margin-top: 25px;
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+    background: #ffffff;
+    overflow: hidden;
+}
+
+/* 2. BAŞLIK ALANI */
+.product-accordion-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 15px 12px !important;
+    cursor: pointer;
+    background: transparent !important;
+     border: none !important;
+    outline: none !important;
+}
+
+.product-accordion-header h3 {
+    font-size: 14.5px !important;
+    font-weight: 600 !important;
+    color: #1a1a1a !important;
+    margin: 0 !important;
+}
+
+/* 3. İÇERİK ALANI (JS Dostu ve Sarsıntısız) */
+.product-accordion-content {
+    max-height: 0; /* Başlangıçta kapalı */
+    overflow: hidden;
+    transition: max-height 0.4s cubic-bezier(0, 1, 0, 1); /* Akıcı açılış sırrı */
+    background: #ffffff;
+}
+
+/* AKTİF DURUM (JS '.active' eklediğinde) */
+.product-accordion-item.active .product-accordion-content {
+    max-height: 2000px; /* Çok yüksek bir değer veriyoruz */
+    border-top: 1px solid #f0f0f0;
+    
+    transition: max-height 0.4s ease-in-out; /* Açılırken pürüzsüz geçiş */
+}
+
+/* 4. YAZILARIN SABİT DURMASINI SAĞLAYAN İÇ KATMAN */
+/* Sola kaymayı önlemek için padding'i buraya hapsediyoruz */
+.product-accordion-content > div, 
+.product-accordion-content .custom-specs-content {
+    padding: 15px 18px !important; 
+    font-size: 14px;
+    line-height: 1.6;
+    color: #444;
+    transform: translateZ(0); /* Titremeyi önler */
+}
+
+/* 5. METİN DÜZENİ */
+.product-accordion-content p {
+    margin-bottom: 12px !important;
+}
+.product-accordion-content p:last-child {
+    margin-bottom: 0 !important;
+}
+
+/* 6. OK İKONU */
+.product-accordion-header i {
+    transition: transform 0.3s ease;
+    font-size: 12px;
+}
+.product-accordion-item.active .product-accordion-header i {
+    transform: rotate(180deg);
+}
+
+.product-accordion-item {
+    border-bottom: 1px solid #e5e5e5; /* Başlıkların altındaki o çizgi */
+}
+
+.product-accordion-item:last-child {
+    border-bottom: none; /* En alttaki kutunun dışına çizgi taşmasın */
+}
+
+/* Küçük Avantajlar Listesi */
+.small-promise-list {
+    margin-top: 5px;
+    padding-top: 20px;
+}
+.small-promise-list p {
+    font-size: 0.95rem;
+    color: #555;
+    margin-bottom: 8px;
+}
+.small-promise-list i {
+    color: #008000;
+    margin-right: 8px;
+}
+
+/* 2. AKORDİYON BAŞLIKLARINI TEMADAN KURTARMA */
+.product-page .product-accordion-header {
+    background-color: transparent !important;
+    color: #333 !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* Akordiyon Üstüne Gelince Renk Değişmesini Engelle */
+.product-page .product-accordion-header:hover,
+.product-page .product-accordion-header:focus,
+.product-page .product-accordion-header:active {
+    background-color: transparent !important;
+    color: #000 !important; /* Veya senin istediğin hover rengi */
+    outline: none !important;
+
+}
+
+/* ---------------------------------------------------- */
+/* BREADCRUMB
+/* ---------------------------------------------------- */
+/* --- Ürün Sayfası Özel Breadcrumb Stilleri --- */
+
+.custom-cat-breadcrumb-unique {
+    padding: 15px 0;
+    margin-bottom: 50px;
+    margin-top: 140px;
+    font-size: 14px;
+}
+
+.custom-cat-breadcrumb-unique .breadcrumb-inner-wrapper {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap; /* Mobilde taşma yapmasın diye */
+    gap: 10px;
+}
+
+/* Geri Dön Butonu */
+.custom-cat-breadcrumb-unique .breadcrumb-back-trigger {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #333;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.2s ease;
+}
+
+.custom-cat-breadcrumb-unique .breadcrumb-back-trigger:hover {
+    color: #000;
+}
+
+.custom-cat-breadcrumb-unique .breadcrumb-back-trigger i {
+    font-size: 12px;
+}
+
+/* Ayırıcı Çubuk (|) */
+.custom-cat-breadcrumb-unique .breadcrumb-divider {
+    color: #ccc;
+    font-weight: 300;
+    margin: 0 2px;
+}
+
+/* Anasayfa Linki */
+.custom-cat-breadcrumb-unique .breadcrumb-home-link {
+    color: #666;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.custom-cat-breadcrumb-unique .breadcrumb-home-link:hover {
+    color: #000;
+    text-decoration: underline;
+}
+
+/* Sağ Ok İkonu (>) */
+.custom-cat-breadcrumb-unique .separator {
+    color: #999;
+    font-size: 10px;
+}
+
+/* Mevcut Ürün Adı (Pasif) */
+.custom-cat-breadcrumb-unique .current-item {
+    color: #999;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px; /* Çok uzun ürün isimleri tasarımı bozmasın */
+}
+
+@media (max-width: 768px) {
+    .custom-cat-breadcrumb-unique {
+        display: none !important;
+    }
+}
+
+
+/* 📱 MOBİL UYUMLULUK (Responsive) */
+@media (max-width: 600px) {
+    .input-grid, 
+    .action-grid, 
+    .button-group {
+        flex-direction: column; /* Elemanları alt alta dizer */
+        gap: 10px;
+    }
+
+    .action-grid {
+        align-items: stretch;
+    }
+
+    .btn-calculate, 
+    .btn-reset {
+        width: 100%;
+        flex: none;
+    }
+    
+    .suspension-grid {
+        flex-direction: row; /* Kartlar mobilde yan yana kalsın, çok yer kaplamasın */
+    }
+}
+
+/* ---------------------------------------------------- */
+/* VARVASYON CEKMECE STILLERI) */
+/* ---------------------------------------------------- */
+
+/* Ana Varyant Seçenekleri Kapsayıcısı */
+.size-options-modal {
+    padding: 15px 5px; /* Üst-alt ve yanlardan hafif boşluk */
+    display: grid;
+    gap: 12px; /* Butonların birbirine olan uzaklığı arttı */
+}
+
+/* Her Bir Varyant Düğmesi - Flexbox Kapsayıcısı */
+.size-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    /* Padding'i artırıyoruz: Üst-Alt 15px, Sağ-Sol 18px */
+    padding: 15px 18px; 
+    border: 1px solid #eee;
+    border-radius: 8px; /* Köşeleri biraz daha yumuşattık */
+    background-color: #fff;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02); /* Çok hafif bir derinlik */
+}
+
+/* Hover Efekti */
+.size-option:hover {
+    background-color: #fcfcfc;
+    border-color: #b11f3d; /* Hover olunca senin vişne çürüğü rengine dönsün */
+    transform: translateY(-1px); /* Hafif yukarı kalkma efekti */
+}
+
+/* 1. Resim Kolonu ve Resmi */
+.variant-image-col {
+    flex-shrink: 0; 
+    margin-right: 15px;
+}
+
+.variant-thumb {
+    width: 40px; /* Küçük resim boyutu */
+    height: 40px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+/* 2. Metin Bilgi Kolonu (Ölçü ve Stok) */
+.variant-info-col {
+    flex-grow: 1; /* Ortadaki bu sütunun olabildiğince yer kaplamasını sağla */
+    display: flex;
+    flex-direction: column; /* Ölçü ve stok bilgisini alt alta sırala */
+    text-align: left;
+}
+
+.size-text {
+    font-weight: bold;
+    font-size: 1rem;
+    color: #333;
+}
+
+.stock-info-modal {
+    color: #28a745; /* Daha canlı bir yeşil */
+    font-weight: 700;
+    font-size: 0.85rem;
+    display: block;
+    margin-top: 2px;
+}
+
+.size-option.disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background-color: #f9f9f9;
+}
+
+/* Varyant Çekmecesi Fiyat Stilleri */
+.variant-price-col {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+}
+
+.old-price-modal {
+    text-decoration: line-through;
+    font-weight: 600;
+    color: #999;
+    font-size: 1.0rem;
+}
+
+.current-price-modal {
+    font-weight: 600;
+    color: #333; /* Burayı #b11f3d yerine #333 (Siyah/Koyu Gri) yaptık */
+    font-size: 1rem;
+}
+
+/* Eğer aynı konteyner içinde hem eski fiyat hem yeni fiyat varsa, yenisini kırmızı yap */
+.variant-price-col:has(.old-price-modal) .current-price-modal {
+    color: #b11f3d; 
+}
+
+/* Modal Başlık Alanı Konteyneri */
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    /* Yanlardan 20px içeri aldık, üst-alt 10px yaptık */
+    padding: 10px 20px; 
+    margin-top: 10px;
+    margin-bottom: 20px;
+   
+}
+
+/* "Välj Storlek" Başlığı */
+.modal-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #000;
+    /* text-transform: uppercase; SATIRINI SİLDİK veya NONE YAPTIK */
+    text-transform: none; 
+    letter-spacing: 0px; /* Büyük harf olmayınca geniş harf aralığına gerek kalmaz */
+}
+
+/* X Kapatma Butonu */
+.close-btn#close-variant-modal {
+    background: none;
+    border: none;
+    font-size: 24px; /* Biraz daha belirgin yaptık */
+    color: #000;
+    cursor: pointer;
+    /* Butonun kendi iç paddingi kalsın ama header'dan gelen paddingle dengelenecek */
+    padding: 5px; 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+/* X Butonuna basıldığında veya üzerine gelindiğinde ufak bir efekt */
+.close-btn#close-variant-modal:hover {
+    transform: scale(1.1);
+    opacity: 0.7;
+}
+
+/* Varyasyon Modalının İçeriğini Kaydırılabilir Yap */
+#variant-modal .modal-body {
+    max-height: 70vh; /* Ekran yüksekliğinin %70'i kadar olsun */
+    overflow-y: auto;  /* İçerik taşarsa dikey kaydırma çubuğu çıksın */
+    padding-right: 10px; /* Kaydırma çubuğu ile içerik birbirine binmesin */
+}
+
+/* Kaydırma çubuğunu (scrollbar) daha şık ve ince yapalım (Opsiyonel) */
+#variant-modal .modal-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+#variant-modal .modal-body::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+#variant-modal .modal-body::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 10px;
+}
+
+#variant-modal .modal-body::-webkit-scrollbar-thumb:hover {
+    background: #999;
+}
+
+
+/* ======================================================= */
+/* Varyasyon Stok Durumu Stilleri */
+/* ======================================================= */
+
+/* Stokta OLAN (Varsayılan veya özel yeşil) */
+.stock-info-modal {
+    color: green;      /* Stokta varsa yeşil */
+    font-weight: 700;
+    font-size: 0.9rem;
+    display: block;
+    margin-top: 2px;
+}
+
+.stock-info-modal.out-of-stock {
+    color: #cc0000 !important; /* !important ile rengin baskın gelmesini sağlıyoruz */
+}
+
+/* ==================================================== */
+/* 1. GENEL / MASAÜSTÜ AYARLARI (Temiz Liste)          */
+/* ==================================================== */
+
+.product-page .add-to-cart-btn {
+    background-color: #222 !important;
+    color: #ffffff !important;
+    border: none !important;
+}
+
+/* Ana Buton Kapsayıcısı */
+.size-option {
+    display: flex !important;
+    align-items: center !important; /* Resim ve metni dikeyde aynı hizaya getirir */
+    gap: 15px !important;         /* Resim ile metin arasındaki boşluk */
+    padding: 10px !important;
+    width: 100%;
+    border: 1px solid #eee;
+    background: #fff;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    text-align: left;
+}
+
+/* 50x70px Özel Resim Alanı */
+.variant-mini-thumb {
+    width: 50px !important;
+    height: 70px !important;
+    object-fit: cover;         /* Resmin oranını bozmadan kutuyu doldurur */
+    border-radius: 4px;        /* Hafif yuvarlatılmış köşeler */
+    border: 1px solid #f0f0f0;
+    flex-shrink: 0;            /* Resmin ezilmesini engeller */
+}
+
+/* Bilgi Kolonu (Ölçü ve Stok) */
+.variant-info-col {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;   /* İçindeki metinleri dikeyde ortalar */
+    flex-grow: 1;              /* Ortadaki alanı doldurur */
+}
+
+/* Sağdaki Fiyat Alanı */
+.variant-price-col {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+
+/* Resim ve metni bir arada tutan sol grup */
+.selected-variant-info {
+    display: flex;
+    align-items: center; /* Resim ve metni kendi içinde dikeyde ortalar */
+    gap: 15px;           /* Resim ile yazı arasındaki boşluk */
+}
+
+/* Akordiyonun içindeki küçük resim */
+#accordion-variant-thumb {
+    width: 30px;         /* Genişlik */
+    height: 42px;        /* Yükseklik (Halı formatı için ideal) */
+    object-fit: cover;
+    border-radius: 2px;
+    border: 1px solid #eee;
+    flex-shrink: 0;      /* Resmin ezilmesini önler */
+    display: block;
+}
+
+/* Seçili ölçü metni için ek ayar (zaten ortalı ama garantiye alalım) */
+#selected-size-display {
+    font-size: 15px;
+    font-weight: 500;
+    color: #000;
+}
+
+
+
+/* VARYASYON BUTONU (RAM HOVER) */
+.variant-selector {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    width: 100%;
+    border: 1px solid #000 !important;
+    padding: 5px 20px;
+    background-color: #ffffff !important;
+    transition: all 0.2s ease !important;
+}
+
+.variant-selector:hover {
+    box-shadow: 0 0 0 1px #000000 !important;
+}
+/* ==================================================== */
+/* CUSTOM LIGHTBOX - Pure JS/HTML/CSS (No Library)      */
+/* ==================================================== */
+
+/* ===== OVERLAY ===== */
+.custom-lightbox-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #ffffff;
+    z-index: 999999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+.custom-lightbox-overlay.active {
+    display: flex;
+}
+
+/* ===== DESKTOP LAYOUT ===== */
+.lightbox-desktop-layout {
+    display: flex;
+    width: 100%;
+    height: 100%;
+}
+
+/* ===== SOL SIDEBAR (THUMBNAILS) ===== */
+.lightbox-thumbnail-sidebar {
+    width: 120px;
+    height: 100%;
+    background: #fafafa;
+    border-right: 1px solid #e0e0e0;
+    display: flex;
+    flex-direction: column;
+    padding: 20px 10px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.lightbox-thumbnail-sidebar::-webkit-scrollbar {
+    width: 4px;
+}
+
+.lightbox-thumbnail-sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.lightbox-thumbnail-sidebar::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 2px;
+}
+
+.lightbox-thumbnail-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.lightbox-thumb-item-container {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.2s ease;
+    opacity: 0.6;
+}
+
+.lightbox-thumb-item-container:hover {
+    opacity: 0.8;
+    border-color: #999;
+}
+
+.lightbox-thumb-item-container.selected {
+    opacity: 1;
+    border-color: #000;
+}
+
+.lightbox-thumbnail-item {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* ===== SAĞ ANA ALAN ===== */
+.lightbox-main-area {
+    flex: 1;
+    height: 100%;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+/* ===== KAPATMA BUTONU ===== */
+.lightbox-close-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #f0f0f0;
+    border: 1px solid #ddd;
+    color: #000;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.lightbox-close-btn:hover {
+    background: #e0e0e0;
+    transform: scale(1.05);
+}
+
+/* ===== RESİM KONTEYNERİ ===== */
+.lightbox-image-container {
+    width: 100%;
+    height: calc(100% - 80px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    cursor: zoom-in;
+    position: relative;
+}
+
+.lightbox-image-wrapper {
+    transition: transform 0.3s ease;
+    transform-origin: center center;
+    will-change: transform;
+}
+
+.lightbox-image-wrapper.zoomed {
+    cursor: grab;
+}
+
+.lightbox-image-wrapper.zoomed:active {
+    cursor: grabbing;
+}
+
+.lightbox-main-image {
+    max-width: 85vw;
+    max-height: 80vh;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+
+/* ===== NAVİGASYON ===== */
+.lightbox-nav {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    z-index: 10;
+}
+
+.lightbox-nav-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(240, 240, 240, 0.9);
+    border: 1px solid #ddd;
+    color: #000;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.lightbox-nav-btn:hover:not(:disabled) {
+    background: #e0e0e0;
+    transform: scale(1.05);
+}
+
+.lightbox-nav-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.lightbox-counter {
+    font-size: 14px;
+    font-weight: 500;
+    color: #666;
+    min-width: 60px;
+    text-align: center;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* ===== ZOOM HİNT ===== */
+.lightbox-zoom-hint {
+    position: absolute;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    pointer-events: none;
+    opacity: 0;
+    animation: hintFade 3s ease forwards;
+    z-index: 5;
+}
+
+@keyframes hintFade {
+    0% { opacity: 0; transform: translateX(-50%) translateY(10px); }
+    20% { opacity: 1; transform: translateX(-50%) translateY(0); }
+    80% { opacity: 1; transform: translateX(-50%) translateY(0); }
+    100% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+}
+
+
+/* ==================================================== */
+/* MOBİL ÜRÜN SAYFASI GALERİ                            */
+/* ==================================================== */
+
+.mobile-gallery-wrapper {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+}
+
+.mobile-gallery-track {
+    display: flex;
+    transition: transform 0.3s ease-out;
+    will-change: transform;
+}
+
+.mobile-gallery-slide {
+    width: 100%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mobile-gallery-slide img {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    display: block;
+}
+
+.mobile-gallery-counter {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    padding: 6px 16px;
+    border-radius: 16px;
+    font-size: 13px;
+    font-weight: 500;
+    z-index: 5;
+}
+
+/* ==================================================== */
+/* MOBİL GALERİ - KOMPAKT SCROLLBAR                    */
+/* ==================================================== */
+
+.mobile-gallery-scrollbar {
+    position: absolute;
+    bottom: 12px; /* Biraz daha yukarı */
+    left: 50%; /* Ortala */
+    transform: translateX(-50%);
+    width: 50px; /* Sabit kısa genişlik */
+    height: 4px; /* Biraz daha kalın, görünür olsun */
+    background: rgba(0, 0, 0, 0.08); /* Daha soluk arka plan */
+    border-radius: 4px;
+    overflow: hidden;
+    z-index: 5;
+}
+
+.mobile-gallery-scrollbar-thumb {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5); /* Yumuşak siyah */
+    border-radius: 4px;
+    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.2s ease;
+    min-width: 8px; /* Çok küçük olmasın */
+}
+
+/* ==================================================== */
+/* RESPONSIVE BREAKPOINTS                               */
+/* ==================================================== */
+
+@media (max-width: 768px) {
+    .lightbox-desktop-layout {
+        display: none;
+    }
+    
+    .lightbox-mobile-layout {
+        display: flex;
+    }
+    
+    .lightbox-thumbnail-sidebar {
+        display: none;
+    }
+}
+
+@media (min-width: 769px) {
+    .lightbox-mobile-layout {
+        display: none !important;
+    }
+}
+
+
+
+
+/* ==================================================== */
+/* ESKİ SWIPER LIGHTBOX STILLERİ (Geri Uyumluluk)       */
+/* ==================================================== */
+
+#lightbox-modal-overlay.lightbox-overlay {
+    display: none !important; /* Eski lightbox gizli */
+}
+
+/* ==================================================== */
+/* ESKİ SWIPER LIGHTBOX STILLERİ (Geri Uyumluluk)       */
+/* ==================================================== */
+
+#lightbox-modal-overlay.lightbox-overlay {
+    display: none !important; /* Eski lightbox gizli */
+}
+
+
+/* ==================================================== */
+/* 3. 📱 MOBİL UYUM (TÜM MOBİL KODLAR BURADA TOPLANDI) */
+/* ==================================================== */
+@media (max-width: 768px) {
+    
+    .container {
+        padding: 0 !important;
+    }
+
+    .product-content {
+        flex-direction: column;
+        gap: 0;
+    }
+    
+    /* 1. Galeriyi tam genişlikte ve statik yap */
+    .product-gallery {
+        order: 1;
+        width: 100%;
+        max-width: 100%;
+        position: static;
+        z-index: 5;
+        -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
+    }
+
+
+    
+    /* 2. Detay Alanı Düzeltmeleri */
+    .product-details {
+        order: 2;
+        padding: 20px !important; 
+        width: 100%;
+        max-width: 100%;
+        background-color: #ffffff;
+        
+        /* 🔥 MOBİLDE STICKY'Yİ İPTAL ETMEK VE SIFIRLAMAK KRİTİK 🔥 */
+        position: static; 
+        top: auto;
+        
+        /* 🔥 KRİTİK DÜZELTME: Hizalamayı sola geri al 🔥 */
+        text-align: left !important; 
+    }
+
+    
+    .action-buttons {
+        margin: 20px 0 !important; /* Otomatik marjin yerine sıfırlama */
+        max-width: 100%;
+        justify-content: space-between; /* Butonları uçlara hizala */
+        width: 100%;
+    }
+    .add-to-cart-btn {
+        width: 75%;
+    }
+    .wishlist-btn {
+        width: 25%;
+    }
+    
+    .size-selector-wrapper {
+        margin: 15px 0 !important;
+        max-width: 100%;
+        display: flex !important;
+        justify-content: space-between !important;
+    }
+}  
+
+@media (max-width: 768px) {
+    /* Masaüstünden gelen 2 sütunlu yapıyı mobilde tek sütuna zorla */
+    .main-display-wrapper {
+        display: flex !important;
+        flex-direction: row !important; /* Resimler yan yana (kaydırılabilir) */
+        width: 100vw !important;        /* Ekranın tam genişliği */
+        margin-left: calc(-50vw + 50%); /* Kapsayıcı boşluklarını sıfırla */
+        margin-right: calc(-50vw + 50%);
+        padding: 0 !important;
+        overflow-x: auto !important;
+        scroll-snap-type: x mandatory !important;
+    }
+
+    .main-image-column {
+        flex: 0 0 100% !important; /* Her bir resim sütunu ekranın %100'ü olsun */
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 0 !important;
+        scroll-snap-align: start;
+    }
+
+    .main-image-column img {
+        width: 100% !important;
+        height: auto !important;
+        display: block !important;
+        object-fit: contain; /* Resmin kesilmesini engeller, tam sığdırır */
+    }
+     .gallery-thumbnail-list {
+        display: none; /* Mobilde thumbnail listesini gizle */
+    }
+    
+        #product-main-name-desktop {
+        font-size: 1.2rem !important; /* İsmi biraz küçülttük (Masaüstünde 1.4'tü) */
+        font-weight: 700;
+        text-align: left !important; /* Sağa almak istersen 'right', ortalamak için 'center' */
+        margin-top: 5px !important; /* Üstteki galeriyle arasındaki boşluk */
+        margin-bottom: 0px !important; /* Fiyatla arasındaki boşluk */
+        padding-left: 0px !important; /* Soldan biraz boşluk vermek istersen artır */
+        line-height: 1.3;
+    }
+
+    /* 2. FİYAT ALANI (MOBİL) */
+    .product-price-display {
+        margin-top: 0px !important;
+        margin-bottom: 10px !important; /* Altındaki varyasyon butonuyla boşluk */
+        display: flex;
+        flex-direction: column; /* Fiyat ve 'Inkl. moms' alt alta gelsin */
+        align-items: flex-start !important; /* Sola hizalar, sağ için 'flex-end', orta için 'center' */
+    }
+
+    #product-price {
+        font-size: 1.2rem !important; /* Fiyatı biraz daha kibarlaştırdık */
+        font-weight: 600;
+        color: #000;
+        text-align: left !important;
+    }
+
+    /* 3. VERGİ BİLGİSİ (Inkl. moms) */
+    .tax-info-static {
+        font-size: 0.85rem !important;
+        margin-top: 0px !important;
+        text-align: left !important;
+    }
+}
+    
+    @media (max-width: 1024px) {
+    .lightbox-sidebar {
+        display: none !important; /* Mobilde sidebarı gizle */
+    }
+
+    .lightbox-container {
+        width: 100%;
+        height: 100%;
+    }
+
+    .lightbox-main {
+        width: 100%;
+    }
+    
+
+    .custom-lb-scope .swiper-slide img {
+        max-width: 100%;
+        max-height: 75vh;
+    }
+    
+    
+    .custom-slider-outer-container .is-in-slider img {
+    width: 100% !important;
+    aspect-ratio: 3/4; /* Halı formatı */
+    object-fit: cover !important;
+   
+    
+}
+
+    .swiper-button-next,
+    .swiper-button-prev {
+        width: 35px !important;
+        height: 35px !important;
+        /* Mobilde oklar çok kenardaysa: */
+        margin: 0 -5px; 
+    }
+    
+    .swiper-button-next:after,
+    .swiper-button-prev:after {
+        font-size: 14px !important;
+    }
+    
+    /* Zoom sırasında resmin pürüzsüz geçiş yapmasını sağlar */
+.swiper-zoom-container img {
+    transition-timing-function: ease-out;
+    will-change: transform;
+}
+
+/* Mobilde zoom yapıldığında resmin kalitesini (mümkünse) koru */
+.swiper-slide-zoomed img {
+    cursor: grab;
+}
+
+/* Aktif olmayan noktalar */
+.main-swiper-dots .swiper-pagination-bullet {
+    background: #ccc !important; /* Pasif renk */
+    opacity: 0.6;
+    width: 8px;
+    height: 8px;
+    transition: all 0.3s ease;
+}
+
+/* Aktif olan nokta */
+.main-swiper-dots .swiper-pagination-bullet-active {
+    background: #000 !important; /* Aktif renk - Burayı istediğin renkle değiştir */
+    width: 20px; /* Aktif noktayı biraz uzun yaparak modern bir hava katabilirsin */
+    border-radius: 4px;
+    opacity: 1;
+}
+
+/* Noktaların konumu ve gölgesi (isteğe bağlı) */
+.main-swiper-dots.swiper-pagination-bullets-dynamic {
+    bottom: 20px !important; /* Görselin biraz daha üzerine taşıyalım */
+    background: rgba(255, 255, 255, 0.4); /* Hafif transparan bir arka plan */
+    padding: 5px 12px;
+    border-radius: 20px;
+    backdrop-filter: blur(4px); /* Arka planı bulanıklaştırır */
+}
+
+}
+
+
+
+/* 1. KARTLARIN ÜZERİNDEKİ KALPLER (Hem kategori hem slider için) */
+.wishlist-btn {
+    position: absolute !important;
+    top: 10px !important;
+    right: 10px !important;
+    /* Kartın sağ üstüne yapışan stil */
+}
+
+/* 2. ÜRÜN SAYFASINDAKİ ANA KALP (Sepete ekle yanındaki) */
+.ana-urun-favori-buton {
+    position: relative !important;
+    top: auto !important;
+    right: auto !important;
+    /* Butonun yanında efendi gibi duran stil */
+}
+
+/* ÜRÜN SAYFASI ANA FAVORİ BUTONU (Sepete Ekle Yanındaki) */
+.ana-urun-favori-buton {
+    position: relative !important; /* Kartların aksine yerinde sabit durur */
+    top: auto !important;
+    right: auto !important;
+    margin-left: 15px !important; /* Butonla arasındaki boşluk */
+    
+    width: 55px !important; 
+    height: 55px !important; 
+    display: inline-flex !important; /* Yan yana durmaları için inline-flex */
+    justify-content: center !important; 
+    align-items: center !important; 
+    
+    background-color: #ffffff !important;
+    border: 1px solid #000 !important; /* Varsayılan siyah ince çerçeve */
+    border-radius: 1px !important; /* Hafif kavis istersen arttırabilirsin */
+    cursor: pointer !important;
+    padding: 0 !important;
+    vertical-align: middle;
+
+    /* Geçiş efektleri */
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease !important;
+}
+
+/* Hover Efekti - Zıplama yapmayan çerçeve kalınlaşması */
+.ana-urun-favori-buton:hover {
+    border-color: #000000 !important;
+    background-color: #ffffff !important;
+    /* Çerçeveyi zıplatmadan kalın hissettiren gölge */
+    box-shadow: 0 0 0 1px #000000 !important; 
+}
+
+/* Kalp İkonu Ayarı */
+.ana-urun-favori-buton i {
+    font-size: 1.3rem !important;
+    color: #D30000 !important; /* Kırmızı kalp rengi */
+    display: block !important;
+}
+
+

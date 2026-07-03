@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <title id="page-title-product-name">Ürün Sayfası</title>
+    <!-- Ortak CSS'ler burada olmalı -->
+    <link rel="stylesheet" href="assets/css/product.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/common.css">
+    <link rel="stylesheet" href="assets/css/reset.css">
+<base target="_blank">
+</head>
+<body>
+
+    <!-- Header Buraya Gelecek -->
+    <div id="header-placeholder"></div>
+
+    <main class="main-content">
+        <div class="container product-page">
+            <!-- Breadcrumb -->
+            <nav class="custom-cat-breadcrumb-unique">
+                <div class="breadcrumb-inner-wrapper">
+                    <a href="javascript:history.back()" class="breadcrumb-back-trigger">Tillbaka</a>
+                    <span class="breadcrumb-divider"> > </span>
+                    <a href="/alla-mattor">Alla Mattor</a>
+                    <span class="separator"> > </span>
+                    <span class="current-item" id="breadcrumb-product-name">---</span>
+                </div>
+            </nav>
+
+            <div class="product-content">
+                <div class="product-gallery">
+                    <div class="main-display-wrapper" id="product-images-container"></div>
+                    <div class="gallery-thumbnail-list" id="gallery-thumbnail-list"></div>
+                </div>
+
+                <div class="product-details">
+                    <div class="brand-label-top">DKRUG SWEDEN</div>
+                    <h1 id="product-main-name-desktop">---</h1> 
+
+                    <div class="product-price-display">
+                        <span class="current-price" id="product-price">---</span>
+                        <span class="tax-info-static">(Inkl. moms)</span>
+                    </div>
+
+                    <div id="product-swatches-wrapper" class="swatch-container"></div>
+                    <div id="product-group-wrapper">
+                        <div class="swatch-header">
+                            <p class="vald-farg-text"><span class="label">Vald färg:</span> <span class="value">---</span></p>
+                        </div>
+                        <div class="swatch-list" id="swatch-list"></div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button class="add-to-cart-btn" id="add-to-cart-btn">Lägg i Varukorg</button>
+                        <button class="ana-urun-favori-buton"><i class="fa-regular fa-heart"></i></button>
+                    </div>
+
+                    <div class="product-accordion-wrapper">
+                        <div class="product-accordion-item">
+                            <button class="product-accordion-header"><h3>Produktbeskrivning</h3></button>
+                            <div class="product-accordion-content active" id="product-description"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer Buraya Gelecek -->
+    <div id="footer-placeholder"></div>
+
+    <!-- SİHİRLİ YÜKLEYİCİ SCRIPT -->
+    <script>
+        async function loadComponents() {
+            // Header ve Footer'ı aynı anda getir
+            const [headerRes, footerRes] = await Promise.all([
+                fetch('header.html'),
+                fetch('footer.html')
+            ]);
+
+            const headerData = await headerRes.text();
+            const footerData = await footerRes.text();
+
+            document.getElementById('header-placeholder').innerHTML = headerData;
+            document.getElementById('footer-placeholder').innerHTML = footerData;
+
+            // Header ve Footer yüklendikten sonra UI fonksiyonlarını başlat
+            // Eğer varsa "initAllUI()" fonksiyonunu burada çağır:
+            console.log("Header ve Footer başarıyla yüklendi.");
+        }
+
+        // Sayfa yüklenince çalıştır
+        loadComponents();
+    </script>
+
+    <!-- Kendi Sayfa Mantığın (Airtable verisi vb.) -->
+    <script src="assets/js/product.ui.js"></script>
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/common.js"></script>
+</body>
+</html>

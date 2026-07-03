@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <title>Kategori | DKRUG</title>
+    <link rel="stylesheet" href="assets/css/reset.css">
+    <link rel="stylesheet" href="assets/css/common.css">
+    <link rel="stylesheet" href="assets/css/category.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<base target="_blank">
+</head>
+<body>
+
+    <!-- Header -->
+    <div id="header-placeholder"></div>
+
+    <main class="main-content">
+        <div class="category-page-wrapper">
+            <div class="custom-container">
+
+                <!-- Breadcrumb -->
+                <div id="breadcrumb-area" class="breadcrumb-nav">
+                    <nav class="api-custom-breadcrumb">
+                        <a href="/" class="breadcrumb-link">Hem</a>
+                        <span class="breadcrumb-separator"><i class="fa-solid fa-angle-right"></i></span>
+                        <span class="breadcrumb-current" id="category-name-breadcrumb">Alla Mattor</span>
+                    </nav>
+                </div>
+
+                <!-- Header -->
+                <div class="category-header-bar">
+                    <h1 class="product-title" id="category-main-title">Alla Mattor</h1>
+                </div>
+
+                <!-- Chips -->
+                <div class="category-chips-wrapper">
+                    <div class="category-chips-scroll" id="category-chips-list">
+                        <a href="category.html" class="category-chip active">Alla</a>
+                        <a href="category.html?kategori=vardagsrum" class="category-chip">Vardagsrum</a>
+                        <a href="category.html?kategori=sovrum" class="category-chip">Sovrum</a>
+                        <a href="category.html?kategori=kok" class="category-chip">Kok</a>
+                    </div>
+                </div>
+
+                <!-- Filtre ve Siralama -->
+                <div class="filter-controls-wrapper">
+                    <button class="filter-trigger-main" id="open-filter-sidebar">
+                        <i class="fa-solid fa-sliders"></i> 
+                        <span>Filtrera</span>
+                        <span class="filter-badge" style="display:none;">0</span>
+                    </button>
+                    <div class="sort-dropdown">
+                        <button class="sort-trigger" id="sort-menu-btn">
+                            <i class="fa-solid fa-arrow-down-wide-short"></i> 
+                            <span>Sortera</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Urunler Grid -->
+                <div class="product-grid-container" id="product-grid">
+                    <!-- Urunler JS ile gelecek -->
+                </div>
+
+                <!-- Load More -->
+                <div class="load-more-container" id="load-more-container">
+                    <div class="product-progress">
+                        <p class="progress-text">Du har sett <span id="current-count">0</span> av <span id="total-count">0</span> produkter</p>
+                        <div class="progress-bar-bg">
+                            <div id="progress-bar-fill" class="progress-bar-fill" style="width: 0%;"></div>
+                        </div>
+                    </div>
+                    <div class="load-more-wrapper">
+                        <button id="load-more-btn" class="visa-mer-btn">VISA MER</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- SEO Section -->
+        <div class="category-seo-section">
+            <div class="custom-container">
+                <div class="seo-content-wrapper">
+                    <h2 class="seo-auto-title">Var Mattor</h2>
+                    <div class="seo-text-body">
+                        <p>Upptack var kollektion av handplockade mattor for varje rum och stil. 
+                        Fran klassiska persiska mattor till moderna skandinaviska designer.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <div id="footer-placeholder"></div>
+
+    <!-- ========== FILTRE & SORT DRAWERLAR ========== -->
+
+    <!-- Filtre Overlay -->
+    <div id="filter-overlay" class="modal-overlay"></div>
+
+    <!-- Filtre Drawer -->
+    <div id="filter-sidebar" class="filter-drawer">
+        <div class="drawer-header">
+            <h3>FILTRERA</h3>
+            <button id="close-filter-sidebar" class="close-btn"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="drawer-body">
+            <div class="drawer-panel main-panel" id="main-panel">
+                <div class="filter-section">
+                    <h4 class="filter-title">Farg</h4>
+                    <div id="color-filter-list" class="filter-vertical-list"></div>
+                </div>
+                <div class="filter-section">
+                    <h4 class="filter-title">Storlek</h4>
+                    <div id="size-filter-list" class="filter-vertical-list"></div>
+                </div>
+            </div>
+        </div>
+        <div class="sticky-filter-footer">
+            <button class="apply-btn" onclick="window.closeAll()">VISA PRODUKTER</button>
+        </div>
+    </div>
+
+    <!-- Sort Overlay -->
+    <div id="sort-overlay" class="modal-overlay"></div>
+
+    <!-- Sort Drawer -->
+    <div id="sort-drawer" class="sort-drawer">
+        <div class="drawer-header">
+            <h3>SORTERA</h3>
+            <button id="close-sort-drawer" class="close-btn"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="sort-radio-list">
+            <label class="sort-radio-item">
+                <span>Rekommenderad</span>
+                <input type="radio" name="orderby" value="default" checked>
+                <span class="radio-custom"></span>
+            </label>
+            <label class="sort-radio-item">
+                <span>Pris: Lagt till hogt</span>
+                <input type="radio" name="orderby" value="price-asc">
+                <span class="radio-custom"></span>
+            </label>
+            <label class="sort-radio-item">
+                <span>Pris: Hogt till lagt</span>
+                <input type="radio" name="orderby" value="price-desc">
+                <span class="radio-custom"></span>
+            </label>
+            <label class="sort-radio-item">
+                <span>Namn: A-O</span>
+                <input type="radio" name="orderby" value="name-asc">
+                <span class="radio-custom"></span>
+            </label>
+            <label class="sort-radio-item">
+                <span>Namn: O-A</span>
+                <input type="radio" name="orderby" value="name-desc">
+                <span class="radio-custom"></span>
+            </label>
+        </div>
+    </div>
+
+    <!-- JS Yukleyici -->
+    <script>
+        async function loadComponents() {
+            const [headerRes, footerRes] = await Promise.all([
+                fetch('header.html'),
+                fetch('footer.html')
+            ]);
+            document.getElementById('header-placeholder').innerHTML = await headerRes.text();
+            document.getElementById('footer-placeholder').innerHTML = await footerRes.text();
+        }
+        loadComponents();
+    </script>
+
+    <!-- JS Dosyalari - ONCE config, SONRA digerleri -->
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/common.js"></script>
+    <script src="assets/js/category.js"></script>
+</body>
+</html>
