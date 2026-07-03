@@ -38,9 +38,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const subtotalDisplay = document.getElementById('subtotal-display');
     const grandTotalDisplay = document.getElementById('grand-total-display');
     const confirmBtn = document.getElementById('confirm-payment-btn');
-    const statusMessage = document.getElementById('checkout-status-message');
+    const statusMessage = document.getElementById('checkout-validation-error');
+    const paymentSection = document.getElementById('payment-section');
     const embeddedCheckoutContainer = document.getElementById('embedded-checkout');
-    const paymentSection = document.getElementById('checkout-section-card');
 
     // ==========================================
     // SEPET RENDER
@@ -135,11 +135,10 @@ document.addEventListener('DOMContentLoaded', () => {
     function validateForm() {
         const form = document.getElementById('address-form');
         const terms = document.getElementById('accept-terms');
-        const errorBox = document.getElementById('checkout-validation-error');
 
         if (!form.checkValidity()) {
-            errorBox.style.display = 'block';
-            errorBox.innerText = 'Vänligen fyll i alla obligatoriska fält korrekt.';
+            statusMessage.style.display = 'block';
+            statusMessage.innerText = 'Vänligen fyll i alla obligatoriska fält korrekt.';
             form.querySelectorAll('input[required]').forEach(input => {
                 input.classList.toggle('input-error', !input.value.trim());
             });
@@ -147,30 +146,31 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (!terms.checked) {
-            errorBox.style.display = 'block';
-            errorBox.innerText = 'Vänligen godkänn köpvillkoren för att fortsätta.';
+            statusMessage.style.display = 'block';
+            statusMessage.innerText = 'Vänligen godkänn köpvillkoren för att fortsätta.';
             return false;
         }
 
         const cart = getCart();
         if (cart.length === 0) {
-            errorBox.style.display = 'block';
-            errorBox.innerText = 'Din varukorg är tom.';
+            statusMessage.style.display = 'block';
+            statusMessage.innerText = 'Din varukorg är tom.';
             return false;
         }
 
-        errorBox.style.display = 'none';
+        statusMessage.style.display = 'none';
         return true;
     }
 
     // ==========================================
-    // EMBEDDED STRIPE CHECKOUT - YENI
+    // EMBEDDED STRIPE CHECKOUT
     // ==========================================
 
     let checkoutInstance = null;
 
     async function initEmbeddedCheckout() {
         if (!stripe) {
+            statusMessage.style.display = 'block';
             statusMessage.innerHTML = '<span style="color:#e54d42;">Betalningssystemet är inte tillgängligt.</span>';
             return;
         }
@@ -187,42 +187,47 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         try {
-            // Session oluştur (embedded mode)
+            // Session oluştur
             const response = await fetch('/api/create-checkout-session', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     items: cart,
-                    customer: customerData,
-                    mode: 'embedded' // ← YENI
+                    customer: customerData
                 })
             });
 
-            if (!response.ok) throw new Error('Server fel');
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Server fel');
+            }
 
             const { clientSecret } = await response.json();
 
-            // Embedded checkout'u başlat
+            // ÖNCE container'ı görünür yap
+            paymentSection.style.display = 'block';
+
+            // Sonra mount et
             checkoutInstance = await stripe.initEmbeddedCheckout({
-                clientSecret,
-                onComplete: () => {
-                    // Ödeme tamamlandı
-                    window.location.href = '/tack';
-                }
+                clientSecret: clientSecret
             });
 
-            // Sayfaya yerleştir
             checkoutInstance.mount('#embedded-checkout');
-            paymentSection.style.display = 'block';
+
+            // Butonu gizle
+            confirmBtn.style.display = 'none';
 
         } catch (error) {
             console.error('Embedded checkout hatasi:', error);
+            statusMessage.style.display = 'block';
             statusMessage.innerHTML = `<span style="color:#e54d42;">Ett fel uppstod: ${error.message}</span>`;
+            confirmBtn.disabled = false;
+            confirmBtn.innerText = 'Gå till betalning';
         }
     }
 
     // ==========================================
-    // ODEME BUTONU - ARTIK "KARTI GOSTER" OLACAK
+    // ODEME BUTONU
     // ==========================================
 
     if (confirmBtn) {
@@ -231,15 +236,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (!validateForm()) return;
 
-            // Butonu değiştir
-            confirmBtn.innerText = 'Laddar betalning...';
             confirmBtn.disabled = true;
+            confirmBtn.innerText = 'Laddar...';
 
-            // Embedded checkout'u başlat
             await initEmbeddedCheckout();
-
-            // Butonu gizle (artık Stripe'un kendi butonu var)
-            confirmBtn.style.display = 'none';
         });
     }
 
