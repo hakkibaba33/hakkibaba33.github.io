@@ -1,8 +1,4 @@
 /* ============================================
-   MATTA (HALI) CALCULATOR - ACCORDION STYLES
-   ============================================ */
-
-/* ============================================
    0. AKORDİYON YAPISI
    ============================================ */
 
@@ -785,8 +781,428 @@
 
 
 
+/* ==========================================
+   LIGHTBOX (Sadece Masaüstü)
+   ========================================== */
 
+.custom-lightbox-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #ffffff;
+    z-index: 999999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
 
+.custom-lightbox-overlay.active {
+    display: flex;
+}
+
+.lightbox-desktop-layout {
+    display: flex;
+    width: 100%;
+    height: 100%;
+}
+
+.lightbox-thumbnail-sidebar {
+    width: 120px;
+    height: 100%;
+    background: #fafafa;
+    border-right: 1px solid #e0e0e0;
+    display: flex;
+    flex-direction: column;
+    padding: 20px 10px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.lightbox-thumbnail-sidebar::-webkit-scrollbar {
+    width: 4px;
+}
+
+.lightbox-thumbnail-sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.lightbox-thumbnail-sidebar::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 2px;
+}
+
+.lightbox-thumbnail-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.lightbox-thumb-item-container {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.2s ease;
+    opacity: 0.6;
+}
+
+.lightbox-thumb-item-container:hover {
+    opacity: 0.8;
+    border-color: #999;
+}
+
+.lightbox-thumb-item-container.selected {
+    opacity: 1;
+    border-color: #000;
+}
+
+.lightbox-thumbnail-item {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.lightbox-main-area {
+    flex: 1;
+    height: 100%;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.lightbox-close-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #f0f0f0;
+    border: 1px solid #ddd;
+    color: #000;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.lightbox-close-btn:hover {
+    background: #e0e0e0;
+    transform: scale(1.05);
+}
+
+.lightbox-image-container {
+    width: 100%;
+    height: calc(100% - 80px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    cursor: zoom-in;
+    position: relative;
+}
+
+.lightbox-image-wrapper {
+    transition: transform 0.3s ease;
+    transform-origin: center center;
+    will-change: transform;
+}
+
+.lightbox-image-wrapper.zoomed {
+    cursor: grab;
+    transform: scale(2);
+}
+
+.lightbox-image-wrapper.zoomed:active {
+    cursor: grabbing;
+}
+
+.lightbox-main-image {
+    max-width: 85vw;
+    max-height: 80vh;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+
+.lightbox-nav {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    z-index: 10;
+}
+
+.lightbox-nav-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(240, 240, 240, 0.9);
+    border: 1px solid #ddd;
+    color: #000;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.lightbox-nav-btn:hover:not(:disabled) {
+    background: #e0e0e0;
+    transform: scale(1.05);
+}
+
+.lightbox-nav-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.lightbox-counter {
+    font-size: 14px;
+    font-weight: 500;
+    color: #666;
+    min-width: 60px;
+    text-align: center;
+}
+
+.lightbox-zoom-hint {
+    position: absolute;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    pointer-events: none;
+    opacity: 0;
+    animation: hintFade 3s ease forwards;
+    z-index: 5;
+}
+
+@keyframes hintFade {
+    0% { opacity: 0; transform: translateX(-50%) translateY(10px); }
+    20% { opacity: 1; transform: translateX(-50%) translateY(0); }
+    80% { opacity: 1; transform: translateX(-50%) translateY(0); }
+    100% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+}
+
+/* ==========================================
+   MOBİL GALERİ (Swipe + Sayaç + İlerleme)
+   ========================================== */
+
+.mobile-gallery-wrapper {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    display: none; /* Masaüstünde gizli */
+}
+
+.mobile-gallery-track {
+    display: flex;
+    transition: transform 0.3s ease-out;
+    will-change: transform;
+}
+
+.mobile-gallery-slide {
+    width: 100%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mobile-gallery-slide img {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    display: block;
+    aspect-ratio: 3/4;
+}
+
+.mobile-gallery-counter {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    padding: 6px 16px;
+    border-radius: 16px;
+    font-size: 13px;
+    font-weight: 500;
+    z-index: 5;
+}
+
+.mobile-gallery-scrollbar {
+    position: absolute;
+    bottom: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
+    overflow: hidden;
+    z-index: 5;
+}
+
+.mobile-gallery-scrollbar-thumb {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 3px;
+    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.2s ease;
+    min-width: 20px;
+}
+
+/* ==========================================
+   3 AKORDİYON
+   ========================================== */
+
+.product-accordion-wrapper {
+    margin-top: 25px;
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+    background: #ffffff;
+    overflow: hidden;
+}
+
+.product-accordion-item {
+    border-bottom: 1px solid #e5e5e5;
+}
+
+.product-accordion-item:last-child {
+    border-bottom: none;
+}
+
+.product-accordion-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 15px 18px;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    outline: none;
+    transition: background 0.2s;
+}
+
+.product-accordion-header:hover {
+    background: #fafafa;
+}
+
+.product-accordion-header h3 {
+    font-size: 14.5px;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin: 0;
+}
+
+.product-accordion-header i {
+    transition: transform 0.3s ease;
+    font-size: 12px;
+    color: #666;
+}
+
+.product-accordion-item.active .product-accordion-header i {
+    transform: rotate(180deg);
+}
+
+.product-accordion-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s cubic-bezier(0, 1, 0, 1);
+    background: #ffffff;
+}
+
+.product-accordion-item.active .product-accordion-content {
+    max-height: 2000px;
+    border-top: 1px solid #f0f0f0;
+    transition: max-height 0.4s ease-in-out;
+}
+
+.product-accordion-content > div,
+.product-accordion-content .custom-specs-content {
+    padding: 15px 18px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #444;
+}
+
+.product-accordion-content p {
+    margin-bottom: 12px;
+}
+
+.product-accordion-content p:last-child {
+    margin-bottom: 0;
+}
+
+/* Specs & Delivery placeholder stilleri */
+.specs-content-placeholder,
+.delivery-content-placeholder {
+    padding: 15px 18px;
+}
+
+.delivery-content-placeholder p {
+    margin-bottom: 10px;
+    font-size: 14px;
+    color: #444;
+}
+
+.delivery-content-placeholder strong {
+    color: #222;
+    font-weight: 600;
+}
+
+/* ==========================================
+   MOBİL RESPONSIVE
+   ========================================== */
+
+@media (max-width: 768px) {
+    .custom-lightbox-overlay {
+        display: none !important;
+    }
+    
+    .desktop-gallery,
+    .desktop-thumbs {
+        display: none !important;
+    }
+    
+    .mobile-gallery-wrapper {
+        display: block !important;
+    }
+    
+    .product-gallery {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+    
+    .variant-drawer {
+        max-width: 100%;
+    }
+}
 
 /* ============================================
    0. AKORDİYON YAPISI
@@ -2982,311 +3398,6 @@ body.drawer-open {
 .variant-selector:hover {
     box-shadow: 0 0 0 1px #000000 !important;
 }
-/* ==================================================== */
-/* CUSTOM LIGHTBOX - Pure JS/HTML/CSS (No Library)      */
-/* ==================================================== */
-
-/* ===== OVERLAY ===== */
-.custom-lightbox-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: #ffffff;
-    z-index: 999999;
-    display: none;
-    align-items: center;
-    justify-content: center;
-}
-
-.custom-lightbox-overlay.active {
-    display: flex;
-}
-
-/* ===== DESKTOP LAYOUT ===== */
-.lightbox-desktop-layout {
-    display: flex;
-    width: 100%;
-    height: 100%;
-}
-
-/* ===== SOL SIDEBAR (THUMBNAILS) ===== */
-.lightbox-thumbnail-sidebar {
-    width: 120px;
-    height: 100%;
-    background: #fafafa;
-    border-right: 1px solid #e0e0e0;
-    display: flex;
-    flex-direction: column;
-    padding: 20px 10px;
-    overflow-y: auto;
-    overflow-x: hidden;
-}
-
-.lightbox-thumbnail-sidebar::-webkit-scrollbar {
-    width: 4px;
-}
-
-.lightbox-thumbnail-sidebar::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.lightbox-thumbnail-sidebar::-webkit-scrollbar-thumb {
-    background: #ccc;
-    border-radius: 2px;
-}
-
-.lightbox-thumbnail-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.lightbox-thumb-item-container {
-    width: 100%;
-    aspect-ratio: 1;
-    border-radius: 8px;
-    overflow: hidden;
-    cursor: pointer;
-    border: 2px solid transparent;
-    transition: all 0.2s ease;
-    opacity: 0.6;
-}
-
-.lightbox-thumb-item-container:hover {
-    opacity: 0.8;
-    border-color: #999;
-}
-
-.lightbox-thumb-item-container.selected {
-    opacity: 1;
-    border-color: #000;
-}
-
-.lightbox-thumbnail-item {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-}
-
-/* ===== SAĞ ANA ALAN ===== */
-.lightbox-main-area {
-    flex: 1;
-    height: 100%;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-}
-
-/* ===== KAPATMA BUTONU ===== */
-.lightbox-close-btn {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background: #f0f0f0;
-    border: 1px solid #ddd;
-    color: #000;
-    font-size: 20px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 10;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-.lightbox-close-btn:hover {
-    background: #e0e0e0;
-    transform: scale(1.05);
-}
-
-/* ===== RESİM KONTEYNERİ ===== */
-.lightbox-image-container {
-    width: 100%;
-    height: calc(100% - 80px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    cursor: zoom-in;
-    position: relative;
-}
-
-.lightbox-image-wrapper {
-    transition: transform 0.3s ease;
-    transform-origin: center center;
-    will-change: transform;
-}
-
-.lightbox-image-wrapper.zoomed {
-    cursor: grab;
-}
-
-.lightbox-image-wrapper.zoomed:active {
-    cursor: grabbing;
-}
-
-.lightbox-main-image {
-    max-width: 85vw;
-    max-height: 80vh;
-    width: auto;
-    height: auto;
-    object-fit: contain;
-    user-select: none;
-    -webkit-user-drag: none;
-}
-
-/* ===== NAVİGASYON ===== */
-.lightbox-nav {
-    position: absolute;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    z-index: 10;
-}
-
-.lightbox-nav-btn {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    background: rgba(240, 240, 240, 0.9);
-    border: 1px solid #ddd;
-    color: #000;
-    font-size: 16px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
-}
-
-.lightbox-nav-btn:hover:not(:disabled) {
-    background: #e0e0e0;
-    transform: scale(1.05);
-}
-
-.lightbox-nav-btn:disabled {
-    opacity: 0.3;
-    cursor: not-allowed;
-}
-
-.lightbox-counter {
-    font-size: 14px;
-    font-weight: 500;
-    color: #666;
-    min-width: 60px;
-    text-align: center;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-}
-
-/* ===== ZOOM HİNT ===== */
-.lightbox-zoom-hint {
-    position: absolute;
-    bottom: 80px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(0, 0, 0, 0.6);
-    color: #fff;
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-size: 13px;
-    pointer-events: none;
-    opacity: 0;
-    animation: hintFade 3s ease forwards;
-    z-index: 5;
-}
-
-@keyframes hintFade {
-    0% { opacity: 0; transform: translateX(-50%) translateY(10px); }
-    20% { opacity: 1; transform: translateX(-50%) translateY(0); }
-    80% { opacity: 1; transform: translateX(-50%) translateY(0); }
-    100% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
-}
-
-
-/* ==================================================== */
-/* MOBİL ÜRÜN SAYFASI GALERİ                            */
-/* ==================================================== */
-
-.mobile-gallery-wrapper {
-    position: relative;
-    width: 100%;
-    overflow: hidden;
-}
-
-.mobile-gallery-track {
-    display: flex;
-    transition: transform 0.3s ease-out;
-    will-change: transform;
-}
-
-.mobile-gallery-slide {
-    width: 100%;
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.mobile-gallery-slide img {
-    width: 100%;
-    height: auto;
-    object-fit: cover;
-    display: block;
-}
-
-.mobile-gallery-counter {
-    position: absolute;
-    bottom: 40px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(0, 0, 0, 0.6);
-    color: #fff;
-    padding: 6px 16px;
-    border-radius: 16px;
-    font-size: 13px;
-    font-weight: 500;
-    z-index: 5;
-}
-
-/* ==================================================== */
-/* MOBİL GALERİ - KOMPAKT SCROLLBAR                    */
-/* ==================================================== */
-
-.mobile-gallery-scrollbar {
-    position: absolute;
-    bottom: 12px; /* Biraz daha yukarı */
-    left: 50%; /* Ortala */
-    transform: translateX(-50%);
-    width: 50px; /* Sabit kısa genişlik */
-    height: 4px; /* Biraz daha kalın, görünür olsun */
-    background: rgba(0, 0, 0, 0.08); /* Daha soluk arka plan */
-    border-radius: 4px;
-    overflow: hidden;
-    z-index: 5;
-}
-
-.mobile-gallery-scrollbar-thumb {
-    position: absolute;
-    top: 0;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5); /* Yumuşak siyah */
-    border-radius: 4px;
-    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.2s ease;
-    min-width: 8px; /* Çok küçük olmasın */
-}
 
 /* ==================================================== */
 /* RESPONSIVE BREAKPOINTS                               */
@@ -3311,26 +3422,6 @@ body.drawer-open {
         display: none !important;
     }
 }
-
-
-
-
-/* ==================================================== */
-/* ESKİ SWIPER LIGHTBOX STILLERİ (Geri Uyumluluk)       */
-/* ==================================================== */
-
-#lightbox-modal-overlay.lightbox-overlay {
-    display: none !important; /* Eski lightbox gizli */
-}
-
-/* ==================================================== */
-/* ESKİ SWIPER LIGHTBOX STILLERİ (Geri Uyumluluk)       */
-/* ==================================================== */
-
-#lightbox-modal-overlay.lightbox-overlay {
-    display: none !important; /* Eski lightbox gizli */
-}
-
 
 /* ==================================================== */
 /* 3. 📱 MOBİL UYUM (TÜM MOBİL KODLAR BURADA TOPLANDI) */
@@ -3461,89 +3552,6 @@ body.drawer-open {
         text-align: left !important;
     }
 }
-    
-    @media (max-width: 1024px) {
-    .lightbox-sidebar {
-        display: none !important; /* Mobilde sidebarı gizle */
-    }
-
-    .lightbox-container {
-        width: 100%;
-        height: 100%;
-    }
-
-    .lightbox-main {
-        width: 100%;
-    }
-    
-
-    .custom-lb-scope .swiper-slide img {
-        max-width: 100%;
-        max-height: 75vh;
-    }
-    
-    
-    .custom-slider-outer-container .is-in-slider img {
-    width: 100% !important;
-    aspect-ratio: 3/4; /* Halı formatı */
-    object-fit: cover !important;
-   
-    
-}
-
-    .swiper-button-next,
-    .swiper-button-prev {
-        width: 35px !important;
-        height: 35px !important;
-        /* Mobilde oklar çok kenardaysa: */
-        margin: 0 -5px; 
-    }
-    
-    .swiper-button-next:after,
-    .swiper-button-prev:after {
-        font-size: 14px !important;
-    }
-    
-    /* Zoom sırasında resmin pürüzsüz geçiş yapmasını sağlar */
-.swiper-zoom-container img {
-    transition-timing-function: ease-out;
-    will-change: transform;
-}
-
-/* Mobilde zoom yapıldığında resmin kalitesini (mümkünse) koru */
-.swiper-slide-zoomed img {
-    cursor: grab;
-}
-
-/* Aktif olmayan noktalar */
-.main-swiper-dots .swiper-pagination-bullet {
-    background: #ccc !important; /* Pasif renk */
-    opacity: 0.6;
-    width: 8px;
-    height: 8px;
-    transition: all 0.3s ease;
-}
-
-/* Aktif olan nokta */
-.main-swiper-dots .swiper-pagination-bullet-active {
-    background: #000 !important; /* Aktif renk - Burayı istediğin renkle değiştir */
-    width: 20px; /* Aktif noktayı biraz uzun yaparak modern bir hava katabilirsin */
-    border-radius: 4px;
-    opacity: 1;
-}
-
-/* Noktaların konumu ve gölgesi (isteğe bağlı) */
-.main-swiper-dots.swiper-pagination-bullets-dynamic {
-    bottom: 20px !important; /* Görselin biraz daha üzerine taşıyalım */
-    background: rgba(255, 255, 255, 0.4); /* Hafif transparan bir arka plan */
-    padding: 5px 12px;
-    border-radius: 20px;
-    backdrop-filter: blur(4px); /* Arka planı bulanıklaştırır */
-}
-
-}
-
-
 
 /* 1. KARTLARIN ÜZERİNDEKİ KALPLER (Hem kategori hem slider için) */
 .wishlist-btn {

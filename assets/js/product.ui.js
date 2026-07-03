@@ -1,5 +1,5 @@
 // ==========================================
-// PRODUCT.UI.JS - Çoklu Görsel + Varyasyon Drawer
+// PRODUCT.UI.JS - Lightbox + Mobil Swipe + 3 Akordiyon
 // ==========================================
 
 if (window.__productPageInitialized) {
@@ -7,99 +7,85 @@ if (window.__productPageInitialized) {
 } else {
     window.__productPageInitialized = true;
 
-    // Global state
     let currentProduct = null;
     let currentImages = [];
     let currentVariants = [];
     let selectedVariant = null;
     let selectedImageIndex = 0;
+    let isZoomed = false;
+    let isMobile = window.innerWidth <= 768;
+
+    // Mobilde swipe için
+    let touchStartX = 0;
+    let touchCurrentX = 0;
+    let isDragging = false;
 
     async function initProductPage() {
         console.log("🚀 Ürün sayfası init başlıyor...");
 
-        // Slug al
-        let slug = null;
-        const urlParams = new URLSearchParams(window.location.search);
-        slug = urlParams.get('slug');
-        
+        let slug = new URLSearchParams(window.location.search).get('slug');
         if (!slug) {
-            const pathParts = window.location.pathname.split('/').filter(p => p);
-            slug = pathParts[pathParts.length - 1];
+            const parts = window.location.pathname.split('/').filter(p => p);
+            slug = parts[parts.length - 1];
         }
-
         if (!slug || slug === 'product.html') {
             console.error("❌ Slug bulunamadı!");
             return;
         }
-        
-        console.log("✅ Slug:", slug);
 
-        // Airtable'dan veri çek
         const url = `https://api.airtable.com/v0/${CONFIG.AIRTABLE.BASE_ID}/${CONFIG.AIRTABLE.TABLE_NAME}?filterByFormula=Slug='${slug}'`;
 
         try {
-            const response = await fetch(url, {
-                headers: { Authorization: `Bearer ${CONFIG.AIRTABLE.API_KEY}` }
-            });
-            const result = await response.json();
+            const res = await fetch(url, { headers: { Authorization: `Bearer ${CONFIG.AIRTABLE.API_KEY}` } });
+            const data = await res.json();
+            if (!data.records?.length) { console.error("❌ Ürün bulunamadı!"); return; }
 
-            if (!result.records || result.records.length === 0) {
-                console.error("❌ Ürün bulunamadı!");
-                return;
-            }
-
-            currentProduct = result.records[0];
+            currentProduct = data.records[0];
             const f = currentProduct.fields;
 
-            // ==========================================
-            // 1. TEMEL BİLGİLERİ YERLEŞTİR
-            // ==========================================
+            // Temel bilgiler
             setText('page-title-product-name', f.Name);
             setText('breadcrumb-product-name', f.Name);
             setText('product-main-name-desktop', f.Name);
             setText('product-price', (f.Price || 0) + " SEK");
             setHTML('product-description', f.Description || '');
+            setText('delivery-time-display', f.Delivery_time || '3-7 arbetsdagar');
 
-            // ==========================================
-            // 2. ÇOKLU GÖRSEL GALERİSİ
-            // ==========================================
+            // Görseller
             currentImages = f.imageURL || [];
-            console.log(`📸 ${currentImages.length} görsel bulundu`);
+            console.log(`📸 ${currentImages.length} görsel`);
 
             if (currentImages.length > 0) {
-                renderGallery();
+                if (isMobile) {
+                    renderMobileGallery();
+                } else {
+                    renderDesktopGallery();
+                }
             }
 
-            // ==========================================
-            // 3. VARYASYONLARI PARSE ET & RENDER ET
-            // ==========================================
+            // Varyasyonlar
             currentVariants = parseVariants(f.Variants);
-            console.log(`🎨 ${currentVariants.length} varyasyon bulundu:`, currentVariants);
-
             if (currentVariants.length > 0) {
                 setupVariantAccordion();
                 renderVariantDrawer();
             } else {
-                // Varyasyon yoksa akordiyonu gizle
-                const accordion = document.getElementById('variant-accordion-wrapper');
-                if (accordion) accordion.style.display = 'none';
+                const el = document.getElementById('variant-accordion-wrapper');
+                if (el) el.style.display = 'none';
             }
 
-            // ==========================================
-            // 4. SEPETE EKLE BUTONU
-            // ==========================================
+            // Lightbox (sadece masaüstü)
+            if (!isMobile) setupLightbox();
+
+            // Akordiyonlar
+            setupAccordions();
+
+            // Sepete ekle
             setupAddToCart(f);
 
             console.log("✅ Ürün sayfası yüklendi:", f.Name);
 
-        } catch (error) {
-            console.error("❌ Hata:", error);
-        }
+        } catch (e) { console.error("❌ Hata:", e); }
     }
-
-    // ==========================================
-    // YARDIMCI FONKSİYONLAR
-    // ==========================================
 
     function setText(id, text) {
         const el = document.getElementById(id);
@@ -108,27 +94,29 @@ if (window.__productPageInitialized) {
 
     function setHTML(id, html) {
         const el = document.getElementById(id);
-        if (el) {
-            el.innerHTML = '';
-            el.innerHTML = html || '';
-        }
+        if (el) { el.innerHTML = ''; el.innerHTML = html || ''; }
     }
 
     // ==========================================
-    // GALERİ RENDER
+    // MASAÜSTÜ GALERİ (2 Resim + Thumbnail'lar)
     // ==========================================
 
-    function renderGallery() {
-        const container = document.getElementById('product-images-container');
+    function renderDesktopGallery() {
+        const container = document.getElementById('desktop-gallery');
         const thumbContainer = document.getElementById('gallery-thumbnail-list');
-        
+        const mobileGallery = document.getElementById('mobile-gallery');
+
+        if (container) container.style.display = 'flex';
+        if (thumbContainer) thumbContainer.style.display = 'flex';
+        if (mobileGallery) mobileGallery.style.display = 'none';
+
         if (!container) return;
 
-        // 2 büyük resim yan yana (ilk 2 görsel)
+        // 2 büyük resim yan yana
         let mainHTML = '';
-        const displayCount = Math.min(2, currentImages.length);
-        
-        for (let i = 0; i < displayCount; i++) {
+        const count = Math.min(2, currentImages.length);
+
+        for (let i = 0; i < count; i++) {
             mainHTML += `
                 <div class="main-image-column" data-index="${i}">
                     <img src="${currentImages[i].url}" 
@@ -140,13 +128,12 @@ if (window.__productPageInitialized) {
         }
         container.innerHTML = mainHTML;
 
-        // Thumbnail'lar (tüm görseller)
+        // Thumbnail'lar
         if (thumbContainer) {
             let thumbHTML = '';
             currentImages.forEach((img, i) => {
                 thumbHTML += `
-                    <img src="${img.url}" 
-                         alt="thumb-${i+1}" 
+                    <img src="${img.url}" alt="thumb-${i+1}" 
                          class="thumbnail-item ${i === 0 ? 'selected' : ''}"
                          data-index="${i}"
                          onclick="selectMainImage(${i})">
@@ -156,95 +143,251 @@ if (window.__productPageInitialized) {
         }
     }
 
-    // Thumbnail tıklama — ana görseli değiştir
     window.selectMainImage = function(index) {
         selectedImageIndex = index;
-        
-        // Thumbnail active state güncelle
         document.querySelectorAll('.thumbnail-item').forEach((thumb, i) => {
             thumb.classList.toggle('selected', i === index);
         });
-
-        // Eğer 2'den fazla görsel varsa, ana display'i güncelle
         if (currentImages.length > 2) {
-            const columns = document.querySelectorAll('.main-image-column');
-            // İlk 2 sütunu güncelle (döngüsel)
-            columns.forEach((col, i) => {
-                const imgIndex = (index + i) % currentImages.length;
+            const cols = document.querySelectorAll('.main-image-column');
+            cols.forEach((col, i) => {
+                const imgIdx = (index + i) % currentImages.length;
                 const img = col.querySelector('img');
                 if (img) {
-                    img.src = currentImages[imgIndex].url;
-                    img.setAttribute('data-index', imgIndex);
+                    img.src = currentImages[imgIdx].url;
+                    col.setAttribute('data-index', imgIdx);
                 }
             });
         }
     };
 
-    // Lightbox aç (basit versiyon)
-    window.openLightbox = function(index) {
-        // Şimdilik basit — istersen sonra özel lightbox ekleriz
-        console.log('Lightbox açıldı, görsel:', index);
-    };
-
     // ==========================================
-    // VARYASYON PARSE
+    // MOBİL GALERİ (Swipe + Sayaç + İlerleme Çubuğu)
     // ==========================================
 
-    function parseVariants(variantsText) {
-        if (!variantsText) return [];
-        
-        // Örnek: "150x230.cm ( + 7 storlekar )" veya "80x150, 120x180, 160x230"
-        // Farklı formatları destekle
-        
-        const text = variantsText.toString().trim();
-        
-        // Format 1: "150x230.cm ( + 7 storlekar )" → tek ölçü, ekstra bilgi
-        // Format 2: "80x150, 120x180, 160x230" → virgülle ayrılmış liste
-        // Format 3: Her satırda bir ölçü (multilineText)
-        
-        // Önce satır satır böl
-        const lines = text.split('\n').filter(l => l.trim());
-        
-        if (lines.length > 1) {
-            // Her satır bir varyasyon
-            return lines.map(line => ({
-                size: line.trim(),
-                label: line.trim(),
-                price: null // Airtable'da ayrı fiyat yok
-            }));
+    function renderMobileGallery() {
+        const container = document.getElementById('desktop-gallery');
+        const thumbContainer = document.getElementById('gallery-thumbnail-list');
+        const mobileGallery = document.getElementById('mobile-gallery');
+        const track = document.getElementById('mobile-gallery-track');
+
+        if (container) container.style.display = 'none';
+        if (thumbContainer) thumbContainer.style.display = 'none';
+        if (mobileGallery) mobileGallery.style.display = 'block';
+
+        if (!track) return;
+
+        let html = '';
+        currentImages.forEach((img, i) => {
+            html += `
+                <div class="mobile-gallery-slide" data-index="${i}">
+                    <img src="${img.url}" alt="${currentProduct.fields.Name} - ${i+1}">
+                </div>
+            `;
+        });
+        track.innerHTML = html;
+
+        updateMobileCounter();
+        setupMobileSwipe();
+    }
+
+    function updateMobileCounter() {
+        const counter = document.getElementById('mobile-gallery-counter');
+        const thumb = document.getElementById('mobile-scrollbar-thumb');
+        const total = currentImages.length;
+
+        if (counter) counter.innerText = `${selectedImageIndex + 1} / ${total}`;
+
+        if (thumb && total > 1) {
+            const widthPercent = (1 / total) * 100;
+            const leftPercent = (selectedImageIndex / total) * 100;
+            thumb.style.width = widthPercent + '%';
+            thumb.style.left = leftPercent + '%';
         }
-        
-        // Tek satır — virgülle ayrılmış olabilir
-        const parts = text.split(',').map(p => p.trim()).filter(p => p);
-        
-        if (parts.length > 1) {
-            return parts.map(part => ({
-                size: part,
-                label: part,
-                price: null
-            }));
+    }
+
+    function setupMobileSwipe() {
+        const track = document.getElementById('mobile-gallery-track');
+        if (!track) return;
+
+        track.addEventListener('touchstart', handleTouchStart, { passive: true });
+        track.addEventListener('touchmove', handleTouchMove, { passive: true });
+        track.addEventListener('touchend', handleTouchEnd);
+    }
+
+    function handleTouchStart(e) {
+        touchStartX = e.touches[0].clientX;
+        isDragging = true;
+    }
+
+    function handleTouchMove(e) {
+        if (!isDragging) return;
+        touchCurrentX = e.touches[0].clientX;
+        const diff = touchCurrentX - touchStartX;
+        const track = document.getElementById('mobile-gallery-track');
+        if (track) {
+            const offset = -selectedImageIndex * 100 + (diff / window.innerWidth) * 100;
+            track.style.transform = `translateX(${offset}%)`;
         }
-        
-        // Tek varyasyon
-        return [{
-            size: text,
-            label: text,
-            price: null
-        }];
+    }
+
+    function handleTouchEnd(e) {
+        if (!isDragging) return;
+        isDragging = false;
+        const diff = touchCurrentX - touchStartX;
+        const threshold = 50;
+
+        const track = document.getElementById('mobile-gallery-track');
+
+        if (diff < -threshold && selectedImageIndex < currentImages.length - 1) {
+            selectedImageIndex++;
+        } else if (diff > threshold && selectedImageIndex > 0) {
+            selectedImageIndex--;
+        }
+
+        if (track) {
+            track.style.transition = 'transform 0.3s ease-out';
+            track.style.transform = `translateX(-${selectedImageIndex * 100}%)`;
+            setTimeout(() => { track.style.transition = ''; }, 300);
+        }
+        updateMobileCounter();
     }
 
     // ==========================================
-    // VARYASYON AKORDİYONU
+    // LIGHTBOX (Sadece Masaüstü)
     // ==========================================
+
+    function setupLightbox() {
+        const closeBtn = document.getElementById('lightbox-close');
+        const prevBtn = document.getElementById('lightbox-prev');
+        const nextBtn = document.getElementById('lightbox-next');
+        const imgContainer = document.getElementById('lightbox-img-container');
+        const imgWrapper = document.getElementById('lightbox-img-wrapper');
+
+        if (closeBtn) closeBtn.onclick = closeLightbox;
+        if (prevBtn) prevBtn.onclick = () => navigateLightbox(-1);
+        if (nextBtn) nextBtn.onclick = () => navigateLightbox(1);
+
+        // Zoom
+        if (imgContainer) {
+            imgContainer.addEventListener('dblclick', toggleZoom);
+        }
+
+        // Klavye navigasyonu
+        document.addEventListener('keydown', (e) => {
+            const overlay = document.getElementById('custom-lightbox');
+            if (!overlay?.classList.contains('active')) return;
+            if (e.key === 'Escape') closeLightbox();
+            if (e.key === 'ArrowLeft') navigateLightbox(-1);
+            if (e.key === 'ArrowRight') navigateLightbox(1);
+        });
+
+        renderLightboxThumbnails();
+    }
+
+    window.openLightbox = function(index) {
+        if (isMobile) return; // Mobilde lightbox açılmasın
+        selectedImageIndex = index;
+        updateLightboxImage();
+        const overlay = document.getElementById('custom-lightbox');
+        if (overlay) {
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+    };
+
+    function closeLightbox() {
+        const overlay = document.getElementById('custom-lightbox');
+        if (overlay) {
+            overlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+        isZoomed = false;
+        const wrapper = document.getElementById('lightbox-img-wrapper');
+        if (wrapper) wrapper.classList.remove('zoomed');
+    }
+
+    function navigateLightbox(direction) {
+        const newIndex = selectedImageIndex + direction;
+        if (newIndex >= 0 && newIndex < currentImages.length) {
+            selectedImageIndex = newIndex;
+            updateLightboxImage();
+        }
+    }
+
+    function updateLightboxImage() {
+        const img = document.getElementById('lightbox-main-img');
+        const counter = document.getElementById('lightbox-counter');
+        const prevBtn = document.getElementById('lightbox-prev');
+        const nextBtn = document.getElementById('lightbox-next');
+
+        if (img) img.src = currentImages[selectedImageIndex].url;
+        if (counter) counter.innerText = `${selectedImageIndex + 1} / ${currentImages.length}`;
+        if (prevBtn) prevBtn.disabled = selectedImageIndex === 0;
+        if (nextBtn) nextBtn.disabled = selectedImageIndex === currentImages.length - 1;
+
+        // Zoom'u resetle
+        isZoomed = false;
+        const wrapper = document.getElementById('lightbox-img-wrapper');
+        if (wrapper) wrapper.classList.remove('zoomed');
+
+        // Thumbnail'ları güncelle
+        document.querySelectorAll('.lightbox-thumb-item-container').forEach((thumb, i) => {
+            thumb.classList.toggle('selected', i === selectedImageIndex);
+        });
+    }
+
+    function toggleZoom() {
+        if (isMobile) return;
+        isZoomed = !isZoomed;
+        const wrapper = document.getElementById('lightbox-img-wrapper');
+        if (wrapper) wrapper.classList.toggle('zoomed', isZoomed);
+    }
+
+    function renderLightboxThumbnails() {
+        const list = document.getElementById('lightbox-thumb-list');
+        if (!list) return;
+
+        let html = '';
+        currentImages.forEach((img, i) => {
+            html += `
+                <div class="lightbox-thumb-item-container ${i === 0 ? 'selected' : ''}" 
+                     onclick="lightboxSelectThumb(${i})">
+                    <img src="${img.url}" alt="thumb-${i+1}" class="lightbox-thumbnail-item">
+                </div>
+            `;
+        });
+        list.innerHTML = html;
+    }
+
+    window.lightboxSelectThumb = function(index) {
+        selectedImageIndex = index;
+        updateLightboxImage();
+    };
+
+    // ==========================================
+    // VARYASYON (Aynı kalıyor)
+    // ==========================================
+
+    function parseVariants(text) {
+        if (!text) return [];
+        const t = text.toString().trim();
+        const lines = t.split('\n').filter(l => l.trim());
+        if (lines.length > 1) {
+            return lines.map(line => ({ size: line.trim(), label: line.trim(), price: null }));
+        }
+        const parts = t.split(',').map(p => p.trim()).filter(p => p);
+        if (parts.length > 1) {
+            return parts.map(part => ({ size: part, label: part, price: null }));
+        }
+        return [{ size: t, label: t, price: null }];
+    }
 
     function setupVariantAccordion() {
         const btn = document.getElementById('variant-accordion-btn');
         if (!btn) return;
-
-        // Önceki listener'ları temizle
         const newBtn = btn.cloneNode(true);
         btn.parentNode.replaceChild(newBtn, btn);
-
         newBtn.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -252,14 +395,9 @@ if (window.__productPageInitialized) {
         });
     }
 
-    // ==========================================
-    // VARYASYON DRAWER (Sağdan Açılan)
-    // ==========================================
-
     function openVariantDrawer() {
         const overlay = document.getElementById('variant-drawer-overlay');
         const drawer = document.getElementById('variant-drawer');
-        
         if (overlay && drawer) {
             overlay.classList.add('open');
             drawer.classList.add('open');
@@ -270,7 +408,6 @@ if (window.__productPageInitialized) {
     window.closeVariantDrawer = function() {
         const overlay = document.getElementById('variant-drawer-overlay');
         const drawer = document.getElementById('variant-drawer');
-        
         if (overlay && drawer) {
             overlay.classList.remove('open');
             drawer.classList.remove('open');
@@ -282,18 +419,15 @@ if (window.__productPageInitialized) {
         const body = document.getElementById('variant-drawer-body');
         if (!body) return;
 
-        // Ana ürün görseli (ilk görseli varyasyon kartlarında kullan)
         const mainImage = currentImages.length > 0 ? currentImages[0].url : '';
         const productName = currentProduct.fields.Name;
 
         let html = '';
         currentVariants.forEach((variant, index) => {
             const isSelected = selectedVariant && selectedVariant.size === variant.size;
-            
             html += `
                 <div class="variant-drawer-item ${isSelected ? 'selected' : ''}" 
-                     data-index="${index}"
-                     onclick="selectVariant(${index})">
+                     data-index="${index}" onclick="selectVariant(${index})">
                     <div class="variant-drawer-image">
                         <img src="${mainImage}" alt="${productName} ${variant.label}">
                     </div>
@@ -307,46 +441,56 @@ if (window.__productPageInitialized) {
                 </div>
             `;
         });
-
         body.innerHTML = html;
 
-        // Kapatma butonu
         const closeBtn = document.getElementById('close-variant-drawer');
-        if (closeBtn) {
-            closeBtn.onclick = closeVariantDrawer;
-        }
+        if (closeBtn) closeBtn.onclick = closeVariantDrawer;
 
-        // Overlay'a tıklayınca kapat
         const overlay = document.getElementById('variant-drawer-overlay');
-        if (overlay) {
-            overlay.onclick = (e) => {
-                if (e.target === overlay) closeVariantDrawer();
-            };
-        }
+        if (overlay) overlay.onclick = (e) => { if (e.target === overlay) closeVariantDrawer(); };
     }
 
     window.selectVariant = function(index) {
         selectedVariant = currentVariants[index];
-        
-        // UI güncelle
         document.querySelectorAll('.variant-drawer-item').forEach((item, i) => {
             item.classList.toggle('selected', i === index);
-            const checkIcon = item.querySelector('.variant-check i');
-            if (checkIcon) {
-                checkIcon.className = i === index ? 'fa-solid fa-check-circle' : 'fa-regular fa-circle';
-            }
+            const icon = item.querySelector('.variant-check i');
+            if (icon) icon.className = i === index ? 'fa-solid fa-check-circle' : 'fa-regular fa-circle';
         });
-
-        // Akordiyonu güncelle
         const display = document.getElementById('selected-variant-display');
         const status = document.getElementById('variant-status');
-        
         if (display) display.innerText = selectedVariant.label;
         if (status) status.style.display = 'inline-flex';
-
-        // Drawer'ı kapat (küçük gecikmeyle, animasyon için)
         setTimeout(closeVariantDrawer, 300);
     };
+
+    // ==========================================
+    // AKORDİYONLAR (3 Adet)
+    // ==========================================
+
+    function setupAccordions() {
+        const items = document.querySelectorAll('.product-accordion-item');
+        
+        items.forEach(item => {
+            const header = item.querySelector('.product-accordion-header');
+            const content = item.querySelector('.product-accordion-content');
+            
+            if (!header || !content) return;
+
+            // İlkini açık bırak (opsiyonel - istersen kaldır)
+            // if (item === items[0]) item.classList.add('active');
+
+            header.addEventListener('click', () => {
+                const isActive = item.classList.contains('active');
+                
+                // Tümünü kapat (tek açık olsun istersen)
+                // items.forEach(i => i.classList.remove('active'));
+                
+                // Toggle
+                item.classList.toggle('active', !isActive);
+            });
+        });
+    }
 
     // ==========================================
     // SEPETE EKLE
@@ -355,13 +499,11 @@ if (window.__productPageInitialized) {
     function setupAddToCart(fields) {
         const btn = document.getElementById('add-to-cart-btn');
         if (!btn) return;
-
         const newBtn = btn.cloneNode(true);
         btn.parentNode.replaceChild(newBtn, btn);
 
         newBtn.addEventListener('click', () => {
             const variantInfo = selectedVariant ? selectedVariant.label : (fields.Variants || 'Standard');
-            
             if (typeof addProductToCart === 'function') {
                 addProductToCart({
                     id: currentProduct.id,
@@ -372,32 +514,36 @@ if (window.__productPageInitialized) {
                     delivery: fields.Delivery_time || ''
                 });
             } else {
-                // Fallback
                 const cartItem = {
-                    id: currentProduct.id,
-                    name: fields.Name,
+                    id: currentProduct.id, name: fields.Name,
                     price: parseFloat(fields.Price) || 0,
                     image: currentImages.length > 0 ? currentImages[0].url : '',
-                    variants: variantInfo,
-                    delivery: fields.Delivery_time || '',
-                    quantity: 1
+                    variants: variantInfo, delivery: fields.Delivery_time || '', quantity: 1
                 };
-
                 let cart = JSON.parse(localStorage.getItem('siteCartItems')) || [];
                 const existing = cart.find(i => i.id === currentProduct.id);
-                if (existing) {
-                    existing.quantity = (existing.quantity || 1) + 1;
-                } else {
-                    cart.push(cartItem);
-                }
+                if (existing) existing.quantity = (existing.quantity || 1) + 1;
+                else cart.push(cartItem);
                 localStorage.setItem('siteCartItems', JSON.stringify(cart));
-
                 if (typeof updateMiniCartUI === 'function') updateMiniCartUI();
                 if (typeof updateCartBadge === 'function') updateCartBadge();
                 if (typeof openMiniCart === 'function') openMiniCart();
             }
         });
     }
+
+    // ==========================================
+    // RESPONSIVE KONTROL
+    // ==========================================
+
+    window.addEventListener('resize', () => {
+        const newIsMobile = window.innerWidth <= 768;
+        if (newIsMobile !== isMobile && currentImages.length > 0) {
+            isMobile = newIsMobile;
+            if (isMobile) renderMobileGallery();
+            else renderDesktopGallery();
+        }
+    });
 
     // ==========================================
     // BAŞLAT

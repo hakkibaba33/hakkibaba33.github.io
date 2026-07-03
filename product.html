@@ -27,10 +27,20 @@
             <div class="product-content">
                 <!-- SOL: Görsel Galerisi -->
                 <div class="product-gallery">
-                    <!-- 2 Büyük Resim Yan Yana -->
-                    <div class="main-display-wrapper" id="product-images-container"></div>
-                    <!-- Thumbnail'lar -->
-                    <div class="gallery-thumbnail-list" id="gallery-thumbnail-list"></div>
+                    <!-- MASAÜSTÜ: 2 Büyük Resim Yan Yana -->
+                    <div class="main-display-wrapper desktop-gallery" id="desktop-gallery"></div>
+                    
+                    <!-- MOBİL: Swipe Galeri -->
+                    <div class="mobile-gallery-wrapper" id="mobile-gallery" style="display:none;">
+                        <div class="mobile-gallery-track" id="mobile-gallery-track"></div>
+                        <div class="mobile-gallery-counter" id="mobile-gallery-counter">1 / 5</div>
+                        <div class="mobile-gallery-scrollbar">
+                            <div class="mobile-gallery-scrollbar-thumb" id="mobile-scrollbar-thumb"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Thumbnail'lar (Masaüstü) -->
+                    <div class="gallery-thumbnail-list desktop-thumbs" id="gallery-thumbnail-list"></div>
                 </div>
 
                 <!-- SAĞ: Ürün Detayları -->
@@ -43,7 +53,7 @@
                         <span class="tax-info-static">(Inkl. moms)</span>
                     </div>
 
-                    <!-- 🆕 VARYASYON AKORDİYONU -->
+                    <!-- VARYASYON AKORDİYONU -->
                     <div id="variant-accordion-wrapper" class="variant-accordion-box">
                         <button class="variant-accordion-header" id="variant-accordion-btn">
                             <div class="accordion-left">
@@ -65,10 +75,43 @@
                         <button class="ana-urun-favori-buton"><i class="fa-regular fa-heart"></i></button>
                     </div>
 
+                    <!-- 🆕 3 AKORDİYON -->
                     <div class="product-accordion-wrapper">
+                        <!-- 1. Produktbeskrivning -->
                         <div class="product-accordion-item">
-                            <button class="product-accordion-header"><h3>Produktbeskrivning</h3></button>
+                            <button class="product-accordion-header">
+                                <h3>Produktbeskrivning</h3>
+                                <i class="fa-solid fa-chevron-down"></i>
+                            </button>
                             <div class="product-accordion-content" id="product-description"></div>
+                        </div>
+                        
+                        <!-- 2. Produktinformation -->
+                        <div class="product-accordion-item">
+                            <button class="product-accordion-header">
+                                <h3>Produktinformation</h3>
+                                <i class="fa-solid fa-chevron-down"></i>
+                            </button>
+                            <div class="product-accordion-content" id="product-specs">
+                                <div class="specs-content-placeholder">
+                                    <p>Material, skötselråd och övrig produktinformation visas här.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 3. Leverans & Retur -->
+                        <div class="product-accordion-item">
+                            <button class="product-accordion-header">
+                                <h3>Leverans & Retur</h3>
+                                <i class="fa-solid fa-chevron-down"></i>
+                            </button>
+                            <div class="product-accordion-content" id="product-delivery">
+                                <div class="delivery-content-placeholder">
+                                    <p><strong>Leveranstid:</strong> <span id="delivery-time-display">3-7 arbetsdagar</span></p>
+                                    <p><strong>Frakt:</strong> Fri frakt vid köp över 500 SEK</p>
+                                    <p><strong>Retur:</strong> 30 dagars öppet köp</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -78,7 +121,7 @@
 
     <div id="footer-placeholder"></div>
 
-    <!-- 🆕 VARYASYON DRAWER (Sağdan Açılan) -->
+    <!-- VARYASYON DRAWER -->
     <div class="variant-drawer-overlay" id="variant-drawer-overlay">
         <div class="variant-drawer" id="variant-drawer">
             <div class="variant-drawer-header">
@@ -87,8 +130,37 @@
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
-            <div class="variant-drawer-body" id="variant-drawer-body">
-                <!-- Varyasyonlar buraya JS ile gelecek -->
+            <div class="variant-drawer-body" id="variant-drawer-body"></div>
+        </div>
+    </div>
+
+    <!-- 🆕 MASAÜSTÜ LIGHTBOX -->
+    <div class="custom-lightbox-overlay" id="custom-lightbox">
+        <div class="lightbox-desktop-layout">
+            <!-- Sol Sidebar: Thumbnail'lar -->
+            <div class="lightbox-thumbnail-sidebar">
+                <div class="lightbox-thumbnail-list" id="lightbox-thumb-list"></div>
+            </div>
+            <!-- Sağ Ana Alan -->
+            <div class="lightbox-main-area">
+                <button class="lightbox-close-btn" id="lightbox-close">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+                <div class="lightbox-image-container" id="lightbox-img-container">
+                    <div class="lightbox-image-wrapper" id="lightbox-img-wrapper">
+                        <img src="" alt="" class="lightbox-main-image" id="lightbox-main-img">
+                    </div>
+                </div>
+                <div class="lightbox-zoom-hint">Dubbelklicka för att zooma</div>
+                <div class="lightbox-nav">
+                    <button class="lightbox-nav-btn" id="lightbox-prev">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+                    <span class="lightbox-counter" id="lightbox-counter">1 / 5</span>
+                    <button class="lightbox-nav-btn" id="lightbox-next">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -100,23 +172,15 @@
                     fetch('/header.html'),
                     fetch('/footer.html')
                 ]);
-
                 if (!headerRes.ok || !footerRes.ok) return;
-
                 document.getElementById('header-placeholder').innerHTML = await headerRes.text();
                 document.getElementById('footer-placeholder').innerHTML = await footerRes.text();
-
                 if (typeof initEventListeners === 'function') initEventListeners();
-            } catch (error) {
-                console.error("Component yükleme hatası:", error);
-            }
+            } catch (e) { console.error(e); }
         }
-
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', loadComponents);
-        } else {
-            loadComponents();
-        }
+        } else { loadComponents(); }
     </script>
 
     <script src="/assets/js/config.js"></script>
