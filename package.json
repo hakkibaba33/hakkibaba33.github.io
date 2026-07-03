@@ -5,3 +5,11 @@
     "build": "node build-config.js"
   }
 }
+
+{
+  "name": "dkrug-store",
+  "version": "1.0.0",
+  "dependencies": {
+    "stripe": "^14.5.0"
+  }
+}

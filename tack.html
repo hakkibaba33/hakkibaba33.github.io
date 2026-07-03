@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tack för din beställning | DKRUG</title>
+    <link rel="stylesheet" href="/assets/css/common.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .success-container {
+            max-width: 600px;
+            margin: 100px auto;
+            text-align: center;
+            padding: 40px;
+        }
+        .success-icon {
+            font-size: 80px;
+            color: #27ae60;
+            margin-bottom: 30px;
+        }
+        .success-container h1 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+        .success-container p {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .back-btn {
+            display: inline-block;
+            background: #000;
+            color: #fff;
+            padding: 15px 40px;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="success-container">
+        <i class="fa-solid fa-circle-check success-icon"></i>
+        <h1>Tack för din beställning!</h1>
+        <p>Vi har mottagit din betalning. En bekräftelse har skickats till din e-post.</p>
+        <p>Ordernummer: <strong id="order-id">-</strong></p>
+        <a href="/mattor" class="back-btn">Fortsätt handla</a>
+    </div>
+
+    <script>
+        // URL'den session_id al
+        const urlParams = new URLSearchParams(window.location.search);
+        const sessionId = urlParams.get('session_id');
+        if (sessionId) {
+            document.getElementById('order-id').textContent = sessionId.slice(-8).toUpperCase();
+            // Sepeti temizle
+            localStorage.removeItem('siteCartItems');
+        }
+    </script>
+</body>
+</html>

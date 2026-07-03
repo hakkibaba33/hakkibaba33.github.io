@@ -15,3 +15,10 @@
     { "source": "/category.html", "destination": "/mattor", "permanent": true }
   ]
 }
+
+{
+  "version": 2,
+  "routes": [
+    { "src": "/api/(.*)", "dest": "/api/$1" }
+  ]
+}
