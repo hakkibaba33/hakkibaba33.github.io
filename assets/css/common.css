@@ -371,6 +371,21 @@ body.search-active, body.modal-open {
     align-items: center;
     justify-content: center;
 }
+
+.search-popup {
+    display: none; /* Varsayılan gizli */
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: white; /* İhtiyaca göre düzenle */
+    z-index: 9999;
+}
+
+.search-popup.active {
+    display: flex; /* Active sınıfı gelince göster[cite: 1] */
+    align-items: center;
+    justify-content: center;
+}
+
 /* ==========================================
    0. RESET & TEMEL AYARLAR
    ========================================== */
