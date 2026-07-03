@@ -72,72 +72,47 @@ function closeMiniCart() {
 
 
 
-
-// ==========================================
-// 8. ARAMA FONKSİYONU
-// ==========================================
+// common.js içindeki initSearch fonksiyonunu bununla değiştir
 function initSearch() {
-    const searchInput = document.getElementById('live-search-input');
-    const resultsDisplay = document.getElementById('search-results-display');
-    const searchPopup = document.getElementById('search-popup-overlay');
-    const searchOpenBtn = document.getElementById('search-open-btn');
-    const searchCloseBtn = document.getElementById('search-close-btn') || document.getElementById('close-search-popup');
+    // Tüm tıklamaları document üzerinde dinleyerek 'Event Delegation' yapıyoruz
+    document.addEventListener('click', (e) => {
+        const openBtn = e.target.closest('#search-open-btn');
+        const closeBtn = e.target.closest('#close-search-popup');
+        const popup = document.getElementById('search-popup-overlay');
+        const input = document.getElementById('live-search-input');
 
-    if (searchInput) {
-        let debounceTimer;
-        searchInput.addEventListener('input', function() {
-            clearTimeout(debounceTimer);
-            const query = this.value.trim();
-            
-            if (query.length < 2) {
-                if (resultsDisplay) resultsDisplay.innerHTML = '';
-                return;
-            }
-
-            debounceTimer = setTimeout(() => {
-                fetch('/wp-admin/admin-ajax.php?action=klasik_search&term=' + encodeURIComponent(query))
-                    .then(r => r.text())
-                    .then(data => {
-                        if (resultsDisplay) resultsDisplay.innerHTML = data;
-                    })
-                    .catch(() => {
-                        ToastSystem.error('Sökningen misslyckades. Försök igen.');
-                    });
-            }, 300);
-        });
-
-        searchInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                const query = searchInput.value.trim();
-                if (query) {
-                    window.location.href = '/?s=' + encodeURIComponent(query) + '&post_type=product';
-                }
-            }
-        });
-    }
-
-    if (searchOpenBtn && searchPopup) {
-        searchOpenBtn.addEventListener('click', (e) => {
+        // Açma işlemi
+        if (openBtn) {
             e.preventDefault();
-            toggleModal(searchPopup, 'open');
-            setTimeout(() => searchInput?.focus(), 300);
-        });
+            if (popup) {
+                popup.style.display = 'flex'; // Veya classList.add('active')
+                setTimeout(() => input?.focus(), 100);
+            }
+        }
 
-        const closeSearch = () => toggleModal(searchPopup, 'close');
-        if (searchCloseBtn) searchCloseBtn.addEventListener('click', closeSearch);
-        searchPopup.addEventListener('click', (e) => {
-            if (e.target === searchPopup) closeSearch();
+        // Kapatma işlemi
+        if (closeBtn || (e.target.id === 'search-popup-overlay')) {
+            if (popup) popup.style.display = 'none'; // Veya classList.remove('active')
+        }
+    });
+
+    // Arama inputu için event listener (Bu kısım zaten sayfada var olduğu sürece çalışır)
+    const searchInput = document.getElementById('live-search-input');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const query = this.value.trim();
+            if (query.length < 2) return;
+            
+            // BURASI ÇOK ÖNEMLİ:
+            // Buraya Airtable API'nizden veri çeken fonksiyonu yazacağız.
+            console.log("Airtable'da aranıyor: ", query);
+            // Airtable verilerini çektikten sonra 'search-results-display' içine basacağız.
         });
     }
+}
 
-document.querySelectorAll('.mobile-menu-list .menu-item-has-children > a').forEach(item => {
-    // Event listener yok - normal link davranışı
-    // Kullanıcı ana kategoriye tıklayınca sayfaya gider
-    console.log('Mobil menü: Alt kategoriler chips butonlarından erişilecek');
-});
- }
-
+// Sayfa yüklendiğinde çalıştır
+document.addEventListener('DOMContentLoaded', initSearch);
 
 
 
