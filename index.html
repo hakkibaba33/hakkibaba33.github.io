@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DKRUG Sweden | Exklusiva Mattor</title>
+    <!-- Stil Dosyaları -->
+    <link rel="stylesheet" href="assets/css/reset.css">
+    <link rel="stylesheet" href="assets/css/common.css">
+    <link rel="stylesheet" href="assets/css/index.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <!-- Header Dinamik Yüklenir -->
+    <div id="header-placeholder"></div>
+
+    <main class="main-content">
+        <!-- Hero Section (Vitrin) -->
+        <section class="hero-section">
+            <div class="hero-content">
+                <h1>Förvandla ditt hem</h1>
+                <p>Upptäck vårt handplockade sortiment av exklusiva mattor.</p>
+                <a href="/produkt-kategori/alla-mattor/" class="hero-btn">Shoppa Nu</a>
+            </div>
+        </section>
+
+        <!-- Öne Çıkan Kategoriler -->
+        <section class="categories-preview">
+            <div class="container">
+                <h2>Våra Kategorier</h2>
+                <div class="cat-grid" id="category-list">
+                    <!-- JS ile dinamik olarak doldurulacak -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Öne Çıkan Ürünler (Best Sellers) -->
+        <section class="best-sellers">
+            <div class="container">
+                <h2>Bästsäljare</h2>
+                <div class="product-grid" id="featured-products">
+                    <!-- JS ile Airtable'dan ürünler gelecek -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Güven / Avantaj Bölümü -->
+        <section class="features-section">
+            <div class="container">
+                <div class="feature-item">
+                    <i class="fa-solid fa-truck"></i>
+                    <h3>Fri Frakt</h3>
+                    <p>Snabb och smidig leverans direkt till dörren.</p>
+                </div>
+                <div class="feature-item">
+                    <i class="fa-solid fa-lock"></i>
+                    <h3>Säker Betalning</h3>
+                    <p>Vi använder krypterade betallösningar.</p>
+                </div>
+                <div class="feature-item">
+                    <i class="fa-solid fa-headset"></i>
+                    <h3>Support</h3>
+                    <p>Vi finns här för att hjälpa dig dygnet runt.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer Dinamik Yüklenir -->
+    <div id="footer-placeholder"></div>
+
+    <!-- Yükleyici Script -->
+    <script>
+        async function initPage() {
+            // Header ve Footer yükle
+            const [hRes, fRes] = await Promise.all([fetch('header.html'), fetch('footer.html')]);
+            document.getElementById('header-placeholder').innerHTML = await hRes.text();
+            document.getElementById('footer-placeholder').innerHTML = await fRes.text();
+        }
+        initPage();
+    </script>
+
+    <script src="assets/js/common.js"></script>
+    <script src="assets/js/index.js"></script>
+</body>
+</html>
