@@ -1,5 +1,5 @@
 // ==========================================
-// COMMON.JS - TEMIZLENMIS (v3)
+// COMMON.JS - TEMIZLENMIS (v4)
 // ==========================================
 
 // CONFIG kontrolu
@@ -12,7 +12,7 @@ const BASE_ID = (typeof CONFIG !== 'undefined') ? CONFIG.AIRTABLE.BASE_ID : '';
 const TABLE_NAME = (typeof CONFIG !== 'undefined') ? CONFIG.AIRTABLE.TABLE_NAME : 'products';
 
 // ==========================================
-// 1. YARDIMCI FONKSIYONLAR (Once bunlar tanimlanmali)
+// 1. YARDIMCI FONKSIYONLAR
 // ==========================================
 
 function getCart() {
@@ -135,7 +135,7 @@ function removeFromCart(productId) {
 }
 
 // ==========================================
-// 4. URUN EKLEME (API'siz - direkt sepete)
+// 4. URUN EKLEME
 // ==========================================
 
 function addProductToCart(productData) {
@@ -224,16 +224,24 @@ function closeMobileMenu() {
 // 7. EVENT LISTENERS
 // ==========================================
 
-function initEventListeners() {
-    console.log('Event listenerlar baslatiliyor...');
+// 🎯 GLOBAL FLAG: Listener'lar zaten bağlandıysa tekrar bağlama
+let __commonListenersInitialized = false;
 
-    // SEPET ACMA - Event Delegation
+function initEventListeners() {
+    if (__commonListenersInitialized) {
+        console.log('⚠️ Event listenerlar zaten bağlı, atlanıyor.');
+        return;
+    }
+    __commonListenersInitialized = true;
+
+    console.log('✅ Event listenerlar başlatılıyor...');
+
+    // SEPET ACMA
     document.addEventListener('click', (e) => {
         const btn = e.target.closest('#open-mini-cart-btn, .cart-icon-wrapper, .fa-shopping-bag');
         if (btn) {
             e.preventDefault();
             e.stopPropagation();
-            console.log('Sepet butonuna tiklandi');
             openMiniCart();
         }
     });
@@ -303,21 +311,15 @@ function initEventListeners() {
         }
     });
 
-    console.log('Event listenerlar baglandi');
+    console.log('✅ Event listenerlar bağlandı');
 }
 
 // ==========================================
 // 8. BASLATMA
 // ==========================================
 
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        console.log('common.js yuklendi');
-        initEventListeners();
-        updateCartBadge();
-    });
-} else {
-    console.log('common.js yuklendi (zaten hazir)');
-    initEventListeners();
-    updateCartBadge();
-}
+// 🎯 common.js kendi kendine başlatma YAPMAYACAK
+// Başlatma, header.html yüklendikten sonra product.html'deki loadComponents() tarafından çağrılacak
+// Bu, birden fazla kez çalışmayı engeller
+
+console.log('📦 common.js yüklendi (başlatma bekleniyor...)');

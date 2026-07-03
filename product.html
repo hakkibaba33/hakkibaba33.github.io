@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="/assets/css/style.css">
     <link rel="stylesheet" href="/assets/css/common.css">
     <link rel="stylesheet" href="/assets/css/reset.css">
-    <!-- <base target="_blank"> KALDIRILDI -->
+    <!-- <base target="_blank"> KALDIRILDI - Tüm fetch/linkleri bozuyordu -->
 </head>
 <body>
 
@@ -67,15 +67,24 @@
     <div id="footer-placeholder"></div>
 
     <script>
+        // ==========================================
+        // HEADER & FOOTER YÜKLEYİCİ
+        // ==========================================
         async function loadComponents() {
             try {
+                // Mutlak yol kullan (/<dosya>.html) - göreli yol /matta/xxx'de çalışmaz
                 const [headerRes, footerRes] = await Promise.all([
                     fetch('/header.html'),
                     fetch('/footer.html')
                 ]);
 
-                if (!headerRes.ok || !footerRes.ok) {
-                    throw new Error('Header veya Footer yüklenemedi');
+                if (!headerRes.ok) {
+                    console.error('Header yüklenemedi:', headerRes.status);
+                    return;
+                }
+                if (!footerRes.ok) {
+                    console.error('Footer yüklenemedi:', footerRes.status);
+                    return;
                 }
 
                 const headerData = await headerRes.text();
@@ -84,15 +93,27 @@
                 document.getElementById('header-placeholder').innerHTML = headerData;
                 document.getElementById('footer-placeholder').innerHTML = footerData;
 
-                console.log("Header ve Footer başarıyla yüklendi.");
+                console.log("✅ Header ve Footer başarıyla yüklendi.");
+
+                // Header yüklendikten sonra event listener'ları başlat
+                if (typeof initEventListeners === 'function') {
+                    initEventListeners();
+                }
+
             } catch (error) {
-                console.error("Component yükleme hatası:", error);
+                console.error("❌ Component yükleme hatası:", error);
             }
         }
 
-        loadComponents();
+        // Sayfa yüklenince çalıştır
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', loadComponents);
+        } else {
+            loadComponents();
+        }
     </script>
 
+    <!-- Script sırası önemli: config → common → product.ui -->
     <script src="/assets/js/config.js"></script>
     <script src="/assets/js/common.js"></script>
     <script src="/assets/js/product.ui.js"></script>
