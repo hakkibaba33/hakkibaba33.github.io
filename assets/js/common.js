@@ -61,6 +61,111 @@ function closeMiniCart() {
     console.log('Mini sepet KAPANDI');
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+// ==========================================
+// 8. ARAMA FONKSİYONU
+// ==========================================
+function initSearch() {
+    const searchInput = document.getElementById('live-search-input');
+    const resultsDisplay = document.getElementById('search-results-display');
+    const searchPopup = document.getElementById('search-popup-overlay');
+    const searchOpenBtn = document.getElementById('search-open-btn');
+    const searchCloseBtn = document.getElementById('search-close-btn') || document.getElementById('close-search-popup');
+
+    if (searchInput) {
+        let debounceTimer;
+        searchInput.addEventListener('input', function() {
+            clearTimeout(debounceTimer);
+            const query = this.value.trim();
+            
+            if (query.length < 2) {
+                if (resultsDisplay) resultsDisplay.innerHTML = '';
+                return;
+            }
+
+            debounceTimer = setTimeout(() => {
+                fetch('/wp-admin/admin-ajax.php?action=klasik_search&term=' + encodeURIComponent(query))
+                    .then(r => r.text())
+                    .then(data => {
+                        if (resultsDisplay) resultsDisplay.innerHTML = data;
+                    })
+                    .catch(() => {
+                        ToastSystem.error('Sökningen misslyckades. Försök igen.');
+                    });
+            }, 300);
+        });
+
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const query = searchInput.value.trim();
+                if (query) {
+                    window.location.href = '/?s=' + encodeURIComponent(query) + '&post_type=product';
+                }
+            }
+        });
+    }
+
+    if (searchOpenBtn && searchPopup) {
+        searchOpenBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            toggleModal(searchPopup, 'open');
+            setTimeout(() => searchInput?.focus(), 300);
+        });
+
+        const closeSearch = () => toggleModal(searchPopup, 'close');
+        if (searchCloseBtn) searchCloseBtn.addEventListener('click', closeSearch);
+        searchPopup.addEventListener('click', (e) => {
+            if (e.target === searchPopup) closeSearch();
+        });
+    }
+
+document.querySelectorAll('.mobile-menu-list .menu-item-has-children > a').forEach(item => {
+    // Event listener yok - normal link davranışı
+    // Kullanıcı ana kategoriye tıklayınca sayfaya gider
+    console.log('Mobil menü: Alt kategoriler chips butonlarından erişilecek');
+});
+ }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // ==========================================
 // 3. MINI SEPET - ICERIK YONETIMI
 // ==========================================
