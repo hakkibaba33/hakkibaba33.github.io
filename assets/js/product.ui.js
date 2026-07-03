@@ -81,6 +81,7 @@ if (window.__productPageInitialized) {
 
             // Sepete ekle
             setupAddToCart(f);
+            setupWishlistButton(f);
 
             console.log("✅ Ürün sayfası yüklendi:", f.Name);
 
@@ -95,7 +96,74 @@ if (window.__productPageInitialized) {
     function setHTML(id, html) {
         const el = document.getElementById(id);
         if (el) { el.innerHTML = ''; el.innerHTML = html || ''; }
+     }
+
+     // ==========================================
+// WISHLIST / FAVORI
+// ==========================================
+
+function setupWishlistButton(fields) {
+    const btn = document.querySelector('.ana-urun-favori-buton');
+    if (!btn) return;
+
+    // Ürün ID'si
+    const productId = currentProduct.id;
+    
+    // Başlangıç durumunu kontrol et
+    updateWishlistButtonState(btn, productId);
+
+    // Click event
+    btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        let wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
+        const index = wishlist.findIndex(item => (typeof item === 'string' ? item : item.id) === productId);
+
+        if (index > -1) {
+            // Kaldır
+            wishlist.splice(index, 1);
+            console.log('Favorilerden kaldirildi:', fields.Name);
+        } else {
+            // Ekle
+            wishlist.push({
+                id: productId,
+                name: fields.Name,
+                price: parseFloat(fields.Price) || 0,
+                image: currentImages.length > 0 ? currentImages[0].url : ''
+            });
+            console.log('Favorilere eklendi:', fields.Name);
+        }
+
+        localStorage.setItem('wishlistItems', JSON.stringify(wishlist));
+        
+        // Buton görünümünü güncelle
+        updateWishlistButtonState(btn, productId);
+        
+        // Header badge'i güncelle
+        if (typeof updateWishlistBadge === 'function') {
+            updateWishlistBadge();
+        }
+    });
+}
+
+function updateWishlistButtonState(btn, productId) {
+    const wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
+    const isWishlisted = wishlist.some(item => (typeof item === 'string' ? item : item.id) === productId);
+    
+    const icon = btn.querySelector('i');
+    if (icon) {
+        icon.className = isWishlisted ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
     }
+    
+    if (isWishlisted) {
+        btn.classList.add('active');
+        btn.style.color = '#D30000';
+    } else {
+        btn.classList.remove('active');
+        btn.style.color = '';
+    }
+}
 
     // ==========================================
     // MASAÜSTÜ GALERİ (2 Resim + Thumbnail'lar)

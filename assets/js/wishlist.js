@@ -77,7 +77,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             <div class="product-item-wrapper" data-id="${product.id}">
                 <div class="product-card">
                     <div class="image-box">
-                        <a href="/matta/${slug}">
+                       <a href="/matta/${product.slug}"> 
                             <img src="${product.image}" 
                                  alt="${product.name}" 
                                  loading="lazy"
@@ -121,6 +121,10 @@ function removeFromWishlist(productId) {
         card.classList.add('product-removed');
         setTimeout(() => {
             card.remove();
+
+            if (typeof updateWishlistBadge === 'function') {
+             updateWishlistBadge();
+           }
 
             // Tumu silindiyse bos state goster
             const remaining = document.querySelectorAll('.product-item-wrapper');

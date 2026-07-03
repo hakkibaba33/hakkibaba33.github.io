@@ -158,65 +158,89 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    function attachWishlistEvents() {
-        document.querySelectorAll('.wishlist-btn').forEach(btn => {
-            // Onceki listener'lari temizle (duplicate onlemek icin)
-            btn.replaceWith(btn.cloneNode(true));
+// --- 5. WISHLIST FONKSIYONLARI ---
+
+function isInWishlist(productId) {
+    try {
+        const wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
+        return wishlist.some(item => (typeof item === 'string' ? item : item.id) === productId);
+    } catch (e) {
+        return false;
+    }
+}
+
+function attachWishlistEvents() {
+    // Event delegation kullan - her seferinde tek tek ekleme
+    // Önce eski listener'ları temizlemeye gerek yok, çünkü grid değişince zaten gider
+    
+    // Grid üzerinde tek bir listener
+    const grid = document.getElementById('product-grid');
+    if (!grid) return;
+    
+    // Önceki listener'ı kaldır (varsa)
+    grid.removeEventListener('click', handleWishlistClick);
+    // Yeni listener ekle
+    grid.addEventListener('click', handleWishlistClick);
+}
+
+function handleWishlistClick(e) {
+    // Kalp butonuna veya içindeki ikona tıklandı mı?
+    const btn = e.target.closest('.wishlist-btn');
+    if (!btn) return;
+    
+    e.preventDefault();
+    e.stopPropagation();
+
+    const productId = btn.dataset.productId;
+    if (!productId) return;
+
+    // Ürün bilgilerini bul
+    const product = allProducts.find(p => p.id === productId);
+    if (!product) return;
+
+    // Wishlist'i güncelle
+    let wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
+    const index = wishlist.findIndex(item => (typeof item === 'string' ? item : item.id) === productId);
+
+    if (index > -1) {
+        // Kaldır
+        wishlist.splice(index, 1);
+        btn.classList.remove('active');
+        const icon = btn.querySelector('i');
+        if (icon) icon.className = 'fa-regular fa-heart';
+        console.log('Favorilerden kaldirildi:', product.name);
+    } else {
+        // Ekle
+        wishlist.push({
+            id: product.id,
+            name: product.name,
+            price: product.price,
+            image: product.image
         });
-
-        // Yeni listener'lari ekle
-        document.querySelectorAll('.wishlist-btn').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-
-                const productId = this.dataset.productId;
-                const productCard = this.closest('.product-card');
-
-                // Urun bilgilerini al
-                const product = allProducts.find(p => p.id === productId);
-                if (!product) return;
-
-                // Wishlist'i guncelle
-                let wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
-                const index = wishlist.findIndex(item => item.id === productId);
-
-                if (index > -1) {
-                    // Kaldir
-                    wishlist.splice(index, 1);
-                    this.classList.remove('active');
-                    this.querySelector('i').className = 'fa-regular fa-heart';
-                } else {
-                    // Ekle
-                    wishlist.push({
-                        id: product.id,
-                        name: product.name,
-                        price: product.price,
-                        image: product.image
-                    });
-                    this.classList.add('active');
-                    this.querySelector('i').className = 'fa-solid fa-heart';
-                }
-
-                localStorage.setItem('wishlistItems', JSON.stringify(wishlist));
-
-                // Header badge'i guncelle
-                updateWishlistBadge();
-
-                // Mini bildirim (opsiyonel)
-                console.log(index > -1 ? 'Favorilerden kaldirildi' : 'Favorilere eklendi');
-            });
-        });
+        btn.classList.add('active');
+        const icon = btn.querySelector('i');
+        if (icon) icon.className = 'fa-solid fa-heart';
+        console.log('Favorilere eklendi:', product.name);
     }
 
-    function updateWishlistBadge() {
+    localStorage.setItem('wishlistItems', JSON.stringify(wishlist));
+
+    // Header badge'i güncelle
+    updateWishlistBadge();
+}
+
+function updateWishlistBadge() {
+    try {
         const wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
         const badge = document.querySelector('.wishlist-count-badge');
         if (badge) {
             badge.textContent = wishlist.length;
             badge.classList.toggle('visible', wishlist.length > 0);
         }
+    } catch (e) {
+        console.error('Wishlist badge hatasi:', e);
     }
+}
 
     // --- 6. FILTRELER ---
     function generateFilters() {

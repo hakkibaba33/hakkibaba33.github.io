@@ -37,6 +37,23 @@ function updateCartBadge() {
 }
 
 // ==========================================
+// WISHLIST BADGE
+// ==========================================
+
+function updateWishlistBadge() {
+    try {
+        const wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
+        const badge = document.querySelector('.wishlist-count-badge');
+        if (badge) {
+            badge.textContent = wishlist.length;
+            badge.classList.toggle('visible', wishlist.length > 0);
+        }
+    } catch (e) {
+        console.error('Wishlist badge hatasi:', e);
+    }
+}
+
+// ==========================================
 // 2. MINI SEPET
 // ==========================================
 
@@ -475,6 +492,7 @@ function initEventListeners() {
 
     // SEARCH POPUP'I BASLAT
     initSearch();
+    updateWishlistBadge();
 
     console.log('✅ Event listenerlar bağlandı');
 }
