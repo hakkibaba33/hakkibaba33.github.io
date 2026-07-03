@@ -8,7 +8,7 @@
     <!-- 1. ÖNCE Stripe.js -->
     <script src="https://js.stripe.com/v3/"></script>
     
-    <!-- 2. SONRA config.js (Stripe key burada) -->
+    <!-- 2. SONRA config.js -->
     <script src="/assets/js/config.js"></script>
     
     <!-- Stil Dosyaları -->
@@ -109,13 +109,10 @@
                     </form>
                 </div>
 
-                <div class="checkout-section-card mt-20">
+                <!-- EMBEDDED CHECKOUT ALANI -->
+                <div class="checkout-section-card mt-20" id="payment-section" style="display: none;">
                     <h2 class="section-title"><span class="step-number">2</span> Betalningsmetod</h2>
-                    
-                    <div id="payment-element"></div>
-                    
-                    <div id="card-errors" role="alert" style="color: #e54d42; margin-top: 10px;"></div>
-                    <div id="checkout-status-message" style="margin-top: 15px; font-weight: 500;"></div>
+                    <div id="embedded-checkout"></div>
                 </div>
 
                 <div id="checkout-validation-error" style="color: #e54d42; font-size: 14px; font-weight: 500; margin-bottom: 10px; display: none; text-align: center;">
@@ -123,7 +120,7 @@
                 </div>
 
                 <button id="confirm-payment-btn" class="main-checkout-btn">
-                    Slutför köp
+                    Gå till betalning
                 </button>
             </section>
 
@@ -211,7 +208,7 @@
         </div>
     </footer>
 
-    <!-- 3. SONRA common.js ve checkout.js -->
+    <!-- JS -->
     <script src="/assets/js/common.js"></script>
     <script src="/assets/js/checkout.js"></script>
 </body>
