@@ -3,21 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <title id="page-title-product-name">Ürün Sayfası</title>
-    <!-- Ortak CSS'ler burada olmalı -->
     <link rel="stylesheet" href="/assets/css/product.css">
     <link rel="stylesheet" href="/assets/css/style.css">
     <link rel="stylesheet" href="/assets/css/common.css">
     <link rel="stylesheet" href="/assets/css/reset.css">
-<base target="_blank">
+    <!-- <base target="_blank"> KALDIRILDI -->
 </head>
 <body>
 
-    <!-- Header Buraya Gelecek -->
     <div id="header-placeholder"></div>
 
     <main class="main-content">
         <div class="container product-page">
-            <!-- Breadcrumb -->
             <nav class="custom-cat-breadcrumb-unique">
                 <div class="breadcrumb-inner-wrapper">
                     <a href="javascript:history.back()" class="breadcrumb-back-trigger">Tillbaka</a>
@@ -67,36 +64,37 @@
         </div>
     </main>
 
-    <!-- Footer Buraya Gelecek -->
     <div id="footer-placeholder"></div>
 
-    <!-- SİHİRLİ YÜKLEYİCİ SCRIPT -->
     <script>
         async function loadComponents() {
-            // Header ve Footer'ı aynı anda getir
-            const [headerRes, footerRes] = await Promise.all([
-                fetch('header.html'),
-                fetch('footer.html')
-            ]);
+            try {
+                const [headerRes, footerRes] = await Promise.all([
+                    fetch('/header.html'),
+                    fetch('/footer.html')
+                ]);
 
-            const headerData = await headerRes.text();
-            const footerData = await footerRes.text();
+                if (!headerRes.ok || !footerRes.ok) {
+                    throw new Error('Header veya Footer yüklenemedi');
+                }
 
-            document.getElementById('header-placeholder').innerHTML = headerData;
-            document.getElementById('footer-placeholder').innerHTML = footerData;
+                const headerData = await headerRes.text();
+                const footerData = await footerRes.text();
 
-            // Header ve Footer yüklendikten sonra UI fonksiyonlarını başlat
-            // Eğer varsa "initAllUI()" fonksiyonunu burada çağır:
-            console.log("Header ve Footer başarıyla yüklendi.");
+                document.getElementById('header-placeholder').innerHTML = headerData;
+                document.getElementById('footer-placeholder').innerHTML = footerData;
+
+                console.log("Header ve Footer başarıyla yüklendi.");
+            } catch (error) {
+                console.error("Component yükleme hatası:", error);
+            }
         }
 
-        // Sayfa yüklenince çalıştır
         loadComponents();
     </script>
 
-    <!-- Kendi Sayfa Mantığın (Airtable verisi vb.) -->
-     <script src="/assets/js/config.js"></script>
-    <script src="/assets/js/product.ui.js"></script>
+    <script src="/assets/js/config.js"></script>
     <script src="/assets/js/common.js"></script>
+    <script src="/assets/js/product.ui.js"></script>
 </body>
 </html>
