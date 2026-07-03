@@ -9,7 +9,7 @@ module.exports = async (req, res) => {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
 
     try {
-        const { items, customer, mode } = req.body;
+        const { items, customer } = req.body;
 
         if (!items || items.length === 0) {
             return res.status(400).json({ error: 'Cart is empty' });
@@ -28,36 +28,37 @@ module.exports = async (req, res) => {
             quantity: item.quantity || 1
         }));
 
-        // Embedded mode için farklı session
-        const sessionConfig = {
+        console.log('Creating embedded session...');
+        console.log('Return URL:', 'https://www.dekorist.se/tack?session_id={CHECKOUT_SESSION_ID}');
+
+        const session = await stripe.checkout.sessions.create({
+            ui_mode: 'embedded',
             payment_method_types: ['card', 'klarna'],
             line_items: lineItems,
             mode: 'payment',
+            return_url: 'https://www.dekorist.se/tack?session_id={CHECKOUT_SESSION_ID}',
             customer_email: customer.email,
             metadata: {
                 customer_name: `${customer.firstName} ${customer.lastName}`,
                 customer_phone: customer.phone,
                 customer_address: `${customer.address}, ${customer.postcode} ${customer.city}`
             }
-        };
+        });
 
-        // Mode göre ayarla
-        if (mode === 'embedded') {
-            sessionConfig.ui_mode = 'embedded';
-            sessionConfig.return_url = `${req.headers.origin || 'https://www.dekorist.se'}/tack?session_id={CHECKOUT_SESSION_ID}`;
-        } else {
-            // Eski yönlendirme metodu
-            sessionConfig.success_url = `${req.headers.origin || 'https://www.dekorist.se'}/tack?session_id={CHECKOUT_SESSION_ID}`;
-            sessionConfig.cancel_url = `${req.headers.origin || 'https://www.dekorist.se'}/kassa`;
+        console.log('Session created:', session.id);
+        console.log('Client secret exists:', !!session.client_secret);
+        console.log('Client secret length:', session.client_secret ? session.client_secret.length : 0);
+
+        // client_secret var mı kontrol et
+        if (!session.client_secret) {
+            console.error('ERROR: client_secret is undefined!');
+            console.log('Session object keys:', Object.keys(session));
+            return res.status(500).json({ error: 'client_secret not generated' });
         }
 
-        const session = await stripe.checkout.sessions.create(sessionConfig);
-
-        if (mode === 'embedded') {
-            res.status(200).json({ clientSecret: session.client_secret });
-        } else {
-            res.status(200).json({ id: session.id });
-        }
+        res.status(200).json({ 
+            clientSecret: session.client_secret 
+        });
 
     } catch (error) {
         console.error('Stripe hatasi:', error);

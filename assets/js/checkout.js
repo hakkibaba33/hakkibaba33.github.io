@@ -26,6 +26,9 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('✅ Stripe baslatildi');
     } else {
         console.error('❌ Stripe.js yuklenemedi veya config eksik!');
+        console.log('Stripe var mi:', typeof Stripe !== 'undefined');
+        console.log('CONFIG var mi:', typeof CONFIG !== 'undefined');
+        console.log('CONFIG.STRIPE var mi:', CONFIG?.STRIPE ? 'EVET' : 'HAYIR');
     }
 
     // ==========================================
@@ -41,6 +44,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const statusMessage = document.getElementById('checkout-validation-error');
     const paymentSection = document.getElementById('payment-section');
     const embeddedCheckoutContainer = document.getElementById('embedded-checkout');
+
+    console.log('DOM Elements:', {
+        paymentSection: !!paymentSection,
+        embeddedCheckoutContainer: !!embeddedCheckoutContainer,
+        confirmBtn: !!confirmBtn
+    });
 
     // ==========================================
     // SEPET RENDER
@@ -169,7 +178,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let checkoutInstance = null;
 
     async function initEmbeddedCheckout() {
+        console.log('initEmbeddedCheckout basladi...');
+        
         if (!stripe) {
+            console.error('Stripe yok!');
             statusMessage.style.display = 'block';
             statusMessage.innerHTML = '<span style="color:#e54d42;">Betalningssystemet är inte tillgängligt.</span>';
             return;
@@ -187,7 +199,8 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         try {
-            // Session oluştur
+            console.log('API istegi gonderiliyor...');
+            
             const response = await fetch('/api/create-checkout-session', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -197,22 +210,36 @@ document.addEventListener('DOMContentLoaded', () => {
                 })
             });
 
+            console.log('Response status:', response.status);
+
             if (!response.ok) {
                 const errorData = await response.json();
                 throw new Error(errorData.error || 'Server fel');
             }
 
-            const { clientSecret } = await response.json();
+            const data = await response.json();
+            console.log('Response data:', data);
+            console.log('clientSecret var mi:', !!data.clientSecret);
+            console.log('clientSecret uzunluk:', data.clientSecret ? data.clientSecret.length : 0);
+
+            if (!data.clientSecret) {
+                throw new Error('clientSecret bos dondu!');
+            }
 
             // ÖNCE container'ı görünür yap
             paymentSection.style.display = 'block';
+            console.log('Payment section acildi');
 
             // Sonra mount et
+            console.log('Stripe initEmbeddedCheckout cagriliyor...');
+            
             checkoutInstance = await stripe.initEmbeddedCheckout({
-                clientSecret: clientSecret
+                clientSecret: data.clientSecret
             });
 
+            console.log('Mount ediliyor...');
             checkoutInstance.mount('#embedded-checkout');
+            console.log('Mount tamamlandi!');
 
             // Butonu gizle
             confirmBtn.style.display = 'none';
