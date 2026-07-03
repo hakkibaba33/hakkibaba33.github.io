@@ -16,10 +16,6 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('siteCartItems', JSON.stringify(cart));
     }
 
-    function clearCart() {
-        localStorage.removeItem('siteCartItems');
-    }
-
     // ==========================================
     // STRIPE BASLAT
     // ==========================================
@@ -27,8 +23,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let stripe = null;
     if (typeof Stripe !== 'undefined' && CONFIG?.STRIPE?.PUBLISHABLE_KEY) {
         stripe = Stripe(CONFIG.STRIPE.PUBLISHABLE_KEY);
+        console.log('✅ Stripe baslatildi');
     } else {
-        console.error('Stripe.js yuklenemedi veya config eksik!');
+        console.error('❌ Stripe.js yuklenemedi veya config eksik!');
     }
 
     // ==========================================
@@ -42,6 +39,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const grandTotalDisplay = document.getElementById('grand-total-display');
     const confirmBtn = document.getElementById('confirm-payment-btn');
     const statusMessage = document.getElementById('checkout-status-message');
+    const embeddedCheckoutContainer = document.getElementById('embedded-checkout');
+    const paymentSection = document.getElementById('checkout-section-card');
 
     // ==========================================
     // SEPET RENDER
@@ -138,7 +137,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const terms = document.getElementById('accept-terms');
         const errorBox = document.getElementById('checkout-validation-error');
 
-        // Form validasyonu
         if (!form.checkValidity()) {
             errorBox.style.display = 'block';
             errorBox.innerText = 'Vänligen fyll i alla obligatoriska fält korrekt.';
@@ -148,14 +146,12 @@ document.addEventListener('DOMContentLoaded', () => {
             return false;
         }
 
-        // Koşullar
         if (!terms.checked) {
             errorBox.style.display = 'block';
             errorBox.innerText = 'Vänligen godkänn köpvillkoren för att fortsätta.';
             return false;
         }
 
-        // Sepet boş mu?
         const cart = getCart();
         if (cart.length === 0) {
             errorBox.style.display = 'block';
@@ -168,19 +164,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // STRIPE CHECKOUT - YÖNLENDİRME METODU
+    // EMBEDDED STRIPE CHECKOUT - YENI
     // ==========================================
 
-    async function redirectToStripeCheckout() {
+    let checkoutInstance = null;
+
+    async function initEmbeddedCheckout() {
         if (!stripe) {
-            statusMessage.innerHTML = '<span style="color:#e54d42;">Betalningssystemet är inte tillgängligt. Försök igen senare.</span>';
+            statusMessage.innerHTML = '<span style="color:#e54d42;">Betalningssystemet är inte tillgängligt.</span>';
             return;
         }
 
         const cart = getCart();
-        const total = cart.reduce((sum, item) => sum + (parseFloat(item.price) * (item.quantity || 1)), 0);
-
-        // Müşteri bilgileri
         const customerData = {
             firstName: document.getElementById('billing_first_name').value,
             lastName: document.getElementById('billing_last_name').value,
@@ -191,57 +186,43 @@ document.addEventListener('DOMContentLoaded', () => {
             city: document.getElementById('billing_city').value
         };
 
-        // Butonu devre dışı bırak
-        confirmBtn.disabled = true;
-        confirmBtn.innerText = 'Bearbetar...';
-        statusMessage.innerText = 'Omdirigerar till säker betalning...';
-
         try {
-            // Backend API'ye istek at (Stripe Session oluştur)
+            // Session oluştur (embedded mode)
             const response = await fetch('/api/create-checkout-session', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     items: cart,
                     customer: customerData,
-                    success_url: CONFIG.STRIPE.SUCCESS_URL,
-                    cancel_url: CONFIG.STRIPE.CANCEL_URL
+                    mode: 'embedded' // ← YENI
                 })
             });
 
             if (!response.ok) throw new Error('Server fel');
 
-            const session = await response.json();
+            const { clientSecret } = await response.json();
 
-            // Stripe Checkout'a yönlendir
-            const result = await stripe.redirectToCheckout({
-                sessionId: session.id
+            // Embedded checkout'u başlat
+            checkoutInstance = await stripe.initEmbeddedCheckout({
+                clientSecret,
+                onComplete: () => {
+                    // Ödeme tamamlandı
+                    window.location.href = '/tack';
+                }
             });
 
-            if (result.error) {
-                throw new Error(result.error.message);
-            }
+            // Sayfaya yerleştir
+            checkoutInstance.mount('#embedded-checkout');
+            paymentSection.style.display = 'block';
 
         } catch (error) {
-            console.error('Checkout hatasi:', error);
-            statusMessage.innerHTML = `<span style="color:#e54d42;">Ett fel uppstod: ${error.message}. Försök igen.</span>`;
-            confirmBtn.disabled = false;
-            confirmBtn.innerText = 'Slutför köp';
+            console.error('Embedded checkout hatasi:', error);
+            statusMessage.innerHTML = `<span style="color:#e54d42;">Ett fel uppstod: ${error.message}</span>`;
         }
     }
 
     // ==========================================
-    // ALTERNATIF: EMBEDDED STRIPE (Daha gelişmiş)
-    // ==========================================
-
-    async function initEmbeddedStripe() {
-        // Bu metod Stripe Elements ile kart girişi yapar
-        // Daha karmaşık, istersen sonra ekleriz
-        console.log('Embedded Stripe - ileride eklenecek');
-    }
-
-    // ==========================================
-    // ODEME BUTONU EVENT
+    // ODEME BUTONU - ARTIK "KARTI GOSTER" OLACAK
     // ==========================================
 
     if (confirmBtn) {
@@ -250,8 +231,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (!validateForm()) return;
 
-            // Yönlendirme metodu
-            await redirectToStripeCheckout();
+            // Butonu değiştir
+            confirmBtn.innerText = 'Laddar betalning...';
+            confirmBtn.disabled = true;
+
+            // Embedded checkout'u başlat
+            await initEmbeddedCheckout();
+
+            // Butonu gizle (artık Stripe'un kendi butonu var)
+            confirmBtn.style.display = 'none';
         });
     }
 
