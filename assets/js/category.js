@@ -110,7 +110,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         return `
             <div class="product-card" data-id="${product.id}">
                 <div class="image-box">
-                    <a href="/matta/${slug}">
+                    <a href="="/matta/${product.slug}">
                         <img src="${product.image}" 
                              alt="${product.name}" 
                              loading="lazy"
