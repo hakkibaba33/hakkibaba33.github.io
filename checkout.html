@@ -1,11 +1,17 @@
 <!DOCTYPE html>
 <html lang="sv">
 <head>
-
-<script src="https://js.stripe.com/v3/"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kassa | DKRUG</title>
+    
+    <!-- 1. ÖNCE Stripe.js -->
+    <script src="https://js.stripe.com/v3/"></script>
+    
+    <!-- 2. SONRA config.js (Stripe key burada) -->
+    <script src="/assets/js/config.js"></script>
+    
+    <!-- Stil Dosyaları -->
     <link rel="stylesheet" href="/assets/css/checkout.css">
     <link rel="stylesheet" href="/assets/css/common.css">
     <link rel="stylesheet" href="/assets/css/reset.css">
@@ -205,8 +211,7 @@
         </div>
     </footer>
 
-    <!-- JS -->
-    <script src="/assets/js/config.js"></script>
+    <!-- 3. SONRA common.js ve checkout.js -->
     <script src="/assets/js/common.js"></script>
     <script src="/assets/js/checkout.js"></script>
 </body>
