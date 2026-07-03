@@ -1,7 +1,7 @@
-// Vercel Serverless Function
+// /api/create-checkout-session.js
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
-export default async function handler(req, res) {
+module.exports = async (req, res) => {
     // CORS headers
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -18,12 +18,10 @@ export default async function handler(req, res) {
     try {
         const { items, customer, success_url, cancel_url } = req.body;
 
-        // Sepet boş mu?
         if (!items || items.length === 0) {
             return res.status(400).json({ error: 'Cart is empty' });
         }
 
-        // Stripe line items
         const lineItems = items.map(item => ({
             price_data: {
                 currency: 'sek',
@@ -32,12 +30,11 @@ export default async function handler(req, res) {
                     description: item.variants || '',
                     images: item.image ? [item.image] : []
                 },
-                unit_amount: Math.round(parseFloat(item.price) * 100) // öre cinsinden
+                unit_amount: Math.round(parseFloat(item.price) * 100)
             },
             quantity: item.quantity || 1
         }));
 
-        // Session oluştur
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ['card'],
             line_items: lineItems,
@@ -58,4 +55,4 @@ export default async function handler(req, res) {
         console.error('Stripe hatasi:', error);
         res.status(500).json({ error: error.message });
     }
-}
+};

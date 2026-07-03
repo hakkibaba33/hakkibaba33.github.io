@@ -1,4 +1,5 @@
 {
+  "version": 2,
   "buildCommand": "npm run build",
   "outputDirectory": ".",
   "rewrites": [
@@ -6,19 +7,16 @@
     { "source": "/favoriter", "destination": "/wishlist.html" },
     { "source": "/shop", "destination": "/category.html" },
     { "source": "/mattor", "destination": "/category.html" },
+    { "source": "/gardiner", "destination": "/category.html" },
+    { "source": "/rea", "destination": "/category.html" },
+    { "source": "/tack", "destination": "/tack.html" },
     { "source": "/matta/:slug", "destination": "/product.html?slug=:slug" },
-    { "source": "/product/:slug", "destination": "/product.html?slug=:slug" }
+    { "source": "/product/:slug", "destination": "/product.html?slug=:slug" },
+    { "source": "/api/create-checkout-session", "destination": "/api/create-checkout-session.js" }
   ],
   "redirects": [
     { "source": "/checkout.html", "destination": "/kassa", "permanent": true },
     { "source": "/wishlist.html", "destination": "/favoriter", "permanent": true },
     { "source": "/category.html", "destination": "/mattor", "permanent": true }
-  ]
-}
-
-{
-  "version": 2,
-  "routes": [
-    { "src": "/api/(.*)", "dest": "/api/$1" }
   ]
 }
