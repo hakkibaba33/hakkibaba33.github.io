@@ -1,4 +1,17 @@
 {
   "buildCommand": "npm run build",
-  "outputDirectory": "."
+  "outputDirectory": ".",
+  "rewrites": [
+    { "source": "/kassa", "destination": "/checkout.html" },
+    { "source": "/favoriter", "destination": "/wishlist.html" },
+    { "source": "/shop", "destination": "/category.html" },
+    { "source": "/mattor", "destination": "/category.html" },
+    { "source": "/matta/:slug", "destination": "/product.html?slug=:slug" },
+    { "source": "/product/:slug", "destination": "/product.html?slug=:slug" }
+  ],
+  "redirects": [
+    { "source": "/checkout.html", "destination": "/kassa", "permanent": true },
+    { "source": "/wishlist.html", "destination": "/favoriter", "permanent": true },
+    { "source": "/category.html", "destination": "/mattor", "permanent": true }
+  ]
 }
