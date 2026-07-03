@@ -1,8 +1,31 @@
+<!-- ========== SEARCH POPUP ========== -->
+<div class="search-popup" id="search-popup-overlay">
+    <div class="search-inner">
+        <!-- Sol İkon -->
+        <span class="search-icon-static"><i class="fas fa-search"></i></span>
+        
+        <!-- Input Alanı -->
+        <form class="search-form-full" onsubmit="return false;">
+            <input 
+                type="text" 
+                id="live-search-input" 
+                class="search-input-field" 
+                placeholder="Sök namn, stil..." 
+                autocomplete="off"
+            >
+        </form>
+        
+        <!-- Sağ Kapatma -->
+        <button class="search-close-x" id="close-search-popup">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        
+        <!-- Sonuçlar (Kutunun altında süzülecek) -->
+        <div id="search-results-display" style="display: none;"></div>
+    </div>
+</div>
 
-<button type="button" id="search-open-btn" class="search-open-btn">
-    <i class="fas fa-search"></i>
-</button>
-
+<!-- ========== MOBIL MENU ========== -->
 <div class="mobile-menu-overlay" id="mobile-menu-overlay">
     <div class="mobile-menu-content">
         <div class="mobile-menu-header">
@@ -10,7 +33,6 @@
             <button id="close-mobile-menu" class="close-btn"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <div class="mobile-menu-body">
-            <!-- BURAYA STATİK MENÜNÜ KOYACAKSIN -->
             <nav class="mobile-nav">
                 <ul class="mobile-menu-list">
                     <li><a href="/">Start</a></li>
@@ -22,12 +44,11 @@
     </div>
 </div>
 
-
+<!-- ========== TOP BAR ========== -->
 <div class="top-bar" id="top-bar">
     <div class="top-bar-container">
         <div class="top-bar-half top-bar-left">
             <div class="top-bar-slider">
-                
                 <div class="top-bar-item">
                     <span class="top-bar-icon">
                         <svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
@@ -38,7 +59,6 @@
                     </span>
                     Gratis och snabb frakt
                 </div>
-
                 <div class="top-bar-item">
                     <span class="top-bar-icon">
                         <svg viewBox="0 0 490.693 490.693" xmlns="http://www.w3.org/2000/svg">
@@ -47,7 +67,6 @@
                     </span>
                     30 dagars öppet köp
                 </div>
-
                 <div class="top-bar-item">
                     <span class="top-bar-icon">
                         <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
@@ -56,7 +75,6 @@
                     </span>
                     Hemleverans
                 </div>
-
                 <div class="top-bar-item">
                     <span class="top-bar-icon">
                         <svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
@@ -67,7 +85,6 @@
                     </span>
                     Gratis och snabb frakt
                 </div>
-
             </div>
         </div>
         <div class="top-bar-half top-bar-right">
@@ -76,11 +93,7 @@
     </div>
 </div>
 
-
-
-
-
-
+<!-- ========== MAIN HEADER ========== -->
 <header class="main-header" id="main-header">
     <div class="header-main-section">
         <div class="header-content">
@@ -95,7 +108,6 @@
             </div>
         </div>
     </div>
-    <!-- Desktop Menü -->
     <nav class="main-nav desktop-only-nav">
         <ul class="main-menu-list">
             <li><a href="/mattor">Alla Mattor</a></li>
@@ -104,46 +116,38 @@
     </nav>
 </header>
 
+<!-- ========== MINI CART ========== -->
 <div class="modal-overlay mini-cart-overlay" id="mini-cart-overlay">
     <div class="slide-modal mini-cart-drawer" id="mini-cart-drawer">
-        
         <div class="mini-cart-header">
             <h3>Din Varukorg</h3> 
             <button class="close-btn" id="close-mini-cart">
                 <i class="fa-solid fa-xmark" style="color: black !important;"></i>
             </button>
         </div>
-        
         <div class="mini-cart-body">
             <div class="cart-empty-state" id="cart-empty-state">
                 <p>Din varukorg är tom.</p>
                 <a href="/mattor" class="shoppa-nu-btn">Shoppa Nu</a>
             </div>
-
             <div class="cart-filled-state" id="cart-filled-state" style="display: none;">
-                </div>
+            </div>
         </div>
-        
-        <div id="mini-cart-footer" style="display: none;"> <div class="cart-summary-line shipping-line">
+        <div id="mini-cart-footer" style="display: none;">
+            <div class="cart-summary-line shipping-line">
                 <span class="summary-label">Frakt</span>
                 <span class="summary-value" id="cart-shipping-cost">Fri frakt</span>
             </div>
-
             <div class="cart-summary-line discount-line" id="discount-wrapper" style="display: none;">
                 <span class="summary-label">Rabatt:</span>
                 <span class="summary-value discount-amount" id="cart-total-discount"></span>
             </div>
-
             <hr>
-
             <div class="cart-summary-line grand-total-line">
                 <span class="summary-label">Totalt (inkl moms)</span>
                 <span class="summary-value" id="cart-grand-total"></span>
             </div>
-            
             <a href="/kassa" class="checkout-btn">Till kassan</a>
         </div>
     </div>
 </div>
-
-
