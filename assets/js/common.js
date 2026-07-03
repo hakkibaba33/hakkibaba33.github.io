@@ -2,7 +2,6 @@
 // COMMON.JS - TEMIZLENMIS (v4)
 // ==========================================
 
-// CONFIG kontrolu
 if (typeof CONFIG === 'undefined') {
     console.error('HATA: config.js yuklenmemis!');
 }
@@ -38,19 +37,15 @@ function updateCartBadge() {
 }
 
 // ==========================================
-// 2. MINI SEPET - ACMA / KAPAMA
+// 2. MINI SEPET
 // ==========================================
 
 function openMiniCart() {
     const overlay = document.getElementById('mini-cart-overlay');
-    if (!overlay) {
-        console.error('mini-cart-overlay bulunamadi!');
-        return;
-    }
+    if (!overlay) return;
     overlay.classList.add('open');
     document.body.classList.add('cart-open');
     updateMiniCartUI();
-    console.log('Mini sepet ACILDI');
 }
 
 function closeMiniCart() {
@@ -58,91 +53,193 @@ function closeMiniCart() {
     if (!overlay) return;
     overlay.classList.remove('open');
     document.body.classList.remove('cart-open');
-    console.log('Mini sepet KAPANDI');
 }
 
+// ==========================================
+// 3. SEARCH POPUP - DUZELTILMIS
+// ==========================================
 
+let searchDebounceTimer = null;
+let allProductsCache = [];
 
-
-
-
-
-
-
-
-
-
-// common.js içindeki initSearch fonksiyonunu bununla değiştir
 function initSearch() {
-    // Tüm tıklamaları document üzerinde dinleyerek 'Event Delegation' yapıyoruz
+    const popup = document.getElementById('search-popup-overlay');
+    const input = document.getElementById('live-search-input');
+    const closeBtn = document.getElementById('close-search-popup');
+    const resultsDisplay = document.getElementById('search-results-display');
+
+    if (!popup || !input) {
+        console.warn('Search popup elementleri bulunamadi!');
+        return;
+    }
+
+    // Açma butonları
     document.addEventListener('click', (e) => {
         const openBtn = e.target.closest('#search-open-btn');
-        const closeBtn = e.target.closest('#close-search-popup');
-        const popup = document.getElementById('search-popup-overlay');
-        const input = document.getElementById('live-search-input');
-
-        // Açma işlemi
         if (openBtn) {
             e.preventDefault();
-            if (popup) {
-                popup.style.display = 'flex'; // Veya classList.add('active')
-                setTimeout(() => input?.focus(), 100);
-            }
-        }
-
-        // Kapatma işlemi
-        if (closeBtn || (e.target.id === 'search-popup-overlay')) {
-            if (popup) popup.style.display = 'none'; // Veya classList.remove('active')
+            e.stopPropagation();
+            openSearchPopup();
         }
     });
 
-    // Arama inputu için event listener (Bu kısım zaten sayfada var olduğu sürece çalışır)
-    const searchInput = document.getElementById('live-search-input');
-    if (searchInput) {
-        searchInput.addEventListener('input', function() {
-            const query = this.value.trim();
-            if (query.length < 2) return;
-            
-            // BURASI ÇOK ÖNEMLİ:
-            // Buraya Airtable API'nizden veri çeken fonksiyonu yazacağız.
-            console.log("Airtable'da aranıyor: ", query);
-            // Airtable verilerini çektikten sonra 'search-results-display' içine basacağız.
+    // Kapatma butonu
+    if (closeBtn) {
+        closeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            closeSearchPopup();
         });
+    }
+
+    // Overlay'a tıklayınca kapat
+    popup.addEventListener('click', (e) => {
+        if (e.target === popup) {
+            closeSearchPopup();
+        }
+    });
+
+    // ESC ile kapat
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && popup.classList.contains('active')) {
+            closeSearchPopup();
+        }
+    });
+
+    // Input dinleme
+    input.addEventListener('input', (e) => {
+        const query = e.target.value.trim();
+        clearTimeout(searchDebounceTimer);
+        
+        if (query.length < 2) {
+            if (resultsDisplay) resultsDisplay.style.display = 'none';
+            return;
+        }
+
+        searchDebounceTimer = setTimeout(() => {
+            performSearch(query);
+        }, 300);
+    });
+
+    console.log('✅ Search popup baslatildi');
+}
+
+function openSearchPopup() {
+    const popup = document.getElementById('search-popup-overlay');
+    const input = document.getElementById('live-search-input');
+    const resultsDisplay = document.getElementById('search-results-display');
+    
+    if (!popup) return;
+
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+    document.body.style.paddingRight = scrollbarWidth + 'px';
+    document.body.classList.add('search-active');
+
+    popup.classList.add('active');
+    if (resultsDisplay) resultsDisplay.style.display = 'none';
+    
+    setTimeout(() => input?.focus(), 100);
+
+    if (allProductsCache.length === 0) {
+        fetchAllProductsForSearch();
     }
 }
 
-// Sayfa yüklendiğinde çalıştır
-document.addEventListener('DOMContentLoaded', initSearch);
+function closeSearchPopup() {
+    const popup = document.getElementById('search-popup-overlay');
+    const resultsDisplay = document.getElementById('search-results-display');
+    
+    if (!popup) return;
 
+    popup.classList.remove('active');
+    document.body.classList.remove('search-active');
+    document.body.style.paddingRight = '';
+    
+    if (resultsDisplay) {
+        resultsDisplay.style.display = 'none';
+        resultsDisplay.innerHTML = '';
+    }
+    
+    const input = document.getElementById('live-search-input');
+    if (input) input.value = '';
+}
 
+async function fetchAllProductsForSearch() {
+    if (!API_KEY || !BASE_ID) {
+        console.error('Airtable config eksik!');
+        return;
+    }
 
+    try {
+        const response = await fetch(
+            `https://api.airtable.com/v0/${BASE_ID}/${TABLE_NAME}?pageSize=100`,
+            { headers: { Authorization: `Bearer ${API_KEY}` } }
+        );
 
+        if (!response.ok) throw new Error('Airtable hatasi');
 
+        const data = await response.json();
+        allProductsCache = data.records.map(record => ({
+            id: record.id,
+            name: record.fields.Name || '',
+            price: parseFloat(record.fields.Price) || 0,
+            image: record.fields.imageURL && record.fields.imageURL[0] ? record.fields.imageURL[0].url : '',
+            category: record.fields.Category || '',
+            url: `/product.html?id=${record.id}`
+        }));
 
+        console.log(`${allProductsCache.length} urun cache'lendi`);
 
+    } catch (error) {
+        console.error('Urun cache hatasi:', error);
+    }
+}
 
+function performSearch(query) {
+    const resultsDisplay = document.getElementById('search-results-display');
+    if (!resultsDisplay) return;
 
+    if (allProductsCache.length === 0) {
+        resultsDisplay.innerHTML = '<div class="no-results-found">Laddar produkter...</div>';
+        resultsDisplay.style.display = 'block';
+        return;
+    }
 
+    const lowerQuery = query.toLowerCase();
+    const filtered = allProductsCache.filter(product => 
+        product.name.toLowerCase().includes(lowerQuery) ||
+        product.category.toLowerCase().includes(lowerQuery)
+    );
 
+    if (filtered.length === 0) {
+        resultsDisplay.innerHTML = '<div class="no-results-found">Inga produkter hittades.</div>';
+    } else {
+        resultsDisplay.innerHTML = filtered.slice(0, 8).map(product => `
+            <a href="${product.url}" class="search-item-row">
+                <div class="search-item-image">
+                    <img src="${product.image}" alt="${product.name}" onerror="this.src='https://via.placeholder.com/50'">
+                </div>
+                <div class="search-item-info">
+                    <h4 class="search-item-title">${highlightMatch(product.name, query)}</h4>
+                    <span class="search-item-price">${product.price.toFixed(2)} SEK</span>
+                </div>
+            </a>
+        `).join('');
+    }
 
+    resultsDisplay.style.display = 'block';
+}
 
+function highlightMatch(text, query) {
+    const regex = new RegExp(`(${escapeRegex(query)})`, 'gi');
+    return text.replace(regex, '<mark style="background:#ffeb3b;color:#000;padding:0 2px;">$1</mark>');
+}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+function escapeRegex(string) {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
 
 // ==========================================
-// 3. MINI SEPET - ICERIK YONETIMI
+// 4. MINI SEPET - ICERIK YONETIMI
 // ==========================================
 
 function updateMiniCartUI() {
@@ -151,10 +248,7 @@ function updateMiniCartUI() {
     const filledState = document.getElementById('cart-filled-state');
     const footer = document.getElementById('mini-cart-footer');
 
-    if (!emptyState || !filledState || !footer) {
-        console.error('Mini sepet elementleri bulunamadi!');
-        return;
-    }
+    if (!emptyState || !filledState || !footer) return;
 
     if (cart.length === 0) {
         emptyState.style.display = 'block';
@@ -215,7 +309,7 @@ function removeFromCart(productId) {
 }
 
 // ==========================================
-// 4. URUN EKLEME
+// 5. URUN EKLEME
 // ==========================================
 
 function addProductToCart(productData) {
@@ -225,20 +319,16 @@ function addProductToCart(productData) {
     if (existing) {
         existing.quantity = (existing.quantity || 1) + 1;
     } else {
-        cart.push({
-            ...productData,
-            quantity: 1
-        });
+        cart.push({ ...productData, quantity: 1 });
     }
 
     saveCart(cart);
     updateMiniCartUI();
     openMiniCart();
-    console.log('Urun sepete eklendi:', productData.name);
 }
 
 // ==========================================
-// 5. AIRTABLE - URUN EKLEME
+// 6. AIRTABLE - URUN EKLEME
 // ==========================================
 
 async function addAirtableProductToCart(productId) {
@@ -281,7 +371,7 @@ async function addAirtableProductToCart(productId) {
 }
 
 // ==========================================
-// 6. MOBIL MENU
+// 7. MOBIL MENU
 // ==========================================
 
 function openMobileMenu() {
@@ -301,10 +391,9 @@ function closeMobileMenu() {
 }
 
 // ==========================================
-// 7. EVENT LISTENERS
+// 8. EVENT LISTENERS
 // ==========================================
 
-// 🎯 GLOBAL FLAG: Listener'lar zaten bağlandıysa tekrar bağlama
 let __commonListenersInitialized = false;
 
 function initEventListeners() {
@@ -326,7 +415,7 @@ function initEventListeners() {
         }
     });
 
-    // SEPET KAPAMA (X butonu)
+    // SEPET KAPAMA
     document.addEventListener('click', (e) => {
         const btn = e.target.closest('#close-mini-cart');
         if (btn) {
@@ -342,9 +431,7 @@ function initEventListeners() {
             e.stopPropagation();
             const id = qtyBtn.dataset.id;
             const action = qtyBtn.dataset.action;
-            if (id && action) {
-                updateQuantity(id, action === 'increase' ? 1 : -1);
-            }
+            if (id && action) updateQuantity(id, action === 'increase' ? 1 : -1);
             return;
         }
 
@@ -359,12 +446,8 @@ function initEventListeners() {
 
     // OVERLAY'A TIKLAYINCA KAPAMA
     document.addEventListener('click', (e) => {
-        if (e.target.id === 'mini-cart-overlay') {
-            closeMiniCart();
-        }
-        if (e.target.id === 'mobile-menu-overlay') {
-            closeMobileMenu();
-        }
+        if (e.target.id === 'mini-cart-overlay') closeMiniCart();
+        if (e.target.id === 'mobile-menu-overlay') closeMobileMenu();
     });
 
     // MOBIL MENU
@@ -378,28 +461,22 @@ function initEventListeners() {
 
     document.addEventListener('click', (e) => {
         const closeBtn = e.target.closest('#close-mobile-menu');
-        if (closeBtn) {
-            closeMobileMenu();
-        }
+        if (closeBtn) closeMobileMenu();
     });
 
-    // ESC TUSU ILE KAPAMA
+    // ESC TUSU
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             closeMiniCart();
             closeMobileMenu();
+            closeSearchPopup();
         }
     });
 
+    // SEARCH POPUP'I BASLAT
+    initSearch();
+
     console.log('✅ Event listenerlar bağlandı');
 }
-
-// ==========================================
-// 8. BASLATMA
-// ==========================================
-
-// 🎯 common.js kendi kendine başlatma YAPMAYACAK
-// Başlatma, header.html yüklendikten sonra product.html'deki loadComponents() tarafından çağrılacak
-// Bu, birden fazla kez çalışmayı engeller
 
 console.log('📦 common.js yüklendi (başlatma bekleniyor...)');
