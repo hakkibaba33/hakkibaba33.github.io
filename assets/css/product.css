@@ -2444,120 +2444,347 @@
 /* ---------------------------------------------------- */
 /* 📦 EKSTRA BÖLÜMLER (AKORDİYON, PROMISE LİSTESİ) */
 /* ---------------------------------------------------- */
-/* 1. ANA KAPSAYICI */
-.product-accordion-wrapper {
-    margin-top: 25px;
-    border: 1px solid #e5e5e5;
+/* ==========================================
+   VARYASYON AKORDİYONU
+   ========================================== */
+
+.variant-accordion-box {
+    border: 1px solid #e0e0e0;
     border-radius: 8px;
-    background: #ffffff;
     overflow: hidden;
+    background: #fafafa;
+    margin: 20px 0;
 }
 
-/* 2. BAŞLIK ALANI */
-.product-accordion-header {
+.variant-accordion-header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    background: #fafafa;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+}
+
+.variant-accordion-header:hover {
+    background: #f5f5f5;
+}
+
+.variant-accordion-header:active {
+    background: #eeeeee;
+}
+
+.variant-accordion-header .accordion-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    min-width: 0;
+}
+
+.variant-accordion-header .accordion-left > i {
+    font-size: 18px;
+    color: #666;
+    width: 22px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.variant-accordion-header .accordion-title-group {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.variant-accordion-header .accordion-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #222;
+}
+
+.variant-accordion-header .accordion-subtitle {
+    font-size: 12px;
+    color: #888;
+    font-weight: 400;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.variant-accordion-header .accordion-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+    margin-left: 8px;
+}
+
+.variant-accordion-header .accordion-status {
+    font-size: 11px;
+    color: #4CAF50;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+}
+
+.variant-accordion-header .accordion-chevron {
+    font-size: 13px;
+    color: #999;
+    transition: transform 0.3s ease;
+    flex-shrink: 0;
+}
+
+/* ==========================================
+   VARYASYON DRAWER (Sağdan Açılan)
+   ========================================== */
+
+.variant-drawer-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 99999;
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.variant-drawer-overlay.open {
+    display: block;
+    opacity: 1;
+}
+
+.variant-drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 100%;
+    max-width: 420px;
+    height: 100%;
+    background: #fff;
+    z-index: 100000;
+    transform: translateX(100%);
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    box-shadow: -4px 0 20px rgba(0,0,0,0.15);
+}
+
+.variant-drawer.open {
+    transform: translateX(0);
+}
+
+.variant-drawer-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    width: 100%;
-    padding: 15px 12px !important;
+    padding: 16px 20px;
+    border-bottom: 1px solid #eee;
+    flex-shrink: 0;
+}
+
+.variant-drawer-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #000;
+}
+
+.close-drawer-btn {
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: #f0f0f0;
+    border-radius: 50%;
     cursor: pointer;
-    background: transparent !important;
-     border: none !important;
-    outline: none !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: #333;
+    transition: background 0.2s;
 }
 
-.product-accordion-header h3 {
-    font-size: 14.5px !important;
-    font-weight: 600 !important;
-    color: #1a1a1a !important;
-    margin: 0 !important;
+.close-drawer-btn:hover {
+    background: #e0e0e0;
 }
 
-/* 3. İÇERİK ALANI (JS Dostu ve Sarsıntısız) */
-.product-accordion-content {
-    max-height: 0; /* Başlangıçta kapalı */
+.variant-drawer-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+}
+
+/* Varyasyon Kartı */
+.variant-drawer-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px;
+    border: 2px solid #eee;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: #fff;
+}
+
+.variant-drawer-item:hover {
+    border-color: #ccc;
+    background: #fafafa;
+}
+
+.variant-drawer-item.selected {
+    border-color: #000;
+    background: #f8f8f8;
+}
+
+.variant-drawer-image {
+    width: 60px;
+    height: 80px;
+    border-radius: 6px;
     overflow: hidden;
-    transition: max-height 0.4s cubic-bezier(0, 1, 0, 1); /* Akıcı açılış sırrı */
-    background: #ffffff;
+    flex-shrink: 0;
+    background: #f0f0f0;
 }
 
-/* AKTİF DURUM (JS '.active' eklediğinde) */
-.product-accordion-item.active .product-accordion-content {
-    max-height: 2000px; /* Çok yüksek bir değer veriyoruz */
-    border-top: 1px solid #f0f0f0;
-    
-    transition: max-height 0.4s ease-in-out; /* Açılırken pürüzsüz geçiş */
+.variant-drawer-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
 }
 
-/* 4. YAZILARIN SABİT DURMASINI SAĞLAYAN İÇ KATMAN */
-/* Sola kaymayı önlemek için padding'i buraya hapsediyoruz */
-.product-accordion-content > div, 
-.product-accordion-content .custom-specs-content {
-    padding: 15px 18px !important; 
+.variant-drawer-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.variant-size {
+    font-size: 15px;
+    font-weight: 600;
+    color: #222;
+}
+
+.variant-price {
     font-size: 14px;
-    line-height: 1.6;
-    color: #444;
-    transform: translateZ(0); /* Titremeyi önler */
+    color: #666;
+    font-weight: 500;
 }
 
-/* 5. METİN DÜZENİ */
-.product-accordion-content p {
-    margin-bottom: 12px !important;
-}
-.product-accordion-content p:last-child {
-    margin-bottom: 0 !important;
+.variant-check {
+    flex-shrink: 0;
+    font-size: 20px;
+    color: #000;
 }
 
-/* 6. OK İKONU */
-.product-accordion-header i {
-    transition: transform 0.3s ease;
-    font-size: 12px;
-}
-.product-accordion-item.active .product-accordion-header i {
-    transform: rotate(180deg);
+.variant-drawer-item.selected .variant-check {
+    color: #000;
 }
 
-.product-accordion-item {
-    border-bottom: 1px solid #e5e5e5; /* Başlıkların altındaki o çizgi */
+.variant-drawer-item:not(.selected) .variant-check {
+    color: #ccc;
 }
 
-.product-accordion-item:last-child {
-    border-bottom: none; /* En alttaki kutunun dışına çizgi taşmasın */
+/* ==========================================
+   GALERİ GÜNCELLEMELERİ (2 Resim Yan Yana)
+   ========================================== */
+
+.main-display-wrapper {
+    display: flex;
+    gap: 15px;
+    width: 100%;
 }
 
-/* Küçük Avantajlar Listesi */
-.small-promise-list {
-    margin-top: 5px;
-    padding-top: 20px;
-}
-.small-promise-list p {
-    font-size: 0.95rem;
-    color: #555;
-    margin-bottom: 8px;
-}
-.small-promise-list i {
-    color: #008000;
-    margin-right: 8px;
+.main-image-column {
+    flex: 1;
+    cursor: zoom-in;
+    min-width: 0; /* Flex item'ın küçülmesini engelleme */
 }
 
-/* 2. AKORDİYON BAŞLIKLARINI TEMADAN KURTARMA */
-.product-page .product-accordion-header {
-    background-color: transparent !important;
-    color: #333 !important;
-    border: none !important;
-    box-shadow: none !important;
+.main-image {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 3 / 4;
+    object-fit: cover;
+    border: 1px solid #eee;
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: high-quality;
 }
 
-/* Akordiyon Üstüne Gelince Renk Değişmesini Engelle */
-.product-page .product-accordion-header:hover,
-.product-page .product-accordion-header:focus,
-.product-page .product-accordion-header:active {
-    background-color: transparent !important;
-    color: #000 !important; /* Veya senin istediğin hover rengi */
-    outline: none !important;
-
+/* Thumbnail'lar */
+.gallery-thumbnail-list {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 15px;
 }
 
+.gallery-thumbnail-list .thumbnail-item {
+    width: 80px;
+    height: 107px;
+    aspect-ratio: 3 / 4;
+    object-fit: cover;
+    border: 2px solid transparent;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+.gallery-thumbnail-list .thumbnail-item.selected,
+.gallery-thumbnail-list .thumbnail-item:hover {
+    border-color: #333;
+}
+
+/* ==========================================
+   MOBİL UYUMLULUK
+   ========================================== */
+
+@media (max-width: 768px) {
+    .variant-drawer {
+        max-width: 100%;
+    }
+    
+    .main-display-wrapper {
+        gap: 8px;
+    }
+    
+    .gallery-thumbnail-list .thumbnail-item {
+        width: 60px;
+        height: 80px;
+    }
+    
+    .variant-drawer-item {
+        padding: 10px;
+        gap: 10px;
+    }
+    
+    .variant-drawer-image {
+        width: 50px;
+        height: 67px;
+    }
+    
+    .variant-size {
+        font-size: 14px;
+    }
+}
+
+body.drawer-open {
+    overflow: hidden;
+}
 /* ---------------------------------------------------- */
 /* BREADCRUMB
 /* ---------------------------------------------------- */
@@ -2659,193 +2886,6 @@
     .suspension-grid {
         flex-direction: row; /* Kartlar mobilde yan yana kalsın, çok yer kaplamasın */
     }
-}
-
-/* ---------------------------------------------------- */
-/* VARVASYON CEKMECE STILLERI) */
-/* ---------------------------------------------------- */
-
-/* Ana Varyant Seçenekleri Kapsayıcısı */
-.size-options-modal {
-    padding: 15px 5px; /* Üst-alt ve yanlardan hafif boşluk */
-    display: grid;
-    gap: 12px; /* Butonların birbirine olan uzaklığı arttı */
-}
-
-/* Her Bir Varyant Düğmesi - Flexbox Kapsayıcısı */
-.size-option {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    /* Padding'i artırıyoruz: Üst-Alt 15px, Sağ-Sol 18px */
-    padding: 15px 18px; 
-    border: 1px solid #eee;
-    border-radius: 8px; /* Köşeleri biraz daha yumuşattık */
-    background-color: #fff;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.02); /* Çok hafif bir derinlik */
-}
-
-/* Hover Efekti */
-.size-option:hover {
-    background-color: #fcfcfc;
-    border-color: #b11f3d; /* Hover olunca senin vişne çürüğü rengine dönsün */
-    transform: translateY(-1px); /* Hafif yukarı kalkma efekti */
-}
-
-/* 1. Resim Kolonu ve Resmi */
-.variant-image-col {
-    flex-shrink: 0; 
-    margin-right: 15px;
-}
-
-.variant-thumb {
-    width: 40px; /* Küçük resim boyutu */
-    height: 40px;
-    object-fit: cover;
-    border-radius: 4px;
-}
-
-/* 2. Metin Bilgi Kolonu (Ölçü ve Stok) */
-.variant-info-col {
-    flex-grow: 1; /* Ortadaki bu sütunun olabildiğince yer kaplamasını sağla */
-    display: flex;
-    flex-direction: column; /* Ölçü ve stok bilgisini alt alta sırala */
-    text-align: left;
-}
-
-.size-text {
-    font-weight: bold;
-    font-size: 1rem;
-    color: #333;
-}
-
-.stock-info-modal {
-    color: #28a745; /* Daha canlı bir yeşil */
-    font-weight: 700;
-    font-size: 0.85rem;
-    display: block;
-    margin-top: 2px;
-}
-
-.size-option.disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    background-color: #f9f9f9;
-}
-
-/* Varyant Çekmecesi Fiyat Stilleri */
-.variant-price-col {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 2px;
-}
-
-.old-price-modal {
-    text-decoration: line-through;
-    font-weight: 600;
-    color: #999;
-    font-size: 1.0rem;
-}
-
-.current-price-modal {
-    font-weight: 600;
-    color: #333; /* Burayı #b11f3d yerine #333 (Siyah/Koyu Gri) yaptık */
-    font-size: 1rem;
-}
-
-/* Eğer aynı konteyner içinde hem eski fiyat hem yeni fiyat varsa, yenisini kırmızı yap */
-.variant-price-col:has(.old-price-modal) .current-price-modal {
-    color: #b11f3d; 
-}
-
-/* Modal Başlık Alanı Konteyneri */
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    /* Yanlardan 20px içeri aldık, üst-alt 10px yaptık */
-    padding: 10px 20px; 
-    margin-top: 10px;
-    margin-bottom: 20px;
-   
-}
-
-/* "Välj Storlek" Başlığı */
-.modal-header h3 {
-    margin: 0;
-    font-size: 18px;
-    font-weight: 600;
-    color: #000;
-    /* text-transform: uppercase; SATIRINI SİLDİK veya NONE YAPTIK */
-    text-transform: none; 
-    letter-spacing: 0px; /* Büyük harf olmayınca geniş harf aralığına gerek kalmaz */
-}
-
-/* X Kapatma Butonu */
-.close-btn#close-variant-modal {
-    background: none;
-    border: none;
-    font-size: 24px; /* Biraz daha belirgin yaptık */
-    color: #000;
-    cursor: pointer;
-    /* Butonun kendi iç paddingi kalsın ama header'dan gelen paddingle dengelenecek */
-    padding: 5px; 
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
-}
-
-/* X Butonuna basıldığında veya üzerine gelindiğinde ufak bir efekt */
-.close-btn#close-variant-modal:hover {
-    transform: scale(1.1);
-    opacity: 0.7;
-}
-
-/* Varyasyon Modalının İçeriğini Kaydırılabilir Yap */
-#variant-modal .modal-body {
-    max-height: 70vh; /* Ekran yüksekliğinin %70'i kadar olsun */
-    overflow-y: auto;  /* İçerik taşarsa dikey kaydırma çubuğu çıksın */
-    padding-right: 10px; /* Kaydırma çubuğu ile içerik birbirine binmesin */
-}
-
-/* Kaydırma çubuğunu (scrollbar) daha şık ve ince yapalım (Opsiyonel) */
-#variant-modal .modal-body::-webkit-scrollbar {
-    width: 6px;
-}
-
-#variant-modal .modal-body::-webkit-scrollbar-track {
-    background: #f1f1f1;
-}
-
-#variant-modal .modal-body::-webkit-scrollbar-thumb {
-    background: #ccc;
-    border-radius: 10px;
-}
-
-#variant-modal .modal-body::-webkit-scrollbar-thumb:hover {
-    background: #999;
-}
-
-
-/* ======================================================= */
-/* Varyasyon Stok Durumu Stilleri */
-/* ======================================================= */
-
-/* Stokta OLAN (Varsayılan veya özel yeşil) */
-.stock-info-modal {
-    color: green;      /* Stokta varsa yeşil */
-    font-weight: 700;
-    font-size: 0.9rem;
-    display: block;
-    margin-top: 2px;
-}
-
-.stock-info-modal.out-of-stock {
-    color: #cc0000 !important; /* !important ile rengin baskın gelmesini sağlıyoruz */
 }
 
 /* ==================================================== */

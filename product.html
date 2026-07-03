@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="/assets/css/style.css">
     <link rel="stylesheet" href="/assets/css/common.css">
     <link rel="stylesheet" href="/assets/css/reset.css">
-    <!-- <base target="_blank"> KALDIRILDI - Tüm fetch/linkleri bozuyordu -->
 </head>
 <body>
 
@@ -26,11 +25,15 @@
             </nav>
 
             <div class="product-content">
+                <!-- SOL: Görsel Galerisi -->
                 <div class="product-gallery">
+                    <!-- 2 Büyük Resim Yan Yana -->
                     <div class="main-display-wrapper" id="product-images-container"></div>
+                    <!-- Thumbnail'lar -->
                     <div class="gallery-thumbnail-list" id="gallery-thumbnail-list"></div>
                 </div>
 
+                <!-- SAĞ: Ürün Detayları -->
                 <div class="product-details">
                     <div class="brand-label-top">DKRUG SWEDEN</div>
                     <h1 id="product-main-name-desktop">---</h1> 
@@ -40,12 +43,21 @@
                         <span class="tax-info-static">(Inkl. moms)</span>
                     </div>
 
-                    <div id="product-swatches-wrapper" class="swatch-container"></div>
-                    <div id="product-group-wrapper">
-                        <div class="swatch-header">
-                            <p class="vald-farg-text"><span class="label">Vald färg:</span> <span class="value">---</span></p>
-                        </div>
-                        <div class="swatch-list" id="swatch-list"></div>
+                    <!-- 🆕 VARYASYON AKORDİYONU -->
+                    <div id="variant-accordion-wrapper" class="variant-accordion-box">
+                        <button class="variant-accordion-header" id="variant-accordion-btn">
+                            <div class="accordion-left">
+                                <i class="fa-solid fa-ruler-combined"></i>
+                                <div class="accordion-title-group">
+                                    <span class="accordion-title">Välj storlek</span>
+                                    <span class="accordion-subtitle" id="selected-variant-display">Ingen storlek vald</span>
+                                </div>
+                            </div>
+                            <div class="accordion-right">
+                                <span class="accordion-status" id="variant-status" style="display:none;">Vald</span>
+                                <i class="fa-solid fa-chevron-right accordion-chevron"></i>
+                            </div>
+                        </button>
                     </div>
 
                     <div class="action-buttons">
@@ -56,7 +68,7 @@
                     <div class="product-accordion-wrapper">
                         <div class="product-accordion-item">
                             <button class="product-accordion-header"><h3>Produktbeskrivning</h3></button>
-                            <div class="product-accordion-content active" id="product-description"></div>
+                            <div class="product-accordion-content" id="product-description"></div>
                         </div>
                     </div>
                 </div>
@@ -66,46 +78,40 @@
 
     <div id="footer-placeholder"></div>
 
+    <!-- 🆕 VARYASYON DRAWER (Sağdan Açılan) -->
+    <div class="variant-drawer-overlay" id="variant-drawer-overlay">
+        <div class="variant-drawer" id="variant-drawer">
+            <div class="variant-drawer-header">
+                <h3>Välj storlek</h3>
+                <button class="close-drawer-btn" id="close-variant-drawer">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="variant-drawer-body" id="variant-drawer-body">
+                <!-- Varyasyonlar buraya JS ile gelecek -->
+            </div>
+        </div>
+    </div>
+
     <script>
-        // ==========================================
-        // HEADER & FOOTER YÜKLEYİCİ
-        // ==========================================
         async function loadComponents() {
             try {
-                // Mutlak yol kullan (/<dosya>.html) - göreli yol /matta/xxx'de çalışmaz
                 const [headerRes, footerRes] = await Promise.all([
                     fetch('/header.html'),
                     fetch('/footer.html')
                 ]);
 
-                if (!headerRes.ok) {
-                    console.error('Header yüklenemedi:', headerRes.status);
-                    return;
-                }
-                if (!footerRes.ok) {
-                    console.error('Footer yüklenemedi:', footerRes.status);
-                    return;
-                }
+                if (!headerRes.ok || !footerRes.ok) return;
 
-                const headerData = await headerRes.text();
-                const footerData = await footerRes.text();
+                document.getElementById('header-placeholder').innerHTML = await headerRes.text();
+                document.getElementById('footer-placeholder').innerHTML = await footerRes.text();
 
-                document.getElementById('header-placeholder').innerHTML = headerData;
-                document.getElementById('footer-placeholder').innerHTML = footerData;
-
-                console.log("✅ Header ve Footer başarıyla yüklendi.");
-
-                // Header yüklendikten sonra event listener'ları başlat
-                if (typeof initEventListeners === 'function') {
-                    initEventListeners();
-                }
-
+                if (typeof initEventListeners === 'function') initEventListeners();
             } catch (error) {
-                console.error("❌ Component yükleme hatası:", error);
+                console.error("Component yükleme hatası:", error);
             }
         }
 
-        // Sayfa yüklenince çalıştır
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', loadComponents);
         } else {
@@ -113,7 +119,6 @@
         }
     </script>
 
-    <!-- Script sırası önemli: config → common → product.ui -->
     <script src="/assets/js/config.js"></script>
     <script src="/assets/js/common.js"></script>
     <script src="/assets/js/product.ui.js"></script>
