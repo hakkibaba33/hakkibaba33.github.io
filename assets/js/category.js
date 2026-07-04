@@ -1,5 +1,5 @@
 // ==========================================
-// CATEGORY.JS - SUPABASE UYUMLU (v2)
+// CATEGORY.JS - SUPABASE UYUMLU (v2.1 - FIXED)
 // ==========================================
 
 console.log('category.js yukleniyor...');
@@ -132,7 +132,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             grid.insertAdjacentHTML('beforeend', cardHTML);
         });
 
-        attachWishlistEvents();
+        // Wishlist event'lerini grid'e delegate et (tek seferlik)
+        // attachWishlistEvents(); // KALDIRILDI - event delegation kullan
 
         const shown = (currentPage + 1) * ITEMS_PER_PAGE;
         if (shown >= filteredProducts.length) {
@@ -156,6 +157,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         // URL: /matta/slug seklinde (vercel.json rewrite ile product.html?slug=slug'e yonlenecek)
         const productUrl = product.slug ? '/matta/' + product.slug : '/matta/' + product.id;
 
+        // DÜZELTME: onerror'da tek tırnak çatışması - escape karakteri kullan
         return `
             <div class="product-card" data-id="${product.id}">
                 <div class="image-box">
@@ -163,7 +165,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         <img src="${product.image}" 
                              alt="${product.name}" 
                              loading="lazy"
-                             onerror="this.style.display='none'"
+                             onerror="this.style.display=\'none\'"
                              style="width:100%; height:100%; object-fit:cover;">
                     </a>
                     ${hasDiscount ? '<span class="discount-badge" style="position:absolute;top:8px;left:8px;background:#e54d42;color:#fff;padding:4px 8px;border-radius:4px;font-size:12px;font-weight:bold;">REA</span>' : ''}
@@ -208,13 +210,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    function attachWishlistEvents() {
-        const grid = document.getElementById('product-grid');
-        if (!grid) return;
-        grid.removeEventListener('click', handleWishlistClick);
-        grid.addEventListener('click', handleWishlistClick);
-    }
-
+    // DÜZELTME: Event delegation - grid'e tek seferlik listener
+    // handleWishlistClick'i global scope'a al ve aynı referansı kullan
     function handleWishlistClick(e) {
         const btn = e.target.closest('.wishlist-btn');
         if (!btn) return;
@@ -252,6 +249,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         localStorage.setItem('wishlistItems', JSON.stringify(wishlist));
         updateWishlistBadge();
+    }
+
+    // DÜZELTME: Tek seferlik event delegation
+    if (grid) {
+        grid.addEventListener('click', handleWishlistClick);
     }
 
     function updateWishlistBadge() {
