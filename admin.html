@@ -16,7 +16,10 @@
         .file-info { font-size: 12px; color: #666; margin-top: 4px; }
         .debug-log { background: #1e1e1e; color: #4ec9b0; padding: 12px; border-radius: 6px; font-family: monospace; font-size: 11px; max-height: 200px; overflow-y: auto; margin-top: 10px; }
         .debug-log p { margin: 2px 0; }
+        .slug-preview { font-size: 12px; color: #666; margin-top: 4px; font-family: monospace; background: #f3f4f6; padding: 4px 8px; border-radius: 4px; }
+        .color-tag { display: inline-block; padding: 2px 8px; background: #e0e7ff; color: #4338ca; border-radius: 12px; font-size: 12px; margin: 2px; }
     </style>
+<base target="_blank">
 <base target="_blank">
 </head>
 <body class="bg-gray-100 min-h-screen p-5">
@@ -44,13 +47,15 @@
             </div>
         </div>
 
+        <!-- TEMEL BILGILER -->
         <div class="grid grid-cols-2 gap-4 mb-6">
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Urun Adi</label>
-                <input type="text" id="name" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Orn: Matta Royal">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Urun Adi *</label>
+                <input type="text" id="name" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Orn: Matta Royal" oninput="updateSlugPreview()">
+                <div id="slug-preview" class="slug-preview hidden"></div>
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Kategori *</label>
                 <select id="category" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
                     <option value="">Kategori secin</option>
                     <option value="mattor">Mattor (Hali)</option>
@@ -65,16 +70,39 @@
                 <input type="text" id="brand" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Orn: DKRug">
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Temel Fiyat (SEK)</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Temel Fiyat (SEK) *</label>
                 <input type="number" id="base_price" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="2499">
             </div>
         </div>
 
+        <!-- INDIRIMLI FIYAT -->
+        <div class="grid grid-cols-2 gap-4 mb-6">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Indirimli Fiyat (SEK)</label>
+                <input type="number" id="discount_price" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="1999 (bos birak = indirim yok)">
+                <p class="text-xs text-gray-400 mt-1">Bos birakilirsa indirimli fiyat gosterilmez.</p>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Teslimat Suresi</label>
+                <input type="text" id="delivery_time" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="3-7 arbetsdagar" value="3-7 arbetsdagar">
+            </div>
+        </div>
+
+        <!-- ACIKLAMA -->
         <div class="mb-6">
             <label class="block text-sm font-medium text-gray-700 mb-1">Aciklama</label>
             <textarea id="description" rows="3" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none" placeholder="Urun aciklamasi..."></textarea>
         </div>
 
+        <!-- RENKLER -->
+        <div class="mb-6">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Renkler</label>
+            <input type="text" id="colors" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Kirmizi, Mavi, Yesil, Beyaz, Siyah (virgulle ayirin)" oninput="updateColorTags()">
+            <div id="color-tags" class="mt-2"></div>
+            <p class="text-xs text-gray-400 mt-1">Virgulle ayirarak yazin. Orn: Red, Blue, Green</p>
+        </div>
+
+        <!-- GORSELLER -->
         <div class="mb-6 border-t pt-4">
             <h2 class="font-bold mb-2 text-gray-800">Urun Gorselleri</h2>
             <p class="text-sm text-gray-500 mb-2">Birden fazla resim secebilirsiniz (max 5 adet, her biri max 2MB)</p>
@@ -89,6 +117,7 @@
             </div>
         </div>
 
+        <!-- VARYANTLAR -->
         <div class="border-t pt-4">
             <h2 class="font-bold mb-3 text-gray-800">Varyant Ekle</h2>
             <div class="grid grid-cols-5 gap-2 mb-2">
@@ -141,6 +170,39 @@
         function clearDebugLog() {
             var el = document.getElementById('debug-log');
             if (el) el.innerHTML = '';
+        }
+
+        // SLUG PREVIEW
+        function slugify(text) {
+            return text.toString().toLowerCase()
+                .replace(/\s+/g, '-')
+                .replace(/[^\w\-]+/g, '')
+                .replace(/\-\-+/g, '-')
+                .replace(/^-+/, '')
+                .replace(/-+$/, '');
+        }
+
+        function updateSlugPreview() {
+            var name = document.getElementById('name').value.trim();
+            var previewEl = document.getElementById('slug-preview');
+            if (name) {
+                var slug = slugify(name);
+                previewEl.textContent = 'Slug: /matta/' + slug;
+                previewEl.classList.remove('hidden');
+            } else {
+                previewEl.classList.add('hidden');
+            }
+        }
+
+        // COLOR TAGS
+        function updateColorTags() {
+            var input = document.getElementById('colors').value;
+            var container = document.getElementById('color-tags');
+            var colors = input.split(',').map(function(c) { return c.trim(); }).filter(function(c) { return c; });
+
+            container.innerHTML = colors.map(function(color) {
+                return '<span class="color-tag">' + color + '</span>';
+            }).join('');
         }
 
         // TOKEN YONETIMI
@@ -261,11 +323,19 @@
             var banner = document.getElementById('token-expired-banner');
             if (banner) banner.style.display = 'none';
             clearDebugLog();
+
+            // Form temizle
             document.getElementById('name').value = '';
             document.getElementById('category').value = '';
             document.getElementById('brand').value = '';
             document.getElementById('base_price').value = '';
+            document.getElementById('discount_price').value = '';
+            document.getElementById('delivery_time').value = '3-7 arbetsdagar';
             document.getElementById('description').value = '';
+            document.getElementById('colors').value = '';
+            document.getElementById('slug-preview').classList.add('hidden');
+            document.getElementById('color-tags').innerHTML = '';
+
             varyantlar = [];
             uploadedImages = [];
             renderVariants();
@@ -537,6 +607,9 @@
             var name = document.getElementById('name').value.trim();
             var category = document.getElementById('category').value;
             var basePrice = document.getElementById('base_price').value;
+            var discountPrice = document.getElementById('discount_price').value;
+            var deliveryTime = document.getElementById('delivery_time').value.trim();
+            var colorsInput = document.getElementById('colors').value.trim();
 
             if (!name || !category) {
                 alert('Urun adi ve kategori zorunludur.');
@@ -553,15 +626,27 @@
             statusEl.className = 'text-center mt-3 text-sm text-blue-600';
 
             try {
+                // Renkleri array'e cevir
+                var colorsArray = colorsInput ? colorsInput.split(',').map(function(c) { return c.trim(); }).filter(function(c) { return c; }) : [];
+
+                // Slug olustur
+                var slug = slugify(name);
+
                 var productData = {
                     name: name,
                     category: category,
                     brand: document.getElementById('brand').value.trim() || null,
                     description: document.getElementById('description').value.trim() || null,
                     base_price: basePrice ? parseFloat(basePrice) : null,
+                    discount_price: discountPrice ? parseFloat(discountPrice) : null,
+                    delivery_time: deliveryTime || '3-7 arbetsdagar',
+                    colors: colorsArray.length > 0 ? colorsArray : null,
                     images: uploadedImages.length > 0 ? uploadedImages : null,
+                    slug: slug,
                     active: true
                 };
+
+                log('Urun verisi: ' + JSON.stringify(productData));
 
                 var pRes = await apiCall(SUPABASE_URL + '/rest/v1/products', {
                     method: 'POST',
@@ -576,6 +661,7 @@
 
                 var pData = await pRes.json();
                 var pId = pData[0].id;
+                log('Urun kaydedildi, ID: ' + pId);
 
                 var variantPromises = [];
                 for (var j = 0; j < varyantlar.length; j++) {
@@ -594,23 +680,31 @@
                 }
 
                 await Promise.all(variantPromises);
+                log('Varyantlar kaydedildi: ' + varyantlar.length + ' adet');
 
-                statusEl.textContent = 'Urun ve varyantlar basariyla kaydedildi!';
+                statusEl.textContent = 'Urun ve varyantlar basariyla kaydedildi! Slug: /matta/' + slug;
                 statusEl.className = 'text-center mt-3 text-sm text-green-600 font-medium';
 
                 setTimeout(function() {
+                    // Form temizle
                     document.getElementById('name').value = '';
                     document.getElementById('category').value = '';
                     document.getElementById('brand').value = '';
                     document.getElementById('base_price').value = '';
+                    document.getElementById('discount_price').value = '';
+                    document.getElementById('delivery_time').value = '3-7 arbetsdagar';
                     document.getElementById('description').value = '';
+                    document.getElementById('colors').value = '';
+                    document.getElementById('slug-preview').classList.add('hidden');
+                    document.getElementById('color-tags').innerHTML = '';
+
                     varyantlar = [];
                     uploadedImages = [];
                     renderVariants();
                     renderImagePreviews();
                     document.getElementById('file-info').textContent = '';
                     statusEl.textContent = '';
-                }, 2000);
+                }, 3000);
 
             } catch (err) {
                 log('Kaydetme hatasi: ' + err.message);

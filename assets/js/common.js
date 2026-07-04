@@ -1,14 +1,40 @@
 // ==========================================
-// COMMON.JS - TEMIZLENMIS (v4)
+// COMMON.JS - SUPABASE UYUMLU (v5)
 // ==========================================
 
 if (typeof CONFIG === 'undefined') {
     console.error('HATA: config.js yuklenmemis!');
 }
 
-const API_KEY = (typeof CONFIG !== 'undefined') ? CONFIG.AIRTABLE.API_KEY : '';
-const BASE_ID = (typeof CONFIG !== 'undefined') ? CONFIG.AIRTABLE.BASE_ID : '';
-const TABLE_NAME = (typeof CONFIG !== 'undefined') ? CONFIG.AIRTABLE.TABLE_NAME : 'products';
+const SUPABASE_URL = (typeof CONFIG !== 'undefined') ? CONFIG.SUPABASE.URL : '';
+const SUPABASE_KEY = (typeof CONFIG !== 'undefined') ? CONFIG.SUPABASE.ANON_KEY : '';
+
+// ==========================================
+// SUPABASE CLIENT (Basit REST wrapper)
+// ==========================================
+
+async function supabaseGet(endpoint, params) {
+    const url = new URL(SUPABASE_URL + '/rest/v1/' + endpoint);
+    if (params) Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
+    
+    const res = await fetch(url, {
+        headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': 'Bearer ' + SUPABASE_KEY,
+            'Content-Type': 'application/json'
+        }
+    });
+    if (!res.ok) throw new Error('Supabase GET hatasi: ' + res.status);
+    return res.json();
+}
+
+async function supabaseGetOne(endpoint, filter) {
+    const data = await supabaseGet(endpoint, {
+        select: '*',
+        ...filter
+    });
+    return data[0] || null;
+}
 
 // ==========================================
 // 1. YARDIMCI FONKSIYONLAR
@@ -73,7 +99,7 @@ function closeMiniCart() {
 }
 
 // ==========================================
-// 3. SEARCH POPUP - DUZELTILMIS
+// 3. SEARCH POPUP - SUPABASE UYUMLU
 // ==========================================
 
 let searchDebounceTimer = null;
@@ -90,7 +116,6 @@ function initSearch() {
         return;
     }
 
-    // Açma butonları
     document.addEventListener('click', (e) => {
         const openBtn = e.target.closest('#search-open-btn');
         if (openBtn) {
@@ -100,7 +125,6 @@ function initSearch() {
         }
     });
 
-    // Kapatma butonu
     if (closeBtn) {
         closeBtn.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -108,21 +132,16 @@ function initSearch() {
         });
     }
 
-    // Overlay'a tıklayınca kapat
     popup.addEventListener('click', (e) => {
-        if (e.target === popup) {
-            closeSearchPopup();
-        }
+        if (e.target === popup) closeSearchPopup();
     });
 
-    // ESC ile kapat
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && popup.classList.contains('active')) {
             closeSearchPopup();
         }
     });
 
-    // Input dinleme
     input.addEventListener('input', (e) => {
         const query = e.target.value.trim();
         clearTimeout(searchDebounceTimer);
@@ -181,34 +200,46 @@ function closeSearchPopup() {
 }
 
 async function fetchAllProductsForSearch() {
-    if (!API_KEY || !BASE_ID) {
-        console.error('Airtable config eksik!');
+    if (!SUPABASE_URL || !SUPABASE_KEY) {
+        console.error('Supabase config eksik!');
         return;
     }
 
     try {
-        const response = await fetch(
-            `https://api.airtable.com/v0/${BASE_ID}/${TABLE_NAME}?pageSize=100`,
-            { headers: { Authorization: `Bearer ${API_KEY}` } }
-        );
+        // products + variants birlikte çek
+        const data = await supabaseGet('products', {
+            select: '*,product_variants(*)',
+            active: 'eq.true'
+        });
 
-        if (!response.ok) throw new Error('Airtable hatasi');
-
-        const data = await response.json();
-        allProductsCache = data.records.map(record => ({
-            id: record.id,
-            name: record.fields.Name || '',
-            price: parseFloat(record.fields.Price) || 0,
-            image: record.fields.imageURL && record.fields.imageURL[0] ? record.fields.imageURL[0].url : '',
-            category: record.fields.Category || '',
-            url: `/product.html?id=${record.id}`
-        }));
+        allProductsCache = data.map(product => {
+            const displayPrice = getDisplayPrice(product);
+            return {
+                id: product.id,
+                name: product.name || '',
+                price: displayPrice,
+                image: product.images && product.images[0] ? product.images[0] : '',
+                category: product.category || '',
+                url: `/matta/${product.slug || product.id}`
+            };
+        });
 
         console.log(`${allProductsCache.length} urun cache'lendi`);
 
     } catch (error) {
         console.error('Urun cache hatasi:', error);
     }
+}
+
+// Fiyat hesaplama: discount_price varsa onu, yoksa base_price, varyant varsa varyant fiyatı
+function getDisplayPrice(product, variantSize) {
+    if (variantSize && product.product_variants) {
+        const variant = product.product_variants.find(v => v.size === variantSize);
+        if (variant) {
+            return variant.discount_price || variant.price || product.discount_price || product.base_price || 0;
+        }
+    }
+    return product.discount_price || product.base_price || 0;
 }
 
 function performSearch(query) {
@@ -237,7 +268,7 @@ function performSearch(query) {
                 </div>
                 <div class="search-item-info">
                     <h4 class="search-item-title">${highlightMatch(product.name, query)}</h4>
-                    <span class="search-item-price">${product.price.toFixed(2)} SEK</span>
+                    <span class="search-item-price">${product.price.toLocaleString('sv-SE')} SEK</span>
                 </div>
             </a>
         `).join('');
@@ -294,7 +325,7 @@ function updateMiniCartUI() {
                         </div>
                     </div>
                     <div class="item-price-right">
-                        <span class="item-price">${itemTotal.toFixed(2)} SEK</span>
+                        <span class="item-price">${itemTotal.toLocaleString('sv-SE')} SEK</span>
                         <button class="remove-item-btn" data-id="${item.id}">Ta bort</button>
                     </div>
                 </div>
@@ -302,7 +333,7 @@ function updateMiniCartUI() {
         }).join('');
 
         const grandTotal = document.getElementById('cart-grand-total');
-        if (grandTotal) grandTotal.textContent = total.toFixed(2) + ' SEK';
+        if (grandTotal) grandTotal.textContent = total.toLocaleString('sv-SE') + ' SEK';
     }
 }
 
@@ -331,7 +362,7 @@ function removeFromCart(productId) {
 
 function addProductToCart(productData) {
     let cart = getCart();
-    const existing = cart.find(i => i.id === productData.id);
+    const existing = cart.find(i => i.id === productData.id && i.variants === productData.variants);
 
     if (existing) {
         existing.quantity = (existing.quantity || 1) + 1;
@@ -345,32 +376,33 @@ function addProductToCart(productData) {
 }
 
 // ==========================================
-// 6. AIRTABLE - URUN EKLEME
+// 6. SUPABASE - URUN EKLEME (SEPETE)
 // ==========================================
 
-async function addAirtableProductToCart(productId) {
+async function addSupabaseProductToCart(productId, variantSize) {
     try {
-        const response = await fetch(`https://api.airtable.com/v0/${BASE_ID}/${TABLE_NAME}/${productId}`, {
-            headers: { Authorization: `Bearer ${API_KEY}` }
+        const product = await supabaseGetOne('products', {
+            id: 'eq.' + productId,
+            select: '*,product_variants(*)'
         });
 
-        if (!response.ok) throw new Error('Urun bulunamadi');
+        if (!product) throw new Error('Urun bulunamadi');
 
-        const productData = await response.json();
-        const f = productData.fields;
+        const displayPrice = getDisplayPrice(product, variantSize);
+        const variantLabel = variantSize || 'Standard';
 
         const cartItem = {
-            id: productData.id,
-            name: f.Name,
-            price: parseFloat(f.Price) || 0,
-            image: f.imageURL && f.imageURL[0] ? f.imageURL[0].url : '',
-            variants: f.Variants || 'Standard',
-            delivery: f.Delivery_time || '',
+            id: product.id,
+            name: product.name,
+            price: displayPrice,
+            image: product.images && product.images[0] ? product.images[0] : '',
+            variants: variantLabel,
+            delivery: product.delivery_time || '3-7 arbetsdagar',
             quantity: 1
         };
 
         let cart = getCart();
-        const existing = cart.find(i => i.id === productId);
+        const existing = cart.find(i => i.id === productId && i.variants === variantLabel);
         if (existing) {
             existing.quantity = (existing.quantity || 1) + 1;
         } else {
@@ -415,12 +447,12 @@ let __commonListenersInitialized = false;
 
 function initEventListeners() {
     if (__commonListenersInitialized) {
-        console.log('⚠️ Event listenerlar zaten bağlı, atlanıyor.');
+        console.log('⚠️ Event listenerlar zaten bagli, atlaniyor.');
         return;
     }
     __commonListenersInitialized = true;
 
-    console.log('✅ Event listenerlar başlatılıyor...');
+    console.log('✅ Event listenerlar baslatiliyor...');
 
     // SEPET ACMA
     document.addEventListener('click', (e) => {
@@ -494,7 +526,7 @@ function initEventListeners() {
     initSearch();
     updateWishlistBadge();
 
-    console.log('✅ Event listenerlar bağlandı');
+    console.log('✅ Event listenerlar baglandi');
 }
 
-console.log('📦 common.js yüklendi (başlatma bekleniyor...)');
+console.log('📦 common.js yuklendi (baslatma bekleniyor...)');
