@@ -111,12 +111,13 @@
                     </form>
                 </div>
 
-                <!-- ÖDEME FORMU - Doğrudan görünür, formun altında -->
-                <div class="checkout-section-card mt-20" id="payment-section" style="display: none;">
+                <!-- ÖDEME FORMU - Her zaman görünür -->
+                <div class="checkout-section-card mt-20" id="payment-section">
                     <h2 class="section-title"><span class="step-number">2</span> Betalningsmetod</h2>
                     <p class="payment-desc">Välj ditt önskade betalningssätt nedan. Du kan betala med kort eller Klarna.</p>
                     <div id="payment-element">
                         <!-- Stripe Payment Element buraya mount edilecek -->
+                        <p style="color:#999; padding:40px; text-align:center;">Laddar betalningsalternativ...</p>
                     </div>
                     <div id="card-errors" role="alert"></div>
                 </div>
@@ -125,8 +126,8 @@
                     ⚠️ Vänligen fyll i alla obligatoriska fält korrekt.
                 </div>
 
-                <button id="confirm-payment-btn" class="main-checkout-btn">
-                    Gå till betalning
+                <button id="confirm-payment-btn" class="main-checkout-btn btn-disabled" disabled>
+                    Fyll i leveransadressen först
                 </button>
             </section>
 
