@@ -1,5 +1,6 @@
 // ==========================================
-// CATEGORY.JS - SUPABASE UYUMLU (v2.1 - FIXED)
+// CATEGORY.JS - SUPABASE UYUMLU (v3.0 - FINAL)
+// Eski Airtable yapısını koru, sadece API Supabase'e çevrildi
 // ==========================================
 
 console.log('category.js yukleniyor...');
@@ -89,6 +90,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             console.log(allProducts.length + ' urun yuklendi');
 
+            // Ilk render
             renderProducts();
             updateProgress();
             generateFilters();
@@ -132,9 +134,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             grid.insertAdjacentHTML('beforeend', cardHTML);
         });
 
-        // Wishlist event'lerini grid'e delegate et (tek seferlik)
-        // attachWishlistEvents(); // KALDIRILDI - event delegation kullan
+        // Wishlist event listenerlarini ekle - ESKI YAPI
+        attachWishlistEvents();
 
+        // Load more butonunu kontrol et
         const shown = (currentPage + 1) * ITEMS_PER_PAGE;
         if (shown >= filteredProducts.length) {
             document.getElementById('load-more-container').style.display = 'none';
@@ -146,9 +149,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     function createProductCard(product, isWishlisted) {
         const hasDiscount = product.discount_price && product.discount_price < product.base_price;
         const priceHTML = hasDiscount 
-            ? '<span class="original-price" style="text-decoration:line-through;color:#999;font-size:14px;">' + product.base_price.toLocaleString('sv-SE') + ' SEK</span>' +
-              '<span class="current-price" style="color:#e54d42;">' + product.price.toLocaleString('sv-SE') + ' SEK</span>'
-            : '<span class="current-price">' + product.price.toLocaleString('sv-SE') + ' SEK</span>';
+            ? `<span class="original-price" style="text-decoration:line-through;color:#999;font-size:14px;">${product.base_price.toLocaleString('sv-SE')} SEK</span>
+               <span class="current-price" style="color:#e54d42;">${product.price.toLocaleString('sv-SE')} SEK</span>`
+            : `<span class="current-price">${product.price.toLocaleString('sv-SE')} SEK</span>`;
 
         const variantText = product.variants.length > 1 
             ? product.variants.length + ' storlekar' 
@@ -157,7 +160,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         // URL: /matta/slug seklinde (vercel.json rewrite ile product.html?slug=slug'e yonlenecek)
         const productUrl = product.slug ? '/matta/' + product.slug : '/matta/' + product.id;
 
-        // DÜZELTME: onerror'da tek tırnak çatışması - escape karakteri kullan
         return `
             <div class="product-card" data-id="${product.id}">
                 <div class="image-box">
@@ -165,7 +167,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         <img src="${product.image}" 
                              alt="${product.name}" 
                              loading="lazy"
-                             onerror="this.style.display=\'none\'"
+                             onerror="this.style.display='none'"
                              style="width:100%; height:100%; object-fit:cover;">
                     </a>
                     ${hasDiscount ? '<span class="discount-badge" style="position:absolute;top:8px;left:8px;background:#e54d42;color:#fff;padding:4px 8px;border-radius:4px;font-size:12px;font-weight:bold;">REA</span>' : ''}
@@ -200,7 +202,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         `;
     }
 
-    // --- 5. WISHLIST FONKSIYONLARI ---
+    // --- 5. WISHLIST FONKSIYONLARI - ESKI YAPI ---
     function isInWishlist(productId) {
         try {
             const wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
@@ -210,9 +212,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // DÜZELTME: Event delegation - grid'e tek seferlik listener
-    // handleWishlistClick'i global scope'a al ve aynı referansı kullan
+    function attachWishlistEvents() {
+        // ESKI YAPI: Event delegation kullan
+        const grid = document.getElementById('product-grid');
+        if (!grid) return;
+
+        // Önceki listener'ı kaldır (varsa)
+        grid.removeEventListener('click', handleWishlistClick);
+        // Yeni listener ekle
+        grid.addEventListener('click', handleWishlistClick);
+    }
+
     function handleWishlistClick(e) {
+        // Kalp butonuna veya içindeki ikona tıklandı mı?
         const btn = e.target.closest('.wishlist-btn');
         if (!btn) return;
 
@@ -222,19 +234,23 @@ document.addEventListener('DOMContentLoaded', async () => {
         const productId = btn.dataset.productId;
         if (!productId) return;
 
+        // Ürün bilgilerini bul
         const product = allProducts.find(p => p.id === productId);
         if (!product) return;
 
+        // Wishlist'i güncelle
         let wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
         const index = wishlist.findIndex(item => (typeof item === 'string' ? item : item.id) === productId);
 
         if (index > -1) {
+            // Kaldır
             wishlist.splice(index, 1);
             btn.classList.remove('active');
             const icon = btn.querySelector('i');
             if (icon) icon.className = 'fa-regular fa-heart';
             console.log('Favorilerden kaldirildi:', product.name);
         } else {
+            // Ekle
             wishlist.push({
                 id: product.id,
                 name: product.name,
@@ -248,12 +264,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         localStorage.setItem('wishlistItems', JSON.stringify(wishlist));
-        updateWishlistBadge();
-    }
 
-    // DÜZELTME: Tek seferlik event delegation
-    if (grid) {
-        grid.addEventListener('click', handleWishlistClick);
+        // Header badge'i güncelle
+        updateWishlistBadge();
     }
 
     function updateWishlistBadge() {
