@@ -268,7 +268,7 @@ function performSearch(query) {
 
             return '<a href="' + product.url + '" class="search-item-row">' +
                 '<div class="search-item-image">' +
-                '<img src="' + product.image + '" alt="' + product.name + '" onerror="this.src=\'https://via.placeholder.com/50\'">' +
+                '<img src="${product.image}" alt="${product.name}" onerror="this.src='https://via.placeholder.com/50'">' +
                 '</div>' +
                 '<div class="search-item-info">' +
                 '<h4 class="search-item-title">' + highlightedName + '</h4>' +
