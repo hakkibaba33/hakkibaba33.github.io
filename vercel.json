@@ -12,7 +12,8 @@
     { "source": "/tack", "destination": "/tack.html" },
     { "source": "/matta/:slug", "destination": "/product.html?slug=:slug" },
     { "source": "/product/:slug", "destination": "/product.html?slug=:slug" },
-    { "source": "/api/create-checkout-session", "destination": "/api/create-checkout-session.js" }
+    { "source": "/api/create-checkout-session", "destination": "/api/create-checkout-session.js" },
+    { "source": "/api/create-payment-intent", "destination": "/api/create-payment-intent.js" }
   ],
   "redirects": [
     { "source": "/checkout.html", "destination": "/kassa", "permanent": true },

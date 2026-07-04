@@ -21,6 +21,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================
 
     let stripe = null;
+    let elements = null;
+    let paymentElement = null;
+
     if (typeof Stripe !== 'undefined' && CONFIG?.STRIPE?.PUBLISHABLE_KEY) {
         stripe = Stripe(CONFIG.STRIPE.PUBLISHABLE_KEY);
         console.log('✅ Stripe baslatildi');
@@ -43,11 +46,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const confirmBtn = document.getElementById('confirm-payment-btn');
     const statusMessage = document.getElementById('checkout-validation-error');
     const paymentSection = document.getElementById('payment-section');
-    const embeddedCheckoutContainer = document.getElementById('embedded-checkout');
+    const paymentElementContainer = document.getElementById('payment-element');
 
     console.log('DOM Elements:', {
         paymentSection: !!paymentSection,
-        embeddedCheckoutContainer: !!embeddedCheckoutContainer,
+        paymentElementContainer: !!paymentElementContainer,
         confirmBtn: !!confirmBtn
     });
 
@@ -112,6 +115,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 cart[index].quantity = (cart[index].quantity || 1) + 1;
                 saveCart(cart);
                 renderCheckoutItems();
+                // Sepet değişince ödeme formunu resetle
+                resetPaymentForm();
             });
         });
 
@@ -123,6 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (cart[index].quantity <= 0) cart.splice(index, 1);
                 saveCart(cart);
                 renderCheckoutItems();
+                resetPaymentForm();
             });
         });
 
@@ -133,6 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 cart.splice(index, 1);
                 saveCart(cart);
                 renderCheckoutItems();
+                resetPaymentForm();
             });
         });
     }
@@ -172,19 +179,36 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // EMBEDDED STRIPE CHECKOUT
+    // STRIPE ELEMENTS - ÖDEME FORMU
     // ==========================================
 
-    let checkoutInstance = null;
+    let isPaymentFormInitialized = false;
 
-    async function initEmbeddedCheckout() {
-        console.log('initEmbeddedCheckout basladi...');
-        
+    function resetPaymentForm() {
+        // Sepet değişince ödeme formunu temizle ve yeniden başlat
+        if (paymentElement) {
+            paymentElement.destroy();
+            paymentElement = null;
+        }
+        if (elements) {
+            elements = null;
+        }
+        isPaymentFormInitialized = false;
+        paymentElementContainer.innerHTML = '';
+        paymentSection.style.display = 'none';
+        confirmBtn.style.display = 'block';
+        confirmBtn.disabled = false;
+        confirmBtn.innerText = 'Gå till betalning';
+    }
+
+    async function initPaymentForm() {
+        console.log('initPaymentForm basladi...');
+
         if (!stripe) {
             console.error('Stripe yok!');
             statusMessage.style.display = 'block';
             statusMessage.innerHTML = '<span style="color:#e54d42;">Betalningssystemet är inte tillgängligt.</span>';
-            return;
+            return false;
         }
 
         const cart = getCart();
@@ -199,9 +223,9 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         try {
-            console.log('API istegi gonderiliyor...');
-            
-            const response = await fetch('/api/create-checkout-session', {
+            console.log('Payment Intent istegi gonderiliyor...');
+
+            const response = await fetch('/api/create-payment-intent', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -220,36 +244,124 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
             console.log('Response data:', data);
             console.log('clientSecret var mi:', !!data.clientSecret);
-            console.log('clientSecret uzunluk:', data.clientSecret ? data.clientSecret.length : 0);
 
             if (!data.clientSecret) {
                 throw new Error('clientSecret bos dondu!');
             }
 
-            // ÖNCE container'ı görünür yap
+            // Ödeme bölümünü göster
             paymentSection.style.display = 'block';
-            console.log('Payment section acildi');
 
-            // Sonra mount et
-            console.log('Stripe initEmbeddedCheckout cagriliyor...');
-            
-            checkoutInstance = await stripe.initEmbeddedCheckout({
-                clientSecret: data.clientSecret
+            // Stripe Elements'i başlat
+            elements = stripe.elements({
+                clientSecret: data.clientSecret,
+                appearance: {
+                    theme: 'stripe',
+                    variables: {
+                        colorPrimary: '#000000',
+                        colorBackground: '#ffffff',
+                        colorText: '#333333',
+                        colorDanger: '#e54d42',
+                        borderRadius: '6px',
+                        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
+                    }
+                }
             });
 
-            console.log('Mount ediliyor...');
-            checkoutInstance.mount('#embedded-checkout');
-            console.log('Mount tamamlandi!');
+            // Payment Element oluştur (kart + Klarna)
+            paymentElement = elements.create('payment', {
+                layout: 'tabs',
+                defaultValues: {
+                    billingDetails: {
+                        name: `${customerData.firstName} ${customerData.lastName}`,
+                        email: customerData.email,
+                        phone: customerData.phone,
+                        address: {
+                            line1: customerData.address,
+                            postal_code: customerData.postcode,
+                            city: customerData.city,
+                            country: 'SE'
+                        }
+                    }
+                }
+            });
 
-            // Butonu gizle
-            confirmBtn.style.display = 'none';
+            // Payment Element'i DOM'a mount et
+            paymentElement.mount('#payment-element');
+
+            isPaymentFormInitialized = true;
+
+            // Butonu "Betala nu" olarak değiştir
+            confirmBtn.innerText = 'Betala nu';
+            confirmBtn.disabled = false;
+
+            console.log('Payment Element mount edildi!');
+
+            return true;
 
         } catch (error) {
-            console.error('Embedded checkout hatasi:', error);
+            console.error('Payment form hatasi:', error);
             statusMessage.style.display = 'block';
             statusMessage.innerHTML = `<span style="color:#e54d42;">Ett fel uppstod: ${error.message}</span>`;
             confirmBtn.disabled = false;
             confirmBtn.innerText = 'Gå till betalning';
+            return false;
+        }
+    }
+
+    // ==========================================
+    // ODEME ISLEMI
+    // ==========================================
+
+    async function handlePayment() {
+        if (!elements || !stripe) {
+            statusMessage.style.display = 'block';
+            statusMessage.innerText = 'Betalningsformuläret är inte redo.';
+            return;
+        }
+
+        confirmBtn.disabled = true;
+        confirmBtn.innerText = 'Bearbetar betalning...';
+
+        try {
+            const { error, paymentIntent } = await stripe.confirmPayment({
+                elements,
+                confirmParams: {
+                    return_url: window.location.origin + '/tack',
+                    payment_method_data: {
+                        billing_details: {
+                            name: document.getElementById('billing_first_name').value + ' ' + document.getElementById('billing_last_name').value,
+                            email: document.getElementById('billing_email').value,
+                            phone: document.getElementById('billing_phone').value,
+                            address: {
+                                line1: document.getElementById('billing_address_1').value,
+                                postal_code: document.getElementById('billing_postcode').value,
+                                city: document.getElementById('billing_city').value,
+                                country: 'SE'
+                            }
+                        }
+                    }
+                }
+            });
+
+            if (error) {
+                console.error('Ödeme hatası:', error);
+                statusMessage.style.display = 'block';
+                statusMessage.innerHTML = `<span style="color:#e54d42;">${error.message}</span>`;
+                confirmBtn.disabled = false;
+                confirmBtn.innerText = 'Betala nu';
+            } else if (paymentIntent && paymentIntent.status === 'succeeded') {
+                // Ödeme başarılı - sepeti temizle ve teşekkür sayfasına yönlendir
+                saveCart([]);
+                window.location.href = '/tack?payment_intent=' + paymentIntent.id;
+            }
+
+        } catch (error) {
+            console.error('Beklenmeyen hata:', error);
+            statusMessage.style.display = 'block';
+            statusMessage.innerHTML = `<span style="color:#e54d42;">Ett oväntat fel uppstod. Försök igen.</span>`;
+            confirmBtn.disabled = false;
+            confirmBtn.innerText = 'Betala nu';
         }
     }
 
@@ -263,10 +375,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (!validateForm()) return;
 
-            confirmBtn.disabled = true;
-            confirmBtn.innerText = 'Laddar...';
+            // Eğer ödeme formu henüz başlatılmadıysa, başlat
+            if (!isPaymentFormInitialized) {
+                confirmBtn.disabled = true;
+                confirmBtn.innerText = 'Laddar...';
 
-            await initEmbeddedCheckout();
+                const success = await initPaymentForm();
+                if (!success) {
+                    confirmBtn.disabled = false;
+                    confirmBtn.innerText = 'Gå till betalning';
+                }
+                return;
+            }
+
+            // Ödeme formu zaten açıksa, ödemeyi gerçekleştir
+            await handlePayment();
         });
     }
 

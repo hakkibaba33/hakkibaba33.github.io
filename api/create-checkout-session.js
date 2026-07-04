@@ -15,53 +15,49 @@ module.exports = async (req, res) => {
             return res.status(400).json({ error: 'Cart is empty' });
         }
 
-        const lineItems = items.map(item => ({
-            price_data: {
-                currency: 'sek',
-                product_data: {
-                    name: item.name,
-                    description: item.variants || '',
-                    images: item.image ? [item.image] : []
-                },
-                unit_amount: Math.round(parseFloat(item.price) * 100)
-            },
-            quantity: item.quantity || 1
-        }));
+        // Toplam tutarı hesapla (öre cinsinden)
+        const totalAmount = items.reduce((sum, item) => {
+            const qty = item.quantity || 1;
+            return sum + (Math.round(parseFloat(item.price) * 100) * qty);
+        }, 0);
 
-        console.log('Creating embedded session...');
-        console.log('Return URL:', 'https://www.dekorist.se/tack?session_id={CHECKOUT_SESSION_ID}');
+        console.log('Payment Intent oluşturuluyor...');
+        console.log('Toplam tutar (öre):', totalAmount);
 
-        const session = await stripe.checkout.sessions.create({
-            ui_mode: 'embedded',
+        // Payment Intent oluştur
+        const paymentIntent = await stripe.paymentIntents.create({
+            amount: totalAmount,
+            currency: 'sek',
             payment_method_types: ['card', 'klarna'],
-            line_items: lineItems,
-            mode: 'payment',
-            return_url: 'https://www.dekorist.se/tack?session_id={CHECKOUT_SESSION_ID}',
-            customer_email: customer.email,
+            receipt_email: customer.email,
             metadata: {
                 customer_name: `${customer.firstName} ${customer.lastName}`,
+                customer_email: customer.email,
                 customer_phone: customer.phone,
-                customer_address: `${customer.address}, ${customer.postcode} ${customer.city}`
+                customer_address: `${customer.address}, ${customer.postcode} ${customer.city}`,
+                items_count: items.length.toString()
+            },
+            shipping: {
+                name: `${customer.firstName} ${customer.lastName}`,
+                address: {
+                    line1: customer.address,
+                    postal_code: customer.postcode,
+                    city: customer.city,
+                    country: 'SE'
+                },
+                phone: customer.phone
             }
         });
 
-        console.log('Session created:', session.id);
-        console.log('Client secret exists:', !!session.client_secret);
-        console.log('Client secret length:', session.client_secret ? session.client_secret.length : 0);
+        console.log('Payment Intent oluşturuldu:', paymentIntent.id);
+        console.log('Client secret var mı:', !!paymentIntent.client_secret);
 
-        // client_secret var mı kontrol et
-        if (!session.client_secret) {
-            console.error('ERROR: client_secret is undefined!');
-            console.log('Session object keys:', Object.keys(session));
-            return res.status(500).json({ error: 'client_secret not generated' });
-        }
-
-        res.status(200).json({ 
-            clientSecret: session.client_secret 
+        res.status(200).json({
+            clientSecret: paymentIntent.client_secret
         });
 
     } catch (error) {
-        console.error('Stripe hatasi:', error);
+        console.error('Payment Intent hatası:', error);
         res.status(500).json({ error: error.message });
     }
 };

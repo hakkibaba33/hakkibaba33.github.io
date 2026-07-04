@@ -4,18 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kassa | DKRUG</title>
-    
+
     <!-- 1. ÖNCE Stripe.js -->
     <script src="https://js.stripe.com/v3/"></script>
-    
+
     <!-- 2. SONRA config.js -->
     <script src="/assets/js/config.js"></script>
-    
+
     <!-- Stil Dosyaları -->
     <link rel="stylesheet" href="/assets/css/checkout.css">
     <link rel="stylesheet" href="/assets/css/common.css">
     <link rel="stylesheet" href="/assets/css/reset.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<base target="_blank">
 </head>
 
 <body>
@@ -49,17 +50,18 @@
     </header>
 
     <main class="container" id="checkout-main-container" style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
-        
+
         <div id="checkout-header-area" class="checkout-modern-header">
             <div class="header-left-aligned">
                 <h1>Kassa</h1>
                 <div class="full-width-form-border"></div>
             </div>
         </div>
-        
+
         <div id="checkout-content-root" class="checkout-grid-modern" style="display: none;">
-            
+
             <section class="checkout-form-column">
+                <!-- ADRES FORMU -->
                 <div class="checkout-section-card">
                     <h2 class="section-title"><span class="step-number">1</span> Leveransadress</h2>
                     <form id="address-form" class="form-grid woocommerce-checkout">
@@ -73,12 +75,12 @@
                                 <input type="text" id="billing_last_name" name="billing_last_name" placeholder="Svensson" required>
                             </div>
                         </div>
-                        
+
                         <div class="form-group mb-15">
                             <label for="billing_email">E-postadress</label>
                             <input type="email" id="billing_email" name="billing_email" placeholder="johan@example.com" required>
                         </div>
-                        
+
                         <div class="form-group mb-15">
                             <label for="billing_phone">Telefonnummer</label>
                             <input type="tel" id="billing_phone" name="billing_phone" placeholder="070 123 45 67" required>
@@ -99,7 +101,7 @@
                                 <input type="text" id="billing_city" name="billing_city" placeholder="Stockholm" required>
                             </div>
                         </div>
-                        
+
                         <div class="terms-acceptance">
                             <label class="custom-checkbox">
                                 <input type="checkbox" id="accept-terms" required>
@@ -109,10 +111,14 @@
                     </form>
                 </div>
 
-                <!-- EMBEDDED CHECKOUT ALANI -->
+                <!-- ÖDEME FORMU - Doğrudan görünür, formun altında -->
                 <div class="checkout-section-card mt-20" id="payment-section" style="display: none;">
                     <h2 class="section-title"><span class="step-number">2</span> Betalningsmetod</h2>
-                    <div id="embedded-checkout"></div>
+                    <p class="payment-desc">Välj ditt önskade betalningssätt nedan. Du kan betala med kort eller Klarna.</p>
+                    <div id="payment-element">
+                        <!-- Stripe Payment Element buraya mount edilecek -->
+                    </div>
+                    <div id="card-errors" role="alert"></div>
                 </div>
 
                 <div id="checkout-validation-error" style="color: #e54d42; font-size: 14px; font-weight: 500; margin-bottom: 10px; display: none; text-align: center;">
@@ -167,7 +173,7 @@
     <!-- Footer -->
     <footer id="checkout-minimal-footer" class="custom-checkout-footer">
         <div class="checkout-container">
-            
+
             <div class="checkout-info-grid">
                 <div class="info-item">
                     <i class="fa-solid fa-truck-fast"></i>
@@ -198,13 +204,13 @@
 
             <div class="footer-bottom-brand">
                 <div class="footer-text-logo">DKRUG</div>
-                
+
                 <p class="copyright">
                     © 2021 - 2026 DKRUG Sweden. Alla rättigheter förbehållna.
                 </p>
                 <p class="experience-text">Levererat inredning och mattor sedan 2021</p>
             </div>
-            
+
         </div>
     </footer>
 
