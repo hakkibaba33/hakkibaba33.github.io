@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>DKRug Admin Paneli</title>
+    <style>
+        .image-preview { width: 80px; height: 80px; object-fit: cover; border-radius: 6px; border: 1px solid #ddd; }
+        .image-preview-box { position: relative; display: inline-block; margin: 4px; }
+        .image-preview-box .remove-img { position: absolute; top: -6px; right: -6px; background: #e54d42; color: #fff; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .variant-row { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr auto; gap: 8px; align-items: center; padding: 8px; background: #f9fafb; border-radius: 6px; margin-bottom: 6px; }
+        .variant-row button { background: #e54d42; color: #fff; border: none; border-radius: 4px; padding: 4px 10px; cursor: pointer; font-size: 12px; }
+        .loading { opacity: 0.6; pointer-events: none; }
+        .token-expired-banner { background: #fef3c7; border: 1px solid #f59e0b; color: #92400e; padding: 12px; border-radius: 8px; margin-bottom: 16px; display: none; }
+        .file-info { font-size: 12px; color: #666; margin-top: 4px; }
+        .debug-log { background: #1e1e1e; color: #4ec9b0; padding: 12px; border-radius: 6px; font-family: monospace; font-size: 11px; max-height: 200px; overflow-y: auto; margin-top: 10px; }
+        .debug-log p { margin: 2px 0; }
+    </style>
+<base target="_blank">
+</head>
+<body class="bg-gray-100 min-h-screen p-5">
+
+    <div id="token-expired-banner" class="token-expired-banner max-w-4xl mx-auto">
+        <strong>Oturum suresi doldu.</strong> Lutfen tekrar giris yapin.
+        <button onclick="cikisYap()" class="ml-4 bg-amber-600 text-white px-4 py-1 rounded text-sm hover:bg-amber-700">Tekrar Giris Yap</button>
+    </div>
+
+    <div id="login-form" class="max-w-md mx-auto bg-white p-8 rounded-xl shadow-md">
+        <h1 class="text-2xl font-bold mb-2 text-gray-800">DKRug Admin</h1>
+        <p class="text-gray-500 mb-6 text-sm">Urun yonetim paneli</p>
+        <input type="email" id="email" class="w-full p-3 mb-4 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="E-posta">
+        <input type="password" id="password" class="w-full p-3 mb-4 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Sifre">
+        <button type="button" onclick="girisYap()" class="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 font-bold transition">Giris Yap</button>
+        <p id="login-error" class="text-red-500 text-sm mt-3 hidden"></p>
+    </div>
+
+    <div id="admin-panel" class="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-md hidden">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold text-gray-800">Urun Yonetimi</h1>
+            <div class="flex items-center gap-4">
+                <span id="user-email" class="text-sm text-gray-500"></span>
+                <button onclick="cikisYap()" class="text-sm text-gray-500 hover:text-red-500">Cikis Yap</button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 mb-6">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Urun Adi</label>
+                <input type="text" id="name" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Orn: Matta Royal">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
+                <select id="category" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                    <option value="">Kategori secin</option>
+                    <option value="mattor">Mattor (Hali)</option>
+                    <option value="gardiner">Gardiner (Perde)</option>
+                    <option value="mobler">Mobler (Mobilya)</option>
+                    <option value="belysning">Belysning (Aydinlatma)</option>
+                    <option value="dekoration">Dekoration (Dekorasyon)</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Marka</label>
+                <input type="text" id="brand" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Orn: DKRug">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Temel Fiyat (SEK)</label>
+                <input type="number" id="base_price" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="2499">
+            </div>
+        </div>
+
+        <div class="mb-6">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Aciklama</label>
+            <textarea id="description" rows="3" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none" placeholder="Urun aciklamasi..."></textarea>
+        </div>
+
+        <div class="mb-6 border-t pt-4">
+            <h2 class="font-bold mb-2 text-gray-800">Urun Gorselleri</h2>
+            <p class="text-sm text-gray-500 mb-2">Birden fazla resim secebilirsiniz (max 5 adet, her biri max 2MB)</p>
+            <input type="file" id="imageFiles" multiple accept="image/jpeg,image/png,image/webp,image/gif" class="w-full p-2 border rounded-lg mb-2" onchange="onImageSelect(event)">
+            <p id="file-info" class="file-info"></p>
+            <div id="image-previews" class="flex flex-wrap gap-2 mt-2"></div>
+            <div id="upload-progress" class="hidden mt-2">
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div id="progress-bar" class="bg-blue-600 h-2 rounded-full transition-all" style="width: 0%"></div>
+                </div>
+                <p class="text-sm text-gray-500 mt-1">Yukleniyor...</p>
+            </div>
+        </div>
+
+        <div class="border-t pt-4">
+            <h2 class="font-bold mb-3 text-gray-800">Varyant Ekle</h2>
+            <div class="grid grid-cols-5 gap-2 mb-2">
+                <input type="text" id="size" class="p-2 border rounded-lg" placeholder="Olcu (orn: 80x150)">
+                <input type="number" id="v_price" class="p-2 border rounded-lg" placeholder="Fiyat (SEK)">
+                <input type="number" id="v_discount" class="p-2 border rounded-lg" placeholder="Indirimli Fiyat">
+                <input type="number" id="v_stock" class="p-2 border rounded-lg" placeholder="Stok">
+                <button type="button" onclick="varyantEkle()" class="bg-indigo-500 text-white p-2 rounded-lg hover:bg-indigo-600 transition font-medium">Ekle</button>
+            </div>
+        </div>
+
+        <div id="variant-list" class="mt-4"></div>
+
+        <button type="button" onclick="tamamiKaydet()" id="save-btn" class="w-full mt-6 bg-green-600 text-white p-3 rounded-lg font-bold hover:bg-green-700 transition disabled:bg-gray-400">
+            Tumunu Kaydet
+        </button>
+        <p id="save-status" class="text-center mt-3 text-sm"></p>
+
+        <div class="mt-6">
+            <p class="text-xs text-gray-400 mb-1">Debug Log:</p>
+            <div id="debug-log" class="debug-log"></div>
+            <button onclick="clearDebugLog()" class="text-xs text-gray-400 hover:text-gray-600 mt-1">Temizle</button>
+        </div>
+    </div>
+
+    <script>
+        // SUPABASE CONFIG
+        var SUPABASE_URL = 'https://mowyhsssmpjrwxzvelax.supabase.co';
+        var SUPABASE_ANON_KEY = 'sb_publishable_Fp4Nstc2lpCPNL-5OHPU8w_KD0AC6xf';
+        var MAX_FILE_SIZE = 2 * 1024 * 1024;
+        var MAX_IMAGES = 5;
+        var BUCKET_NAME = 'product-images';
+
+        var varyantlar = [];
+        var uploadedImages = [];
+        var currentToken = null;
+        var currentRefreshToken = null;
+        var currentUser = null;
+
+        // DEBUG LOG
+        function log(msg) {
+            var el = document.getElementById('debug-log');
+            if (!el) return;
+            var time = new Date().toLocaleTimeString('tr-TR');
+            el.innerHTML = el.innerHTML + '<p>[' + time + '] ' + msg + '</p>';
+            el.scrollTop = el.scrollHeight;
+            console.log(msg);
+        }
+
+        function clearDebugLog() {
+            var el = document.getElementById('debug-log');
+            if (el) el.innerHTML = '';
+        }
+
+        // TOKEN YONETIMI
+        async function refreshTokenIfNeeded() {
+            if (!currentToken) return false;
+
+            try {
+                var payload = JSON.parse(atob(currentToken.split('.')[1]));
+                var exp = payload.exp * 1000;
+                var now = Date.now();
+
+                if (exp - now < 5 * 60 * 1000) {
+                    log('Token yenileniyor...');
+                    var res = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=refresh_token', {
+                        method: 'POST',
+                        headers: { 
+                            'apikey': SUPABASE_ANON_KEY, 
+                            'Content-Type': 'application/json' 
+                        },
+                        body: JSON.stringify({ refresh_token: currentRefreshToken })
+                    });
+
+                    var data = await res.json();
+                    if (data.access_token) {
+                        currentToken = data.access_token;
+                        currentRefreshToken = data.refresh_token;
+                        localStorage.setItem('token', data.access_token);
+                        localStorage.setItem('refresh_token', data.refresh_token);
+                        log('Token yenilendi!');
+                        return true;
+                    }
+                }
+                return true;
+            } catch (err) {
+                log('Token kontrol hatasi: ' + err.message);
+                return false;
+            }
+        }
+
+        function isTokenValid() {
+            if (!currentToken) return false;
+            try {
+                var payload = JSON.parse(atob(currentToken.split('.')[1]));
+                return payload.exp * 1000 > Date.now();
+            } catch {
+                return false;
+            }
+        }
+
+        function showTokenExpired() {
+            var banner = document.getElementById('token-expired-banner');
+            if (banner) banner.style.display = 'block';
+            var panel = document.getElementById('admin-panel');
+            if (panel) panel.classList.add('hidden');
+        }
+
+        // GIRIS / CIKIS
+        async function girisYap() {
+            var email = document.getElementById('email').value;
+            var password = document.getElementById('password').value;
+            var errorEl = document.getElementById('login-error');
+
+            if (!email || !password) {
+                errorEl.textContent = 'E-posta ve sifre giriniz.';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            try {
+                log('Giris yapiliyor...');
+                var res = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=password', {
+                    method: 'POST',
+                    headers: { 
+                        'apikey': SUPABASE_ANON_KEY, 
+                        'Content-Type': 'application/json' 
+                    },
+                    body: JSON.stringify({ email: email, password: password })
+                });
+                var data = await res.json();
+
+                if (data.access_token) {
+                    currentToken = data.access_token;
+                    currentRefreshToken = data.refresh_token;
+                    currentUser = data.user;
+                    localStorage.setItem('token', data.access_token);
+                    localStorage.setItem('refresh_token', data.refresh_token);
+                    localStorage.setItem('user_email', data.user ? data.user.email : '');
+
+                    log('Giris basarili!');
+
+                    document.getElementById('login-form').classList.add('hidden');
+                    document.getElementById('admin-panel').classList.remove('hidden');
+                    var banner = document.getElementById('token-expired-banner');
+                    if (banner) banner.style.display = 'none';
+                    document.getElementById('user-email').textContent = data.user ? data.user.email : '';
+                    errorEl.classList.add('hidden');
+                } else {
+                    log('Giris basarisiz: ' + (data.error_description || 'Bilinmeyen hata'));
+                    errorEl.textContent = data.error_description || 'Giris basarisiz!';
+                    errorEl.classList.remove('hidden');
+                }
+            } catch (err) {
+                log('Baglanti hatasi: ' + err.message);
+                errorEl.textContent = 'Baglanti hatasi: ' + err.message;
+                errorEl.classList.remove('hidden');
+            }
+        }
+
+        function cikisYap() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('refresh_token');
+            localStorage.removeItem('user_email');
+            currentToken = null;
+            currentRefreshToken = null;
+            currentUser = null;
+            document.getElementById('admin-panel').classList.add('hidden');
+            document.getElementById('login-form').classList.remove('hidden');
+            var banner = document.getElementById('token-expired-banner');
+            if (banner) banner.style.display = 'none';
+            clearDebugLog();
+            document.getElementById('name').value = '';
+            document.getElementById('category').value = '';
+            document.getElementById('brand').value = '';
+            document.getElementById('base_price').value = '';
+            document.getElementById('description').value = '';
+            varyantlar = [];
+            uploadedImages = [];
+            renderVariants();
+            renderImagePreviews();
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            var savedToken = localStorage.getItem('token');
+            var savedRefresh = localStorage.getItem('refresh_token');
+            var savedEmail = localStorage.getItem('user_email');
+
+            if (savedToken && savedRefresh) {
+                currentToken = savedToken;
+                currentRefreshToken = savedRefresh;
+                log('Token localStorage dan yuklendi');
+
+                if (isTokenValid()) {
+                    document.getElementById('login-form').classList.add('hidden');
+                    document.getElementById('admin-panel').classList.remove('hidden');
+                    document.getElementById('user-email').textContent = savedEmail || '';
+                } else {
+                    refreshTokenIfNeeded().then(function(success) {
+                        if (success) {
+                            document.getElementById('login-form').classList.add('hidden');
+                            document.getElementById('admin-panel').classList.remove('hidden');
+                            document.getElementById('user-email').textContent = savedEmail || '';
+                        } else {
+                            cikisYap();
+                        }
+                    });
+                }
+            }
+        });
+
+        // API CAGIRISI
+        async function apiCall(url, options) {
+            options = options || {};
+            var tokenValid = await refreshTokenIfNeeded();
+            if (!tokenValid) {
+                showTokenExpired();
+                throw new Error('Oturum suresi doldu');
+            }
+
+            var headers = {
+                'apikey': SUPABASE_ANON_KEY,
+                'Authorization': 'Bearer ' + currentToken
+            };
+
+            if (options.headers) {
+                Object.keys(options.headers).forEach(function(key) {
+                    headers[key] = options.headers[key];
+                });
+            }
+
+            log('API cagrisi: ' + url.split('/').pop());
+
+            var res = await fetch(url, { 
+                method: options.method || 'GET',
+                headers: headers,
+                body: options.body
+            });
+
+            log('Response status: ' + res.status);
+
+            if (res.status === 401) {
+                showTokenExpired();
+                throw new Error('Oturum suresi doldu');
+            }
+
+            return res;
+        }
+
+        // RESIM YUKLEME
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            var k = 1024;
+            var sizes = ['Bytes', 'KB', 'MB'];
+            var i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function onImageSelect(event) {
+            var files = Array.from(event.target.files);
+            if (!files || files.length === 0) return;
+
+            if (uploadedImages.length + files.length > MAX_IMAGES) {
+                alert('En fazla ' + MAX_IMAGES + ' resim yukleyebilirsiniz.');
+                return;
+            }
+
+            var oversized = files.filter(function(f) { return f.size > MAX_FILE_SIZE; });
+            if (oversized.length > 0) {
+                var names = oversized.map(function(f) { return f.name + ' (' + formatBytes(f.size) + ')'; }).join(', ');
+                alert('Bu dosyalar cok buyuk (max ' + formatBytes(MAX_FILE_SIZE) + '): ' + names);
+                var validFiles = files.filter(function(f) { return f.size <= MAX_FILE_SIZE; });
+                if (validFiles.length === 0) {
+                    event.target.value = '';
+                    return;
+                }
+                uploadImages(validFiles);
+                return;
+            }
+
+            uploadImages(files);
+        }
+
+        async function uploadImages(files) {
+            var progressBar = document.getElementById('progress-bar');
+            var progressContainer = document.getElementById('upload-progress');
+            var fileInfo = document.getElementById('file-info');
+            progressContainer.classList.remove('hidden');
+            fileInfo.textContent = files.length + ' dosya yukleniyor...';
+
+            var successCount = 0;
+            var failCount = 0;
+
+            for (var i = 0; i < files.length; i++) {
+                var file = files[i];
+                var progress = ((i + 1) / files.length) * 100;
+                progressBar.style.width = progress + '%';
+                fileInfo.textContent = 'Yukleniyor: ' + file.name + ' (' + formatBytes(file.size) + ')...';
+
+                try {
+                    var url = await uploadSingleImage(file);
+                    if (url) {
+                        uploadedImages.push(url);
+                        successCount++;
+                    }
+                } catch (err) {
+                    failCount++;
+                    log('Yukleme HATASI: ' + err.message);
+
+                    if (err.message.indexOf('exp') !== -1 || err.message.indexOf('token') !== -1 || err.message.indexOf('Oturum') !== -1) {
+                        showTokenExpired();
+                        progressContainer.classList.add('hidden');
+                        return;
+                    }
+
+                    if (err.message.indexOf('size') !== -1 || err.message.indexOf('maximum') !== -1 || err.message.indexOf('exceeded') !== -1) {
+                        alert('"' + file.name + '" cok buyuk! Dosya boyutu: ' + formatBytes(file.size) + ' Max izin verilen: ' + formatBytes(MAX_FILE_SIZE));
+                    } else {
+                        alert('"' + file.name + '" yuklenemedi: ' + err.message);
+                    }
+                }
+            }
+
+            progressContainer.classList.add('hidden');
+            progressBar.style.width = '0%';
+            fileInfo.textContent = successCount + ' basarili, ' + failCount + ' basarisiz | Toplam: ' + uploadedImages.length + ' resim';
+            renderImagePreviews();
+            document.getElementById('imageFiles').value = '';
+        }
+
+        async function uploadSingleImage(file) {
+            var fileExt = file.name.split('.').pop();
+            var fileName = Date.now() + '_' + Math.random().toString(36).substring(2, 10) + '.' + fileExt;
+            var filePath = fileName;
+            var uploadUrl = SUPABASE_URL + '/storage/v1/object/' + BUCKET_NAME + '/' + filePath;
+
+            log('Upload URL: ' + uploadUrl);
+            log('File: ' + file.name + ' (' + formatBytes(file.size) + ')');
+
+            var uploadRes = await apiCall(uploadUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': file.type },
+                body: file
+            });
+
+            if (!uploadRes.ok) {
+                var errMsg = 'Yukleme basarisiz';
+                try {
+                    var errData = await uploadRes.json();
+                    errMsg = errData.message || errData.error || errMsg;
+                    log('Hata detayi: ' + JSON.stringify(errData));
+                } catch (e) {
+                    errMsg = 'HTTP ' + uploadRes.status + ': ' + uploadRes.statusText;
+                }
+                throw new Error(errMsg);
+            }
+
+            var result = await uploadRes.json();
+            log('Yukleme basarili! Key: ' + result.Key);
+
+            var publicUrl = SUPABASE_URL + '/storage/v1/object/public/' + BUCKET_NAME + '/' + filePath;
+            log('Public URL: ' + publicUrl);
+
+            return publicUrl;
+        }
+
+        function renderImagePreviews() {
+            var container = document.getElementById('image-previews');
+            container.innerHTML = '';
+
+            uploadedImages.forEach(function(url, index) {
+                var box = document.createElement('div');
+                box.className = 'image-preview-box';
+                box.innerHTML = '<img src="' + url + '" class="image-preview" alt="Urun resmi">' +
+                    '<button class="remove-img" onclick="removeImage(' + index + ')" title="Kaldir">×</button>';
+                container.appendChild(box);
+            });
+        }
+
+        function removeImage(index) {
+            uploadedImages.splice(index, 1);
+            renderImagePreviews();
+            document.getElementById('file-info').textContent = 'Toplam: ' + uploadedImages.length + ' resim';
+        }
+
+        // VARYANT YONETIMI
+        function varyantEkle() {
+            var size = document.getElementById('size').value.trim();
+            var price = document.getElementById('v_price').value;
+            var discount = document.getElementById('v_discount').value;
+            var stock = document.getElementById('v_stock').value;
+
+            if (!size || !price) {
+                alert('Olcu ve fiyat zorunludur.');
+                return;
+            }
+
+            var v = {
+                size: size,
+                price: parseFloat(price),
+                discount_price: discount ? parseFloat(discount) : null,
+                stock: stock ? parseInt(stock) : 0
+            };
+
+            varyantlar.push(v);
+
+            document.getElementById('size').value = '';
+            document.getElementById('v_price').value = '';
+            document.getElementById('v_discount').value = '';
+            document.getElementById('v_stock').value = '';
+
+            renderVariants();
+        }
+
+        function removeVariant(index) {
+            varyantlar.splice(index, 1);
+            renderVariants();
+        }
+
+        function renderVariants() {
+            var list = document.getElementById('variant-list');
+            if (varyantlar.length === 0) {
+                list.innerHTML = '<p class="text-gray-400 text-sm italic">Henüz varyant eklenmedi.</p>';
+                return;
+            }
+
+            var html = '';
+            for (var i = 0; i < varyantlar.length; i++) {
+                var v = varyantlar[i];
+                html = html + '<div class="variant-row">' +
+                    '<span><strong>Olcu:</strong> ' + v.size + '</span>' +
+                    '<span><strong>Fiyat:</strong> ' + v.price + ' SEK</span>' +
+                    '<span><strong>Indirimli:</strong> ' + (v.discount_price || '-') + '</span>' +
+                    '<span><strong>Stok:</strong> ' + v.stock + '</span>' +
+                    '<button onclick="removeVariant(' + i + ')">Sil</button>' +
+                    '</div>';
+            }
+            list.innerHTML = html;
+        }
+
+        // KAYDETME
+        async function tamamiKaydet() {
+            var saveBtn = document.getElementById('save-btn');
+            var statusEl = document.getElementById('save-status');
+
+            var name = document.getElementById('name').value.trim();
+            var category = document.getElementById('category').value;
+            var basePrice = document.getElementById('base_price').value;
+
+            if (!name || !category) {
+                alert('Urun adi ve kategori zorunludur.');
+                return;
+            }
+            if (varyantlar.length === 0) {
+                alert('En az bir varyant eklemelisiniz.');
+                return;
+            }
+
+            saveBtn.disabled = true;
+            saveBtn.classList.add('loading');
+            statusEl.textContent = 'Kaydediliyor...';
+            statusEl.className = 'text-center mt-3 text-sm text-blue-600';
+
+            try {
+                var productData = {
+                    name: name,
+                    category: category,
+                    brand: document.getElementById('brand').value.trim() || null,
+                    description: document.getElementById('description').value.trim() || null,
+                    base_price: basePrice ? parseFloat(basePrice) : null,
+                    images: uploadedImages.length > 0 ? uploadedImages : null,
+                    active: true
+                };
+
+                var pRes = await apiCall(SUPABASE_URL + '/rest/v1/products', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+                    body: JSON.stringify(productData)
+                });
+
+                if (!pRes.ok) {
+                    var err = await pRes.json();
+                    throw new Error(err.message || 'Urun kaydedilemedi');
+                }
+
+                var pData = await pRes.json();
+                var pId = pData[0].id;
+
+                var variantPromises = [];
+                for (var j = 0; j < varyantlar.length; j++) {
+                    var v = varyantlar[j];
+                    variantPromises.push(apiCall(SUPABASE_URL + '/rest/v1/product_variants', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            product_id: pId, 
+                            size: v.size,
+                            price: v.price,
+                            discount_price: v.discount_price,
+                            stock: v.stock
+                        })
+                    }));
+                }
+
+                await Promise.all(variantPromises);
+
+                statusEl.textContent = 'Urun ve varyantlar basariyla kaydedildi!';
+                statusEl.className = 'text-center mt-3 text-sm text-green-600 font-medium';
+
+                setTimeout(function() {
+                    document.getElementById('name').value = '';
+                    document.getElementById('category').value = '';
+                    document.getElementById('brand').value = '';
+                    document.getElementById('base_price').value = '';
+                    document.getElementById('description').value = '';
+                    varyantlar = [];
+                    uploadedImages = [];
+                    renderVariants();
+                    renderImagePreviews();
+                    document.getElementById('file-info').textContent = '';
+                    statusEl.textContent = '';
+                }, 2000);
+
+            } catch (err) {
+                log('Kaydetme hatasi: ' + err.message);
+                statusEl.textContent = 'Hata: ' + err.message;
+                statusEl.className = 'text-center mt-3 text-sm text-red-500';
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.classList.remove('loading');
+            }
+        }
+    </script>
+</body>
+</html>

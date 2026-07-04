@@ -1,27 +1,57 @@
 // ==========================================
-// PRODUCT.UI.JS - Lightbox + Mobil Swipe + 3 Akordiyon
+// PRODUCT.UI.JS - SUPABASE UYUMLU
 // ==========================================
 
 if (window.__productPageInitialized) {
-    console.log("⚠️ product.ui.js zaten çalıştırılmış, atlanıyor.");
+    console.log("⚠️ product.ui.js zaten calistirilmis, atlaniyor.");
 } else {
     window.__productPageInitialized = true;
 
     let currentProduct = null;
-    let currentImages = [];
     let currentVariants = [];
     let selectedVariant = null;
+    let currentImages = [];
     let selectedImageIndex = 0;
     let isZoomed = false;
     let isMobile = window.innerWidth <= 768;
 
-    // Mobilde swipe için
     let touchStartX = 0;
     let touchCurrentX = 0;
     let isDragging = false;
 
+    // SUPABASE CLIENT
+    const SUPABASE_URL = (typeof CONFIG !== 'undefined') ? CONFIG.SUPABASE.URL : '';
+    const SUPABASE_KEY = (typeof CONFIG !== 'undefined') ? CONFIG.SUPABASE.ANON_KEY : '';
+
+    async function supabaseGet(endpoint, params) {
+        const url = new URL(SUPABASE_URL + '/rest/v1/' + endpoint);
+        if (params) Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
+        
+        const res = await fetch(url, {
+            headers: {
+                'apikey': SUPABASE_KEY,
+                'Authorization': 'Bearer ' + SUPABASE_KEY,
+                'Content-Type': 'application/json'
+            }
+        });
+        if (!res.ok) throw new Error('Supabase GET hatasi: ' + res.status);
+        return res.json();
+    }
+
+    function getDisplayPrice(product, variant) {
+        if (variant && variant.discount_price) return variant.discount_price;
+        if (variant && variant.price) return variant.price;
+        if (product.discount_price) return product.discount_price;
+        return product.base_price || 0;
+    }
+
+    function getOriginalPrice(product, variant) {
+        if (variant && variant.price) return variant.price;
+        return product.base_price || 0;
+    }
+
     async function initProductPage() {
-        console.log("🚀 Ürün sayfası init başlıyor...");
+        console.log("🚀 Urun sayfasi init basliyor...");
 
         let slug = new URLSearchParams(window.location.search).get('slug');
         if (!slug) {
@@ -29,42 +59,62 @@ if (window.__productPageInitialized) {
             slug = parts[parts.length - 1];
         }
         if (!slug || slug === 'product.html') {
-            console.error("❌ Slug bulunamadı!");
+            console.error("❌ Slug bulunamadi!");
             return;
         }
 
-        const url = `https://api.airtable.com/v0/${CONFIG.AIRTABLE.BASE_ID}/${CONFIG.AIRTABLE.TABLE_NAME}?filterByFormula=Slug='${slug}'`;
-
         try {
-            const res = await fetch(url, { headers: { Authorization: `Bearer ${CONFIG.AIRTABLE.API_KEY}` } });
-            const data = await res.json();
-            if (!data.records?.length) { console.error("❌ Ürün bulunamadı!"); return; }
+            const data = await supabaseGet('products', {
+                slug: 'eq.' + slug,
+                select: '*,product_variants(*)'
+            });
 
-            currentProduct = data.records[0];
-            const f = currentProduct.fields;
+            if (!data || data.length === 0) {
+                console.error("❌ Urun bulunamadi!");
+                return;
+            }
+
+            currentProduct = data[0];
+            const p = currentProduct;
+            const f = {
+                Name: p.name,
+                Price: p.base_price,
+                Description: p.description,
+                Delivery_time: p.delivery_time || '3-7 arbetsdagar',
+                Variants: p.product_variants || []
+            };
 
             // Temel bilgiler
             setText('page-title-product-name', f.Name);
             setText('breadcrumb-product-name', f.Name);
             setText('product-main-name-desktop', f.Name);
-            setText('product-price', (f.Price || 0) + " SEK");
+            
+            // Fiyat gösterimi
+            const hasDiscount = p.discount_price && p.discount_price < p.base_price;
+            const priceEl = document.getElementById('product-price');
+            if (priceEl) {
+                if (hasDiscount) {
+                    priceEl.innerHTML = `<span style="text-decoration:line-through;color:#999;font-size:18px;margin-right:8px;">${p.base_price} SEK</span>
+                                         <span style="color:#e54d42;font-size:24px;font-weight:bold;">${p.discount_price} SEK</span>`;
+                } else {
+                    priceEl.textContent = (f.Price || 0) + " SEK";
+                }
+            }
+            
             setHTML('product-description', f.Description || '');
-            setText('delivery-time-display', f.Delivery_time || '3-7 arbetsdagar');
+            setText('delivery-time-display', f.Delivery_time);
 
             // Görseller
-            currentImages = f.imageURL || [];
-            console.log(`📸 ${currentImages.length} görsel`);
+            currentImages = p.images || [];
+            console.log(`📸 ${currentImages.length} gorsel`);
 
             if (currentImages.length > 0) {
-                if (isMobile) {
-                    renderMobileGallery();
-                } else {
-                    renderDesktopGallery();
-                }
+                if (isMobile) renderMobileGallery();
+                else renderDesktopGallery();
             }
 
             // Varyasyonlar
-            currentVariants = parseVariants(f.Variants);
+            currentVariants = f.Variants;
             if (currentVariants.length > 0) {
                 setupVariantAccordion();
                 renderVariantDrawer();
@@ -73,19 +123,21 @@ if (window.__productPageInitialized) {
                 if (el) el.style.display = 'none';
             }
 
-            // Lightbox (sadece masaüstü)
+            // Lightbox
             if (!isMobile) setupLightbox();
 
             // Akordiyonlar
             setupAccordions();
 
             // Sepete ekle
-            setupAddToCart(f);
-            setupWishlistButton(f);
+            setupAddToCart(f, p);
+            setupWishlistButton(f, p);
 
-            console.log("✅ Ürün sayfası yüklendi:", f.Name);
+            console.log("✅ Urun sayfasi yuklendi:", f.Name);
 
-        } catch (e) { console.error("❌ Hata:", e); }
+        } catch (e) { 
+            console.error("❌ Hata:", e); 
+        }
     }
 
     function setText(id, text) {
@@ -96,77 +148,65 @@ if (window.__productPageInitialized) {
     function setHTML(id, html) {
         const el = document.getElementById(id);
         if (el) { el.innerHTML = ''; el.innerHTML = html || ''; }
-     }
-
-     // ==========================================
-// WISHLIST / FAVORI
-// ==========================================
-
-function setupWishlistButton(fields) {
-    const btn = document.querySelector('.ana-urun-favori-buton');
-    if (!btn) return;
-
-    // Ürün ID'si
-    const productId = currentProduct.id;
-    
-    // Başlangıç durumunu kontrol et
-    updateWishlistButtonState(btn, productId);
-
-    // Click event
-    btn.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-
-        let wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
-        const index = wishlist.findIndex(item => (typeof item === 'string' ? item : item.id) === productId);
-
-        if (index > -1) {
-            // Kaldır
-            wishlist.splice(index, 1);
-            console.log('Favorilerden kaldirildi:', fields.Name);
-        } else {
-            // Ekle
-            wishlist.push({
-                id: productId,
-                name: fields.Name,
-                price: parseFloat(fields.Price) || 0,
-                image: currentImages.length > 0 ? currentImages[0].url : ''
-            });
-            console.log('Favorilere eklendi:', fields.Name);
-        }
-
-        localStorage.setItem('wishlistItems', JSON.stringify(wishlist));
-        
-        // Buton görünümünü güncelle
-        updateWishlistButtonState(btn, productId);
-        
-        // Header badge'i güncelle
-        if (typeof updateWishlistBadge === 'function') {
-            updateWishlistBadge();
-        }
-    });
-}
-
-function updateWishlistButtonState(btn, productId) {
-    const wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
-    const isWishlisted = wishlist.some(item => (typeof item === 'string' ? item : item.id) === productId);
-    
-    const icon = btn.querySelector('i');
-    if (icon) {
-        icon.className = isWishlisted ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
     }
-    
-    if (isWishlisted) {
-        btn.classList.add('active');
-        btn.style.color = '#D30000';
-    } else {
-        btn.classList.remove('active');
-        btn.style.color = '';
-    }
-}
 
     // ==========================================
-    // MASAÜSTÜ GALERİ (2 Resim + Thumbnail'lar)
+    // WISHLIST / FAVORI
+    // ==========================================
+
+    function setupWishlistButton(fields, product) {
+        const btn = document.querySelector('.ana-urun-favori-buton');
+        if (!btn) return;
+
+        const productId = currentProduct.id;
+        updateWishlistButtonState(btn, productId);
+
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            let wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
+            const index = wishlist.findIndex(item => (typeof item === 'string' ? item : item.id) === productId);
+
+            if (index > -1) {
+                wishlist.splice(index, 1);
+                console.log('Favorilerden kaldirildi:', fields.Name);
+            } else {
+                wishlist.push({
+                    id: productId,
+                    name: fields.Name,
+                    price: getDisplayPrice(product, selectedVariant),
+                    image: currentImages.length > 0 ? currentImages[0] : ''
+                });
+                console.log('Favorilere eklendi:', fields.Name);
+            }
+
+            localStorage.setItem('wishlistItems', JSON.stringify(wishlist));
+            updateWishlistButtonState(btn, productId);
+            if (typeof updateWishlistBadge === 'function') updateWishlistBadge();
+        });
+    }
+
+    function updateWishlistButtonState(btn, productId) {
+        const wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
+        const isWishlisted = wishlist.some(item => (typeof item === 'string' ? item : item.id) === productId);
+        
+        const icon = btn.querySelector('i');
+        if (icon) {
+            icon.className = isWishlisted ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
+        }
+        
+        if (isWishlisted) {
+            btn.classList.add('active');
+            btn.style.color = '#D30000';
+        } else {
+            btn.classList.remove('active');
+            btn.style.color = '';
+        }
+    }
+
+    // ==========================================
+    // MASAUSTU GALERI
     // ==========================================
 
     function renderDesktopGallery() {
@@ -180,15 +220,14 @@ function updateWishlistButtonState(btn, productId) {
 
         if (!container) return;
 
-        // 2 büyük resim yan yana
         let mainHTML = '';
         const count = Math.min(2, currentImages.length);
 
         for (let i = 0; i < count; i++) {
             mainHTML += `
                 <div class="main-image-column" data-index="${i}">
-                    <img src="${currentImages[i].url}" 
-                         alt="${currentProduct.fields.Name} - ${i+1}" 
+                    <img src="${currentImages[i]}" 
+                         alt="${currentProduct.name} - ${i+1}" 
                          class="main-image"
                          onclick="openLightbox(${i})">
                 </div>
@@ -196,12 +235,11 @@ function updateWishlistButtonState(btn, productId) {
         }
         container.innerHTML = mainHTML;
 
-        // Thumbnail'lar
         if (thumbContainer) {
             let thumbHTML = '';
             currentImages.forEach((img, i) => {
                 thumbHTML += `
-                    <img src="${img.url}" alt="thumb-${i+1}" 
+                    <img src="${img}" alt="thumb-${i+1}" 
                          class="thumbnail-item ${i === 0 ? 'selected' : ''}"
                          data-index="${i}"
                          onclick="selectMainImage(${i})">
@@ -222,7 +260,7 @@ function updateWishlistButtonState(btn, productId) {
                 const imgIdx = (index + i) % currentImages.length;
                 const img = col.querySelector('img');
                 if (img) {
-                    img.src = currentImages[imgIdx].url;
+                    img.src = currentImages[imgIdx];
                     col.setAttribute('data-index', imgIdx);
                 }
             });
@@ -230,7 +268,7 @@ function updateWishlistButtonState(btn, productId) {
     };
 
     // ==========================================
-    // MOBİL GALERİ (Swipe + Sayaç + İlerleme Çubuğu)
+    // MOBIL GALERI
     // ==========================================
 
     function renderMobileGallery() {
@@ -249,7 +287,7 @@ function updateWishlistButtonState(btn, productId) {
         currentImages.forEach((img, i) => {
             html += `
                 <div class="mobile-gallery-slide" data-index="${i}">
-                    <img src="${img.url}" alt="${currentProduct.fields.Name} - ${i+1}">
+                    <img src="${img}" alt="${currentProduct.name} - ${i+1}">
                 </div>
             `;
         });
@@ -322,7 +360,7 @@ function updateWishlistButtonState(btn, productId) {
     }
 
     // ==========================================
-    // LIGHTBOX (Sadece Masaüstü)
+    // LIGHTBOX
     // ==========================================
 
     function setupLightbox() {
@@ -330,18 +368,15 @@ function updateWishlistButtonState(btn, productId) {
         const prevBtn = document.getElementById('lightbox-prev');
         const nextBtn = document.getElementById('lightbox-next');
         const imgContainer = document.getElementById('lightbox-img-container');
-        const imgWrapper = document.getElementById('lightbox-img-wrapper');
 
         if (closeBtn) closeBtn.onclick = closeLightbox;
         if (prevBtn) prevBtn.onclick = () => navigateLightbox(-1);
         if (nextBtn) nextBtn.onclick = () => navigateLightbox(1);
 
-        // Zoom
         if (imgContainer) {
             imgContainer.addEventListener('dblclick', toggleZoom);
         }
 
-        // Klavye navigasyonu
         document.addEventListener('keydown', (e) => {
             const overlay = document.getElementById('custom-lightbox');
             if (!overlay?.classList.contains('active')) return;
@@ -354,7 +389,7 @@ function updateWishlistButtonState(btn, productId) {
     }
 
     window.openLightbox = function(index) {
-        if (isMobile) return; // Mobilde lightbox açılmasın
+        if (isMobile) return;
         selectedImageIndex = index;
         updateLightboxImage();
         const overlay = document.getElementById('custom-lightbox');
@@ -389,17 +424,15 @@ function updateWishlistButtonState(btn, productId) {
         const prevBtn = document.getElementById('lightbox-prev');
         const nextBtn = document.getElementById('lightbox-next');
 
-        if (img) img.src = currentImages[selectedImageIndex].url;
+        if (img) img.src = currentImages[selectedImageIndex];
         if (counter) counter.innerText = `${selectedImageIndex + 1} / ${currentImages.length}`;
         if (prevBtn) prevBtn.disabled = selectedImageIndex === 0;
         if (nextBtn) nextBtn.disabled = selectedImageIndex === currentImages.length - 1;
 
-        // Zoom'u resetle
         isZoomed = false;
         const wrapper = document.getElementById('lightbox-img-wrapper');
         if (wrapper) wrapper.classList.remove('zoomed');
 
-        // Thumbnail'ları güncelle
         document.querySelectorAll('.lightbox-thumb-item-container').forEach((thumb, i) => {
             thumb.classList.toggle('selected', i === selectedImageIndex);
         });
@@ -421,7 +454,7 @@ function updateWishlistButtonState(btn, productId) {
             html += `
                 <div class="lightbox-thumb-item-container ${i === 0 ? 'selected' : ''}" 
                      onclick="lightboxSelectThumb(${i})">
-                    <img src="${img.url}" alt="thumb-${i+1}" class="lightbox-thumbnail-item">
+                    <img src="${img}" alt="thumb-${i+1}" class="lightbox-thumbnail-item">
                 </div>
             `;
         });
@@ -434,22 +467,8 @@ function updateWishlistButtonState(btn, productId) {
     };
 
     // ==========================================
-    // VARYASYON (Aynı kalıyor)
+    // VARYANT
     // ==========================================
-
-    function parseVariants(text) {
-        if (!text) return [];
-        const t = text.toString().trim();
-        const lines = t.split('\n').filter(l => l.trim());
-        if (lines.length > 1) {
-            return lines.map(line => ({ size: line.trim(), label: line.trim(), price: null }));
-        }
-        const parts = t.split(',').map(p => p.trim()).filter(p => p);
-        if (parts.length > 1) {
-            return parts.map(part => ({ size: part, label: part, price: null }));
-        }
-        return [{ size: t, label: t, price: null }];
-    }
 
     function setupVariantAccordion() {
         const btn = document.getElementById('variant-accordion-btn');
@@ -487,21 +506,31 @@ function updateWishlistButtonState(btn, productId) {
         const body = document.getElementById('variant-drawer-body');
         if (!body) return;
 
-        const mainImage = currentImages.length > 0 ? currentImages[0].url : '';
-        const productName = currentProduct.fields.Name;
+        const mainImage = currentImages.length > 0 ? currentImages[0] : '';
+        const productName = currentProduct.name;
 
         let html = '';
         currentVariants.forEach((variant, index) => {
-            const isSelected = selectedVariant && selectedVariant.size === variant.size;
+            const isSelected = selectedVariant && selectedVariant.id === variant.id;
+            const displayPrice = getDisplayPrice(currentProduct, variant);
+            const originalPrice = getOriginalPrice(currentProduct, variant);
+            const hasDiscount = variant.discount_price && variant.discount_price < variant.price;
+
             html += `
                 <div class="variant-drawer-item ${isSelected ? 'selected' : ''}" 
                      data-index="${index}" onclick="selectVariant(${index})">
                     <div class="variant-drawer-image">
-                        <img src="${mainImage}" alt="${productName} ${variant.label}">
+                        <img src="${mainImage}" alt="${productName} ${variant.size}">
                     </div>
                     <div class="variant-drawer-info">
-                        <span class="variant-size">${variant.label}</span>
-                        <span class="variant-price">${currentProduct.fields.Price} SEK</span>
+                        <span class="variant-size">${variant.size}</span>
+                        <span class="variant-price">
+                            ${hasDiscount ? `<span style="text-decoration:line-through;color:#999;font-size:12px;">${originalPrice} SEK</span> ` : ''}
+                            <span style="${hasDiscount ? 'color:#e54d42;' : ''}">${displayPrice} SEK</span>
+                        </span>
+                        <span class="variant-stock" style="font-size:12px;color:${variant.stock > 0 ? '#22c55e' : '#e54d42'};">
+                            ${variant.stock > 0 ? 'I lager (' + variant.stock + ' st)' : 'Slut i lager'}
+                        </span>
                     </div>
                     <div class="variant-check">
                         ${isSelected ? '<i class="fa-solid fa-check-circle"></i>' : '<i class="fa-regular fa-circle"></i>'}
@@ -525,15 +554,33 @@ function updateWishlistButtonState(btn, productId) {
             const icon = item.querySelector('.variant-check i');
             if (icon) icon.className = i === index ? 'fa-solid fa-check-circle' : 'fa-regular fa-circle';
         });
+        
         const display = document.getElementById('selected-variant-display');
         const status = document.getElementById('variant-status');
-        if (display) display.innerText = selectedVariant.label;
+        const priceDisplay = document.getElementById('product-price');
+        
+        if (display) display.innerText = selectedVariant.size;
         if (status) status.style.display = 'inline-flex';
+        
+        // Fiyatı güncelle
+        if (priceDisplay) {
+            const displayPrice = getDisplayPrice(currentProduct, selectedVariant);
+            const originalPrice = getOriginalPrice(currentProduct, selectedVariant);
+            const hasDiscount = selectedVariant.discount_price && selectedVariant.discount_price < selectedVariant.price;
+            
+            if (hasDiscount) {
+                priceDisplay.innerHTML = `<span style="text-decoration:line-through;color:#999;font-size:18px;margin-right:8px;">${originalPrice} SEK</span>
+                                          <span style="color:#e54d42;font-size:24px;font-weight:bold;">${displayPrice} SEK</span>`;
+            } else {
+                priceDisplay.textContent = displayPrice + " SEK";
+            }
+        }
+        
         setTimeout(closeVariantDrawer, 300);
     };
 
     // ==========================================
-    // AKORDİYONLAR (3 Adet)
+    // AKORDIYONLAR
     // ==========================================
 
     function setupAccordions() {
@@ -545,16 +592,8 @@ function updateWishlistButtonState(btn, productId) {
             
             if (!header || !content) return;
 
-            // İlkini açık bırak (opsiyonel - istersen kaldır)
-            // if (item === items[0]) item.classList.add('active');
-
             header.addEventListener('click', () => {
                 const isActive = item.classList.contains('active');
-                
-                // Tümünü kapat (tek açık olsun istersen)
-                // items.forEach(i => i.classList.remove('active'));
-                
-                // Toggle
                 item.classList.toggle('active', !isActive);
             });
         });
@@ -564,32 +603,37 @@ function updateWishlistButtonState(btn, productId) {
     // SEPETE EKLE
     // ==========================================
 
-    function setupAddToCart(fields) {
+    function setupAddToCart(fields, product) {
         const btn = document.getElementById('add-to-cart-btn');
         if (!btn) return;
         const newBtn = btn.cloneNode(true);
         btn.parentNode.replaceChild(newBtn, btn);
 
         newBtn.addEventListener('click', () => {
-            const variantInfo = selectedVariant ? selectedVariant.label : (fields.Variants || 'Standard');
+            const variantInfo = selectedVariant ? selectedVariant.size : 'Standard';
+            const displayPrice = getDisplayPrice(product, selectedVariant);
+            
             if (typeof addProductToCart === 'function') {
                 addProductToCart({
                     id: currentProduct.id,
                     name: fields.Name,
-                    price: parseFloat(fields.Price) || 0,
-                    image: currentImages.length > 0 ? currentImages[0].url : '',
+                    price: displayPrice,
+                    image: currentImages.length > 0 ? currentImages[0] : '',
                     variants: variantInfo,
                     delivery: fields.Delivery_time || ''
                 });
             } else {
                 const cartItem = {
-                    id: currentProduct.id, name: fields.Name,
-                    price: parseFloat(fields.Price) || 0,
-                    image: currentImages.length > 0 ? currentImages[0].url : '',
-                    variants: variantInfo, delivery: fields.Delivery_time || '', quantity: 1
+                    id: currentProduct.id, 
+                    name: fields.Name,
+                    price: displayPrice,
+                    image: currentImages.length > 0 ? currentImages[0] : '',
+                    variants: variantInfo, 
+                    delivery: fields.Delivery_time || '', 
+                    quantity: 1
                 };
                 let cart = JSON.parse(localStorage.getItem('siteCartItems')) || [];
-                const existing = cart.find(i => i.id === currentProduct.id);
+                const existing = cart.find(i => i.id === currentProduct.id && i.variants === variantInfo);
                 if (existing) existing.quantity = (existing.quantity || 1) + 1;
                 else cart.push(cartItem);
                 localStorage.setItem('siteCartItems', JSON.stringify(cart));
@@ -601,7 +645,7 @@ function updateWishlistButtonState(btn, productId) {
     }
 
     // ==========================================
-    // RESPONSIVE KONTROL
+    // RESPONSIVE
     // ==========================================
 
     window.addEventListener('resize', () => {
@@ -614,7 +658,7 @@ function updateWishlistButtonState(btn, productId) {
     });
 
     // ==========================================
-    // BAŞLAT
+    // BASLAT
     // ==========================================
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initProductPage);
