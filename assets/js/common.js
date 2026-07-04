@@ -1,5 +1,5 @@
 // ==========================================
-// COMMON.JS - SUPABASE UYUMLU (v5.4 - FIXED)
+// COMMON.JS - SUPABASE UYUMLU (v5.5 - FIXED)
 // ==========================================
 
 if (typeof CONFIG === 'undefined') {
@@ -116,8 +116,17 @@ function initSearch() {
     var closeBtn = document.getElementById('close-search-popup');
     var resultsDisplay = document.getElementById('search-results-display');
 
+    // DUZELTME: Eger search popup elementleri yoksa, gracefully handle et
     if (!popup || !input) {
-        console.warn('Search popup elementleri bulunamadi!');
+        console.log('Search popup elementleri bu sayfada bulunamadi - search devre disi');
+        // Sadece search-open-btn varsa, ona listener ekle (popup olmadan da calisabilir)
+        var openBtn = document.getElementById('search-open-btn');
+        if (openBtn) {
+            openBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.warn('Search popup HTML elementleri eksik!');
+            });
+        }
         return;
     }
 
@@ -168,7 +177,10 @@ function openSearchPopup() {
     var input = document.getElementById('live-search-input');
     var resultsDisplay = document.getElementById('search-results-display');
 
-    if (!popup) return;
+    if (!popup) {
+        console.warn('Search popup overlay bulunamadi!');
+        return;
+    }
 
     var scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
     document.body.style.paddingRight = scrollbarWidth + 'px';
@@ -254,7 +266,6 @@ function performSearch(query) {
         resultsDisplay.innerHTML = '<div class="no-results-found">Inga produkter hittades.</div>';
     } else {
         resultsDisplay.innerHTML = filtered.slice(0, 8).map(function(product) {
-            // Basit highlight - regex yerine split/join kullan
             var highlightedName = product.name;
             var idx = product.name.toLowerCase().indexOf(lowerQuery);
             if (idx !== -1) {
