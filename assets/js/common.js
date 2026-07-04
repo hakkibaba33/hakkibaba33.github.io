@@ -7,6 +7,11 @@ if (typeof CONFIG === 'undefined') {
     console.error('HATA: config.js yuklenmemis!');
 }
 
+// ==========================================
+// GLOBAL FLAGS
+// ==========================================
+let __commonListenersInitialized = false;
+
 // SUPABASE CONFIG
 const SUPABASE_URL = (typeof CONFIG !== 'undefined' && CONFIG.SUPABASE) ? CONFIG.SUPABASE.URL : '';
 const SUPABASE_KEY = (typeof CONFIG !== 'undefined' && CONFIG.SUPABASE) ? CONFIG.SUPABASE.ANON_KEY : '';
@@ -303,7 +308,7 @@ function updateMiniCartUI() {
         footer.style.display = 'block';
 
         let total = 0;
-        
+
         // HTML'i bir değişkende topluyoruz
         const html = cart.map(item => {
             const qty = item.quantity || 1;
@@ -453,6 +458,7 @@ function closeMobileMenu() {
 // ==========================================
 
 function initEventListeners() {
+    console.log('initEventListeners CAGIRILDI, __commonListenersInitialized:', __commonListenersInitialized);
     if (__commonListenersInitialized) return;
     __commonListenersInitialized = true;
 
@@ -465,13 +471,13 @@ function initEventListeners() {
             openMiniCart();
         }
         if (e.target.closest('#close-mini-cart')) closeMiniCart();
-        
+
         if (e.target.closest('#open-mobile-menu-btn')) {
             e.preventDefault();
             openMobileMenu();
         }
         if (e.target.closest('#close-mobile-menu')) closeMobileMenu();
-        
+
         if (e.target.id === 'mini-cart-overlay') closeMiniCart();
         if (e.target.id === 'mobile-menu-overlay') closeMobileMenu();
 
@@ -500,6 +506,8 @@ function initEventListeners() {
                 if (id && action) updateQuantity(id, action === 'increase' ? 1 : -1);
             }
         });
+    } else {
+        console.warn('cart-filled-state elementi bulunamadi! Event listener baglanamadi.');
     }
 
     // ESC TUSU
