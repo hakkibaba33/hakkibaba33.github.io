@@ -1,5 +1,5 @@
 // ==========================================
-// COMMON.JS - SUPABASE UYUMLU (v6.3 - ID TIP FIX)
+// COMMON.JS - SUPABASE UYUMLU (v6.4 - SEARCH FIX)
 // Eski Airtable yapısını koru, sadece API Supabase'e çevrildi
 // ==========================================
 
@@ -116,7 +116,7 @@ function closeMiniCart() {
 }
 
 // ==========================================
-// 3. SEARCH POPUP - SUPABASE UYUMLU
+// 3. SEARCH POPUP - SUPABASE UYUMLU (FIXED)
 // ==========================================
 
 let searchDebounceTimer = null;
@@ -133,30 +133,40 @@ function initSearch() {
         return;
     }
 
-    // Açma butonları - ESKI YAPI: document click listener
+    console.log('Search popup init basladi');
+
+    // Açma butonları - document click listener (sadece açma)
     document.addEventListener('click', (e) => {
         const openBtn = e.target.closest('#search-open-btn');
         if (openBtn) {
             e.preventDefault();
+            console.log('Search acma butonuna tiklandi');
             openSearchPopup();
         }
     });
 
-    // Kapatma butonu
+    // Kapatma butonu - dogrudan elemente bagla
     if (closeBtn) {
-        closeBtn.addEventListener('click', () => {
+        closeBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Search kapatma butonuna tiklandi');
             closeSearchPopup();
         });
     }
 
-    // Overlay'a tıklayınca kapat
+    // Overlay'a tiklayinca kapat - dogrudan elemente bagla
     popup.addEventListener('click', (e) => {
-        if (e.target === popup) closeSearchPopup();
+        if (e.target === popup) {
+            console.log('Search overlaya tiklandi, kapatiliyor');
+            closeSearchPopup();
+        }
     });
 
     // ESC ile kapat
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && popup.classList.contains('active')) {
+            console.log('ESC ile search kapatiliyor');
             closeSearchPopup();
         }
     });
@@ -184,7 +194,12 @@ function openSearchPopup() {
     const input = document.getElementById('live-search-input');
     const resultsDisplay = document.getElementById('search-results-display');
 
-    if (!popup) return;
+    if (!popup) {
+        console.error('Search popup bulunamadi!');
+        return;
+    }
+
+    console.log('Search popup aciliyor...');
 
     const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
     document.body.style.paddingRight = scrollbarWidth + 'px';
@@ -201,10 +216,14 @@ function openSearchPopup() {
 }
 
 function closeSearchPopup() {
+    console.log('closeSearchPopup cagrildi');
     const popup = document.getElementById('search-popup-overlay');
     const resultsDisplay = document.getElementById('search-results-display');
 
-    if (!popup) return;
+    if (!popup) {
+        console.warn('Search popup kapatilirken bulunamadi');
+        return;
+    }
 
     popup.classList.remove('active');
     document.body.classList.remove('search-active');
@@ -217,6 +236,8 @@ function closeSearchPopup() {
 
     const input = document.getElementById('live-search-input');
     if (input) input.value = '';
+
+    console.log('Search popup kapandi');
 }
 
 async function fetchAllProductsForSearch() {
