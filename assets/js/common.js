@@ -282,24 +282,36 @@ function performSearch(query) {
 }
 
 // ==========================================
-// 4. MINI SEPET - ICERIK YONETIMI
+// 4. MINI SEPET - ICERIK YONETIMI (LOGLU VERSİYON)
 // ==========================================
 
 function updateMiniCartUI() {
     const cart = getCart();
-    console.log("Sepet içeriği:", cart);
+    console.log("DEBUG: Sepet içeriği:", cart);
     
     const emptyState = document.getElementById('cart-empty-state');
     const filledState = document.getElementById('cart-filled-state');
     const footer = document.getElementById('mini-cart-footer');
 
-    if (!emptyState || !filledState || !footer) return;
+    // DOM elemanları bulunuyor mu kontrolü
+    console.log("DEBUG: DOM elemanları bulundu mu? ->", {
+        emptyState: !!emptyState,
+        filledState: !!filledState,
+        footer: !!footer
+    });
+
+    if (!emptyState || !filledState || !footer) {
+        console.error("KRİTİK HATA: Mini sepet ID'leri HTML'de bulunamadı! Lütfen HTML yapını kontrol et.");
+        return;
+    }
 
     if (cart.length === 0) {
+        console.log("DEBUG: Sepet boş, emptyState gösteriliyor.");
         emptyState.style.display = 'block';
         filledState.style.display = 'none';
         footer.style.display = 'none';
     } else {
+        console.log("DEBUG: Sepet dolu, filledState render ediliyor.");
         emptyState.style.display = 'none';
         filledState.style.display = 'block';
         footer.style.display = 'block';
@@ -326,9 +338,15 @@ function updateMiniCartUI() {
                 </div>
             </div>`;
         }).join('');
+        
+        console.log("DEBUG: HTML render edildi. Butonlar oluşturuldu.");
 
         const grandTotal = document.getElementById('cart-grand-total');
-        if (grandTotal) grandTotal.textContent = total.toLocaleString('sv-SE') + ' SEK';
+        if (grandTotal) {
+            grandTotal.textContent = total.toLocaleString('sv-SE') + ' SEK';
+        } else {
+            console.warn("UYARI: cart-grand-total elementi bulunamadı.");
+        }
     }
 }
 
