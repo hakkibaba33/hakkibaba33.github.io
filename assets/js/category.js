@@ -1,5 +1,5 @@
 // ==========================================
-// CATEGORY.JS - SUPABASE UYUMLU (v3.0 - FINAL)
+// CATEGORY.JS - SUPABASE UYUMLU (v3.1 - ID FIX)
 // Eski Airtable yapısını koru, sadece API Supabase'e çevrildi
 // ==========================================
 
@@ -161,7 +161,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const productUrl = product.slug ? '/matta/' + product.slug : '/matta/' + product.id;
 
         return `
-            <div class="product-card" data-id="${product.id}">
+            <div class="product-card" data-id="${String(product.id)}">
                 <div class="image-box">
                     <a href="${productUrl}">
                         <img src="${product.image}" 
@@ -172,7 +172,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     </a>
                     ${hasDiscount ? '<span class="discount-badge" style="position:absolute;top:8px;left:8px;background:#e54d42;color:#fff;padding:4px 8px;border-radius:4px;font-size:12px;font-weight:bold;">REA</span>' : ''}
                     <button class="wishlist-btn ${isWishlisted ? 'active' : ''}" 
-                            data-product-id="${product.id}"
+                            data-product-id="${String(product.id)}"
                             aria-label="Lagg till favoriter">
                         <i class="${isWishlisted ? 'fa-solid' : 'fa-regular'} fa-heart"></i>
                     </button>
@@ -202,11 +202,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         `;
     }
 
-    // --- 5. WISHLIST FONKSIYONLARI - ESKI YAPI ---
+    // --- 5. WISHLIST FONKSIYONLARI - ID FIX ---
     function isInWishlist(productId) {
         try {
             const wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
-            return wishlist.some(item => (typeof item === 'string' ? item : item.id) === productId);
+            return wishlist.some(item => (typeof item === 'string' ? item : String(item.id)) === String(productId));
         } catch (e) {
             return false;
         }
@@ -235,12 +235,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!productId) return;
 
         // Ürün bilgilerini bul
-        const product = allProducts.find(p => p.id === productId);
+        const product = allProducts.find(p => String(p.id) === String(productId));
         if (!product) return;
 
         // Wishlist'i güncelle
         let wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
-        const index = wishlist.findIndex(item => (typeof item === 'string' ? item : item.id) === productId);
+        const index = wishlist.findIndex(item => (typeof item === 'string' ? item : String(item.id)) === String(productId));
 
         if (index > -1) {
             // Kaldır
@@ -370,7 +370,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         filteredProducts.sort((a, b) => b.name.localeCompare(a.name));
                         break;
                     default:
-                        filteredProducts.sort((a, b) => a.id.localeCompare(b.id));
+                        filteredProducts.sort((a, b) => String(a.id).localeCompare(String(b.id)));
                 }
 
                 currentPage = 0;
