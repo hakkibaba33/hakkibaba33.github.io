@@ -21,13 +21,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     const progressBar = document.getElementById('progress-bar-fill');
 
     // --- SUPABASE CLIENT ---
-    const SUPABASE_URL = CONFIG?.SUPABASE?.URL || '';
-    const SUPABASE_KEY = CONFIG?.SUPABASE?.ANON_KEY || '';
+    const SUPABASE_URL = (typeof CONFIG !== 'undefined' && CONFIG.SUPABASE) ? CONFIG.SUPABASE.URL : '';
+    const SUPABASE_KEY = (typeof CONFIG !== 'undefined' && CONFIG.SUPABASE) ? CONFIG.SUPABASE.ANON_KEY : '';
 
     async function supabaseGet(endpoint, params) {
         const url = new URL(SUPABASE_URL + '/rest/v1/' + endpoint);
         if (params) Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
-        
+
         const res = await fetch(url, {
             headers: {
                 'apikey': SUPABASE_KEY,
@@ -35,7 +35,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 'Content-Type': 'application/json'
             }
         });
-        if (!res.ok) throw new Error('Supabase GET hatasi: ' + res.status);
+        if (!res.ok) {
+            const errText = await res.text();
+            console.error('Supabase hata detayi:', errText);
+            throw new Error('Supabase GET hatasi: ' + res.status + ' - ' + errText);
+        }
         return res.json();
     }
 
@@ -46,10 +50,33 @@ document.addEventListener('DOMContentLoaded', async () => {
     // --- 3. SUPABASE'DEN URUN CEK ---
     async function fetchProducts() {
         try {
-            const data = await supabaseGet('products', {
-                select: '*,product_variants(*)',
-                active: 'eq.true'
-            });
+            // ONCELIKLE: products tablosunu tek basina cek (embed olmadan)
+            // Eger bu calisirsa RLS veya embed syntax sorunu var demek
+            let data;
+            try {
+                data = await supabaseGet('products', {
+                    select: '*,product_variants:id(*)',
+                    active: 'eq.true'
+                });
+            } catch (embedErr) {
+                console.warn('Embed cekme basarisiz, duz cekme deneniyor:', embedErr.message);
+                // Duz cekme dene
+                const products = await supabaseGet('products', {
+                    select: '*',
+                    active: 'eq.true'
+                });
+
+                // Varyantlari ayri cek
+                const variants = await supabaseGet('product_variants', {
+                    select: '*'
+                });
+
+                // Birlestir
+                data = products.map(p => ({
+                    ...p,
+                    product_variants: variants.filter(v => v.product_id === p.id)
+                }));
+            }
 
             allProducts = data.map(product => ({
                 id: product.id,
@@ -71,7 +98,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             filteredProducts = [...allProducts];
 
-            console.log(`${allProducts.length} urun yuklendi`);
+            console.log(allProducts.length + ' urun yuklendi');
 
             renderProducts();
             updateProgress();
@@ -127,16 +154,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function createProductCard(product, isWishlisted) {
-        // İndirimli fiyat varsa göster
         const hasDiscount = product.discount_price && product.discount_price < product.base_price;
         const priceHTML = hasDiscount 
-            ? `<span class="original-price" style="text-decoration:line-through;color:#999;font-size:14px;">${product.base_price.toLocaleString('sv-SE')} SEK</span>
-               <span class="current-price" style="color:#e54d42;">${product.price.toLocaleString('sv-SE')} SEK</span>`
-            : `<span class="current-price">${product.price.toLocaleString('sv-SE')} SEK</span>`;
+            ? '<span class="original-price" style="text-decoration:line-through;color:#999;font-size:14px;">' + product.base_price.toLocaleString('sv-SE') + ' SEK</span>' +
+              '<span class="current-price" style="color:#e54d42;">' + product.price.toLocaleString('sv-SE') + ' SEK</span>'
+            : '<span class="current-price">' + product.price.toLocaleString('sv-SE') + ' SEK</span>';
 
-        // Varyantları string olarak göster (ilk varyant veya "X seçenek")
         const variantText = product.variants.length > 1 
-            ? `${product.variants.length} storlekar` 
+            ? product.variants.length + ' storlekar' 
             : (product.variants[0]?.size || 'Standard');
 
         return `
@@ -173,7 +198,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                                           title="${color}"></span>
                                 `).join('')}
                             </div>
-                            ${product.colors.length > 5 ? `<span class="color-count-text">+${product.colors.length - 5} farger</span>` : ''}
+                            ${product.colors.length > 5 ? '<span class="color-count-text">+' + (product.colors.length - 5) + ' farger</span>' : ''}
                         </div>
                     ` : ''}
                 </div>
@@ -201,7 +226,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     function handleWishlistClick(e) {
         const btn = e.target.closest('.wishlist-btn');
         if (!btn) return;
-        
+
         e.preventDefault();
         e.stopPropagation();
 
@@ -252,7 +277,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- 6. FILTRELER ---
     function generateFilters() {
-        // Renk filtresi
         const allColors = [...new Set(allProducts.flatMap(p => p.colors))].filter(Boolean).sort();
         const colorContainer = document.getElementById('color-filter-list');
         if (colorContainer && allColors.length > 0) {
@@ -272,7 +296,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             `).join('');
         }
 
-        // Boyut filtresi (varyantlardan)
         const allSizes = [...new Set(allProducts.flatMap(p => p.sizes))].filter(Boolean).sort();
         const sizeContainer = document.getElementById('size-filter-list');
         if (sizeContainer && allSizes.length > 0) {

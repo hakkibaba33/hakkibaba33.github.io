@@ -20,8 +20,8 @@ const STRIPE_CANCEL_URL = process.env.STRIPE_CANCEL_URL
 
 console.log('=== BUILD CONFIG START ===');
 console.log('SUPABASE_URL bulundu mu:', SUPABASE_URL ? 'EVET' : 'HAYIR');
-console.log('SUPABASE_ANON_KEY bulundu mu:', SUPABASE_ANON_KEY ? 'EVET' : 'HAYIR');
-console.log('STRIPE_PUBLISHABLE_KEY bulundu mu:', STRIPE_PUBLISHABLE_KEY ? 'EVET' : 'HAYIR');
+console.log('SUPABASE_ANON_KEY bulundu mu:', SUPABASE_ANON_KEY ? 'EVET (' + SUPABASE_ANON_KEY.substring(0, 20) + '...)' : 'HAYIR');
+console.log('STRIPE_PUBLISHABLE_KEY bulundu mu:', STRIPE_PUBLISHABLE_KEY ? 'EVET (' + STRIPE_PUBLISHABLE_KEY.substring(0, 20) + '...)' : 'HAYIR');
 
 const configContent = `const CONFIG = {
     SUPABASE: {
@@ -39,6 +39,7 @@ const outputPath = path.join(process.cwd(), 'assets', 'js', 'config.js');
 const dir = path.dirname(outputPath);
 if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
+    console.log('Klasor olusturuldu:', dir);
 }
 
 fs.writeFileSync(outputPath, configContent);

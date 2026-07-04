@@ -6,8 +6,8 @@ if (typeof CONFIG === 'undefined') {
     console.error('HATA: config.js yuklenmemis!');
 }
 
-const SUPABASE_URL = (typeof CONFIG !== 'undefined') ? CONFIG.SUPABASE.URL : '';
-const SUPABASE_KEY = (typeof CONFIG !== 'undefined') ? CONFIG.SUPABASE.ANON_KEY : '';
+const SUPABASE_URL = (typeof CONFIG !== 'undefined' && CONFIG.SUPABASE) ? CONFIG.SUPABASE.URL : '';
+const SUPABASE_KEY = (typeof CONFIG !== 'undefined' && CONFIG.SUPABASE) ? CONFIG.SUPABASE.ANON_KEY : '';
 
 // ==========================================
 // SUPABASE CLIENT (Basit REST wrapper)
@@ -16,7 +16,7 @@ const SUPABASE_KEY = (typeof CONFIG !== 'undefined') ? CONFIG.SUPABASE.ANON_KEY 
 async function supabaseGet(endpoint, params) {
     const url = new URL(SUPABASE_URL + '/rest/v1/' + endpoint);
     if (params) Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
-    
+
     const res = await fetch(url, {
         headers: {
             'apikey': SUPABASE_KEY,
@@ -102,8 +102,8 @@ function closeMiniCart() {
 // 3. SEARCH POPUP - SUPABASE UYUMLU
 // ==========================================
 
-let searchDebounceTimer = null;
-let allProductsCache = [];
+var searchDebounceTimer = null;
+var allProductsCache = [];
 
 function initSearch() {
     const popup = document.getElementById('search-popup-overlay');
@@ -145,7 +145,7 @@ function initSearch() {
     input.addEventListener('input', (e) => {
         const query = e.target.value.trim();
         clearTimeout(searchDebounceTimer);
-        
+
         if (query.length < 2) {
             if (resultsDisplay) resultsDisplay.style.display = 'none';
             return;
@@ -163,7 +163,7 @@ function openSearchPopup() {
     const popup = document.getElementById('search-popup-overlay');
     const input = document.getElementById('live-search-input');
     const resultsDisplay = document.getElementById('search-results-display');
-    
+
     if (!popup) return;
 
     const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
@@ -172,7 +172,7 @@ function openSearchPopup() {
 
     popup.classList.add('active');
     if (resultsDisplay) resultsDisplay.style.display = 'none';
-    
+
     setTimeout(() => input?.focus(), 100);
 
     if (allProductsCache.length === 0) {
@@ -183,18 +183,18 @@ function openSearchPopup() {
 function closeSearchPopup() {
     const popup = document.getElementById('search-popup-overlay');
     const resultsDisplay = document.getElementById('search-results-display');
-    
+
     if (!popup) return;
 
     popup.classList.remove('active');
     document.body.classList.remove('search-active');
     document.body.style.paddingRight = '';
-    
+
     if (resultsDisplay) {
         resultsDisplay.style.display = 'none';
         resultsDisplay.innerHTML = '';
     }
-    
+
     const input = document.getElementById('live-search-input');
     if (input) input.value = '';
 }
@@ -206,9 +206,9 @@ async function fetchAllProductsForSearch() {
     }
 
     try {
-        // products + variants birlikte çek
+        // products + variants birlikte çek (embed syntax düzeltildi)
         const data = await supabaseGet('products', {
-            select: '*,product_variants(*)',
+            select: '*,product_variants:id(*)',
             active: 'eq.true'
         });
 
@@ -220,11 +220,11 @@ async function fetchAllProductsForSearch() {
                 price: displayPrice,
                 image: product.images && product.images[0] ? product.images[0] : '',
                 category: product.category || '',
-                url: `/matta/${product.slug || product.id}`
+                url: '/matta/' + (product.slug || product.id)
             };
         });
 
-        console.log(`${allProductsCache.length} urun cache'lendi`);
+        console.log(allProductsCache.length + ' urun cache'lendi');
 
     } catch (error) {
         console.error('Urun cache hatasi:', error);
@@ -278,12 +278,12 @@ function performSearch(query) {
 }
 
 function highlightMatch(text, query) {
-    const regex = new RegExp(`(${escapeRegex(query)})`, 'gi');
+    const regex = new RegExp('(' + escapeRegex(query) + ')', 'gi');
     return text.replace(regex, '<mark style="background:#ffeb3b;color:#000;padding:0 2px;">$1</mark>');
 }
 
 function escapeRegex(string) {
-    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return string.replace(/[.*+?^${}()|[\]\]/g, '\$&');
 }
 
 // ==========================================
@@ -383,7 +383,7 @@ async function addSupabaseProductToCart(productId, variantSize) {
     try {
         const product = await supabaseGetOne('products', {
             id: 'eq.' + productId,
-            select: '*,product_variants(*)'
+            select: '*,product_variants:id(*)'
         });
 
         if (!product) throw new Error('Urun bulunamadi');
@@ -443,7 +443,7 @@ function closeMobileMenu() {
 // 8. EVENT LISTENERS
 // ==========================================
 
-let __commonListenersInitialized = false;
+var __commonListenersInitialized = false;
 
 function initEventListeners() {
     if (__commonListenersInitialized) {
