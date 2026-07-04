@@ -1,9 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-    // ==========================================
-    // YARDIMCI FONKSIYONLAR
-    // ==========================================
-
     function getCart() {
         try {
             return JSON.parse(localStorage.getItem('siteCartItems')) || [];
@@ -16,10 +12,6 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('siteCartItems', JSON.stringify(cart));
     }
 
-    // ==========================================
-    // STRIPE BASLAT
-    // ==========================================
-
     let stripe = null;
     let elements = null;
     let paymentElement = null;
@@ -31,10 +23,6 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error('❌ Stripe.js yuklenemedi veya config eksik!');
     }
 
-    // ==========================================
-    // DOM ELEMENTLERI
-    // ==========================================
-
     const checkoutContainer = document.getElementById('checkout-content-root');
     const emptyCartMessage = document.getElementById('empty-cart-message-box');
     const productListContainer = document.querySelector('.summary-product-list');
@@ -45,10 +33,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const paymentSection = document.getElementById('payment-section');
     const paymentElementContainer = document.getElementById('payment-element');
     const addressForm = document.getElementById('address-form');
-
-    // ==========================================
-    // SEPET RENDER
-    // ==========================================
 
     function renderCheckoutItems() {
         const cart = getCart();
@@ -135,10 +119,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ==========================================
-    // FORM VALIDASYON
-    // ==========================================
-
     function validateForm() {
         const terms = document.getElementById('accept-terms');
 
@@ -184,10 +164,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return isValid;
     }
 
-    // ==========================================
-    // STRIPE ELEMENTS - ÖDEME FORMU
-    // ==========================================
-
     async function initPaymentForm() {
         console.log('initPaymentForm basladi...');
 
@@ -204,16 +180,25 @@ document.addEventListener('DOMContentLoaded', () => {
             return false;
         }
 
-        // Müşteri bilgilerini formdan al (boş olabilir)
-        const customerData = {
-            firstName: document.getElementById('billing_first_name').value || '',
-            lastName: document.getElementById('billing_last_name').value || '',
-            email: document.getElementById('billing_email').value || '',
-            phone: document.getElementById('billing_phone').value || '',
-            address: document.getElementById('billing_address_1').value || '',
-            postcode: document.getElementById('billing_postcode').value || '',
-            city: document.getElementById('billing_city').value || ''
-        };
+        // Müşteri bilgilerini formdan al - boşsa undefined olarak gönderme
+        const firstName = document.getElementById('billing_first_name').value?.trim();
+        const lastName = document.getElementById('billing_last_name').value?.trim();
+        const email = document.getElementById('billing_email').value?.trim();
+        const phone = document.getElementById('billing_phone').value?.trim();
+        const address = document.getElementById('billing_address_1').value?.trim();
+        const postcode = document.getElementById('billing_postcode').value?.trim();
+        const city = document.getElementById('billing_city').value?.trim();
+
+        const customerData = {};
+        if (firstName) customerData.firstName = firstName;
+        if (lastName) customerData.lastName = lastName;
+        if (email) customerData.email = email;
+        if (phone) customerData.phone = phone;
+        if (address) customerData.address = address;
+        if (postcode) customerData.postcode = postcode;
+        if (city) customerData.city = city;
+
+        console.log('Gönderilen customer data:', customerData);
 
         try {
             console.log('Payment Intent istegi gonderiliyor...');
@@ -235,7 +220,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     const errorData = await response.json();
                     errorMessage = errorData.error || errorMessage;
                 } catch (e) {
-                    // JSON parse hatası durumunda
                     errorMessage = `Server fel (${response.status})`;
                 }
                 throw new Error(errorMessage);
@@ -276,27 +260,21 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
             // Billing details varsa ekle
-            if (customerData.firstName || customerData.email) {
-                paymentElementOptions.defaultValues = {
-                    billingDetails: {}
+            const billingDetails = {};
+            if (firstName && lastName) billingDetails.name = `${firstName} ${lastName}`;
+            if (email) billingDetails.email = email;
+            if (phone) billingDetails.phone = phone;
+            if (address) {
+                billingDetails.address = {
+                    line1: address,
+                    postal_code: postcode || '',
+                    city: city || '',
+                    country: 'SE'
                 };
-                if (customerData.firstName && customerData.lastName) {
-                    paymentElementOptions.defaultValues.billingDetails.name = `${customerData.firstName} ${customerData.lastName}`;
-                }
-                if (customerData.email) {
-                    paymentElementOptions.defaultValues.billingDetails.email = customerData.email;
-                }
-                if (customerData.phone) {
-                    paymentElementOptions.defaultValues.billingDetails.phone = customerData.phone;
-                }
-                if (customerData.address) {
-                    paymentElementOptions.defaultValues.billingDetails.address = {
-                        line1: customerData.address,
-                        postal_code: customerData.postcode,
-                        city: customerData.city,
-                        country: 'SE'
-                    };
-                }
+            }
+
+            if (Object.keys(billingDetails).length > 0) {
+                paymentElementOptions.defaultValues = { billingDetails };
             }
 
             paymentElement = elements.create('payment', paymentElementOptions);
@@ -307,7 +285,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             console.log('Payment Element mount edildi!');
 
-            // Form validasyonunu kontrol et
             checkFormValidity();
 
             return true;
@@ -326,13 +303,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function updatePaymentAmount() {
-        // Sepet değişince ödeme formunu yeniden başlat
         await initPaymentForm();
     }
-
-    // ==========================================
-    // ODEME ISLEMI
-    // ==========================================
 
     async function handlePayment() {
         if (!validateForm()) return;
@@ -387,11 +359,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // ==========================================
-    // EVENT LISTENERS
-    // ==========================================
-
-    // Ödeme butonu
     if (confirmBtn) {
         confirmBtn.addEventListener('click', async (e) => {
             e.preventDefault();
@@ -399,7 +366,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Input değişikliklerini dinle
     document.querySelectorAll('#address-form input, #accept-terms').forEach(input => {
         input.addEventListener('input', () => {
             input.classList.remove('input-error');
@@ -410,19 +376,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // ==========================================
-    // BASLAT
-    // ==========================================
-
     renderCheckoutItems();
 
-    // Sepet doluysa ödeme formunu hemen başlat
     const cart = getCart();
     if (cart.length > 0) {
         paymentSection.style.display = 'block';
         initPaymentForm();
     }
 
-    // Butonu başlangıçta disabled yap
     checkFormValidity();
 });

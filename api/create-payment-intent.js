@@ -23,31 +23,49 @@ module.exports = async (req, res) => {
 
         console.log('Payment Intent oluşturuluyor...');
         console.log('Toplam tutar (öre):', totalAmount);
+        console.log('Customer email:', customer?.email || 'YOK');
 
-        // Payment Intent oluştur
-        const paymentIntent = await stripe.paymentIntents.create({
+        // Payment Intent parametreleri - SADECE zorunlu alanlar
+        const paymentIntentParams = {
             amount: totalAmount,
             currency: 'sek',
             payment_method_types: ['card', 'klarna'],
-            receipt_email: customer.email,
             metadata: {
-                customer_name: `${customer.firstName} ${customer.lastName}`,
-                customer_email: customer.email,
-                customer_phone: customer.phone,
-                customer_address: `${customer.address}, ${customer.postcode} ${customer.city}`,
+                customer_name: (customer?.firstName && customer?.lastName) 
+                    ? `${customer.firstName} ${customer.lastName}` 
+                    : 'Guest',
                 items_count: items.length.toString()
-            },
-            shipping: {
-                name: `${customer.firstName} ${customer.lastName}`,
+            }
+        };
+
+        // Email varsa VE geçerliyse ekle - YOKSA HİÇ EKLEME
+        const email = customer?.email?.trim();
+        if (email && email.includes('@') && email.includes('.')) {
+            paymentIntentParams.receipt_email = email;
+            console.log('receipt_email eklendi:', email);
+        } else {
+            console.log('receipt_email eklenmedi (geçersiz veya boş)');
+        }
+
+        // Shipping bilgileri varsa ekle
+        if (customer?.address && customer?.firstName) {
+            paymentIntentParams.shipping = {
+                name: `${customer.firstName} ${customer.lastName || ''}`.trim(),
                 address: {
                     line1: customer.address,
-                    postal_code: customer.postcode,
-                    city: customer.city,
+                    postal_code: customer.postcode || '',
+                    city: customer.city || '',
                     country: 'SE'
-                },
-                phone: customer.phone
+                }
+            };
+            if (customer.phone) {
+                paymentIntentParams.shipping.phone = customer.phone;
             }
-        });
+        }
+
+        console.log('PaymentIntent params:', JSON.stringify(paymentIntentParams, null, 2));
+
+        const paymentIntent = await stripe.paymentIntents.create(paymentIntentParams);
 
         console.log('Payment Intent oluşturuldu:', paymentIntent.id);
         console.log('Client secret var mı:', !!paymentIntent.client_secret);
@@ -58,6 +76,7 @@ module.exports = async (req, res) => {
 
     } catch (error) {
         console.error('Payment Intent hatası:', error);
+        console.error('Hata detayı:', error.message);
         res.status(500).json({ error: error.message });
     }
 };
