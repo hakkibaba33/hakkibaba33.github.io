@@ -1,5 +1,5 @@
 // ==========================================
-// COMMON.JS - SUPABASE UYUMLU (v6.0 - FINAL)
+// COMMON.JS - SUPABASE UYUMLU (v6.1 - EVENT DELEGATION FIX)
 // Eski Airtable yapısını koru, sadece API Supabase'e çevrildi
 // ==========================================
 
@@ -289,7 +289,7 @@ function performSearch(query) {
 }
 
 // ==========================================
-// 4. MINI SEPET - ICERIK YONETIMI (LOGLU VERSİYON)
+// 4. MINI SEPET - ICERIK YONETIMI
 // ==========================================
 
 function updateMiniCartUI() {
@@ -311,7 +311,6 @@ function updateMiniCartUI() {
 
         let total = 0;
 
-        // HTML'i bir değişkende topluyoruz
         const html = cart.map(item => {
             const qty = item.quantity || 1;
             const itemTotal = item.price * qty;
@@ -334,7 +333,6 @@ function updateMiniCartUI() {
             </div>`;
         }).join('');
 
-        // Yeni oluşturulan HTML'i tek seferde div'e atıyoruz
         filledState.innerHTML = html;
 
         const grandTotal = document.getElementById('cart-grand-total');
@@ -456,7 +454,10 @@ function closeMobileMenu() {
 }
 
 // ==========================================
-// 8. EVENT LISTENERS - GÜNCELLENMİŞ YAPI
+// 8. EVENT LISTENERS - DOCUMENT SEVIYESINDE DELEGATION
+// ==========================================
+// ONEMLI: Tüm event listener'lar document seviyesinde.
+// Bu sayede dinamik olarak eklenen elementler de calisir.
 // ==========================================
 
 function initEventListeners() {
@@ -469,54 +470,87 @@ function initEventListeners() {
 
     console.log('Event listenerlar baslatiliyor...');
 
-    // 1. GENEL TIKLAMALAR (Açma/Kapama/Menü gibi işler)
+    // --- 1. GENEL TIKLAMALAR (Açma/Kapama/Menü/Arama) ---
     document.addEventListener('click', (e) => {
+        // Mini sepet açma
         if (e.target.closest('#open-mini-cart-btn, .cart-icon-wrapper, .fa-shopping-bag')) {
             e.preventDefault();
             openMiniCart();
+            return;
         }
-        if (e.target.closest('#close-mini-cart')) closeMiniCart();
 
+        // Mini sepet kapama
+        if (e.target.closest('#close-mini-cart')) {
+            closeMiniCart();
+            return;
+        }
+
+        // Mobil menü açma
         if (e.target.closest('#open-mobile-menu-btn')) {
             e.preventDefault();
             openMobileMenu();
+            return;
         }
-        if (e.target.closest('#close-mobile-menu')) closeMobileMenu();
 
-        if (e.target.id === 'mini-cart-overlay') closeMiniCart();
-        if (e.target.id === 'mobile-menu-overlay') closeMobileMenu();
+        // Mobil menü kapama
+        if (e.target.closest('#close-mobile-menu')) {
+            closeMobileMenu();
+            return;
+        }
 
+        // Overlay'lara tıklama
+        if (e.target.id === 'mini-cart-overlay') {
+            closeMiniCart();
+            return;
+        }
+        if (e.target.id === 'mobile-menu-overlay') {
+            closeMobileMenu();
+            return;
+        }
+
+        // Arama popup açma
         const searchOpen = e.target.closest('#search-open-btn');
         if (searchOpen) {
             e.preventDefault();
             openSearchPopup();
+            return;
         }
     });
 
-    // 2. SEPET İÇİ İŞLEMLER (Doğrudan Div üzerinden)
-    const filledState = document.getElementById('cart-filled-state');
-    if (filledState) {
-        filledState.addEventListener('click', (e) => {
-            const removeBtn = e.target.closest('.remove-item-btn');
-            const qtyBtn = e.target.closest('.quantity-btn');
+    // --- 2. MINI SEPET İÇİ İŞLEMLER (Document seviyesinde delegation) ---
+    // filledState henüz DOM'da yokken bile calisir, cunku document seviyesinde
+    document.addEventListener('click', (e) => {
+        // Sadece mini sepet overlay'i açıkken veya mini sepet içindeki elementlere tıklanınca calissin
+        const filledState = document.getElementById('cart-filled-state');
+        if (!filledState) return;
 
-            if (removeBtn) {
-                const id = removeBtn.getAttribute('data-id');
-                console.log("Silme tetiklendi, ID:", id);
-                if (id) removeFromCart(id);
-            } else if (qtyBtn) {
-                const id = qtyBtn.getAttribute('data-id');
-                const action = qtyBtn.getAttribute('data-action');
-                console.log("Miktar değişimi tetiklendi, ID:", id, "Aksiyon:", action);
-                if (id && action) updateQuantity(id, action === 'increase' ? 1 : -1);
+        // Tıklanan element filledState içinde mi kontrol et
+        if (!filledState.contains(e.target)) return;
+
+        const removeBtn = e.target.closest('.remove-item-btn');
+        const qtyBtn = e.target.closest('.quantity-btn');
+
+        if (removeBtn) {
+            const id = removeBtn.getAttribute('data-id');
+            console.log("Mini sepet: Silme tetiklendi, ID:", id);
+            if (id) {
+                e.stopPropagation();
+                removeFromCart(id);
             }
-        });
-        console.log('Mini sepet event listenerlari baglandi (filledState bulundu).');
-    } else {
-        console.warn('cart-filled-state elementi bulunamadi! Event listener baglanamadi.');
-    }
+        } else if (qtyBtn) {
+            const id = qtyBtn.getAttribute('data-id');
+            const action = qtyBtn.getAttribute('data-action');
+            console.log("Mini sepet: Miktar değişimi tetiklendi, ID:", id, "Aksiyon:", action);
+            if (id && action) {
+                e.stopPropagation();
+                updateQuantity(id, action === 'increase' ? 1 : -1);
+            }
+        }
+    });
 
-    // ESC TUSU
+    console.log('Mini sepet event listenerlari document seviyesine baglandi.');
+
+    // --- 3. ESC TUSU ---
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             closeMiniCart();
@@ -532,10 +566,8 @@ function initEventListeners() {
 
 
 // ==========================================
-// OTOMATIK BASLATMA - ESKI YAPI
+// OTOMATIK BASLATMA
 // ==========================================
-// ESKI KOD: Sadece log, initEventListeners HICBIR YERDE CAGRILMIYOR
-// YENI KOD: initEventListeners'ı çağır
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initEventListeners);
 } else {
