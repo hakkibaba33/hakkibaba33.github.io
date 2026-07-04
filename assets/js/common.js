@@ -111,7 +111,7 @@ function closeMiniCart() {
 }
 
 // ==========================================
-// 3. SEARCH POPUP - SUPABASE UYUMLU
+// 3. SEARCH POPUP - DUZELTILMIS
 // ==========================================
 
 let searchDebounceTimer = null;
@@ -128,25 +128,29 @@ function initSearch() {
         return;
     }
 
-    // Açma butonları - ESKI YAPI: document click listener
+    // Açma butonları
     document.addEventListener('click', (e) => {
         const openBtn = e.target.closest('#search-open-btn');
         if (openBtn) {
             e.preventDefault();
+            e.stopPropagation();
             openSearchPopup();
         }
     });
 
     // Kapatma butonu
     if (closeBtn) {
-        closeBtn.addEventListener('click', () => {
+        closeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
             closeSearchPopup();
         });
     }
 
     // Overlay'a tıklayınca kapat
     popup.addEventListener('click', (e) => {
-        if (e.target === popup) closeSearchPopup();
+        if (e.target === popup) {
+            closeSearchPopup();
+        }
     });
 
     // ESC ile kapat
@@ -160,7 +164,7 @@ function initSearch() {
     input.addEventListener('input', (e) => {
         const query = e.target.value.trim();
         clearTimeout(searchDebounceTimer);
-
+        
         if (query.length < 2) {
             if (resultsDisplay) resultsDisplay.style.display = 'none';
             return;
@@ -171,14 +175,14 @@ function initSearch() {
         }, 300);
     });
 
-    console.log('Search popup baslatildi');
+    console.log('✅ Search popup baslatildi');
 }
 
 function openSearchPopup() {
     const popup = document.getElementById('search-popup-overlay');
     const input = document.getElementById('live-search-input');
     const resultsDisplay = document.getElementById('search-results-display');
-
+    
     if (!popup) return;
 
     const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
@@ -187,8 +191,8 @@ function openSearchPopup() {
 
     popup.classList.add('active');
     if (resultsDisplay) resultsDisplay.style.display = 'none';
-
-    setTimeout(() => { if (input) input.focus(); }, 100);
+    
+    setTimeout(() => input?.focus(), 100);
 
     if (allProductsCache.length === 0) {
         fetchAllProductsForSearch();
@@ -198,44 +202,47 @@ function openSearchPopup() {
 function closeSearchPopup() {
     const popup = document.getElementById('search-popup-overlay');
     const resultsDisplay = document.getElementById('search-results-display');
-
+    
     if (!popup) return;
 
     popup.classList.remove('active');
     document.body.classList.remove('search-active');
     document.body.style.paddingRight = '';
-
+    
     if (resultsDisplay) {
         resultsDisplay.style.display = 'none';
         resultsDisplay.innerHTML = '';
     }
-
+    
     const input = document.getElementById('live-search-input');
     if (input) input.value = '';
 }
 
 async function fetchAllProductsForSearch() {
-    if (!SUPABASE_URL || !SUPABASE_KEY) {
-        console.error('Supabase config eksik!');
+    if (!API_KEY || !BASE_ID) {
+        console.error('Airtable config eksik!');
         return;
     }
 
     try {
-        const data = await supabaseGet('products', {
-            select: '*',
-            active: 'eq.true'
-        });
+        const response = await fetch(
+            `https://api.airtable.com/v0/${BASE_ID}/${TABLE_NAME}?pageSize=100`,
+            { headers: { Authorization: `Bearer ${API_KEY}` } }
+        );
 
-        allProductsCache = data.map(product => ({
-            id: product.id,
-            name: product.name || '',
-            price: product.discount_price || product.base_price || 0,
-            image: product.images && product.images[0] ? product.images[0] : '',
-            category: product.category || '',
-            url: '/matta/' + (product.slug || product.id)
+        if (!response.ok) throw new Error('Airtable hatasi');
+
+        const data = await response.json();
+        allProductsCache = data.records.map(record => ({
+            id: record.id,
+            name: record.fields.Name || '',
+            price: parseFloat(record.fields.Price) || 0,
+            image: record.fields.imageURL && record.fields.imageURL[0] ? record.fields.imageURL[0].url : '',
+            category: record.fields.Category || '',
+            url: `/product.html?id=${record.id}`
         }));
 
-        console.log(allProductsCache.length + ' urun cachelendi');
+        console.log(`${allProductsCache.length} urun cache'lendi`);
 
     } catch (error) {
         console.error('Urun cache hatasi:', error);
@@ -261,31 +268,29 @@ function performSearch(query) {
     if (filtered.length === 0) {
         resultsDisplay.innerHTML = '<div class="no-results-found">Inga produkter hittades.</div>';
     } else {
-        resultsDisplay.innerHTML = filtered.slice(0, 8).map(product => {
-            // Highlight
-            let highlightedName = product.name;
-            const idx = product.name.toLowerCase().indexOf(lowerQuery);
-            if (idx !== -1) {
-                highlightedName = product.name.substring(0, idx) + 
-                    '<mark style="background:#ffeb3b;color:#000;padding:0 2px;">' + 
-                    product.name.substring(idx, idx + query.length) + 
-                    '</mark>' + 
-                    product.name.substring(idx + query.length);
-            }
-
-            return `<a href="${product.url}" class="search-item-row">
+        resultsDisplay.innerHTML = filtered.slice(0, 8).map(product => `
+            <a href="${product.url}" class="search-item-row">
                 <div class="search-item-image">
                     <img src="${product.image}" alt="${product.name}" onerror="this.src='https://via.placeholder.com/50'">
                 </div>
                 <div class="search-item-info">
-                    <h4 class="search-item-title">${highlightedName}</h4>
-                    <span class="search-item-price">${product.price.toLocaleString('sv-SE')} SEK</span>
+                    <h4 class="search-item-title">${highlightMatch(product.name, query)}</h4>
+                    <span class="search-item-price">${product.price.toFixed(2)} SEK</span>
                 </div>
-            </a>`;
-        }).join('');
+            </a>
+        `).join('');
     }
 
     resultsDisplay.style.display = 'block';
+}
+
+function highlightMatch(text, query) {
+    const regex = new RegExp(`(${escapeRegex(query)})`, 'gi');
+    return text.replace(regex, '<mark style="background:#ffeb3b;color:#000;padding:0 2px;">$1</mark>');
+}
+
+function escapeRegex(string) {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 // ==========================================
@@ -310,33 +315,32 @@ function updateMiniCartUI() {
         footer.style.display = 'block';
 
         let total = 0;
-
-        const html = cart.map(item => {
+        filledState.innerHTML = cart.map(item => {
             const qty = item.quantity || 1;
             const itemTotal = item.price * qty;
             total += itemTotal;
-            return `<div class="mini-cart-item" data-id="${item.id}">
-                <img src="${item.image || ''}" alt="${item.name || ''}" class="item-image" onerror="this.style.display='none'">
-                <div class="item-details-left">
-                    <span class="item-name">${item.name || 'Urun'}</span>
-                    <span class="item-variant">${item.variants || 'Standard'}</span>
-                    <div class="quantity-control">
-                        <button type="button" class="quantity-btn minus" data-id="${item.id}" data-action="decrease">-</button>
-                        <input type="text" class="quantity-input" value="${qty}" readonly>
-                        <button type="button" class="quantity-btn plus" data-id="${item.id}" data-action="increase">+</button>
+            return `
+                <div class="mini-cart-item" data-id="${item.id}">
+                    <img src="${item.image || ''}" alt="${item.name || ''}" class="item-image" onerror="this.style.display='none'">
+                    <div class="item-details-left">
+                        <span class="item-name">${item.name || 'Urun'}</span>
+                        <span class="item-variant">${item.variants || 'Standard'}</span>
+                        <div class="quantity-control">
+                            <button class="quantity-btn minus" data-id="${item.id}" data-action="decrease">-</button>
+                            <input type="text" class="quantity-input" value="${qty}" readonly>
+                            <button class="quantity-btn plus" data-id="${item.id}" data-action="increase">+</button>
+                        </div>
+                    </div>
+                    <div class="item-price-right">
+                        <span class="item-price">${itemTotal.toFixed(2)} SEK</span>
+                        <button class="remove-item-btn" data-id="${item.id}">Ta bort</button>
                     </div>
                 </div>
-                <div class="item-price-right">
-                    <span class="item-price">${itemTotal.toLocaleString('sv-SE')} SEK</span>
-                    <button type="button" class="remove-item-btn" data-id="${item.id}">Ta bort</button>
-                </div>
-            </div>`;
+            `;
         }).join('');
 
-        filledState.innerHTML = html;
-
         const grandTotal = document.getElementById('cart-grand-total');
-        if (grandTotal) grandTotal.textContent = total.toLocaleString('sv-SE') + ' SEK';
+        if (grandTotal) grandTotal.textContent = total.toFixed(2) + ' SEK';
     }
 }
 
