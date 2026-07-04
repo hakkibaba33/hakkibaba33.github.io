@@ -587,3 +587,36 @@ if (document.readyState === 'loading') {
 }
 
 console.log('common.js yuklendi ve baslatildi');
+
+
+
+
+
+function initBreadcrumbs() {
+    const container = document.getElementById('breadcrumb-container');
+    if (!container) return;
+
+    const pathArray = window.location.pathname.split('/').filter(p => p);
+    
+    // "Hem" her zaman en başta
+    let html = '<a href="/">Hem</a>';
+    let path = '';
+
+    pathArray.forEach((part, index) => {
+        path += '/' + part;
+        
+        // URL'deki "matta" gibi kısımları daha güzel görünsün diye temizliyoruz
+        // Eğer özel isimlerin varsa (örn: 'orientalisk-matta' -> 'Orientalisk matta')
+        let name = part.replace(/-/g, ' '); 
+        name = name.charAt(0).toUpperCase() + name.slice(1);
+        
+        if (index === pathArray.length - 1) {
+            html += ` <span class="separator">/</span> <span class="current" title="${name}">${name}</span>`;
+        } else {
+            html += ` <span class="separator">/</span> <a href="${path}" title="${name}">${name}</a>`;
+        }
+    });
+
+    container.innerHTML = html;
+}
+
