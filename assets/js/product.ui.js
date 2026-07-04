@@ -115,7 +115,7 @@ if (window.__productPageInitialized) {
         // 1. Once URLSearchParams'dan dene
         var slug = new URLSearchParams(window.location.search).get('slug');
         if (slug && slug !== 'product.html') {
-            console.log('Slug URLSearchParams'dan alindi:', slug);
+            console.log('Slug URLSearchParams\'dan alindi:', slug);
             return slug;
         }
 
@@ -128,7 +128,7 @@ if (window.__productPageInitialized) {
             // Eger ilk parca 'matta' veya 'product' ise, son parca slug'dir
             if (parts[0] === 'matta' || parts[0] === 'product') {
                 slug = parts[parts.length - 1];
-                console.log('Slug pathname'den alindi (/matta/ veya /product/):', slug);
+                console.log('Slug pathname\'den alindi (/matta/ veya /product/):', slug);
                 return slug;
             }
         }
@@ -138,7 +138,7 @@ if (window.__productPageInitialized) {
             var lastPart = parts[parts.length - 1];
             // product.html degilse ve bos degilse
             if (lastPart && lastPart !== 'product.html' && lastPart !== 'index.html') {
-                console.log('Slug pathname'den alindi (son parca):', lastPart);
+                console.log('Slug pathname\'den alindi (son parca):', lastPart);
                 return lastPart;
             }
         }
@@ -149,7 +149,7 @@ if (window.__productPageInitialized) {
             var referrerParts = referrerUrl.pathname.split('/').filter(function(p) { return p; });
             if (referrerParts.length >= 2 && (referrerParts[0] === 'matta' || referrerParts[0] === 'product')) {
                 slug = referrerParts[referrerParts.length - 1];
-                console.log('Slug referrer'dan alindi:', slug);
+                console.log('Slug referrer\'dan alindi:', slug);
                 return slug;
             }
         }
