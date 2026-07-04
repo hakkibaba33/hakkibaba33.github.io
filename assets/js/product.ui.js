@@ -1,5 +1,5 @@
 // ==========================================
-// PRODUCT.UI.JS - SUPABASE UYUMLU (v2.2)
+// PRODUCT.UI.JS - SUPABASE UYUMLU (v2.3 - FIXED)
 // ==========================================
 
 if (window.__productPageInitialized) {
@@ -56,6 +56,59 @@ if (window.__productPageInitialized) {
     function getOriginalPrice(product, variant) {
         if (variant && variant.price) return variant.price;
         return product.base_price || 0;
+    }
+
+    // DÜZELTME: Fallback fonksiyonları - common.js yüklenmemişse çalışsın
+    function fallbackGetCart() {
+        try { return JSON.parse(localStorage.getItem('siteCartItems')) || []; } catch (e) { return []; }
+    }
+    function fallbackSaveCart(cart) {
+        localStorage.setItem('siteCartItems', JSON.stringify(cart));
+        if (typeof updateCartBadge === 'function') updateCartBadge();
+    }
+    function fallbackUpdateCartBadge() {
+        var cart = fallbackGetCart();
+        var badge = document.querySelector('.cart-count-badge');
+        if (badge) {
+            badge.textContent = cart.reduce(function(sum, item) { return sum + (item.quantity || 1); }, 0);
+            badge.classList.toggle('visible', cart.length > 0);
+        }
+    }
+    function fallbackOpenMiniCart() {
+        var overlay = document.getElementById('mini-cart-overlay');
+        if (overlay) {
+            overlay.classList.add('open');
+            document.body.classList.add('cart-open');
+        }
+    }
+    function fallbackUpdateMiniCartUI() {
+        // Basit implementasyon
+        console.log('Mini cart UI guncellendi (fallback)');
+    }
+    function fallbackAddProductToCart(productData) {
+        var cart = fallbackGetCart();
+        var existing = cart.find(function(i) { return i.id === productData.id && i.variants === productData.variants; });
+        if (existing) {
+            existing.quantity = (existing.quantity || 1) + 1;
+        } else {
+            var newItem = {};
+            Object.keys(productData).forEach(function(key) { newItem[key] = productData[key]; });
+            newItem.quantity = 1;
+            cart.push(newItem);
+        }
+        fallbackSaveCart(cart);
+        fallbackUpdateMiniCartUI();
+        fallbackOpenMiniCart();
+    }
+    function fallbackUpdateWishlistBadge() {
+        try {
+            var wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
+            var badge = document.querySelector('.wishlist-count-badge');
+            if (badge) {
+                badge.textContent = wishlist.length;
+                badge.classList.toggle('visible', wishlist.length > 0);
+            }
+        } catch (e) { console.error('Wishlist badge hatasi:', e); }
     }
 
     async function initProductPage() {
@@ -209,7 +262,13 @@ if (window.__productPageInitialized) {
 
             localStorage.setItem('wishlistItems', JSON.stringify(wishlist));
             updateWishlistButtonState(btn, productId);
-            if (typeof updateWishlistBadge === 'function') updateWishlistBadge();
+
+            // DÜZELTME: Fallback kullan
+            if (typeof updateWishlistBadge === 'function') {
+                updateWishlistBadge();
+            } else {
+                fallbackUpdateWishlistBadge();
+            }
         });
     }
 
@@ -631,33 +690,21 @@ if (window.__productPageInitialized) {
             var variantInfo = selectedVariant ? selectedVariant.size : 'Standard';
             var displayPrice = getDisplayPrice(product, selectedVariant);
 
+            var cartData = {
+                id: currentProduct.id,
+                name: fields.Name,
+                price: displayPrice,
+                image: currentImages.length > 0 ? currentImages[0] : '',
+                variants: variantInfo,
+                delivery: fields.Delivery_time || ''
+            };
+
+            // DÜZELTME: common.js fonksiyonlarını kontrol et, yoksa fallback kullan
             if (typeof addProductToCart === 'function') {
-                addProductToCart({
-                    id: currentProduct.id,
-                    name: fields.Name,
-                    price: displayPrice,
-                    image: currentImages.length > 0 ? currentImages[0] : '',
-                    variants: variantInfo,
-                    delivery: fields.Delivery_time || ''
-                });
+                addProductToCart(cartData);
             } else {
-                var cartItem = {
-                    id: currentProduct.id, 
-                    name: fields.Name,
-                    price: displayPrice,
-                    image: currentImages.length > 0 ? currentImages[0] : '',
-                    variants: variantInfo, 
-                    delivery: fields.Delivery_time || '', 
-                    quantity: 1
-                };
-                var cart = JSON.parse(localStorage.getItem('siteCartItems')) || [];
-                var existing = cart.find(function(i) { return i.id === currentProduct.id && i.variants === variantInfo; });
-                if (existing) existing.quantity = (existing.quantity || 1) + 1;
-                else cart.push(cartItem);
-                localStorage.setItem('siteCartItems', JSON.stringify(cart));
-                if (typeof updateMiniCartUI === 'function') updateMiniCartUI();
-                if (typeof updateCartBadge === 'function') updateCartBadge();
-                if (typeof openMiniCart === 'function') openMiniCart();
+                console.warn('addProductToCart bulunamadi, fallback kullaniliyor');
+                fallbackAddProductToCart(cartData);
             }
         });
     }
@@ -678,9 +725,16 @@ if (window.__productPageInitialized) {
     // ==========================================
     // BASLAT
     // ==========================================
+    // DÜZELTME: async fonksiyonu düzgün çağır
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initProductPage);
+        document.addEventListener('DOMContentLoaded', function() {
+            initProductPage().catch(function(e) {
+                console.error("initProductPage hatasi:", e);
+            });
+        });
     } else {
-        initProductPage();
+        initProductPage().catch(function(e) {
+            console.error("initProductPage hatasi:", e);
+        });
     }
 }
