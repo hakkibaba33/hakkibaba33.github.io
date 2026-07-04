@@ -458,103 +458,80 @@ function closeMobileMenu() {
 }
 
 // ==========================================
-// 8. EVENT LISTENERS - DOCUMENT SEVIYESINDE DELEGATION
+// 8. EVENT LISTENERS
 // ==========================================
-// ONEMLI: Tüm event listener'lar document seviyesinde.
-// Bu sayede dinamik olarak eklenen elementler de calisir.
-// ==========================================
+
+let __commonListenersInitialized = false;
 
 function initEventListeners() {
-    console.log('initEventListeners CAGIRILDI, __commonListenersInitialized:', window.__commonListenersInitialized);
-    if (window.__commonListenersInitialized) {
-        console.log('Event listenerlar zaten bagli, atlaniyor.');
+    if (__commonListenersInitialized) {
+        console.log('⚠️ Event listenerlar zaten bağlı, atlanıyor.');
         return;
     }
-    window.__commonListenersInitialized = true;
+    __commonListenersInitialized = true;
 
-    console.log('Event listenerlar baslatiliyor...');
+    console.log('✅ Event listenerlar başlatılıyor...');
 
-    // --- 1. GENEL TIKLAMALAR (Açma/Kapama/Menü/Arama) ---
+    // SEPET ACMA
     document.addEventListener('click', (e) => {
-        // Mini sepet açma
-        if (e.target.closest('#open-mini-cart-btn, .cart-icon-wrapper, .fa-shopping-bag')) {
+        const btn = e.target.closest('#open-mini-cart-btn, .cart-icon-wrapper, .fa-shopping-bag');
+        if (btn) {
             e.preventDefault();
+            e.stopPropagation();
             openMiniCart();
-            return;
-        }
-
-        // Mini sepet kapama
-        if (e.target.closest('#close-mini-cart')) {
-            closeMiniCart();
-            return;
-        }
-
-        // Mobil menü açma
-        if (e.target.closest('#open-mobile-menu-btn')) {
-            e.preventDefault();
-            openMobileMenu();
-            return;
-        }
-
-        // Mobil menü kapama
-        if (e.target.closest('#close-mobile-menu')) {
-            closeMobileMenu();
-            return;
-        }
-
-        // Overlay'lara tıklama
-        if (e.target.id === 'mini-cart-overlay') {
-            closeMiniCart();
-            return;
-        }
-        if (e.target.id === 'mobile-menu-overlay') {
-            closeMobileMenu();
-            return;
-        }
-
-        // Arama popup açma
-        const searchOpen = e.target.closest('#search-open-btn');
-        if (searchOpen) {
-            e.preventDefault();
-            openSearchPopup();
-            return;
         }
     });
 
-    // --- 2. MINI SEPET İÇİ İŞLEMLER (Document seviyesinde delegation) ---
-    // filledState henüz DOM'da yokken bile calisir, cunku document seviyesinde
+    // SEPET KAPAMA
     document.addEventListener('click', (e) => {
-        // Sadece mini sepet overlay'i açıkken veya mini sepet içindeki elementlere tıklanınca calissin
-        const filledState = document.getElementById('cart-filled-state');
-        if (!filledState) return;
+        const btn = e.target.closest('#close-mini-cart');
+        if (btn) {
+            e.stopPropagation();
+            closeMiniCart();
+        }
+    });
 
-        // Tıklanan element filledState içinde mi kontrol et
-        if (!filledState.contains(e.target)) return;
+    // MINI SEPET ICINDEKI BUTONLAR
+    document.addEventListener('click', (e) => {
+        const qtyBtn = e.target.closest('.quantity-btn');
+        if (qtyBtn) {
+            e.stopPropagation();
+            const id = qtyBtn.dataset.id;
+            const action = qtyBtn.dataset.action;
+            if (id && action) updateQuantity(id, action === 'increase' ? 1 : -1);
+            return;
+        }
 
         const removeBtn = e.target.closest('.remove-item-btn');
-        const qtyBtn = e.target.closest('.quantity-btn');
-
         if (removeBtn) {
-            const id = removeBtn.getAttribute('data-id');
-            console.log("Mini sepet: Silme tetiklendi, ID:", id);
-            if (id) {
-                e.stopPropagation();
-                removeFromCart(id);
-            }
-        } else if (qtyBtn) {
-            const id = qtyBtn.getAttribute('data-id');
-            const action = qtyBtn.getAttribute('data-action');
-            console.log("Mini sepet: Miktar değişimi tetiklendi, ID:", id, "Aksiyon:", action);
-            if (id && action) {
-                e.stopPropagation();
-                updateQuantity(id, action === 'increase' ? 1 : -1);
-            }
+            e.stopPropagation();
+            const id = removeBtn.dataset.id;
+            if (id) removeFromCart(id);
+            return;
         }
     });
 
-    console.log('Mini sepet event listenerlari document seviyesine baglandi.');
+    // OVERLAY'A TIKLAYINCA KAPAMA
+    document.addEventListener('click', (e) => {
+        if (e.target.id === 'mini-cart-overlay') closeMiniCart();
+        if (e.target.id === 'mobile-menu-overlay') closeMobileMenu();
+    });
 
-    // --- 3. ESC TUSU ---
+    // MOBIL MENU
+    document.addEventListener('click', (e) => {
+        const openBtn = e.target.closest('#open-mobile-menu-btn');
+        if (openBtn) {
+            e.preventDefault();
+            openMobileMenu();
+        }
+    });
+
+    document.addEventListener('click', (e) => {
+        const closeBtn = e.target.closest('#close-mobile-menu');
+        if (closeBtn) closeMobileMenu();
+    });
+
+    // ESC TUSU
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             closeMiniCart();
@@ -563,18 +540,14 @@ function initEventListeners() {
         }
     });
 
+    // SEARCH POPUP'I BASLAT
     initSearch();
     updateWishlistBadge();
-    console.log('Tum event listenerlar basariyla baglandi!');
+
+    console.log('✅ Event listenerlar bağlandı');
 }
 
-
-// ==========================================
-// OTOMATIK BASLATMA
-// ==========================================
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initEventListeners);
-} else {
+console.log('📦 common.js yüklendi (başlatma bekleniyor...)');
     initEventListeners();
 }
 
