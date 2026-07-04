@@ -110,6 +110,7 @@ html, body {
 
 .checkout-form-column {
     order: 1;
+    min-width: 0; /* flex/grid overflow fix */
 }
 
 .order-summary-column {
@@ -216,19 +217,52 @@ html, body {
     text-decoration: underline;
 }
 
-/* Odeme */
-#payment-element {
-    margin-top: 20px;
-    min-height: 100px;
-    border: 1px dashed #ddd;
-    border-radius: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #999;
-    font-size: 14px;
+/* ==========================================
+   ÖDEME BÖLÜMÜ - YATAY DÜZEN
+   ========================================== */
+
+#payment-section {
+    transition: all 0.3s ease;
 }
 
+.payment-desc {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 20px;
+    line-height: 1.5;
+}
+
+/* Payment Element container - YATAY */
+#payment-element {
+    margin-top: 10px;
+    width: 100%;
+}
+
+/* Stripe Elements iframe container */
+#payment-element iframe {
+    width: 100% !important;
+}
+
+/* Stripe tabs yatay düzeni */
+#payment-element .StripeElement {
+    width: 100%;
+}
+
+/* Stripe Payment Element içindeki tablar yatay */
+#payment-element [role="tablist"] {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+}
+
+#payment-element [role="tab"] {
+    flex: 1 !important;
+    min-width: 120px !important;
+    max-width: 200px !important;
+}
+
+/* Hata mesajları */
 #card-errors,
 #checkout-validation-error {
     color: #e54d42;
@@ -260,7 +294,8 @@ html, body {
     background: #333;
 }
 
-.main-checkout-btn:disabled {
+.main-checkout-btn:disabled,
+.main-checkout-btn.btn-disabled {
     background: #ccc;
     cursor: not-allowed;
 }
@@ -332,7 +367,7 @@ html, body {
     text-overflow: ellipsis;
 }
 
-.item-size {
+.item-variant {
     font-size: 13px;
     color: #777;
     margin-bottom: 12px;
@@ -709,25 +744,4 @@ html, body {
         font-size: 15px;
         padding: 14px;
     }
-}
-
-#payment-element {
-    width: 100%;
-}
-
-#payment-element iframe {
-    width: 100% !important;
-}
-
-/* Tablar yatay sıralansın */
-#payment-element [role="tablist"] {
-    display: flex !important;
-    flex-direction: row !important;
-    flex-wrap: wrap !important;
-}
-
-#payment-element [role="tab"] {
-    flex: 1 !important;
-    min-width: 120px !important;
-    max-width: 200px !important;
 }
