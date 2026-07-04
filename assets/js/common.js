@@ -1,5 +1,5 @@
 // ==========================================
-// COMMON.JS - SUPABASE UYUMLU (v6.2 - CACHE BUSTING FIX)
+// COMMON.JS - SUPABASE UYUMLU (v6.3 - ID TIP FIX)
 // Eski Airtable yapısını koru, sadece API Supabase'e çevrildi
 // ==========================================
 
@@ -44,6 +44,13 @@ async function supabaseGet(endpoint, params) {
 async function supabaseGetOne(endpoint, filter) {
     const data = await supabaseGet(endpoint, filter);
     return data[0] || null;
+}
+
+// ==========================================
+// YARDIMCI: ID karsilastirma (int8/string uyumlu)
+// ==========================================
+function idsMatch(id1, id2) {
+    return String(id1) === String(id2);
 }
 
 // ==========================================
@@ -313,20 +320,22 @@ function updateMiniCartUI() {
             const qty = item.quantity || 1;
             const itemTotal = item.price * qty;
             total += itemTotal;
-            return `<div class="mini-cart-item" data-id="${item.id}">
+            // ID'yi string olarak yazdir (int8 uyumluluk)
+            const itemId = String(item.id);
+            return `<div class="mini-cart-item" data-id="${itemId}">
                 <img src="${item.image || ''}" alt="${item.name || ''}" class="item-image" onerror="this.style.display='none'">
                 <div class="item-details-left">
                     <span class="item-name">${item.name || 'Urun'}</span>
                     <span class="item-variant">${item.variants || 'Standard'}</span>
                     <div class="quantity-control">
-                        <button type="button" class="quantity-btn minus" data-id="${item.id}" data-action="decrease">-</button>
+                        <button type="button" class="quantity-btn minus" data-id="${itemId}" data-action="decrease">-</button>
                         <input type="text" class="quantity-input" value="${qty}" readonly>
-                        <button type="button" class="quantity-btn plus" data-id="${item.id}" data-action="increase">+</button>
+                        <button type="button" class="quantity-btn plus" data-id="${itemId}" data-action="increase">+</button>
                     </div>
                 </div>
                 <div class="item-price-right">
                     <span class="item-price">${itemTotal.toLocaleString('sv-SE')} SEK</span>
-                    <button type="button" class="remove-item-btn" data-id="${item.id}">Ta bort</button>
+                    <button type="button" class="remove-item-btn" data-id="${itemId}">Ta bort</button>
                 </div>
             </div>`;
         }).join('');
@@ -340,19 +349,22 @@ function updateMiniCartUI() {
 
 function updateQuantity(productId, change) {
     let cart = getCart();
-    const item = cart.find(i => i.id === productId);
-    if (!item) return;
+    const item = cart.find(i => idsMatch(i.id, productId));
+    if (!item) {
+        console.warn('updateQuantity: Urun bulunamadi, ID:', productId, 'Cart IDs:', cart.map(c => c.id));
+        return;
+    }
 
     item.quantity = (item.quantity || 1) + change;
     if (item.quantity <= 0) {
-        cart = cart.filter(i => i.id !== productId);
+        cart = cart.filter(i => !idsMatch(i.id, productId));
     }
     saveCart(cart);
     updateMiniCartUI();
 }
 
 function removeFromCart(productId) {
-    let cart = getCart().filter(i => i.id !== productId);
+    let cart = getCart().filter(i => !idsMatch(i.id, productId));
     saveCart(cart);
     updateMiniCartUI();
 }
@@ -363,7 +375,7 @@ function removeFromCart(productId) {
 
 function addProductToCart(productData) {
     let cart = getCart();
-    const existing = cart.find(i => i.id === productData.id && i.variants === productData.variants);
+    const existing = cart.find(i => idsMatch(i.id, productData.id) && i.variants === productData.variants);
 
     if (existing) {
         existing.quantity = (existing.quantity || 1) + 1;
@@ -414,7 +426,7 @@ async function addSupabaseProductToCart(productId, variantSize) {
         };
 
         let cart = getCart();
-        const existing = cart.find(i => i.id === productId && i.variants === variantLabel);
+        const existing = cart.find(i => idsMatch(i.id, productId) && i.variants === variantLabel);
         if (existing) {
             existing.quantity = (existing.quantity || 1) + 1;
         } else {
@@ -528,7 +540,7 @@ function initEventListeners() {
 
         if (removeBtn) {
             const id = removeBtn.getAttribute('data-id');
-            console.log("Mini sepet: Silme tetiklendi, ID:", id);
+            console.log("Mini sepet: Silme tetiklendi, ID:", id, 'tip:', typeof id);
             if (id) {
                 e.stopPropagation();
                 removeFromCart(id);
@@ -536,7 +548,7 @@ function initEventListeners() {
         } else if (qtyBtn) {
             const id = qtyBtn.getAttribute('data-id');
             const action = qtyBtn.getAttribute('data-action');
-            console.log("Mini sepet: Miktar değişimi tetiklendi, ID:", id, "Aksiyon:", action);
+            console.log("Mini sepet: Miktar değişimi tetiklendi, ID:", id, 'tip:', typeof id, "Aksiyon:", action);
             if (id && action) {
                 e.stopPropagation();
                 updateQuantity(id, action === 'increase' ? 1 : -1);
