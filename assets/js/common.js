@@ -1,5 +1,5 @@
 // ==========================================
-// COMMON.JS - SUPABASE UYUMLU (v6.4 - SEARCH FIX)
+// COMMON.JS - SUPABASE UYUMLU (v6.5 - SEARCH FIX v2)
 // Eski Airtable yapısını koru, sadece API Supabase'e çevrildi
 // ==========================================
 
@@ -116,7 +116,7 @@ function closeMiniCart() {
 }
 
 // ==========================================
-// 3. SEARCH POPUP - SUPABASE UYUMLU (FIXED)
+// 3. SEARCH POPUP - SUPABASE UYUMLU (FIXED v2)
 // ==========================================
 
 let searchDebounceTimer = null;
@@ -125,7 +125,6 @@ let allProductsCache = [];
 function initSearch() {
     const popup = document.getElementById('search-popup-overlay');
     const input = document.getElementById('live-search-input');
-    const closeBtn = document.getElementById('close-search-popup');
     const resultsDisplay = document.getElementById('search-results-display');
 
     if (!popup || !input) {
@@ -134,42 +133,6 @@ function initSearch() {
     }
 
     console.log('Search popup init basladi');
-
-    // Açma butonları - document click listener (sadece açma)
-    document.addEventListener('click', (e) => {
-        const openBtn = e.target.closest('#search-open-btn');
-        if (openBtn) {
-            e.preventDefault();
-            console.log('Search acma butonuna tiklandi');
-            openSearchPopup();
-        }
-    });
-
-    // Kapatma butonu - dogrudan elemente bagla
-    if (closeBtn) {
-        closeBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            console.log('Search kapatma butonuna tiklandi');
-            closeSearchPopup();
-        });
-    }
-
-    // Overlay'a tiklayinca kapat - dogrudan elemente bagla
-    popup.addEventListener('click', (e) => {
-        if (e.target === popup) {
-            console.log('Search overlaya tiklandi, kapatiliyor');
-            closeSearchPopup();
-        }
-    });
-
-    // ESC ile kapat
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && popup.classList.contains('active')) {
-            console.log('ESC ile search kapatiliyor');
-            closeSearchPopup();
-        }
-    });
 
     // Input dinleme
     input.addEventListener('input', (e) => {
@@ -485,7 +448,7 @@ function closeMobileMenu() {
 }
 
 // ==========================================
-// 8. EVENT LISTENERS - DOCUMENT SEVIYESINDE DELEGATION
+// 8. EVENT LISTENERS - TUMU DOCUMENT SEVIYESINDE
 // ==========================================
 // ONEMLI: Tüm event listener'lar document seviyesinde.
 // Bu sayede dinamik olarak eklenen elementler de calisir.
@@ -501,8 +464,10 @@ function initEventListeners() {
 
     console.log('Event listenerlar baslatiliyor...');
 
-    // --- 1. GENEL TIKLAMALAR (Açma/Kapama/Menü/Arama) ---
+    // --- 1. GENEL TIKLAMALAR (Açma/Kapama/Menü/Arama/Search Kapama) ---
     document.addEventListener('click', (e) => {
+        console.log('DOCUMENT CLICK:', e.target.tagName, e.target.id, e.target.className);
+
         // Mini sepet açma
         if (e.target.closest('#open-mini-cart-btn, .cart-icon-wrapper, .fa-shopping-bag')) {
             e.preventDefault();
@@ -544,6 +509,24 @@ function initEventListeners() {
         if (searchOpen) {
             e.preventDefault();
             openSearchPopup();
+            return;
+        }
+
+        // Search popup KAPATMA - X butonu
+        const searchClose = e.target.closest('#close-search-popup');
+        if (searchClose) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Search X butonu tiklandi (document delegation)');
+            closeSearchPopup();
+            return;
+        }
+
+        // Search popup KAPATMA - overlay/bos alan
+        const searchOverlay = document.getElementById('search-popup-overlay');
+        if (searchOverlay && e.target === searchOverlay) {
+            console.log('Search overlaya tiklandi (document delegation)');
+            closeSearchPopup();
             return;
         }
     });
