@@ -104,25 +104,26 @@ function closeMiniCart() {
 }
 
 // ==========================================
-// 3. SEARCH POPUP - SUPABASE UYUMLU
+// 3. SEARCH POPUP - DUZELTILMIS
 // ==========================================
 
-var searchDebounceTimer = null;
-var allProductsCache = [];
+let searchDebounceTimer = null;
+let allProductsCache = [];
 
 function initSearch() {
-    var popup = document.getElementById('search-popup-overlay');
-    var input = document.getElementById('live-search-input');
-    var closeBtn = document.getElementById('close-search-popup');
-    var resultsDisplay = document.getElementById('search-results-display');
+    const popup = document.getElementById('search-popup-overlay');
+    const input = document.getElementById('live-search-input');
+    const closeBtn = document.getElementById('close-search-popup');
+    const resultsDisplay = document.getElementById('search-results-display');
 
     if (!popup || !input) {
         console.warn('Search popup elementleri bulunamadi!');
         return;
     }
 
-    document.addEventListener('click', function(e) {
-        var openBtn = e.target.closest('#search-open-btn');
+    // Açma butonları
+    document.addEventListener('click', (e) => {
+        const openBtn = e.target.closest('#search-open-btn');
         if (openBtn) {
             e.preventDefault();
             e.stopPropagation();
@@ -130,55 +131,61 @@ function initSearch() {
         }
     });
 
+    // Kapatma butonu
     if (closeBtn) {
-        closeBtn.addEventListener('click', function(e) {
+        closeBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             closeSearchPopup();
         });
     }
 
-    popup.addEventListener('click', function(e) {
-        if (e.target === popup) closeSearchPopup();
+    // Overlay'a tıklayınca kapat
+    popup.addEventListener('click', (e) => {
+        if (e.target === popup) {
+            closeSearchPopup();
+        }
     });
 
-    document.addEventListener('keydown', function(e) {
+    // ESC ile kapat
+    document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && popup.classList.contains('active')) {
             closeSearchPopup();
         }
     });
 
-    input.addEventListener('input', function(e) {
-        var query = e.target.value.trim();
+    // Input dinleme
+    input.addEventListener('input', (e) => {
+        const query = e.target.value.trim();
         clearTimeout(searchDebounceTimer);
-
+        
         if (query.length < 2) {
             if (resultsDisplay) resultsDisplay.style.display = 'none';
             return;
         }
 
-        searchDebounceTimer = setTimeout(function() {
+        searchDebounceTimer = setTimeout(() => {
             performSearch(query);
         }, 300);
     });
 
-    console.log('Search popup baslatildi');
+    console.log('✅ Search popup baslatildi');
 }
 
 function openSearchPopup() {
-    var popup = document.getElementById('search-popup-overlay');
-    var input = document.getElementById('live-search-input');
-    var resultsDisplay = document.getElementById('search-results-display');
-
+    const popup = document.getElementById('search-popup-overlay');
+    const input = document.getElementById('live-search-input');
+    const resultsDisplay = document.getElementById('search-results-display');
+    
     if (!popup) return;
 
-    var scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
     document.body.style.paddingRight = scrollbarWidth + 'px';
     document.body.classList.add('search-active');
 
     popup.classList.add('active');
     if (resultsDisplay) resultsDisplay.style.display = 'none';
-
-    setTimeout(function() { if (input) input.focus(); }, 100);
+    
+    setTimeout(() => input?.focus(), 100);
 
     if (allProductsCache.length === 0) {
         fetchAllProductsForSearch();
@@ -186,49 +193,49 @@ function openSearchPopup() {
 }
 
 function closeSearchPopup() {
-    var popup = document.getElementById('search-popup-overlay');
-    var resultsDisplay = document.getElementById('search-results-display');
-
+    const popup = document.getElementById('search-popup-overlay');
+    const resultsDisplay = document.getElementById('search-results-display');
+    
     if (!popup) return;
 
     popup.classList.remove('active');
     document.body.classList.remove('search-active');
     document.body.style.paddingRight = '';
-
+    
     if (resultsDisplay) {
         resultsDisplay.style.display = 'none';
         resultsDisplay.innerHTML = '';
     }
-
-    var input = document.getElementById('live-search-input');
+    
+    const input = document.getElementById('live-search-input');
     if (input) input.value = '';
 }
 
 async function fetchAllProductsForSearch() {
-    if (!SUPABASE_URL || !SUPABASE_KEY) {
-        console.error('Supabase config eksik!');
+    if (!API_KEY || !BASE_ID) {
+        console.error('Airtable config eksik!');
         return;
     }
 
     try {
-        var data = await supabaseGet('products', {
-            select: '*',
-            active: 'eq.true'
-        });
+        const response = await fetch(
+            `https://api.airtable.com/v0/${BASE_ID}/${TABLE_NAME}?pageSize=100`,
+            { headers: { Authorization: `Bearer ${API_KEY}` } }
+        );
 
-        allProductsCache = data.map(function(product) {
-            var displayPrice = product.discount_price || product.base_price || 0;
-            return {
-                id: product.id,
-                name: product.name || '',
-                price: displayPrice,
-                image: product.images && product.images[0] ? product.images[0] : '',
-                category: product.category || '',
-                url: '/matta/' + (product.slug || product.id)
-            };
-        });
+        if (!response.ok) throw new Error('Airtable hatasi');
 
-        console.log(allProductsCache.length + ' urun cachelendi');
+        const data = await response.json();
+        allProductsCache = data.records.map(record => ({
+            id: record.id,
+            name: record.fields.Name || '',
+            price: parseFloat(record.fields.Price) || 0,
+            image: record.fields.imageURL && record.fields.imageURL[0] ? record.fields.imageURL[0].url : '',
+            category: record.fields.Category || '',
+            url: `/product.html?id=${record.id}`
+        }));
+
+        console.log(`${allProductsCache.length} urun cache'lendi`);
 
     } catch (error) {
         console.error('Urun cache hatasi:', error);
@@ -236,7 +243,7 @@ async function fetchAllProductsForSearch() {
 }
 
 function performSearch(query) {
-    var resultsDisplay = document.getElementById('search-results-display');
+    const resultsDisplay = document.getElementById('search-results-display');
     if (!resultsDisplay) return;
 
     if (allProductsCache.length === 0) {
@@ -245,40 +252,38 @@ function performSearch(query) {
         return;
     }
 
-    var lowerQuery = query.toLowerCase();
-    var filtered = allProductsCache.filter(function(product) {
-        return product.name.toLowerCase().includes(lowerQuery) ||
-               product.category.toLowerCase().includes(lowerQuery);
-    });
+    const lowerQuery = query.toLowerCase();
+    const filtered = allProductsCache.filter(product => 
+        product.name.toLowerCase().includes(lowerQuery) ||
+        product.category.toLowerCase().includes(lowerQuery)
+    );
 
     if (filtered.length === 0) {
         resultsDisplay.innerHTML = '<div class="no-results-found">Inga produkter hittades.</div>';
     } else {
-        resultsDisplay.innerHTML = filtered.slice(0, 8).map(function(product) {
-            // Basit highlight - regex yerine split/join kullan
-            var highlightedName = product.name;
-            var idx = product.name.toLowerCase().indexOf(lowerQuery);
-            if (idx !== -1) {
-                highlightedName = product.name.substring(0, idx) + 
-                    '<mark style="background:#ffeb3b;color:#000;padding:0 2px;">' + 
-                    product.name.substring(idx, idx + query.length) + 
-                    '</mark>' + 
-                    product.name.substring(idx + query.length);
-            }
-
-            return '<a href="' + product.url + '" class="search-item-row">' +
-                '<div class="search-item-image">' +
-                '<img src="${product.image}" alt="${product.name}" onerror="this.src='https://via.placeholder.com/50'">' +
-                '</div>' +
-                '<div class="search-item-info">' +
-                '<h4 class="search-item-title">' + highlightedName + '</h4>' +
-                '<span class="search-item-price">' + product.price.toLocaleString('sv-SE') + ' SEK</span>' +
-                '</div>' +
-                '</a>';
-        }).join('');
+        resultsDisplay.innerHTML = filtered.slice(0, 8).map(product => `
+            <a href="${product.url}" class="search-item-row">
+                <div class="search-item-image">
+                    <img src="${product.image}" alt="${product.name}" onerror="this.src='https://via.placeholder.com/50'">
+                </div>
+                <div class="search-item-info">
+                    <h4 class="search-item-title">${highlightMatch(product.name, query)}</h4>
+                    <span class="search-item-price">${product.price.toFixed(2)} SEK</span>
+                </div>
+            </a>
+        `).join('');
     }
 
     resultsDisplay.style.display = 'block';
+}
+
+function highlightMatch(text, query) {
+    const regex = new RegExp(`(${escapeRegex(query)})`, 'gi');
+    return text.replace(regex, '<mark style="background:#ffeb3b;color:#000;padding:0 2px;">$1</mark>');
+}
+
+function escapeRegex(string) {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 // ==========================================
