@@ -444,7 +444,7 @@ function closeMobileMenu() {
 }
 
 // ==========================================
-// 8. EVENT LISTENERS - ESKI YAPI
+// 8. EVENT LISTENERS - GÜNCELLENMİŞ YAPI
 // ==========================================
 
 let __commonListenersInitialized = false;
@@ -458,62 +458,60 @@ function initEventListeners() {
 
     console.log('Event listenerlar baslatiliyor...');
 
-    // SEPET ACMA
+    // TEK BİR DİNLEYİCİ İLE TÜM TIKLAMALARI YÖNETELİM (Capture Modunda)
     document.addEventListener('click', (e) => {
-        const btn = e.target.closest('#open-mini-cart-btn, .cart-icon-wrapper, .fa-shopping-bag');
-        if (btn) {
+        
+        // 1. Sepet Açma Butonları
+        if (e.target.closest('#open-mini-cart-btn, .cart-icon-wrapper, .fa-shopping-bag')) {
             e.preventDefault();
             openMiniCart();
         }
-    });
 
-    // SEPET KAPAMA
-    document.addEventListener('click', (e) => {
-        const btn = e.target.closest('#close-mini-cart');
-        if (btn) {
+        // 2. Sepet Kapama Butonları
+        if (e.target.closest('#close-mini-cart')) {
             closeMiniCart();
         }
-    });
 
-    // MINI SEPET ICINDEKI BUTONLAR
-    document.addEventListener('click', (e) => {
+        // 3. Miktar Butonları (GÜVENLİ YAKALAMA)
         const qtyBtn = e.target.closest('.quantity-btn');
         if (qtyBtn) {
-            const id = qtyBtn.dataset.id;
-            const action = qtyBtn.dataset.action;
-            if (id && action) updateQuantity(id, action === 'increase' ? 1 : -1);
-            return;
+            const id = qtyBtn.getAttribute('data-id');
+            const action = qtyBtn.getAttribute('data-action');
+            if (id && action) {
+                updateQuantity(id, action === 'increase' ? 1 : -1);
+            }
         }
 
+        // 4. Silme Butonu (GÜVENLİ YAKALAMA)
         const removeBtn = e.target.closest('.remove-item-btn');
         if (removeBtn) {
-            const id = removeBtn.dataset.id;
+            const id = removeBtn.getAttribute('data-id');
             if (id) removeFromCart(id);
-            return;
         }
-    });
 
-    // OVERLAY'A TIKLAYINCA KAPAMA
-    document.addEventListener('click', (e) => {
-        if (e.target.id === 'mini-cart-overlay') closeMiniCart();
-        if (e.target.id === 'mobile-menu-overlay') closeMobileMenu();
-    });
-
-    // MOBIL MENU
-    document.addEventListener('click', (e) => {
-        const openBtn = e.target.closest('#open-mobile-menu-btn');
-        if (openBtn) {
+        // 5. Mobil Menü
+        if (e.target.closest('#open-mobile-menu-btn')) {
             e.preventDefault();
             openMobileMenu();
         }
-    });
+        if (e.target.closest('#close-mobile-menu')) {
+            closeMobileMenu();
+        }
 
-    document.addEventListener('click', (e) => {
-        const closeBtn = e.target.closest('#close-mobile-menu');
-        if (closeBtn) closeMobileMenu();
-    });
+        // 6. Overlay Kapatma
+        if (e.target.id === 'mini-cart-overlay') closeMiniCart();
+        if (e.target.id === 'mobile-menu-overlay') closeMobileMenu();
 
-    // ESC TUSU
+        // 7. Search Open
+        const searchOpen = e.target.closest('#search-open-btn');
+        if (searchOpen) {
+            e.preventDefault();
+            openSearchPopup();
+        }
+
+    }, true); // 'true' parametresi çok kritik: Olayı en tepeden yakalar
+
+    // ESC TUSU (Bunu değiştirmene gerek yok)
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             closeMiniCart();
@@ -522,7 +520,6 @@ function initEventListeners() {
         }
     });
 
-    // SEARCH POPUP'I BASLAT
     initSearch();
     updateWishlistBadge();
 
