@@ -3,14 +3,16 @@
 // Eski Airtable yapısını koru, sadece API Supabase'e çevrildi
 // ==========================================
 
+// ==========================================
+// GLOBAL FLAGS - window scope'a alındı (module/strict mode uyumlu)
+// ==========================================
+if (typeof window.__commonListenersInitialized === 'undefined') {
+    window.__commonListenersInitialized = false;
+}
+
 if (typeof CONFIG === 'undefined') {
     console.error('HATA: config.js yuklenmemis!');
 }
-
-// ==========================================
-// GLOBAL FLAGS
-// ==========================================
-let __commonListenersInitialized = false;
 
 // SUPABASE CONFIG
 const SUPABASE_URL = (typeof CONFIG !== 'undefined' && CONFIG.SUPABASE) ? CONFIG.SUPABASE.URL : '';
@@ -458,9 +460,12 @@ function closeMobileMenu() {
 // ==========================================
 
 function initEventListeners() {
-    console.log('initEventListeners CAGIRILDI, __commonListenersInitialized:', __commonListenersInitialized);
-    if (__commonListenersInitialized) return;
-    __commonListenersInitialized = true;
+    console.log('initEventListeners CAGIRILDI, __commonListenersInitialized:', window.__commonListenersInitialized);
+    if (window.__commonListenersInitialized) {
+        console.log('Event listenerlar zaten bagli, atlaniyor.');
+        return;
+    }
+    window.__commonListenersInitialized = true;
 
     console.log('Event listenerlar baslatiliyor...');
 
@@ -506,6 +511,7 @@ function initEventListeners() {
                 if (id && action) updateQuantity(id, action === 'increase' ? 1 : -1);
             }
         });
+        console.log('Mini sepet event listenerlari baglandi (filledState bulundu).');
     } else {
         console.warn('cart-filled-state elementi bulunamadi! Event listener baglanamadi.');
     }
@@ -521,7 +527,7 @@ function initEventListeners() {
 
     initSearch();
     updateWishlistBadge();
-    console.log('Event listenerlar bağlandı');
+    console.log('Tum event listenerlar basariyla baglandi!');
 }
 
 
