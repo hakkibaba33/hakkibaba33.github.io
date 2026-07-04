@@ -180,7 +180,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return false;
         }
 
-        // Müşteri bilgilerini formdan al - boşsa undefined olarak gönderme
         const firstName = document.getElementById('billing_first_name').value?.trim();
         const lastName = document.getElementById('billing_last_name').value?.trim();
         const email = document.getElementById('billing_email').value?.trim();
@@ -232,13 +231,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error('clientSecret bos dondu!');
             }
 
-            // Eski elementleri temizle
             if (paymentElement) {
                 paymentElement.destroy();
                 paymentElement = null;
             }
 
-            // Stripe Elements'i başlat
             elements = stripe.elements({
                 clientSecret: data.clientSecret,
                 appearance: {
@@ -254,12 +251,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            // Payment Element oluştur
+            // Payment Element - YATAY TABS düzeni
             const paymentElementOptions = {
-                layout: 'tabs'
+                layout: {
+                    type: 'tabs',
+                    defaultCollapsed: false
+                }
             };
 
-            // Billing details varsa ekle
             const billingDetails = {};
             if (firstName && lastName) billingDetails.name = `${firstName} ${lastName}`;
             if (email) billingDetails.email = email;
@@ -279,7 +278,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             paymentElement = elements.create('payment', paymentElementOptions);
 
-            // Payment Element'i DOM'a mount et
             paymentElementContainer.innerHTML = '';
             paymentElement.mount('#payment-element');
 
