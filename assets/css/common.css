@@ -1,3 +1,376 @@
+/* ==================================================== */
+/* 🔍 YÜZEN ARAMA POPUP (MODERN FLOATING) */
+/* ==================================================== */
+html {
+    /* Kaydırma çubuğu alanı her zaman rezerve edilsin, zıplama bitsin */
+    scrollbar-gutter: stable;
+}
+
+/* Modal açıldığında sağ tarafa zorunlu boşluk binmesin */
+body.search-active, body.modal-open {
+    overflow: hidden !important;
+    /* JS zaten padding ekliyor, tarayıcının ekstradan kaydırmasını engelle */
+    touch-action: none; 
+}
+
+.search-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.4); /* Arka planı hafif karart */
+    z-index: 10005;
+    display: none; /* JS ile .active olunca açılacak */
+    justify-content: center; /* Yatayda orta */
+    align-items: flex-start; /* Üstten başla */
+    padding-top: 0px; /* Header'ın altına gelmesi için pay */
+}
+
+.search-popup.active {
+    display: flex !important;
+}
+
+/* İç Beyaz Kutu (Yüzen Kısım) */
+.search-inner {
+    background: #fff;
+    width: 90%;
+    max-width: 650px;
+    height: 60px;
+    padding: 10px 20px;
+    border-radius: 1px;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    position: relative;
+    animation: slideDown 0.3s ease-out;
+}
+
+/* Sonuçların genel listesi */
+.search-results-list-wrapper {
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    width: 100%;
+}
+
+/* Her bir ürün satırı */
+.search-item-row {
+    display: flex;
+    align-items: center;
+    padding: 10px 15px;
+    border-bottom: 1px solid #f2f2f2;
+    text-decoration: none !important;
+    transition: background 0.2s ease;
+}
+
+.search-item-row:hover {
+    background-color: #f9f9f9;
+}
+
+.search-item-row:last-child {
+    border-bottom: none;
+}
+
+/* Resim Alanı */
+.search-item-image {
+    width: 50px;
+    height: 50px;
+    flex-shrink: 0;
+    margin-right: 15px;
+}
+
+.search-item-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 4px;
+    border: 1px solid #eee;
+}
+
+/* Bilgi Alanı */
+.search-item-info {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.search-item-title {
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    color: #333 !important;
+    margin: 0 0 2px 0 !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+}
+
+.search-item-price {
+    font-size: 13px !important;
+    color: #d30000 !important; /* Kırmızı fiyat */
+    font-weight: 700 !important;
+}
+
+.search-item-price ins {
+    text-decoration: none;
+}
+
+.no-results-found {
+    padding: 20px;
+    text-align: center;
+    font-size: 14px;
+    color: #888;
+}
+
+/* Arama kutusunun olduğu ana beyaz kapsayıcı */
+.search-inner {
+    position: relative; /* İçindeki sonuçların buna göre hizalanması için şart */
+    background: #fff;
+    width: 90%;
+    max-width: 500px;
+    margin: 40px auto; 
+    padding: 10px 15px;
+    border-radius: 50px; /* Google tarzı oval */
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    z-index: 10006;
+}
+
+/* 🚀 İŞTE ÇÖZÜM BURASI: Sonuçlar kutuyu aşağı itmesin, altında süzülsün */
+#search-results-display {
+    position: absolute; /* Kutudan bağımsız hareket etmesini sağlar */
+    top: calc(100% + 10px); /* Beyaz kutunun tam 10px altından başlar */
+    left: 0;
+    width: 100%; /* Beyaz kutuyla aynı genişlikte olur */
+    background: #fff;
+    border-radius: 1px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    max-height: 400px; /* Çok ürün varsa kutu devleşmesin, içinde scroll çıksın */
+    overflow-y: auto;
+    padding: 0;
+    z-index: 99999; /* En üstte görünsün */
+}
+
+/* Mobilde kutu kaymasın diye ek önlem */
+@media (max-width: 768px) {
+    .search-inner {
+        margin-top: 20px;
+        height: 70px  !important;
+       width: 100% !important;
+  }
+    .search-popup {
+        /* Arka planı biraz daha karartıp blur'u artırıyoruz */
+        background-color: rgba(0, 0, 0, 0.4) !important; /* Beyaz yerine koyu şeffaf daha iyi odak sağlar */
+        backdrop-filter: blur(15px) !important; /* 10'dan 15'e çıkardık */
+        -webkit-backdrop-filter: blur(15px) !important;
+    }
+    
+    .search-input-field {
+        font-size: 1rem; /* Mobilde yazıyı bir tık daha küçülttük */
+        letter-spacing: 0px; /* Mobilde harf arası açmaya pek gerek yok */
+    }
+    
+    .search-input-field::placeholder {
+        font-size: 0.85rem; /* Placeholder mobilde daha kibar durmalı */
+        font-style: normal; /* Mobilde italik bazen okunurluğu bozar, düz yaptık */
+        font-weight: 300;
+        color: #aaa;
+    }
+    
+    /* 4. İkonları Mobilde Küçültelim */
+    .search-icon-static i, 
+    .search-close-x i {
+        font-size: 20px; /* Parmakla basmak kolay ama görsel olarak daha küçük */
+    }
+
+    /* 5. Arama Sonuçlarını Mobilde Tam Ekran Yapalım */
+#search-results-display {
+    /* 1. Yükseklik Ayarı: Klavye ve header payını düştük */
+    max-height: calc(100vh - 160px); 
+    
+    /* 2. Kaydırma Özelliği */
+    overflow-y: auto; 
+    
+    /* 3. iOS (iPhone) İçin İpeksi Kaydırma */
+    -webkit-overflow-scrolling: touch; 
+    
+    /* 4. Tasarım: Kutuyu tam oturtalım */
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background: #fff;
+    border: 2px solid #000;
+    border-top: none;
+    z-index: 99999;
+}
+
+/* 5. Şık Bir Scrollbar (Opsiyonel: Kaydırma çubuğu kaba durmasın) */
+#search-results-display::-webkit-scrollbar {
+    width: 4px;
+}
+
+#search-results-display::-webkit-scrollbar-thumb {
+    background: #000; /* Senin keskin siyah temanla uyumlu */
+}
+    
+    
+}   
+
+/* Fiyat Alanı Genel Ayarı */
+.search-item-price {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Fiyatlar arasındaki boşluk */
+    font-size: 14px;
+    margin-top: 4px;
+}
+
+/* Eski Fiyat (Üstü Çizili Olan) */
+.search-item-price del {
+    color: #999; /* Gri renk */
+    font-size: 14px;
+    text-decoration: line-through; /* Üstünü çizer */
+    font-weight: 400;
+}
+
+/* Yeni Fiyat / Güncel Fiyat (Kırmızı ve Belirgin) */
+.search-item-price ins, 
+.search-item-price {
+    color: #d30000; /* Canlı kırmızı */
+    font-weight: 700;
+    text-decoration: none; /* Alt çizgisini kaldırır */
+}
+
+@keyframes slideDown {
+    from { transform: translateY(-30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+
+/* Form ve Input Alanı */
+.search-form-full {
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    padding-left: 30px; /* Büyüteç için yer */
+    padding-right: 30px; /* X butonu için yer */
+}
+
+
+
+/* 1. Yazı yazılırken görünen stil (Aktif yazı) */
+.search-input-field {
+    width: 100%;
+    border: none !important;
+    outline: none !important;
+    font-size: 1.1rem; /* Biraz küçülttük (1.3'ten 1.1'e) */
+    font-weight: 400;
+    letter-spacing: 0.5px; /* Harf aralarını çok hafif açtık, nefes alsın */
+    color: #1a1a1a;
+    background: transparent;
+    font-family: 'Inter', sans-serif; /* Eğer sitende varsa Inter veya sans-serif çok yakışır */
+}
+
+/* 2. "Sök namn, stil..." yazısının (Placeholder) stili */
+/* Her tarayıcı için ayrı ayrı tanımlamalıyız ki hepsinde aynı şıklıkta görünsün */
+
+.search-input-field::placeholder {
+    color: #999; /* Daha yumuşak bir gri */
+    font-size: 0.95rem; /* Placeholder'ı asıl yazıdan bir tık daha küçük yaptık */
+    font-style: italic; /* "Buraya yazabilirsin" mesajı veren klasik bir stil */
+    font-weight: 300; /* Daha ince ve zarif */
+    opacity: 1; /* Bazı tarayıcılar placeholder'ı otomatik soluklaştırır, bunu sabitledik */
+}
+
+/* Safari ve Chrome desteği */
+.search-input-field::-webkit-input-placeholder {
+    color: #999;
+    font-size: 0.95rem;
+    font-style: italic;
+    font-weight: 300;
+}
+
+/* Firefox desteği */
+.search-input-field::-moz-placeholder {
+    color: #999;
+    font-size: 0.95rem;
+    font-style: italic;
+    font-weight: 300;
+}
+
+
+
+/* 🔍 Arama Popup Genel Geçiş Ayarı */
+.search-popup {
+    transition: opacity 0.4s ease, visibility 0.4s ease !important;
+}
+
+/* 🤍 İç Kutu (Beyaz Alan) Yumuşaklığı */
+.search-popup .search-inner {
+    
+    width: 90%; 
+    max-width: 600px;
+    margin: 0px auto;
+  
+    border-radius: 1px; /* Tam oval (Google tarzı) veya 12px yapabilirsin */
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    
+    
+    
+    
+    transform: translateY(-20px); /* Başlangıçta biraz yukarıda */
+    transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    opacity: 0;
+}
+
+/* Açık Haldeyken */
+.search-popup.active .search-inner,
+.search-popup.open .search-inner {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+
+/* Sol taraftaki Arama İkonu */
+.search-icon-static {
+    position: absolute;
+    left: 10px;
+    font-size: 20px;
+    color: #333;
+}
+
+/* Sağ taraftaki Kapatma (X) Butonu */
+.search-close-x {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #888;
+    transition: color 0.3s ease;
+    z-index: 10;
+}
+
+/* ❌ X BUTONU - ELEMENTOR KIRMIZI HOVER TEMİZLİĞİ */
+#close-search-popup, 
+#search-close-btn {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+    color: #333 !important; /* Varsayılan renk */
+    transition: all 0.3s ease !important;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 
 /* ==========================================
    0. RESET & TEMEL AYARLAR
@@ -26,320 +399,6 @@ h1, h2, h3, h4, h5, h6 {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     font-weight: 700;
 }
-
-
-
-
-
-
-
-
-
-
-/* ==========================================
-   SEARCH POPUP - EKSIK KISIMLAR
-   ========================================== */
-
-/* Popup aktifken body scroll engelleme */
-body.search-active {
-    overflow: hidden !important;
-}
-
-/* Popup overlay */
-.search-popup {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.4);
-    z-index: 10005;
-    display: none;
-    justify-content: center;
-    align-items: flex-start;
-    padding-top: 80px;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.4s ease, visibility 0.4s ease;
-}
-
-.search-popup.active {
-    display: flex !important;
-    opacity: 1;
-    visibility: visible;
-}
-
-/* İç beyaz kutu */
-.search-popup .search-inner {
-    background: #fff;
-    width: 90%;
-    max-width: 600px;
-    padding: 10px 20px;
-    border-radius: 50px;
-    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
-    display: flex;
-    align-items: center;
-    position: relative;
-    transform: translateY(-20px);
-    transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
-    opacity: 0;
-}
-
-.search-popup.active .search-inner {
-    transform: translateY(0);
-    opacity: 1;
-}
-
-/* Sol ikon */
-.search-icon-static {
-    position: absolute;
-    left: 20px;
-    font-size: 18px;
-    color: #333;
-    z-index: 2;
-}
-
-/* Input alanı */
-.search-form-full {
-    flex-grow: 1;
-    display: flex;
-    align-items: center;
-    padding-left: 35px;
-    padding-right: 45px;
-}
-
-.search-input-field {
-    width: 100%;
-    border: none !important;
-    outline: none !important;
-    font-size: 1.1rem;
-    font-weight: 400;
-    letter-spacing: 0.5px;
-    color: #1a1a1a;
-    background: transparent;
-    font-family: 'Inter', sans-serif;
-}
-
-.search-input-field::placeholder {
-    color: #999;
-    font-size: 0.95rem;
-    font-style: italic;
-    font-weight: 300;
-    opacity: 1;
-}
-
-/* Kapatma butonu */
-.search-close-x {
-    position: absolute;
-    right: 15px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: none;
-    border: none;
-    font-size: 22px;
-    cursor: pointer;
-    color: #888;
-    transition: color 0.3s ease;
-    z-index: 2;
-    width: 36px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-}
-
-.search-close-x:hover {
-    color: #000;
-    background: #f5f5f5;
-}
-
-/* Sonuçlar kutusu */
-#search-results-display {
-    position: absolute;
-    top: calc(100% + 15px);
-    left: 0;
-    width: 100%;
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-    max-height: 400px;
-    overflow-y: auto;
-    padding: 0;
-    z-index: 99999;
-    display: none;
-}
-
-/* Sonuç satırları */
-.search-item-row {
-    display: flex;
-    align-items: center;
-    padding: 12px 15px;
-    border-bottom: 1px solid #f2f2f2;
-    text-decoration: none !important;
-    transition: background 0.2s ease;
-    color: inherit;
-}
-
-.search-item-row:hover {
-    background-color: #f9f9f9;
-}
-
-.search-item-row:last-child {
-    border-bottom: none;
-}
-
-.search-item-image {
-    width: 50px;
-    height: 50px;
-    flex-shrink: 0;
-    margin-right: 15px;
-}
-
-.search-item-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 4px;
-    border: 1px solid #eee;
-}
-
-.search-item-info {
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    flex-grow: 1;
-}
-
-.search-item-title {
-    font-size: 14px !important;
-    font-weight: 500 !important;
-    color: #333 !important;
-    margin: 0 0 2px 0 !important;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    line-height: 1.2;
-}
-
-.search-item-title mark {
-    background: #ffeb3b;
-    color: #000;
-    padding: 0 2px;
-    border-radius: 2px;
-}
-
-.search-item-price {
-    font-size: 13px !important;
-    color: #d30000 !important;
-    font-weight: 700 !important;
-}
-
-.no-results-found {
-    padding: 20px;
-    text-align: center;
-    font-size: 14px;
-    color: #888;
-}
-
-/* Scrollbar styling */
-#search-results-display::-webkit-scrollbar {
-    width: 6px;
-}
-
-#search-results-display::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 0 12px 12px 0;
-}
-
-#search-results-display::-webkit-scrollbar-thumb {
-    background: #ccc;
-    border-radius: 3px;
-}
-
-#search-results-display::-webkit-scrollbar-thumb:hover {
-    background: #999;
-}
-
-/* Mobil uyumluluk */
-@media (max-width: 768px) {
-    .search-popup {
-        padding-top: 20px;
-        background-color: rgba(0, 0, 0, 0.5) !important;
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-    }
-    
-    .search-popup .search-inner {
-        width: 95%;
-        border-radius: 16px;
-        padding: 12px 15px;
-    }
-    
-    .search-icon-static {
-        left: 15px;
-    }
-    
-    .search-form-full {
-        padding-left: 30px;
-        padding-right: 40px;
-    }
-    
-    .search-input-field {
-        font-size: 16px; /* iOS zoom önlemi */
-    }
-    
-    .search-close-x {
-        right: 10px;
-        font-size: 20px;
-    }
-    
-    #search-results-display {
-        max-height: calc(100vh - 160px);
-        -webkit-overflow-scrolling: touch;
-        border-radius: 8px;
-    }
-    
-    .search-item-row {
-        padding: 10px 12px;
-    }
-    
-    .search-item-image {
-        width: 45px;
-        height: 45px;
-    }
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 /* ==========================================
    1. TOP BAR
