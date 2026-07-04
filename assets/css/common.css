@@ -1861,3 +1861,144 @@ body.search-active {
         height: 45px;
     }
 }
+
+
+
+
+
+
+
+
+.google-reviews-footer {
+    padding: 50px 0;
+    background-color: #fcfcfc; /* Arka planı hafif gri yaparak ayırabilirsin */
+    border-top: 1px solid #eee;
+}
+
+
+
+.google-reviews-footer .footer-container {
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 0 20px;
+    padding-top: 40px; /* Bu değeri göz kararına göre 30px-50px arası değiştirebilirsin */
+}
+
+.google-reviews-section {
+    background-color: #f9f9f9;
+    padding: 60px 20px;
+    border-top: 1px solid #eee;
+    font-family: 'Inter', sans-serif;
+}
+
+.reviews-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.reviews-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+/* Google Badge Alanı */
+.google-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.google-logo {
+    width: 24px; /* Logoyu küçülttük, rahatsız etmez */
+    height: auto;
+}
+
+.rating-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.rating-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.rating-score {
+    font-size: 20px;
+    font-weight: bold;
+    color: #333;
+}
+
+/* Yıldız Sistemi (4.3 Ayarı) */
+.stars-outer {
+    position: relative;
+    display: inline-block;
+    font-size: 18px;
+    letter-spacing: 2px;
+    color: #e0e0e0; /* Boş yıldız rengi (Gri) */
+}
+
+.stars-inner {
+    position: absolute;
+    top: 0;
+    left: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    color: #fbbc04; /* Dolu yıldız rengi (Google Sarısı) */
+}
+
+.review-count {
+    font-size: 13px;
+    color: #666;
+    margin-top: -2px;
+}
+
+.reviews-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 25px;
+}
+
+.review-card {
+    background: #fff;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    transition: transform 0.3s ease;
+}
+
+.review-card:hover { transform: translateY(-5px); }
+
+.review-meta {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 13px;
+    color: #777;
+}
+
+.reviewer-name { font-weight: 600; color: #333; }
+
+.review-text {
+    margin-top: 15px;
+    line-height: 1.6;
+    color: #555;
+    font-style: italic;
+}
+
+.view-all-reviews {
+    display: inline-block;
+    margin-top: 40px;
+    color: #4285F4;
+    text-decoration: none;
+    font-weight: 600;
+    border-bottom: 1px solid #4285F4;
+}
+
+.reviews-footer { text-align: center; }
+
+
