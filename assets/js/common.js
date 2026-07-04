@@ -526,6 +526,7 @@ function initEventListeners() {
     console.log('Event listenerlar baglandi');
 }
 
+
 // ==========================================
 // OTOMATIK BASLATMA - ESKI YAPI
 // ==========================================
