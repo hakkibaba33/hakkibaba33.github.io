@@ -1,246 +1,178 @@
 // ==========================================
-// PRODUCT.UI.JS - SUPABASE UYUMLU (v2.2)
+// PRODUCT.UI.JS - Lightbox + Mobil Swipe + 3 Akordiyon
 // ==========================================
 
 if (window.__productPageInitialized) {
-    console.log("product.ui.js zaten calistirilmis, atlaniyor.");
+    console.log("⚠️ product.ui.js zaten çalıştırılmış, atlanıyor.");
 } else {
     window.__productPageInitialized = true;
 
-    var currentProduct = null;
-    var currentVariants = [];
-    var selectedVariant = null;
-    var currentImages = [];
-    var selectedImageIndex = 0;
-    var isZoomed = false;
-    var isMobile = window.innerWidth <= 768;
+    let currentProduct = null;
+    let currentImages = [];
+    let currentVariants = [];
+    let selectedVariant = null;
+    let selectedImageIndex = 0;
+    let isZoomed = false;
+    let isMobile = window.innerWidth <= 768;
 
-    var touchStartX = 0;
-    var touchCurrentX = 0;
-    var isDragging = false;
-
-    // SUPABASE CLIENT
-    var SUPABASE_URL = (typeof CONFIG !== 'undefined' && CONFIG.SUPABASE) ? CONFIG.SUPABASE.URL : '';
-    var SUPABASE_KEY = (typeof CONFIG !== 'undefined' && CONFIG.SUPABASE) ? CONFIG.SUPABASE.ANON_KEY : '';
-
-    async function supabaseGet(endpoint, params) {
-        var url = new URL(SUPABASE_URL + '/rest/v1/' + endpoint);
-        if (params) {
-            Object.keys(params).forEach(function(key) {
-                url.searchParams.append(key, params[key]);
-            });
-        }
-
-        var res = await fetch(url, {
-            headers: {
-                'apikey': SUPABASE_KEY,
-                'Authorization': 'Bearer ' + SUPABASE_KEY,
-                'Content-Type': 'application/json'
-            }
-        });
-        if (!res.ok) {
-            var errText = await res.text();
-            console.error('Supabase hata detayi:', errText);
-            throw new Error('Supabase GET hatasi: ' + res.status);
-        }
-        return res.json();
-    }
-
-    function getDisplayPrice(product, variant) {
-        if (variant && variant.discount_price) return variant.discount_price;
-        if (variant && variant.price) return variant.price;
-        if (product.discount_price) return product.discount_price;
-        return product.base_price || 0;
-    }
-
-    function getOriginalPrice(product, variant) {
-        if (variant && variant.price) return variant.price;
-        return product.base_price || 0;
-    }
+    // Mobilde swipe için
+    let touchStartX = 0;
+    let touchCurrentX = 0;
+    let isDragging = false;
 
     async function initProductPage() {
-        console.log("Urun sayfasi init basliyor...");
+        console.log("🚀 Ürün sayfası init başlıyor...");
 
-        var slug = new URLSearchParams(window.location.search).get('slug');
+        let slug = new URLSearchParams(window.location.search).get('slug');
         if (!slug) {
-            var parts = window.location.pathname.split('/').filter(function(p) { return p; });
+            const parts = window.location.pathname.split('/').filter(p => p);
             slug = parts[parts.length - 1];
         }
         if (!slug || slug === 'product.html') {
-            console.error("Slug bulunamadi!");
+            console.error("❌ Slug bulunamadı!");
             return;
         }
 
+        const url = `https://api.airtable.com/v0/${CONFIG.AIRTABLE.BASE_ID}/${CONFIG.AIRTABLE.TABLE_NAME}?filterByFormula=Slug='${slug}'`;
+
         try {
-            // Duz cekme (embed olmadan)
-            var products = await supabaseGet('products', {
-                slug: 'eq.' + slug,
-                select: '*'
-            });
+            const res = await fetch(url, { headers: { Authorization: `Bearer ${CONFIG.AIRTABLE.API_KEY}` } });
+            const data = await res.json();
+            if (!data.records?.length) { console.error("❌ Ürün bulunamadı!"); return; }
 
-            if (products.length === 0) {
-                console.error("Urun bulunamadi!");
-                return;
-            }
+            currentProduct = data.records[0];
+            const f = currentProduct.fields;
 
-            var variants = await supabaseGet('product_variants', {
-                product_id: 'eq.' + products[0].id,
-                select: '*'
-            });
-
-            var data = [{
-                ...products[0],
-                product_variants: variants
-            }];
-
-            if (!data || data.length === 0) {
-                console.error("Urun bulunamadi!");
-                return;
-            }
-
-            currentProduct = data[0];
-            var p = currentProduct;
-            var f = {
-                Name: p.name,
-                Price: p.base_price,
-                Description: p.description,
-                Delivery_time: p.delivery_time || '3-7 arbetsdagar',
-                Variants: p.product_variants || []
-            };
-
-            // Temel bilgiler - element kontrolu ile
+            // Temel bilgiler
             setText('page-title-product-name', f.Name);
             setText('breadcrumb-product-name', f.Name);
             setText('product-main-name-desktop', f.Name);
+            setText('product-price', (f.Price || 0) + " SEK");
+            setHTML('product-description', f.Description || '');
+            setText('delivery-time-display', f.Delivery_time || '3-7 arbetsdagar');
 
-            // Fiyat gosterimi
-            var hasDiscount = p.discount_price && p.discount_price < p.base_price;
-            var priceEl = document.getElementById('product-price');
-            if (priceEl) {
-                if (hasDiscount) {
-                    priceEl.innerHTML = '<span style="text-decoration:line-through;color:#999;font-size:18px;margin-right:8px;">' + p.base_price + ' SEK</span>' +
-                                         '<span style="color:#e54d42;font-size:24px;font-weight:bold;">' + p.discount_price + ' SEK</span>';
+            // Görseller
+            currentImages = f.imageURL || [];
+            console.log(`📸 ${currentImages.length} görsel`);
+
+            if (currentImages.length > 0) {
+                if (isMobile) {
+                    renderMobileGallery();
                 } else {
-                    priceEl.textContent = (f.Price || 0) + " SEK";
+                    renderDesktopGallery();
                 }
             }
 
-            setHTML('product-description', f.Description || '');
-            setText('delivery-time-display', f.Delivery_time);
-
-            // Gorseller
-            currentImages = p.images || [];
-            console.log(currentImages.length + ' gorsel');
-
-            if (currentImages.length > 0) {
-                if (isMobile) renderMobileGallery();
-                else renderDesktopGallery();
-            }
-
             // Varyasyonlar
-            currentVariants = f.Variants;
+            currentVariants = parseVariants(f.Variants);
             if (currentVariants.length > 0) {
                 setupVariantAccordion();
                 renderVariantDrawer();
             } else {
-                var el = document.getElementById('variant-accordion-wrapper');
+                const el = document.getElementById('variant-accordion-wrapper');
                 if (el) el.style.display = 'none';
             }
 
-            // Lightbox
+            // Lightbox (sadece masaüstü)
             if (!isMobile) setupLightbox();
 
             // Akordiyonlar
             setupAccordions();
 
             // Sepete ekle
-            setupAddToCart(f, p);
-            setupWishlistButton(f, p);
+            setupAddToCart(f);
+            setupWishlistButton(f);
 
-            console.log("Urun sayfasi yuklendi:", f.Name);
+            console.log("✅ Ürün sayfası yüklendi:", f.Name);
 
-        } catch (e) { 
-            console.error("Hata:", e); 
-        }
+        } catch (e) { console.error("❌ Hata:", e); }
     }
 
     function setText(id, text) {
-        var el = document.getElementById(id);
+        const el = document.getElementById(id);
         if (el) el.innerText = text || '---';
     }
 
     function setHTML(id, html) {
-        var el = document.getElementById(id);
+        const el = document.getElementById(id);
         if (el) { el.innerHTML = ''; el.innerHTML = html || ''; }
-    }
+     }
 
-    // ==========================================
-    // WISHLIST / FAVORI
-    // ==========================================
+     // ==========================================
+// WISHLIST / FAVORI
+// ==========================================
 
-    function setupWishlistButton(fields, product) {
-        var btn = document.querySelector('.ana-urun-favori-buton');
-        if (!btn) return;
+function setupWishlistButton(fields) {
+    const btn = document.querySelector('.ana-urun-favori-buton');
+    if (!btn) return;
 
-        var productId = currentProduct.id;
-        updateWishlistButtonState(btn, productId);
+    // Ürün ID'si
+    const productId = currentProduct.id;
+    
+    // Başlangıç durumunu kontrol et
+    updateWishlistButtonState(btn, productId);
 
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
+    // Click event
+    btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
 
-            var wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
-            var index = wishlist.findIndex(function(item) { 
-                return (typeof item === 'string' ? item : item.id) === productId; 
-            });
+        let wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
+        const index = wishlist.findIndex(item => (typeof item === 'string' ? item : item.id) === productId);
 
-            if (index > -1) {
-                wishlist.splice(index, 1);
-                console.log('Favorilerden kaldirildi:', fields.Name);
-            } else {
-                wishlist.push({
-                    id: productId,
-                    name: fields.Name,
-                    price: getDisplayPrice(product, selectedVariant),
-                    image: currentImages.length > 0 ? currentImages[0] : ''
-                });
-                console.log('Favorilere eklendi:', fields.Name);
-            }
-
-            localStorage.setItem('wishlistItems', JSON.stringify(wishlist));
-            updateWishlistButtonState(btn, productId);
-            if (typeof updateWishlistBadge === 'function') updateWishlistBadge();
-        });
-    }
-
-    function updateWishlistButtonState(btn, productId) {
-        var wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
-        var isWishlisted = wishlist.some(function(item) { 
-            return (typeof item === 'string' ? item : item.id) === productId; 
-        });
-
-        var icon = btn.querySelector('i');
-        if (icon) {
-            icon.className = isWishlisted ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
-        }
-
-        if (isWishlisted) {
-            btn.classList.add('active');
-            btn.style.color = '#D30000';
+        if (index > -1) {
+            // Kaldır
+            wishlist.splice(index, 1);
+            console.log('Favorilerden kaldirildi:', fields.Name);
         } else {
-            btn.classList.remove('active');
-            btn.style.color = '';
+            // Ekle
+            wishlist.push({
+                id: productId,
+                name: fields.Name,
+                price: parseFloat(fields.Price) || 0,
+                image: currentImages.length > 0 ? currentImages[0].url : ''
+            });
+            console.log('Favorilere eklendi:', fields.Name);
         }
+
+        localStorage.setItem('wishlistItems', JSON.stringify(wishlist));
+        
+        // Buton görünümünü güncelle
+        updateWishlistButtonState(btn, productId);
+        
+        // Header badge'i güncelle
+        if (typeof updateWishlistBadge === 'function') {
+            updateWishlistBadge();
+        }
+    });
+}
+
+function updateWishlistButtonState(btn, productId) {
+    const wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
+    const isWishlisted = wishlist.some(item => (typeof item === 'string' ? item : item.id) === productId);
+    
+    const icon = btn.querySelector('i');
+    if (icon) {
+        icon.className = isWishlisted ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
     }
+    
+    if (isWishlisted) {
+        btn.classList.add('active');
+        btn.style.color = '#D30000';
+    } else {
+        btn.classList.remove('active');
+        btn.style.color = '';
+    }
+}
 
     // ==========================================
-    // MASAUSTU GALERI
+    // MASAÜSTÜ GALERİ (2 Resim + Thumbnail'lar)
     // ==========================================
 
     function renderDesktopGallery() {
-        var container = document.getElementById('desktop-gallery');
-        var thumbContainer = document.getElementById('gallery-thumbnail-list');
-        var mobileGallery = document.getElementById('mobile-gallery');
+        const container = document.getElementById('desktop-gallery');
+        const thumbContainer = document.getElementById('gallery-thumbnail-list');
+        const mobileGallery = document.getElementById('mobile-gallery');
 
         if (container) container.style.display = 'flex';
         if (thumbContainer) thumbContainer.style.display = 'flex';
@@ -248,26 +180,32 @@ if (window.__productPageInitialized) {
 
         if (!container) return;
 
-        var mainHTML = '';
-        var count = Math.min(2, currentImages.length);
+        // 2 büyük resim yan yana
+        let mainHTML = '';
+        const count = Math.min(2, currentImages.length);
 
-        for (var i = 0; i < count; i++) {
-            mainHTML += '<div class="main-image-column" data-index="' + i + '">' +
-                '<img src="' + currentImages[i] + '" ' +
-                'alt="' + currentProduct.name + ' - ' + (i+1) + '" ' +
-                'class="main-image"' +
-                'onclick="openLightbox(' + i + ')">' +
-                '</div>';
+        for (let i = 0; i < count; i++) {
+            mainHTML += `
+                <div class="main-image-column" data-index="${i}">
+                    <img src="${currentImages[i].url}" 
+                         alt="${currentProduct.fields.Name} - ${i+1}" 
+                         class="main-image"
+                         onclick="openLightbox(${i})">
+                </div>
+            `;
         }
         container.innerHTML = mainHTML;
 
+        // Thumbnail'lar
         if (thumbContainer) {
-            var thumbHTML = '';
-            currentImages.forEach(function(img, i) {
-                thumbHTML += '<img src="' + img + '" alt="thumb-' + (i+1) + '" ' +
-                    'class="thumbnail-item ' + (i === 0 ? 'selected' : '') + '"' +
-                    'data-index="' + i + '"' +
-                    'onclick="selectMainImage(' + i + ')">';
+            let thumbHTML = '';
+            currentImages.forEach((img, i) => {
+                thumbHTML += `
+                    <img src="${img.url}" alt="thumb-${i+1}" 
+                         class="thumbnail-item ${i === 0 ? 'selected' : ''}"
+                         data-index="${i}"
+                         onclick="selectMainImage(${i})">
+                `;
             });
             thumbContainer.innerHTML = thumbHTML;
         }
@@ -275,16 +213,16 @@ if (window.__productPageInitialized) {
 
     window.selectMainImage = function(index) {
         selectedImageIndex = index;
-        document.querySelectorAll('.thumbnail-item').forEach(function(thumb, i) {
+        document.querySelectorAll('.thumbnail-item').forEach((thumb, i) => {
             thumb.classList.toggle('selected', i === index);
         });
         if (currentImages.length > 2) {
-            var cols = document.querySelectorAll('.main-image-column');
-            cols.forEach(function(col, i) {
-                var imgIdx = (index + i) % currentImages.length;
-                var img = col.querySelector('img');
+            const cols = document.querySelectorAll('.main-image-column');
+            cols.forEach((col, i) => {
+                const imgIdx = (index + i) % currentImages.length;
+                const img = col.querySelector('img');
                 if (img) {
-                    img.src = currentImages[imgIdx];
+                    img.src = currentImages[imgIdx].url;
                     col.setAttribute('data-index', imgIdx);
                 }
             });
@@ -292,14 +230,14 @@ if (window.__productPageInitialized) {
     };
 
     // ==========================================
-    // MOBIL GALERI
+    // MOBİL GALERİ (Swipe + Sayaç + İlerleme Çubuğu)
     // ==========================================
 
     function renderMobileGallery() {
-        var container = document.getElementById('desktop-gallery');
-        var thumbContainer = document.getElementById('gallery-thumbnail-list');
-        var mobileGallery = document.getElementById('mobile-gallery');
-        var track = document.getElementById('mobile-gallery-track');
+        const container = document.getElementById('desktop-gallery');
+        const thumbContainer = document.getElementById('gallery-thumbnail-list');
+        const mobileGallery = document.getElementById('mobile-gallery');
+        const track = document.getElementById('mobile-gallery-track');
 
         if (container) container.style.display = 'none';
         if (thumbContainer) thumbContainer.style.display = 'none';
@@ -307,11 +245,13 @@ if (window.__productPageInitialized) {
 
         if (!track) return;
 
-        var html = '';
-        currentImages.forEach(function(img, i) {
-            html += '<div class="mobile-gallery-slide" data-index="' + i + '">' +
-                '<img src="' + img + '" alt="' + currentProduct.name + ' - ' + (i+1) + '">' +
-                '</div>';
+        let html = '';
+        currentImages.forEach((img, i) => {
+            html += `
+                <div class="mobile-gallery-slide" data-index="${i}">
+                    <img src="${img.url}" alt="${currentProduct.fields.Name} - ${i+1}">
+                </div>
+            `;
         });
         track.innerHTML = html;
 
@@ -320,22 +260,22 @@ if (window.__productPageInitialized) {
     }
 
     function updateMobileCounter() {
-        var counter = document.getElementById('mobile-gallery-counter');
-        var thumb = document.getElementById('mobile-scrollbar-thumb');
-        var total = currentImages.length;
+        const counter = document.getElementById('mobile-gallery-counter');
+        const thumb = document.getElementById('mobile-scrollbar-thumb');
+        const total = currentImages.length;
 
-        if (counter) counter.innerText = (selectedImageIndex + 1) + ' / ' + total;
+        if (counter) counter.innerText = `${selectedImageIndex + 1} / ${total}`;
 
         if (thumb && total > 1) {
-            var widthPercent = (1 / total) * 100;
-            var leftPercent = (selectedImageIndex / total) * 100;
+            const widthPercent = (1 / total) * 100;
+            const leftPercent = (selectedImageIndex / total) * 100;
             thumb.style.width = widthPercent + '%';
             thumb.style.left = leftPercent + '%';
         }
     }
 
     function setupMobileSwipe() {
-        var track = document.getElementById('mobile-gallery-track');
+        const track = document.getElementById('mobile-gallery-track');
         if (!track) return;
 
         track.addEventListener('touchstart', handleTouchStart, { passive: true });
@@ -351,21 +291,21 @@ if (window.__productPageInitialized) {
     function handleTouchMove(e) {
         if (!isDragging) return;
         touchCurrentX = e.touches[0].clientX;
-        var diff = touchCurrentX - touchStartX;
-        var track = document.getElementById('mobile-gallery-track');
+        const diff = touchCurrentX - touchStartX;
+        const track = document.getElementById('mobile-gallery-track');
         if (track) {
-            var offset = -selectedImageIndex * 100 + (diff / window.innerWidth) * 100;
-            track.style.transform = 'translateX(' + offset + '%)';
+            const offset = -selectedImageIndex * 100 + (diff / window.innerWidth) * 100;
+            track.style.transform = `translateX(${offset}%)`;
         }
     }
 
     function handleTouchEnd(e) {
         if (!isDragging) return;
         isDragging = false;
-        var diff = touchCurrentX - touchStartX;
-        var threshold = 50;
+        const diff = touchCurrentX - touchStartX;
+        const threshold = 50;
 
-        var track = document.getElementById('mobile-gallery-track');
+        const track = document.getElementById('mobile-gallery-track');
 
         if (diff < -threshold && selectedImageIndex < currentImages.length - 1) {
             selectedImageIndex++;
@@ -375,33 +315,36 @@ if (window.__productPageInitialized) {
 
         if (track) {
             track.style.transition = 'transform 0.3s ease-out';
-            track.style.transform = 'translateX(-' + (selectedImageIndex * 100) + '%)';
-            setTimeout(function() { track.style.transition = ''; }, 300);
+            track.style.transform = `translateX(-${selectedImageIndex * 100}%)`;
+            setTimeout(() => { track.style.transition = ''; }, 300);
         }
         updateMobileCounter();
     }
 
     // ==========================================
-    // LIGHTBOX
+    // LIGHTBOX (Sadece Masaüstü)
     // ==========================================
 
     function setupLightbox() {
-        var closeBtn = document.getElementById('lightbox-close');
-        var prevBtn = document.getElementById('lightbox-prev');
-        var nextBtn = document.getElementById('lightbox-next');
-        var imgContainer = document.getElementById('lightbox-img-container');
+        const closeBtn = document.getElementById('lightbox-close');
+        const prevBtn = document.getElementById('lightbox-prev');
+        const nextBtn = document.getElementById('lightbox-next');
+        const imgContainer = document.getElementById('lightbox-img-container');
+        const imgWrapper = document.getElementById('lightbox-img-wrapper');
 
         if (closeBtn) closeBtn.onclick = closeLightbox;
-        if (prevBtn) prevBtn.onclick = function() { navigateLightbox(-1); };
-        if (nextBtn) nextBtn.onclick = function() { navigateLightbox(1); };
+        if (prevBtn) prevBtn.onclick = () => navigateLightbox(-1);
+        if (nextBtn) nextBtn.onclick = () => navigateLightbox(1);
 
+        // Zoom
         if (imgContainer) {
             imgContainer.addEventListener('dblclick', toggleZoom);
         }
 
-        document.addEventListener('keydown', function(e) {
-            var overlay = document.getElementById('custom-lightbox');
-            if (!overlay || !overlay.classList.contains('active')) return;
+        // Klavye navigasyonu
+        document.addEventListener('keydown', (e) => {
+            const overlay = document.getElementById('custom-lightbox');
+            if (!overlay?.classList.contains('active')) return;
             if (e.key === 'Escape') closeLightbox();
             if (e.key === 'ArrowLeft') navigateLightbox(-1);
             if (e.key === 'ArrowRight') navigateLightbox(1);
@@ -411,10 +354,10 @@ if (window.__productPageInitialized) {
     }
 
     window.openLightbox = function(index) {
-        if (isMobile) return;
+        if (isMobile) return; // Mobilde lightbox açılmasın
         selectedImageIndex = index;
         updateLightboxImage();
-        var overlay = document.getElementById('custom-lightbox');
+        const overlay = document.getElementById('custom-lightbox');
         if (overlay) {
             overlay.classList.add('active');
             document.body.style.overflow = 'hidden';
@@ -422,18 +365,18 @@ if (window.__productPageInitialized) {
     };
 
     function closeLightbox() {
-        var overlay = document.getElementById('custom-lightbox');
+        const overlay = document.getElementById('custom-lightbox');
         if (overlay) {
             overlay.classList.remove('active');
             document.body.style.overflow = '';
         }
         isZoomed = false;
-        var wrapper = document.getElementById('lightbox-img-wrapper');
+        const wrapper = document.getElementById('lightbox-img-wrapper');
         if (wrapper) wrapper.classList.remove('zoomed');
     }
 
     function navigateLightbox(direction) {
-        var newIndex = selectedImageIndex + direction;
+        const newIndex = selectedImageIndex + direction;
         if (newIndex >= 0 && newIndex < currentImages.length) {
             selectedImageIndex = newIndex;
             updateLightboxImage();
@@ -441,21 +384,23 @@ if (window.__productPageInitialized) {
     }
 
     function updateLightboxImage() {
-        var img = document.getElementById('lightbox-main-img');
-        var counter = document.getElementById('lightbox-counter');
-        var prevBtn = document.getElementById('lightbox-prev');
-        var nextBtn = document.getElementById('lightbox-next');
+        const img = document.getElementById('lightbox-main-img');
+        const counter = document.getElementById('lightbox-counter');
+        const prevBtn = document.getElementById('lightbox-prev');
+        const nextBtn = document.getElementById('lightbox-next');
 
-        if (img) img.src = currentImages[selectedImageIndex];
-        if (counter) counter.innerText = (selectedImageIndex + 1) + ' / ' + currentImages.length;
+        if (img) img.src = currentImages[selectedImageIndex].url;
+        if (counter) counter.innerText = `${selectedImageIndex + 1} / ${currentImages.length}`;
         if (prevBtn) prevBtn.disabled = selectedImageIndex === 0;
         if (nextBtn) nextBtn.disabled = selectedImageIndex === currentImages.length - 1;
 
+        // Zoom'u resetle
         isZoomed = false;
-        var wrapper = document.getElementById('lightbox-img-wrapper');
+        const wrapper = document.getElementById('lightbox-img-wrapper');
         if (wrapper) wrapper.classList.remove('zoomed');
 
-        document.querySelectorAll('.lightbox-thumb-item-container').forEach(function(thumb, i) {
+        // Thumbnail'ları güncelle
+        document.querySelectorAll('.lightbox-thumb-item-container').forEach((thumb, i) => {
             thumb.classList.toggle('selected', i === selectedImageIndex);
         });
     }
@@ -463,20 +408,22 @@ if (window.__productPageInitialized) {
     function toggleZoom() {
         if (isMobile) return;
         isZoomed = !isZoomed;
-        var wrapper = document.getElementById('lightbox-img-wrapper');
+        const wrapper = document.getElementById('lightbox-img-wrapper');
         if (wrapper) wrapper.classList.toggle('zoomed', isZoomed);
     }
 
     function renderLightboxThumbnails() {
-        var list = document.getElementById('lightbox-thumb-list');
+        const list = document.getElementById('lightbox-thumb-list');
         if (!list) return;
 
-        var html = '';
-        currentImages.forEach(function(img, i) {
-            html += '<div class="lightbox-thumb-item-container ' + (i === 0 ? 'selected' : '') + '" ' +
-                'onclick="lightboxSelectThumb(' + i + ')">' +
-                '<img src="' + img + '" alt="thumb-' + (i+1) + '" class="lightbox-thumbnail-item">' +
-                '</div>';
+        let html = '';
+        currentImages.forEach((img, i) => {
+            html += `
+                <div class="lightbox-thumb-item-container ${i === 0 ? 'selected' : ''}" 
+                     onclick="lightboxSelectThumb(${i})">
+                    <img src="${img.url}" alt="thumb-${i+1}" class="lightbox-thumbnail-item">
+                </div>
+            `;
         });
         list.innerHTML = html;
     }
@@ -487,15 +434,29 @@ if (window.__productPageInitialized) {
     };
 
     // ==========================================
-    // VARYANT
+    // VARYASYON (Aynı kalıyor)
     // ==========================================
 
+    function parseVariants(text) {
+        if (!text) return [];
+        const t = text.toString().trim();
+        const lines = t.split('\n').filter(l => l.trim());
+        if (lines.length > 1) {
+            return lines.map(line => ({ size: line.trim(), label: line.trim(), price: null }));
+        }
+        const parts = t.split(',').map(p => p.trim()).filter(p => p);
+        if (parts.length > 1) {
+            return parts.map(part => ({ size: part, label: part, price: null }));
+        }
+        return [{ size: t, label: t, price: null }];
+    }
+
     function setupVariantAccordion() {
-        var btn = document.getElementById('variant-accordion-btn');
+        const btn = document.getElementById('variant-accordion-btn');
         if (!btn) return;
-        var newBtn = btn.cloneNode(true);
+        const newBtn = btn.cloneNode(true);
         btn.parentNode.replaceChild(newBtn, btn);
-        newBtn.addEventListener('click', function(e) {
+        newBtn.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
             openVariantDrawer();
@@ -503,8 +464,8 @@ if (window.__productPageInitialized) {
     }
 
     function openVariantDrawer() {
-        var overlay = document.getElementById('variant-drawer-overlay');
-        var drawer = document.getElementById('variant-drawer');
+        const overlay = document.getElementById('variant-drawer-overlay');
+        const drawer = document.getElementById('variant-drawer');
         if (overlay && drawer) {
             overlay.classList.add('open');
             drawer.classList.add('open');
@@ -513,8 +474,8 @@ if (window.__productPageInitialized) {
     }
 
     window.closeVariantDrawer = function() {
-        var overlay = document.getElementById('variant-drawer-overlay');
-        var drawer = document.getElementById('variant-drawer');
+        const overlay = document.getElementById('variant-drawer-overlay');
+        const drawer = document.getElementById('variant-drawer');
         if (overlay && drawer) {
             overlay.classList.remove('open');
             drawer.classList.remove('open');
@@ -523,95 +484,77 @@ if (window.__productPageInitialized) {
     };
 
     function renderVariantDrawer() {
-        var body = document.getElementById('variant-drawer-body');
+        const body = document.getElementById('variant-drawer-body');
         if (!body) return;
 
-        var mainImage = currentImages.length > 0 ? currentImages[0] : '';
-        var productName = currentProduct.name;
+        const mainImage = currentImages.length > 0 ? currentImages[0].url : '';
+        const productName = currentProduct.fields.Name;
 
-        var html = '';
-        currentVariants.forEach(function(variant, index) {
-            var isSelected = selectedVariant && selectedVariant.id === variant.id;
-            var displayPrice = getDisplayPrice(currentProduct, variant);
-            var originalPrice = getOriginalPrice(currentProduct, variant);
-            var hasDiscount = variant.discount_price && variant.discount_price < variant.price;
-
-            html += '<div class="variant-drawer-item ' + (isSelected ? 'selected' : '') + '" ' +
-                'data-index="' + index + '" onclick="selectVariant(' + index + ')">' +
-                '<div class="variant-drawer-image">' +
-                '<img src="' + mainImage + '" alt="' + productName + ' ' + variant.size + '">' +
-                '</div>' +
-                '<div class="variant-drawer-info">' +
-                '<span class="variant-size">' + variant.size + '</span>' +
-                '<span class="variant-price">' +
-                (hasDiscount ? '<span style="text-decoration:line-through;color:#999;font-size:12px;">' + originalPrice + ' SEK</span> ' : '') +
-                '<span style="' + (hasDiscount ? 'color:#e54d42;' : '') + '">' + displayPrice + ' SEK</span>' +
-                '</span>' +
-                '<span class="variant-stock" style="font-size:12px;color:' + (variant.stock > 0 ? '#22c55e' : '#e54d42') + ';">' +
-                (variant.stock > 0 ? 'I lager (' + variant.stock + ' st)' : 'Slut i lager') +
-                '</span>' +
-                '</div>' +
-                '<div class="variant-check">' +
-                (isSelected ? '<i class="fa-solid fa-check-circle"></i>' : '<i class="fa-regular fa-circle"></i>') +
-                '</div>' +
-                '</div>';
+        let html = '';
+        currentVariants.forEach((variant, index) => {
+            const isSelected = selectedVariant && selectedVariant.size === variant.size;
+            html += `
+                <div class="variant-drawer-item ${isSelected ? 'selected' : ''}" 
+                     data-index="${index}" onclick="selectVariant(${index})">
+                    <div class="variant-drawer-image">
+                        <img src="${mainImage}" alt="${productName} ${variant.label}">
+                    </div>
+                    <div class="variant-drawer-info">
+                        <span class="variant-size">${variant.label}</span>
+                        <span class="variant-price">${currentProduct.fields.Price} SEK</span>
+                    </div>
+                    <div class="variant-check">
+                        ${isSelected ? '<i class="fa-solid fa-check-circle"></i>' : '<i class="fa-regular fa-circle"></i>'}
+                    </div>
+                </div>
+            `;
         });
         body.innerHTML = html;
 
-        var closeBtn = document.getElementById('close-variant-drawer');
+        const closeBtn = document.getElementById('close-variant-drawer');
         if (closeBtn) closeBtn.onclick = closeVariantDrawer;
 
-        var overlay = document.getElementById('variant-drawer-overlay');
-        if (overlay) overlay.onclick = function(e) { if (e.target === overlay) closeVariantDrawer(); };
+        const overlay = document.getElementById('variant-drawer-overlay');
+        if (overlay) overlay.onclick = (e) => { if (e.target === overlay) closeVariantDrawer(); };
     }
 
     window.selectVariant = function(index) {
         selectedVariant = currentVariants[index];
-        document.querySelectorAll('.variant-drawer-item').forEach(function(item, i) {
+        document.querySelectorAll('.variant-drawer-item').forEach((item, i) => {
             item.classList.toggle('selected', i === index);
-            var icon = item.querySelector('.variant-check i');
+            const icon = item.querySelector('.variant-check i');
             if (icon) icon.className = i === index ? 'fa-solid fa-check-circle' : 'fa-regular fa-circle';
         });
-
-        var display = document.getElementById('selected-variant-display');
-        var status = document.getElementById('variant-status');
-        var priceDisplay = document.getElementById('product-price');
-
-        if (display) display.innerText = selectedVariant.size;
+        const display = document.getElementById('selected-variant-display');
+        const status = document.getElementById('variant-status');
+        if (display) display.innerText = selectedVariant.label;
         if (status) status.style.display = 'inline-flex';
-
-        // Fiyatı guncelle
-        if (priceDisplay) {
-            var displayPrice = getDisplayPrice(currentProduct, selectedVariant);
-            var originalPrice = getOriginalPrice(currentProduct, selectedVariant);
-            var hasDiscount = selectedVariant.discount_price && selectedVariant.discount_price < selectedVariant.price;
-
-            if (hasDiscount) {
-                priceDisplay.innerHTML = '<span style="text-decoration:line-through;color:#999;font-size:18px;margin-right:8px;">' + originalPrice + ' SEK</span>' +
-                                          '<span style="color:#e54d42;font-size:24px;font-weight:bold;">' + displayPrice + ' SEK</span>';
-            } else {
-                priceDisplay.textContent = displayPrice + " SEK";
-            }
-        }
-
         setTimeout(closeVariantDrawer, 300);
     };
 
     // ==========================================
-    // AKORDIYONLAR
+    // AKORDİYONLAR (3 Adet)
     // ==========================================
 
     function setupAccordions() {
-        var items = document.querySelectorAll('.product-accordion-item');
-
-        items.forEach(function(item) {
-            var header = item.querySelector('.product-accordion-header');
-            var content = item.querySelector('.product-accordion-content');
-
+        const items = document.querySelectorAll('.product-accordion-item');
+        
+        items.forEach(item => {
+            const header = item.querySelector('.product-accordion-header');
+            const content = item.querySelector('.product-accordion-content');
+            
             if (!header || !content) return;
 
-            header.addEventListener('click', function() {
-                var isActive = item.classList.contains('active');
+            // İlkini açık bırak (opsiyonel - istersen kaldır)
+            // if (item === items[0]) item.classList.add('active');
+
+            header.addEventListener('click', () => {
+                const isActive = item.classList.contains('active');
+                
+                // Tümünü kapat (tek açık olsun istersen)
+                // items.forEach(i => i.classList.remove('active'));
+                
+                // Toggle
                 item.classList.toggle('active', !isActive);
             });
         });
@@ -621,37 +564,32 @@ if (window.__productPageInitialized) {
     // SEPETE EKLE
     // ==========================================
 
-    function setupAddToCart(fields, product) {
-        var btn = document.getElementById('add-to-cart-btn');
+    function setupAddToCart(fields) {
+        const btn = document.getElementById('add-to-cart-btn');
         if (!btn) return;
-        var newBtn = btn.cloneNode(true);
+        const newBtn = btn.cloneNode(true);
         btn.parentNode.replaceChild(newBtn, btn);
 
-        newBtn.addEventListener('click', function() {
-            var variantInfo = selectedVariant ? selectedVariant.size : 'Standard';
-            var displayPrice = getDisplayPrice(product, selectedVariant);
-
+        newBtn.addEventListener('click', () => {
+            const variantInfo = selectedVariant ? selectedVariant.label : (fields.Variants || 'Standard');
             if (typeof addProductToCart === 'function') {
                 addProductToCart({
                     id: currentProduct.id,
                     name: fields.Name,
-                    price: displayPrice,
-                    image: currentImages.length > 0 ? currentImages[0] : '',
+                    price: parseFloat(fields.Price) || 0,
+                    image: currentImages.length > 0 ? currentImages[0].url : '',
                     variants: variantInfo,
                     delivery: fields.Delivery_time || ''
                 });
             } else {
-                var cartItem = {
-                    id: currentProduct.id, 
-                    name: fields.Name,
-                    price: displayPrice,
-                    image: currentImages.length > 0 ? currentImages[0] : '',
-                    variants: variantInfo, 
-                    delivery: fields.Delivery_time || '', 
-                    quantity: 1
+                const cartItem = {
+                    id: currentProduct.id, name: fields.Name,
+                    price: parseFloat(fields.Price) || 0,
+                    image: currentImages.length > 0 ? currentImages[0].url : '',
+                    variants: variantInfo, delivery: fields.Delivery_time || '', quantity: 1
                 };
-                var cart = JSON.parse(localStorage.getItem('siteCartItems')) || [];
-                var existing = cart.find(function(i) { return i.id === currentProduct.id && i.variants === variantInfo; });
+                let cart = JSON.parse(localStorage.getItem('siteCartItems')) || [];
+                const existing = cart.find(i => i.id === currentProduct.id);
                 if (existing) existing.quantity = (existing.quantity || 1) + 1;
                 else cart.push(cartItem);
                 localStorage.setItem('siteCartItems', JSON.stringify(cart));
@@ -663,11 +601,11 @@ if (window.__productPageInitialized) {
     }
 
     // ==========================================
-    // RESPONSIVE
+    // RESPONSIVE KONTROL
     // ==========================================
 
-    window.addEventListener('resize', function() {
-        var newIsMobile = window.innerWidth <= 768;
+    window.addEventListener('resize', () => {
+        const newIsMobile = window.innerWidth <= 768;
         if (newIsMobile !== isMobile && currentImages.length > 0) {
             isMobile = newIsMobile;
             if (isMobile) renderMobileGallery();
@@ -676,7 +614,7 @@ if (window.__productPageInitialized) {
     });
 
     // ==========================================
-    // BASLAT
+    // BAŞLAT
     // ==========================================
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initProductPage);
