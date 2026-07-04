@@ -23,7 +23,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let stripe = null;
     let elements = null;
     let paymentElement = null;
-    let paymentIntentClientSecret = null;
 
     if (typeof Stripe !== 'undefined' && CONFIG?.STRIPE?.PUBLISHABLE_KEY) {
         stripe = Stripe(CONFIG.STRIPE.PUBLISHABLE_KEY);
@@ -200,13 +199,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const cart = getCart();
 
-        // Boş sepet kontrolü
         if (cart.length === 0) {
             paymentElementContainer.innerHTML = '<p style="color:#666; padding:20px; text-align:center;">Lägg till produkter i varukorgen för att se betalningsalternativ.</p>';
             return false;
         }
 
-        // Müşteri bilgilerini formdan al (boş olabilir, sorun değil)
+        // Müşteri bilgilerini formdan al (boş olabilir)
         const customerData = {
             firstName: document.getElementById('billing_first_name').value || '',
             lastName: document.getElementById('billing_last_name').value || '',
@@ -232,8 +230,15 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('Response status:', response.status);
 
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Server fel');
+                let errorMessage = 'Server fel';
+                try {
+                    const errorData = await response.json();
+                    errorMessage = errorData.error || errorMessage;
+                } catch (e) {
+                    // JSON parse hatası durumunda
+                    errorMessage = `Server fel (${response.status})`;
+                }
+                throw new Error(errorMessage);
             }
 
             const data = await response.json();
@@ -243,7 +248,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error('clientSecret bos dondu!');
             }
 
-            paymentIntentClientSecret = data.clientSecret;
+            // Eski elementleri temizle
+            if (paymentElement) {
+                paymentElement.destroy();
+                paymentElement = null;
+            }
 
             // Stripe Elements'i başlat
             elements = stripe.elements({
@@ -261,27 +270,39 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            // Payment Element oluştur (kart + Klarna)
-            paymentElement = elements.create('payment', {
-                layout: 'tabs',
-                defaultValues: {
-                    billingDetails: {
-                        name: customerData.firstName && customerData.lastName 
-                            ? `${customerData.firstName} ${customerData.lastName}` 
-                            : '',
-                        email: customerData.email,
-                        phone: customerData.phone,
-                        address: customerData.address ? {
-                            line1: customerData.address,
-                            postal_code: customerData.postcode,
-                            city: customerData.city,
-                            country: 'SE'
-                        } : undefined
-                    }
+            // Payment Element oluştur
+            const paymentElementOptions = {
+                layout: 'tabs'
+            };
+
+            // Billing details varsa ekle
+            if (customerData.firstName || customerData.email) {
+                paymentElementOptions.defaultValues = {
+                    billingDetails: {}
+                };
+                if (customerData.firstName && customerData.lastName) {
+                    paymentElementOptions.defaultValues.billingDetails.name = `${customerData.firstName} ${customerData.lastName}`;
                 }
-            });
+                if (customerData.email) {
+                    paymentElementOptions.defaultValues.billingDetails.email = customerData.email;
+                }
+                if (customerData.phone) {
+                    paymentElementOptions.defaultValues.billingDetails.phone = customerData.phone;
+                }
+                if (customerData.address) {
+                    paymentElementOptions.defaultValues.billingDetails.address = {
+                        line1: customerData.address,
+                        postal_code: customerData.postcode,
+                        city: customerData.city,
+                        country: 'SE'
+                    };
+                }
+            }
+
+            paymentElement = elements.create('payment', paymentElementOptions);
 
             // Payment Element'i DOM'a mount et
+            paymentElementContainer.innerHTML = '';
             paymentElement.mount('#payment-element');
 
             console.log('Payment Element mount edildi!');
@@ -293,29 +314,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (error) {
             console.error('Payment form hatasi:', error);
-            paymentElementContainer.innerHTML = `<p style="color:#e54d42; padding:20px;">Ett fel uppstod: ${error.message}</p>`;
+            paymentElementContainer.innerHTML = `
+                <div style="color:#e54d42; padding:20px; text-align:center;">
+                    <p style="font-weight:600; margin-bottom:8px;">Ett fel uppstod</p>
+                    <p style="font-size:13px; color:#666;">${error.message}</p>
+                    <button onclick="location.reload()" style="margin-top:15px; padding:8px 20px; background:#000; color:#fff; border:none; border-radius:4px; cursor:pointer;">Försök igen</button>
+                </div>
+            `;
             return false;
         }
     }
 
     async function updatePaymentAmount() {
         // Sepet değişince ödeme formunu yeniden başlat
-        if (paymentElement) {
-            paymentElement.destroy();
-            paymentElement = null;
-        }
-        if (elements) {
-            elements = null;
-        }
-        paymentElementContainer.innerHTML = '';
-
-        const cart = getCart();
-        if (cart.length === 0) {
-            paymentElementContainer.innerHTML = '<p style="color:#666; padding:20px; text-align:center;">Lägg till produkter i varukorgen för att se betalningsalternativ.</p>';
-            checkFormValidity();
-            return;
-        }
-
         await initPaymentForm();
     }
 
@@ -388,7 +399,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Input değişikliklerini dinle - form validasyonunu güncelle
+    // Input değişikliklerini dinle
     document.querySelectorAll('#address-form input, #accept-terms').forEach(input => {
         input.addEventListener('input', () => {
             input.classList.remove('input-error');
