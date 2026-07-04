@@ -287,37 +287,25 @@ function performSearch(query) {
 
 function updateMiniCartUI() {
     const cart = getCart();
-    console.log("DEBUG: Sepet içeriği:", cart);
-    
     const emptyState = document.getElementById('cart-empty-state');
     const filledState = document.getElementById('cart-filled-state');
     const footer = document.getElementById('mini-cart-footer');
 
-    // DOM elemanları bulunuyor mu kontrolü
-    console.log("DEBUG: DOM elemanları bulundu mu? ->", {
-        emptyState: !!emptyState,
-        filledState: !!filledState,
-        footer: !!footer
-    });
-
-    if (!emptyState || !filledState || !footer) {
-        console.error("KRİTİK HATA: Mini sepet ID'leri HTML'de bulunamadı! Lütfen HTML yapını kontrol et.");
-        return;
-    }
+    if (!emptyState || !filledState || !footer) return;
 
     if (cart.length === 0) {
-        console.log("DEBUG: Sepet boş, emptyState gösteriliyor.");
         emptyState.style.display = 'block';
         filledState.style.display = 'none';
         footer.style.display = 'none';
     } else {
-        console.log("DEBUG: Sepet dolu, filledState render ediliyor.");
         emptyState.style.display = 'none';
         filledState.style.display = 'block';
         footer.style.display = 'block';
 
         let total = 0;
-        filledState.innerHTML = cart.map(item => {
+        
+        // HTML'i bir değişkende topluyoruz
+        const html = cart.map(item => {
             const qty = item.quantity || 1;
             const itemTotal = item.price * qty;
             total += itemTotal;
@@ -327,26 +315,23 @@ function updateMiniCartUI() {
                     <span class="item-name">${item.name || 'Urun'}</span>
                     <span class="item-variant">${item.variants || 'Standard'}</span>
                     <div class="quantity-control">
-                        <button class="quantity-btn minus" data-id="${item.id}" data-action="decrease">-</button>
+                        <button type="button" class="quantity-btn minus" data-id="${item.id}" data-action="decrease">-</button>
                         <input type="text" class="quantity-input" value="${qty}" readonly>
-                        <button class="quantity-btn plus" data-id="${item.id}" data-action="increase">+</button>
+                        <button type="button" class="quantity-btn plus" data-id="${item.id}" data-action="increase">+</button>
                     </div>
                 </div>
                 <div class="item-price-right">
                     <span class="item-price">${itemTotal.toLocaleString('sv-SE')} SEK</span>
-                    <button class="remove-item-btn" data-id="${item.id}">Ta bort</button>
+                    <button type="button" class="remove-item-btn" data-id="${item.id}">Ta bort</button>
                 </div>
             </div>`;
         }).join('');
-        
-        console.log("DEBUG: HTML render edildi. Butonlar oluşturuldu.");
+
+        // Yeni oluşturulan HTML'i tek seferde div'e atıyoruz
+        filledState.innerHTML = html;
 
         const grandTotal = document.getElementById('cart-grand-total');
-        if (grandTotal) {
-            grandTotal.textContent = total.toLocaleString('sv-SE') + ' SEK';
-        } else {
-            console.warn("UYARI: cart-grand-total elementi bulunamadı.");
-        }
+        if (grandTotal) grandTotal.textContent = total.toLocaleString('sv-SE') + ' SEK';
     }
 }
 
