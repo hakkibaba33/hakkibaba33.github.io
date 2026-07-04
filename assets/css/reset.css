@@ -294,23 +294,3 @@ html body .elementor-button:focus {
     color: #000 !important;           /* Butonun orijinal yazı rengi */
 }
 
-
-
-/* Breadcrumb linklerini kırmızıdan kurtar */
-.breadcrumb-nav a {
-    color: #666 !important; /* Standart gri */
-    transition: color 0.3s ease;
-}
-
-.breadcrumb-nav a:hover, 
-.breadcrumb-nav a:focus, 
-.breadcrumb-nav a:active {
-    color: #000 !important; /* Üzerine gelince veya tıklayınca siyah olsun */
-    text-decoration: none !important;
-}
-
-/* Mevcut sayfa ismini (current-item) sabitle */
-.breadcrumb-nav .current-item {
-    color: #999 !important;
-}
-
