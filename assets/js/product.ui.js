@@ -1,5 +1,5 @@
 // ==========================================
-// PRODUCT.UI.JS - SUPABASE UYUMLU (v3.0 - FINAL)
+// PRODUCT.UI.JS - SUPABASE UYUMLU (v3.1 - ID FIX)
 // Eski Airtable yapısını koru, sadece API Supabase'e çevrildi
 // ==========================================
 
@@ -182,7 +182,7 @@ if (window.__productPageInitialized) {
     }
 
     // ==========================================
-    // WISHLIST / FAVORI
+    // WISHLIST / FAVORI - ID FIX
     // ==========================================
 
     function setupWishlistButton(fields) {
@@ -200,7 +200,7 @@ if (window.__productPageInitialized) {
             e.stopPropagation();
 
             let wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
-            const index = wishlist.findIndex(item => (typeof item === 'string' ? item : item.id) === productId);
+            const index = wishlist.findIndex(item => (typeof item === 'string' ? item : String(item.id)) === String(productId));
 
             if (index > -1) {
                 // Kaldir
@@ -209,7 +209,7 @@ if (window.__productPageInitialized) {
             } else {
                 // Ekle
                 wishlist.push({
-                    id: productId,
+                    id: currentProduct.id,
                     name: fields.Name,
                     price: getDisplayPrice(currentProduct, selectedVariant),
                     image: currentImages.length > 0 ? currentImages[0] : ''
@@ -231,7 +231,7 @@ if (window.__productPageInitialized) {
 
     function updateWishlistButtonState(btn, productId) {
         const wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
-        const isWishlisted = wishlist.some(item => (typeof item === 'string' ? item : item.id) === productId);
+        const isWishlisted = wishlist.some(item => (typeof item === 'string' ? item : String(item.id)) === String(productId));
 
         const icon = btn.querySelector('i');
         if (icon) {
@@ -649,7 +649,7 @@ if (window.__productPageInitialized) {
     }
 
     // ==========================================
-    // SEPETE EKLE
+    // SEPETE EKLE - ID FIX
     // ==========================================
 
     function setupAddToCart(fields) {
@@ -679,7 +679,7 @@ if (window.__productPageInitialized) {
                     variants: variantInfo, delivery: fields.Delivery_time || '', quantity: 1
                 };
                 let cart = JSON.parse(localStorage.getItem('siteCartItems')) || [];
-                const existing = cart.find(i => i.id === currentProduct.id && i.variants === variantInfo);
+                const existing = cart.find(i => String(i.id) === String(currentProduct.id) && i.variants === variantInfo);
                 if (existing) existing.quantity = (existing.quantity || 1) + 1;
                 else cart.push(cartItem);
                 localStorage.setItem('siteCartItems', JSON.stringify(cart));
