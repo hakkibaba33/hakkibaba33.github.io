@@ -1,11 +1,36 @@
 // ==========================================
-// WISHLIST.JS - AIRTABLE UYUMLU
+// WISHLIST.JS - SUPABASE UYUMLU (v2.0 - ID FIX)
 // ==========================================
 
 document.addEventListener('DOMContentLoaded', async () => {
     const grid = document.getElementById('wishlist-grid');
     const emptyState = document.getElementById('wishlist-empty');
     const countText = document.getElementById('wishlist-count-text');
+
+    // SUPABASE CONFIG
+    const SUPABASE_URL = (typeof CONFIG !== 'undefined' && CONFIG.SUPABASE) ? CONFIG.SUPABASE.URL : '';
+    const SUPABASE_KEY = (typeof CONFIG !== 'undefined' && CONFIG.SUPABASE) ? CONFIG.SUPABASE.ANON_KEY : '';
+
+    async function supabaseGet(endpoint, params) {
+        const url = new URL(SUPABASE_URL + '/rest/v1/' + endpoint);
+        if (params) {
+            Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
+        }
+
+        const res = await fetch(url, {
+            headers: {
+                'apikey': SUPABASE_KEY,
+                'Authorization': 'Bearer ' + SUPABASE_KEY,
+                'Content-Type': 'application/json'
+            }
+        });
+        if (!res.ok) {
+            const errText = await res.text();
+            console.error('Supabase hata detayi:', errText);
+            throw new Error('Supabase GET hatasi: ' + res.status);
+        }
+        return res.json();
+    }
 
     // Wishlist ID'lerini al (obje dizisi veya string dizisi olabilir)
     function getWishlistItems() {
@@ -19,42 +44,51 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     const wishlistItems = getWishlistItems();
-    const wishlistIds = wishlistItems.map(item => item.id).filter(Boolean);
+    const wishlistIds = wishlistItems.map(item => String(item.id)).filter(Boolean);
 
     if (wishlistIds.length === 0) {
         showEmptyState();
         return;
     }
 
-    // Airtable'dan urunleri cek
+    // Supabase'den urunleri cek
     try {
-        // ID'lere gore filtreleme formulu
-        const filterFormula = `OR(${wishlistIds.map(id => `RECORD_ID()='${id}'`).join(',')})`;
-        const url = `https://api.airtable.com/v0/${CONFIG.AIRTABLE.BASE_ID}/${CONFIG.AIRTABLE.TABLE_NAME}?filterByFormula=${encodeURIComponent(filterFormula)}`;
-
-        const response = await fetch(url, {
-            headers: { Authorization: `Bearer ${CONFIG.AIRTABLE.API_KEY}` }
+        // Tum aktif urunleri cek (Supabase'de 'in' ile coklu ID sorgusu)
+        const products = await supabaseGet('products', {
+            select: '*',
+            active: 'eq.true'
         });
 
-        if (!response.ok) throw new Error('API hatasi: ' + response.status);
+        // Wishlist'teki ID'lere gore filtrele (int8/string uyumlu)
+        const filteredProducts = products.filter(p => wishlistIds.includes(String(p.id)));
 
-        const data = await response.json();
-        const products = data.records.map(r => ({
-            id: r.id,
-            name: r.fields.Name || 'Urun',
-            price: parseFloat(r.fields.Price) || 0,
-            image: r.fields.imageURL && r.fields.imageURL[0] ? r.fields.imageURL[0].url : '',
-            slug: r.fields.Slug || '',
-            variants: r.fields.Variants || 'Standard'
-        }));
-
-        if (products.length === 0) {
+        if (filteredProducts.length === 0) {
             showEmptyState();
             return;
         }
 
-        renderProducts(products);
-        countText.textContent = `Du har ${products.length} sparade produkter.`;
+        // Varyantlari ayri cek
+        const variants = await supabaseGet('product_variants', {
+            select: '*'
+        });
+
+        // Urunleri map'le
+        const mappedProducts = filteredProducts.map(product => {
+            const productVariants = variants.filter(v => String(v.product_id) === String(product.id));
+            return {
+                id: product.id,
+                name: product.name || 'Urun',
+                price: product.discount_price || product.base_price || 0,
+                image: product.images && product.images[0] ? product.images[0] : '',
+                slug: product.slug || '',
+                variants: productVariants.length > 0 
+                    ? productVariants.length + ' storlekar' 
+                    : 'Standard'
+            };
+        });
+
+        renderProducts(mappedProducts);
+        countText.textContent = `Du har ${mappedProducts.length} sparade produkter.`;
 
     } catch (error) {
         console.error('Wishlist yukleme hatasi:', error);
@@ -74,7 +108,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function renderProducts(products) {
         grid.innerHTML = products.map(product => `
-            <div class="product-item-wrapper" data-id="${product.id}">
+            <div class="product-item-wrapper" data-id="${String(product.id)}">
                 <div class="product-card">
                     <div class="image-box">
                        <a href="/matta/${product.slug}"> 
@@ -85,8 +119,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                                  style="width:100%; height:100%; object-fit:cover;">
                         </a>
                         <button class="wishlist-btn active" 
-                                data-product-id="${product.id}"
-                                onclick="removeFromWishlist('${product.id}')">
+                                data-product-id="${String(product.id)}"
+                                onclick="removeFromWishlist('${String(product.id)}')">
                             <i class="fa-solid fa-heart"></i>
                         </button>
                     </div>
@@ -106,25 +140,30 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 // Global fonksiyon - HTML onclick'ten erisim icin
+// ID FIX: String karsilastirma kullan
 function removeFromWishlist(productId) {
+    console.log('removeFromWishlist cagrildi, ID:', productId, 'tip:', typeof productId);
+
     // localStorage'dan kaldir
     let wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
+    console.log('Wishlist silinmeden once:', wishlist.length, 'item');
+
     wishlist = wishlist.filter(item => {
-        const id = typeof item === 'string' ? item : item.id;
-        return id !== productId;
+        const itemId = typeof item === 'string' ? item : String(item.id);
+        const match = itemId !== String(productId);
+        if (!match) console.log('Silinecek item bulundu:', itemId);
+        return match;
     });
+
+    console.log('Wishlist silindikten sonra:', wishlist.length, 'item');
     localStorage.setItem('wishlistItems', JSON.stringify(wishlist));
 
     // Karti animasyonlu kaldir
-    const card = document.querySelector(`[data-id="${productId}"]`);
+    const card = document.querySelector(`[data-id="${String(productId)}"]`);
     if (card) {
         card.classList.add('product-removed');
         setTimeout(() => {
             card.remove();
-
-            if (typeof updateWishlistBadge === 'function') {
-             updateWishlistBadge();
-           }
 
             // Tumu silindiyse bos state goster
             const remaining = document.querySelectorAll('.product-item-wrapper');
@@ -140,5 +179,7 @@ function removeFromWishlist(productId) {
             // Header badge'i guncelle
             if (typeof updateWishlistBadge === 'function') updateWishlistBadge();
         }, 400);
+    } else {
+        console.warn('Kaldirilacak kart bulunamadi, ID:', productId);
     }
 }
