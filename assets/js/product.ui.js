@@ -1,33 +1,34 @@
 // ==========================================
-// PRODUCT.UI.JS - SUPABASE UYUMLU
+// CATEGORY.JS - SUPABASE UYUMLU (v2)
 // ==========================================
 
-if (window.__productPageInitialized) {
-    console.log("⚠️ product.ui.js zaten calistirilmis, atlaniyor.");
-} else {
-    window.__productPageInitialized = true;
+console.log('category.js yukleniyor...');
+console.log('CONFIG durumu:', typeof CONFIG !== 'undefined' ? 'Yuklu' : 'YUKLU DEGIL!');
 
-    var currentProduct = null;
-    var currentVariants = [];
-    var selectedVariant = null;
-    var currentImages = [];
-    var selectedImageIndex = 0;
-    var isZoomed = false;
-    var isMobile = window.innerWidth <= 768;
+document.addEventListener('DOMContentLoaded', async () => {
 
-    var touchStartX = 0;
-    var touchCurrentX = 0;
-    var isDragging = false;
+    // --- 1. DEGISKENLER ---
+    let allProducts = [];
+    let filteredProducts = [];
+    let currentPage = 0;
+    const ITEMS_PER_PAGE = 12;
 
-    // SUPABASE CLIENT
-    var SUPABASE_URL = (typeof CONFIG !== 'undefined' && CONFIG.SUPABASE) ? CONFIG.SUPABASE.URL : '';
-    var SUPABASE_KEY = (typeof CONFIG !== 'undefined' && CONFIG.SUPABASE) ? CONFIG.SUPABASE.ANON_KEY : '';
+    // --- 2. ELEMENTLER ---
+    const grid = document.getElementById('product-grid');
+    const loadMoreBtn = document.getElementById('load-more-btn');
+    const currentCountEl = document.getElementById('current-count');
+    const totalCountEl = document.getElementById('total-count');
+    const progressBar = document.getElementById('progress-bar-fill');
+
+    // --- SUPABASE CLIENT ---
+    const SUPABASE_URL = (typeof CONFIG !== 'undefined' && CONFIG.SUPABASE) ? CONFIG.SUPABASE.URL : '';
+    const SUPABASE_KEY = (typeof CONFIG !== 'undefined' && CONFIG.SUPABASE) ? CONFIG.SUPABASE.ANON_KEY : '';
 
     async function supabaseGet(endpoint, params) {
-        var url = new URL(SUPABASE_URL + '/rest/v1/' + endpoint);
-        if (params) Object.keys(params).forEach(function(key) { url.searchParams.append(key, params[key]); });
+        const url = new URL(SUPABASE_URL + '/rest/v1/' + endpoint);
+        if (params) Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
 
-        var res = await fetch(url, {
+        const res = await fetch(url, {
             headers: {
                 'apikey': SUPABASE_KEY,
                 'Authorization': 'Bearer ' + SUPABASE_KEY,
@@ -35,653 +36,413 @@ if (window.__productPageInitialized) {
             }
         });
         if (!res.ok) {
-            var errText = await res.text();
+            const errText = await res.text();
             console.error('Supabase hata detayi:', errText);
             throw new Error('Supabase GET hatasi: ' + res.status);
         }
         return res.json();
     }
 
-    function getDisplayPrice(product, variant) {
-        if (variant && variant.discount_price) return variant.discount_price;
-        if (variant && variant.price) return variant.price;
-        if (product.discount_price) return product.discount_price;
-        return product.base_price || 0;
+    function getDisplayPrice(product) {
+        return product.discount_price || product.base_price || 0;
     }
 
-    function getOriginalPrice(product, variant) {
-        if (variant && variant.price) return variant.price;
-        return product.base_price || 0;
-    }
+    // --- 3. SUPABASE'DEN URUN CEK ---
+    async function fetchProducts() {
+        try {
+            // Duz cekme (embed olmadan - daha guvenli)
+            const products = await supabaseGet('products', {
+                select: '*',
+                active: 'eq.true'
+            });
 
-    async function initProductPage() {
-        console.log("🚀 Urun sayfasi init basliyor...");
+            // Varyantlari ayri cek
+            const variants = await supabaseGet('product_variants', {
+                select: '*'
+            });
 
-        var slug = new URLSearchParams(window.location.search).get('slug');
-        if (!slug) {
-            var parts = window.location.pathname.split('/').filter(function(p) { return p; });
-            slug = parts[parts.length - 1];
+            // Birlestir
+            const data = products.map(p => ({
+                ...p,
+                product_variants: variants.filter(v => v.product_id === p.id)
+            }));
+
+            allProducts = data.map(product => ({
+                id: product.id,
+                name: product.name || 'Urun',
+                price: getDisplayPrice(product),
+                base_price: product.base_price || 0,
+                discount_price: product.discount_price || null,
+                image: product.images && product.images[0] ? product.images[0] : '',
+                slug: product.slug || '',
+                description: product.description || '',
+                variants: product.product_variants || [],
+                colors: product.colors || [],
+                sizes: product.product_variants ? product.product_variants.map(v => v.size) : [],
+                stock: product.product_variants && product.product_variants.length > 0 
+                    ? (product.product_variants.some(v => v.stock > 0) ? 'In Stock' : 'Out of Stock')
+                    : 'In Stock',
+                delivery_time: product.delivery_time || '3-7 arbetsdagar'
+            }));
+
+            filteredProducts = [...allProducts];
+
+            console.log(allProducts.length + ' urun yuklendi');
+
+            renderProducts();
+            updateProgress();
+            generateFilters();
+
+        } catch (error) {
+            console.error('Urun cekme hatasi:', error);
+            grid.innerHTML = `
+                <div style="grid-column:1/-1; text-align:center; padding:80px 20px;">
+                    <p style="font-size:18px; color:#666; margin-bottom:20px;">Kunde inte ladda produkter.</p>
+                    <p style="color:#999; margin-bottom:30px;">${error.message}</p>
+                    <button onclick="location.reload()" class="visa-mer-btn">Forsok igen</button>
+                </div>
+            `;
         }
-        if (!slug || slug === 'product.html') {
-            console.error("❌ Slug bulunamadi!");
+    }
+
+    // --- 4. URUN RENDER ---
+    function renderProducts(append = false) {
+        if (!append) {
+            grid.innerHTML = '';
+            currentPage = 0;
+        }
+
+        const start = currentPage * ITEMS_PER_PAGE;
+        const end = start + ITEMS_PER_PAGE;
+        const productsToShow = filteredProducts.slice(start, end);
+
+        if (productsToShow.length === 0 && !append) {
+            grid.innerHTML = `
+                <div style="grid-column:1/-1; text-align:center; padding:60px;">
+                    <p style="font-size:18px; color:#666;">Inga produkter hittades.</p>
+                </div>
+            `;
+            document.getElementById('load-more-container').style.display = 'none';
             return;
         }
 
-        try {
-            var data;
-            try {
-                data = await supabaseGet('products', {
-                    slug: 'eq.' + slug,
-                    select: '*,product_variants:id(*)'
-                });
-            } catch (embedErr) {
-                console.warn('Embed cekme basarisiz, duz cekme deneniyor:', embedErr.message);
-                var products = await supabaseGet('products', {
-                    slug: 'eq.' + slug,
-                    select: '*'
-                });
-
-                if (products.length === 0) throw new Error('Urun bulunamadi');
-
-                var variants = await supabaseGet('product_variants', {
-                    product_id: 'eq.' + products[0].id,
-                    select: '*'
-                });
-
-                data = [{
-                    ...products[0],
-                    product_variants: variants
-                }];
-            }
-
-            if (!data || data.length === 0) {
-                console.error("❌ Urun bulunamadi!");
-                return;
-            }
-
-            currentProduct = data[0];
-            var p = currentProduct;
-            var f = {
-                Name: p.name,
-                Price: p.base_price,
-                Description: p.description,
-                Delivery_time: p.delivery_time || '3-7 arbetsdagar',
-                Variants: p.product_variants || []
-            };
-
-            // Temel bilgiler
-            setText('page-title-product-name', f.Name);
-            setText('breadcrumb-product-name', f.Name);
-            setText('product-main-name-desktop', f.Name);
-
-            // Fiyat gosterimi
-            var hasDiscount = p.discount_price && p.discount_price < p.base_price;
-            var priceEl = document.getElementById('product-price');
-            if (priceEl) {
-                if (hasDiscount) {
-                    priceEl.innerHTML = '<span style="text-decoration:line-through;color:#999;font-size:18px;margin-right:8px;">' + p.base_price + ' SEK</span>' +
-                                         '<span style="color:#e54d42;font-size:24px;font-weight:bold;">' + p.discount_price + ' SEK</span>';
-                } else {
-                    priceEl.textContent = (f.Price || 0) + " SEK";
-                }
-            }
-
-            setHTML('product-description', f.Description || '');
-            setText('delivery-time-display', f.Delivery_time);
-
-            // Gorseller
-            currentImages = p.images || [];
-            console.log('📸 ' + currentImages.length + ' gorsel');
-
-            if (currentImages.length > 0) {
-                if (isMobile) renderMobileGallery();
-                else renderDesktopGallery();
-            }
-
-            // Varyasyonlar
-            currentVariants = f.Variants;
-            if (currentVariants.length > 0) {
-                setupVariantAccordion();
-                renderVariantDrawer();
-            } else {
-                var el = document.getElementById('variant-accordion-wrapper');
-                if (el) el.style.display = 'none';
-            }
-
-            // Lightbox
-            if (!isMobile) setupLightbox();
-
-            // Akordiyonlar
-            setupAccordions();
-
-            // Sepete ekle
-            setupAddToCart(f, p);
-            setupWishlistButton(f, p);
-
-            console.log("✅ Urun sayfasi yuklendi:", f.Name);
-
-        } catch (e) { 
-            console.error("❌ Hata:", e); 
-        }
-    }
-
-    function setText(id, text) {
-        var el = document.getElementById(id);
-        if (el) el.innerText = text || '---';
-    }
-
-    function setHTML(id, html) {
-        var el = document.getElementById(id);
-        if (el) { el.innerHTML = ''; el.innerHTML = html || ''; }
-    }
-
-    // ==========================================
-    // WISHLIST / FAVORI
-    // ==========================================
-
-    function setupWishlistButton(fields, product) {
-        var btn = document.querySelector('.ana-urun-favori-buton');
-        if (!btn) return;
-
-        var productId = currentProduct.id;
-        updateWishlistButtonState(btn, productId);
-
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-
-            var wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
-            var index = wishlist.findIndex(function(item) { 
-                return (typeof item === 'string' ? item : item.id) === productId; 
-            });
-
-            if (index > -1) {
-                wishlist.splice(index, 1);
-                console.log('Favorilerden kaldirildi:', fields.Name);
-            } else {
-                wishlist.push({
-                    id: productId,
-                    name: fields.Name,
-                    price: getDisplayPrice(product, selectedVariant),
-                    image: currentImages.length > 0 ? currentImages[0] : ''
-                });
-                console.log('Favorilere eklendi:', fields.Name);
-            }
-
-            localStorage.setItem('wishlistItems', JSON.stringify(wishlist));
-            updateWishlistButtonState(btn, productId);
-            if (typeof updateWishlistBadge === 'function') updateWishlistBadge();
-        });
-    }
-
-    function updateWishlistButtonState(btn, productId) {
-        var wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
-        var isWishlisted = wishlist.some(function(item) { 
-            return (typeof item === 'string' ? item : item.id) === productId; 
+        productsToShow.forEach(product => {
+            const isWishlisted = isInWishlist(product.id);
+            const cardHTML = createProductCard(product, isWishlisted);
+            grid.insertAdjacentHTML('beforeend', cardHTML);
         });
 
-        var icon = btn.querySelector('i');
-        if (icon) {
-            icon.className = isWishlisted ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
-        }
+        attachWishlistEvents();
 
-        if (isWishlisted) {
-            btn.classList.add('active');
-            btn.style.color = '#D30000';
+        const shown = (currentPage + 1) * ITEMS_PER_PAGE;
+        if (shown >= filteredProducts.length) {
+            document.getElementById('load-more-container').style.display = 'none';
         } else {
+            document.getElementById('load-more-container').style.display = 'block';
+        }
+    }
+
+    function createProductCard(product, isWishlisted) {
+        const hasDiscount = product.discount_price && product.discount_price < product.base_price;
+        const priceHTML = hasDiscount 
+            ? '<span class="original-price" style="text-decoration:line-through;color:#999;font-size:14px;">' + product.base_price.toLocaleString('sv-SE') + ' SEK</span>' +
+              '<span class="current-price" style="color:#e54d42;">' + product.price.toLocaleString('sv-SE') + ' SEK</span>'
+            : '<span class="current-price">' + product.price.toLocaleString('sv-SE') + ' SEK</span>';
+
+        const variantText = product.variants.length > 1 
+            ? product.variants.length + ' storlekar' 
+            : (product.variants[0]?.size || 'Standard');
+
+        // URL: /matta/slug seklinde (vercel.json rewrite ile product.html?slug=slug'e yonlenecek)
+        const productUrl = product.slug ? '/matta/' + product.slug : '/matta/' + product.id;
+
+        return `
+            <div class="product-card" data-id="${product.id}">
+                <div class="image-box">
+                    <a href="${productUrl}">
+                        <img src="${product.image}" 
+                             alt="${product.name}" 
+                             loading="lazy"
+                             onerror="this.style.display='none'"
+                             style="width:100%; height:100%; object-fit:cover;">
+                    </a>
+                    ${hasDiscount ? '<span class="discount-badge" style="position:absolute;top:8px;left:8px;background:#e54d42;color:#fff;padding:4px 8px;border-radius:4px;font-size:12px;font-weight:bold;">REA</span>' : ''}
+                    <button class="wishlist-btn ${isWishlisted ? 'active' : ''}" 
+                            data-product-id="${product.id}"
+                            aria-label="Lagg till favoriter">
+                        <i class="${isWishlisted ? 'fa-solid' : 'fa-regular'} fa-heart"></i>
+                    </button>
+                </div>
+                <div class="product-info">
+                    <h3 class="product-title">${product.name}</h3>
+                    <div class="product-meta-row">
+                        <span class="product-acf-dimension">${variantText}</span>
+                    </div>
+                    <div class="product-price">
+                        ${priceHTML}
+                    </div>
+                    ${product.colors.length > 0 ? `
+                        <div class="product-colors-wrapper">
+                            <div class="product-colors-swatches">
+                                ${product.colors.slice(0, 5).map(color => `
+                                    <span class="swatch-circle" 
+                                          style="background-color:${color};"
+                                          title="${color}"></span>
+                                `).join('')}
+                            </div>
+                            ${product.colors.length > 5 ? '<span class="color-count-text">+' + (product.colors.length - 5) + ' farger</span>' : ''}
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    }
+
+    // --- 5. WISHLIST FONKSIYONLARI ---
+    function isInWishlist(productId) {
+        try {
+            const wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
+            return wishlist.some(item => (typeof item === 'string' ? item : item.id) === productId);
+        } catch (e) {
+            return false;
+        }
+    }
+
+    function attachWishlistEvents() {
+        const grid = document.getElementById('product-grid');
+        if (!grid) return;
+        grid.removeEventListener('click', handleWishlistClick);
+        grid.addEventListener('click', handleWishlistClick);
+    }
+
+    function handleWishlistClick(e) {
+        const btn = e.target.closest('.wishlist-btn');
+        if (!btn) return;
+
+        e.preventDefault();
+        e.stopPropagation();
+
+        const productId = btn.dataset.productId;
+        if (!productId) return;
+
+        const product = allProducts.find(p => p.id === productId);
+        if (!product) return;
+
+        let wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
+        const index = wishlist.findIndex(item => (typeof item === 'string' ? item : item.id) === productId);
+
+        if (index > -1) {
+            wishlist.splice(index, 1);
             btn.classList.remove('active');
-            btn.style.color = '';
-        }
-    }
-
-    // ==========================================
-    // MASAUSTU GALERI
-    // ==========================================
-
-    function renderDesktopGallery() {
-        var container = document.getElementById('desktop-gallery');
-        var thumbContainer = document.getElementById('gallery-thumbnail-list');
-        var mobileGallery = document.getElementById('mobile-gallery');
-
-        if (container) container.style.display = 'flex';
-        if (thumbContainer) thumbContainer.style.display = 'flex';
-        if (mobileGallery) mobileGallery.style.display = 'none';
-
-        if (!container) return;
-
-        var mainHTML = '';
-        var count = Math.min(2, currentImages.length);
-
-        for (var i = 0; i < count; i++) {
-            mainHTML += '<div class="main-image-column" data-index="' + i + '">' +
-                '<img src="' + currentImages[i] + '" ' +
-                'alt="' + currentProduct.name + ' - ' + (i+1) + '" ' +
-                'class="main-image"' +
-                'onclick="openLightbox(' + i + ')">' +
-                '</div>';
-        }
-        container.innerHTML = mainHTML;
-
-        if (thumbContainer) {
-            var thumbHTML = '';
-            currentImages.forEach(function(img, i) {
-                thumbHTML += '<img src="' + img + '" alt="thumb-' + (i+1) + '" ' +
-                    'class="thumbnail-item ' + (i === 0 ? 'selected' : '') + '"' +
-                    'data-index="' + i + '"' +
-                    'onclick="selectMainImage(' + i + ')">';
+            const icon = btn.querySelector('i');
+            if (icon) icon.className = 'fa-regular fa-heart';
+            console.log('Favorilerden kaldirildi:', product.name);
+        } else {
+            wishlist.push({
+                id: product.id,
+                name: product.name,
+                price: product.price,
+                image: product.image
             });
-            thumbContainer.innerHTML = thumbHTML;
+            btn.classList.add('active');
+            const icon = btn.querySelector('i');
+            if (icon) icon.className = 'fa-solid fa-heart';
+            console.log('Favorilere eklendi:', product.name);
+        }
+
+        localStorage.setItem('wishlistItems', JSON.stringify(wishlist));
+        updateWishlistBadge();
+    }
+
+    function updateWishlistBadge() {
+        try {
+            const wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
+            const badge = document.querySelector('.wishlist-count-badge');
+            if (badge) {
+                badge.textContent = wishlist.length;
+                badge.classList.toggle('visible', wishlist.length > 0);
+            }
+        } catch (e) {
+            console.error('Wishlist badge hatasi:', e);
         }
     }
 
-    window.selectMainImage = function(index) {
-        selectedImageIndex = index;
-        document.querySelectorAll('.thumbnail-item').forEach(function(thumb, i) {
-            thumb.classList.toggle('selected', i === index);
+    // --- 6. FILTRELER ---
+    function generateFilters() {
+        const allColors = [...new Set(allProducts.flatMap(p => p.colors))].filter(Boolean).sort();
+        const colorContainer = document.getElementById('color-filter-list');
+        if (colorContainer && allColors.length > 0) {
+            colorContainer.innerHTML = allColors.map(color => `
+                <div class="filter-row">
+                    <input type="checkbox" 
+                           class="filter-input" 
+                           id="color-${color.replace(/\s/g, '-')}" 
+                           value="${color}" 
+                           data-type="color">
+                    <label class="filter-row-label" for="color-${color.replace(/\s/g, '-')}">
+                        <span class="color-circle" style="background-color:${color};"></span>
+                        <span>${color}</span>
+                        <i class="fa-solid fa-check check-icon"></i>
+                    </label>
+                </div>
+            `).join('');
+        }
+
+        const allSizes = [...new Set(allProducts.flatMap(p => p.sizes))].filter(Boolean).sort();
+        const sizeContainer = document.getElementById('size-filter-list');
+        if (sizeContainer && allSizes.length > 0) {
+            sizeContainer.innerHTML = allSizes.map(size => `
+                <div class="filter-row">
+                    <input type="checkbox" 
+                           class="filter-input" 
+                           id="size-${size.replace(/\s/g, '-')}" 
+                           value="${size}" 
+                           data-type="size">
+                    <label class="filter-row-label" for="size-${size.replace(/\s/g, '-')}">
+                        <span>${size}</span>
+                        <i class="fa-solid fa-check check-icon"></i>
+                    </label>
+                </div>
+            `).join('');
+        }
+
+        document.querySelectorAll('.filter-input').forEach(input => {
+            input.addEventListener('change', applyFilters);
         });
-        if (currentImages.length > 2) {
-            var cols = document.querySelectorAll('.main-image-column');
-            cols.forEach(function(col, i) {
-                var imgIdx = (index + i) % currentImages.length;
-                var img = col.querySelector('img');
-                if (img) {
-                    img.src = currentImages[imgIdx];
-                    col.setAttribute('data-index', imgIdx);
+    }
+
+    function applyFilters() {
+        const checkedColors = Array.from(document.querySelectorAll('input[data-type="color"]:checked')).map(el => el.value);
+        const checkedSizes = Array.from(document.querySelectorAll('input[data-type="size"]:checked')).map(el => el.value);
+
+        filteredProducts = allProducts.filter(product => {
+            const colorMatch = checkedColors.length === 0 || product.colors.some(c => checkedColors.includes(c));
+            const sizeMatch = checkedSizes.length === 0 || product.sizes.some(s => checkedSizes.includes(s));
+            return colorMatch && sizeMatch;
+        });
+
+        currentPage = 0;
+        renderProducts();
+        updateProgress();
+        updateFilterBadge(checkedColors.length + checkedSizes.length);
+    }
+
+    function updateFilterBadge(count) {
+        const badge = document.querySelector('.filter-badge');
+        if (badge) {
+            badge.textContent = count;
+            badge.style.display = count > 0 ? 'inline-flex' : 'none';
+        }
+    }
+
+    // --- 7. SORT (SIRALAMA) ---
+    function initSort() {
+        document.querySelectorAll('input[name="orderby"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                const sortType = e.target.value;
+
+                switch(sortType) {
+                    case 'price-asc':
+                        filteredProducts.sort((a, b) => a.price - b.price);
+                        break;
+                    case 'price-desc':
+                        filteredProducts.sort((a, b) => b.price - a.price);
+                        break;
+                    case 'name-asc':
+                        filteredProducts.sort((a, b) => a.name.localeCompare(b.name));
+                        break;
+                    case 'name-desc':
+                        filteredProducts.sort((a, b) => b.name.localeCompare(a.name));
+                        break;
+                    default:
+                        filteredProducts.sort((a, b) => a.id.localeCompare(b.id));
                 }
+
+                currentPage = 0;
+                renderProducts();
+                closeAllDrawers();
             });
-        }
-    };
-
-    // ==========================================
-    // MOBIL GALERI
-    // ==========================================
-
-    function renderMobileGallery() {
-        var container = document.getElementById('desktop-gallery');
-        var thumbContainer = document.getElementById('gallery-thumbnail-list');
-        var mobileGallery = document.getElementById('mobile-gallery');
-        var track = document.getElementById('mobile-gallery-track');
-
-        if (container) container.style.display = 'none';
-        if (thumbContainer) thumbContainer.style.display = 'none';
-        if (mobileGallery) mobileGallery.style.display = 'block';
-
-        if (!track) return;
-
-        var html = '';
-        currentImages.forEach(function(img, i) {
-            html += '<div class="mobile-gallery-slide" data-index="' + i + '">' +
-                '<img src="' + img + '" alt="' + currentProduct.name + ' - ' + (i+1) + '">' +
-                '</div>';
-        });
-        track.innerHTML = html;
-
-        updateMobileCounter();
-        setupMobileSwipe();
-    }
-
-    function updateMobileCounter() {
-        var counter = document.getElementById('mobile-gallery-counter');
-        var thumb = document.getElementById('mobile-scrollbar-thumb');
-        var total = currentImages.length;
-
-        if (counter) counter.innerText = (selectedImageIndex + 1) + ' / ' + total;
-
-        if (thumb && total > 1) {
-            var widthPercent = (1 / total) * 100;
-            var leftPercent = (selectedImageIndex / total) * 100;
-            thumb.style.width = widthPercent + '%';
-            thumb.style.left = leftPercent + '%';
-        }
-    }
-
-    function setupMobileSwipe() {
-        var track = document.getElementById('mobile-gallery-track');
-        if (!track) return;
-
-        track.addEventListener('touchstart', handleTouchStart, { passive: true });
-        track.addEventListener('touchmove', handleTouchMove, { passive: true });
-        track.addEventListener('touchend', handleTouchEnd);
-    }
-
-    function handleTouchStart(e) {
-        touchStartX = e.touches[0].clientX;
-        isDragging = true;
-    }
-
-    function handleTouchMove(e) {
-        if (!isDragging) return;
-        touchCurrentX = e.touches[0].clientX;
-        var diff = touchCurrentX - touchStartX;
-        var track = document.getElementById('mobile-gallery-track');
-        if (track) {
-            var offset = -selectedImageIndex * 100 + (diff / window.innerWidth) * 100;
-            track.style.transform = 'translateX(' + offset + '%)';
-        }
-    }
-
-    function handleTouchEnd(e) {
-        if (!isDragging) return;
-        isDragging = false;
-        var diff = touchCurrentX - touchStartX;
-        var threshold = 50;
-
-        var track = document.getElementById('mobile-gallery-track');
-
-        if (diff < -threshold && selectedImageIndex < currentImages.length - 1) {
-            selectedImageIndex++;
-        } else if (diff > threshold && selectedImageIndex > 0) {
-            selectedImageIndex--;
-        }
-
-        if (track) {
-            track.style.transition = 'transform 0.3s ease-out';
-            track.style.transform = 'translateX(-' + (selectedImageIndex * 100) + '%)';
-            setTimeout(function() { track.style.transition = ''; }, 300);
-        }
-        updateMobileCounter();
-    }
-
-    // ==========================================
-    // LIGHTBOX
-    // ==========================================
-
-    function setupLightbox() {
-        var closeBtn = document.getElementById('lightbox-close');
-        var prevBtn = document.getElementById('lightbox-prev');
-        var nextBtn = document.getElementById('lightbox-next');
-        var imgContainer = document.getElementById('lightbox-img-container');
-
-        if (closeBtn) closeBtn.onclick = closeLightbox;
-        if (prevBtn) prevBtn.onclick = function() { navigateLightbox(-1); };
-        if (nextBtn) nextBtn.onclick = function() { navigateLightbox(1); };
-
-        if (imgContainer) {
-            imgContainer.addEventListener('dblclick', toggleZoom);
-        }
-
-        document.addEventListener('keydown', function(e) {
-            var overlay = document.getElementById('custom-lightbox');
-            if (!overlay || !overlay.classList.contains('active')) return;
-            if (e.key === 'Escape') closeLightbox();
-            if (e.key === 'ArrowLeft') navigateLightbox(-1);
-            if (e.key === 'ArrowRight') navigateLightbox(1);
-        });
-
-        renderLightboxThumbnails();
-    }
-
-    window.openLightbox = function(index) {
-        if (isMobile) return;
-        selectedImageIndex = index;
-        updateLightboxImage();
-        var overlay = document.getElementById('custom-lightbox');
-        if (overlay) {
-            overlay.classList.add('active');
-            document.body.style.overflow = 'hidden';
-        }
-    };
-
-    function closeLightbox() {
-        var overlay = document.getElementById('custom-lightbox');
-        if (overlay) {
-            overlay.classList.remove('active');
-            document.body.style.overflow = '';
-        }
-        isZoomed = false;
-        var wrapper = document.getElementById('lightbox-img-wrapper');
-        if (wrapper) wrapper.classList.remove('zoomed');
-    }
-
-    function navigateLightbox(direction) {
-        var newIndex = selectedImageIndex + direction;
-        if (newIndex >= 0 && newIndex < currentImages.length) {
-            selectedImageIndex = newIndex;
-            updateLightboxImage();
-        }
-    }
-
-    function updateLightboxImage() {
-        var img = document.getElementById('lightbox-main-img');
-        var counter = document.getElementById('lightbox-counter');
-        var prevBtn = document.getElementById('lightbox-prev');
-        var nextBtn = document.getElementById('lightbox-next');
-
-        if (img) img.src = currentImages[selectedImageIndex];
-        if (counter) counter.innerText = (selectedImageIndex + 1) + ' / ' + currentImages.length;
-        if (prevBtn) prevBtn.disabled = selectedImageIndex === 0;
-        if (nextBtn) nextBtn.disabled = selectedImageIndex === currentImages.length - 1;
-
-        isZoomed = false;
-        var wrapper = document.getElementById('lightbox-img-wrapper');
-        if (wrapper) wrapper.classList.remove('zoomed');
-
-        document.querySelectorAll('.lightbox-thumb-item-container').forEach(function(thumb, i) {
-            thumb.classList.toggle('selected', i === selectedImageIndex);
         });
     }
 
-    function toggleZoom() {
-        if (isMobile) return;
-        isZoomed = !isZoomed;
-        var wrapper = document.getElementById('lightbox-img-wrapper');
-        if (wrapper) wrapper.classList.toggle('zoomed', isZoomed);
-    }
-
-    function renderLightboxThumbnails() {
-        var list = document.getElementById('lightbox-thumb-list');
-        if (!list) return;
-
-        var html = '';
-        currentImages.forEach(function(img, i) {
-            html += '<div class="lightbox-thumb-item-container ' + (i === 0 ? 'selected' : '') + '" ' +
-                'onclick="lightboxSelectThumb(' + i + ')">' +
-                '<img src="' + img + '" alt="thumb-' + (i+1) + '" class="lightbox-thumbnail-item">' +
-                '</div>';
-        });
-        list.innerHTML = html;
-    }
-
-    window.lightboxSelectThumb = function(index) {
-        selectedImageIndex = index;
-        updateLightboxImage();
-    };
-
-    // ==========================================
-    // VARYANT
-    // ==========================================
-
-    function setupVariantAccordion() {
-        var btn = document.getElementById('variant-accordion-btn');
-        if (!btn) return;
-        var newBtn = btn.cloneNode(true);
-        btn.parentNode.replaceChild(newBtn, btn);
-        newBtn.addEventListener('click', function(e) {
+    // --- 8. LOAD MORE ---
+    if (loadMoreBtn) {
+        loadMoreBtn.addEventListener('click', (e) => {
             e.preventDefault();
-            e.stopPropagation();
-            openVariantDrawer();
+            currentPage++;
+            renderProducts(true);
+            updateProgress();
         });
     }
 
-    function openVariantDrawer() {
-        var overlay = document.getElementById('variant-drawer-overlay');
-        var drawer = document.getElementById('variant-drawer');
-        if (overlay && drawer) {
-            overlay.classList.add('open');
-            drawer.classList.add('open');
-            document.body.classList.add('drawer-open');
+    function updateProgress() {
+        const shown = Math.min((currentPage + 1) * ITEMS_PER_PAGE, filteredProducts.length);
+        const total = filteredProducts.length;
+
+        if (currentCountEl) currentCountEl.textContent = shown;
+        if (totalCountEl) totalCountEl.textContent = total;
+        if (progressBar) {
+            const percentage = total > 0 ? (shown / total) * 100 : 0;
+            progressBar.style.width = percentage + '%';
         }
     }
 
-    window.closeVariantDrawer = function() {
-        var overlay = document.getElementById('variant-drawer-overlay');
-        var drawer = document.getElementById('variant-drawer');
-        if (overlay && drawer) {
-            overlay.classList.remove('open');
-            drawer.classList.remove('open');
-            document.body.classList.remove('drawer-open');
-        }
-    };
+    // --- 9. DRAWER AC/KAPA ---
+    function initDrawers() {
+        const openFilter = document.getElementById('open-filter-sidebar');
+        const closeFilter = document.getElementById('close-filter-sidebar');
+        const filterOverlay = document.getElementById('filter-overlay');
+        const filterDrawer = document.getElementById('filter-sidebar');
 
-    function renderVariantDrawer() {
-        var body = document.getElementById('variant-drawer-body');
-        if (!body) return;
-
-        var mainImage = currentImages.length > 0 ? currentImages[0] : '';
-        var productName = currentProduct.name;
-
-        var html = '';
-        currentVariants.forEach(function(variant, index) {
-            var isSelected = selectedVariant && selectedVariant.id === variant.id;
-            var displayPrice = getDisplayPrice(currentProduct, variant);
-            var originalPrice = getOriginalPrice(currentProduct, variant);
-            var hasDiscount = variant.discount_price && variant.discount_price < variant.price;
-
-            html += '<div class="variant-drawer-item ' + (isSelected ? 'selected' : '') + '" ' +
-                'data-index="' + index + '" onclick="selectVariant(' + index + ')">' +
-                '<div class="variant-drawer-image">' +
-                '<img src="' + mainImage + '" alt="' + productName + ' ' + variant.size + '">' +
-                '</div>' +
-                '<div class="variant-drawer-info">' +
-                '<span class="variant-size">' + variant.size + '</span>' +
-                '<span class="variant-price">' +
-                (hasDiscount ? '<span style="text-decoration:line-through;color:#999;font-size:12px;">' + originalPrice + ' SEK</span> ' : '') +
-                '<span style="' + (hasDiscount ? 'color:#e54d42;' : '') + '">' + displayPrice + ' SEK</span>' +
-                '</span>' +
-                '<span class="variant-stock" style="font-size:12px;color:' + (variant.stock > 0 ? '#22c55e' : '#e54d42') + ';">' +
-                (variant.stock > 0 ? 'I lager (' + variant.stock + ' st)' : 'Slut i lager') +
-                '</span>' +
-                '</div>' +
-                '<div class="variant-check">' +
-                (isSelected ? '<i class="fa-solid fa-check-circle"></i>' : '<i class="fa-regular fa-circle"></i>') +
-                '</div>' +
-                '</div>';
-        });
-        body.innerHTML = html;
-
-        var closeBtn = document.getElementById('close-variant-drawer');
-        if (closeBtn) closeBtn.onclick = closeVariantDrawer;
-
-        var overlay = document.getElementById('variant-drawer-overlay');
-        if (overlay) overlay.onclick = function(e) { if (e.target === overlay) closeVariantDrawer(); };
-    }
-
-    window.selectVariant = function(index) {
-        selectedVariant = currentVariants[index];
-        document.querySelectorAll('.variant-drawer-item').forEach(function(item, i) {
-            item.classList.toggle('selected', i === index);
-            var icon = item.querySelector('.variant-check i');
-            if (icon) icon.className = i === index ? 'fa-solid fa-check-circle' : 'fa-regular fa-circle';
+        openFilter?.addEventListener('click', () => {
+            filterDrawer?.classList.add('active');
+            filterOverlay?.classList.add('active');
+            document.body.style.overflow = 'hidden';
         });
 
-        var display = document.getElementById('selected-variant-display');
-        var status = document.getElementById('variant-status');
-        var priceDisplay = document.getElementById('product-price');
+        const closeFilterFn = () => {
+            filterDrawer?.classList.remove('active');
+            filterOverlay?.classList.remove('active');
+            document.body.style.overflow = '';
+        };
 
-        if (display) display.innerText = selectedVariant.size;
-        if (status) status.style.display = 'inline-flex';
+        closeFilter?.addEventListener('click', closeFilterFn);
+        filterOverlay?.addEventListener('click', closeFilterFn);
 
-        // Fiyatı guncelle
-        if (priceDisplay) {
-            var displayPrice = getDisplayPrice(currentProduct, selectedVariant);
-            var originalPrice = getOriginalPrice(currentProduct, selectedVariant);
-            var hasDiscount = selectedVariant.discount_price && selectedVariant.discount_price < selectedVariant.price;
+        const openSort = document.getElementById('sort-menu-btn');
+        const closeSort = document.getElementById('close-sort-drawer');
+        const sortOverlay = document.getElementById('sort-overlay');
+        const sortDrawer = document.getElementById('sort-drawer');
 
-            if (hasDiscount) {
-                priceDisplay.innerHTML = '<span style="text-decoration:line-through;color:#999;font-size:18px;margin-right:8px;">' + originalPrice + ' SEK</span>' +
-                                          '<span style="color:#e54d42;font-size:24px;font-weight:bold;">' + displayPrice + ' SEK</span>';
-            } else {
-                priceDisplay.textContent = displayPrice + " SEK";
-            }
-        }
-
-        setTimeout(closeVariantDrawer, 300);
-    };
-
-    // ==========================================
-    // AKORDIYONLAR
-    // ==========================================
-
-    function setupAccordions() {
-        var items = document.querySelectorAll('.product-accordion-item');
-
-        items.forEach(function(item) {
-            var header = item.querySelector('.product-accordion-header');
-            var content = item.querySelector('.product-accordion-content');
-
-            if (!header || !content) return;
-
-            header.addEventListener('click', function() {
-                var isActive = item.classList.contains('active');
-                item.classList.toggle('active', !isActive);
-            });
+        openSort?.addEventListener('click', () => {
+            sortDrawer?.classList.add('active');
+            sortOverlay?.classList.add('active');
+            document.body.style.overflow = 'hidden';
         });
+
+        const closeSortFn = () => {
+            sortDrawer?.classList.remove('active');
+            sortOverlay?.classList.remove('active');
+            document.body.style.overflow = '';
+        };
+
+        closeSort?.addEventListener('click', closeSortFn);
+        sortOverlay?.addEventListener('click', closeSortFn);
     }
 
-    // ==========================================
-    // SEPETE EKLE
-    // ==========================================
-
-    function setupAddToCart(fields, product) {
-        var btn = document.getElementById('add-to-cart-btn');
-        if (!btn) return;
-        var newBtn = btn.cloneNode(true);
-        btn.parentNode.replaceChild(newBtn, btn);
-
-        newBtn.addEventListener('click', function() {
-            var variantInfo = selectedVariant ? selectedVariant.size : 'Standard';
-            var displayPrice = getDisplayPrice(product, selectedVariant);
-
-            if (typeof addProductToCart === 'function') {
-                addProductToCart({
-                    id: currentProduct.id,
-                    name: fields.Name,
-                    price: displayPrice,
-                    image: currentImages.length > 0 ? currentImages[0] : '',
-                    variants: variantInfo,
-                    delivery: fields.Delivery_time || ''
-                });
-            } else {
-                var cartItem = {
-                    id: currentProduct.id, 
-                    name: fields.Name,
-                    price: displayPrice,
-                    image: currentImages.length > 0 ? currentImages[0] : '',
-                    variants: variantInfo, 
-                    delivery: fields.Delivery_time || '', 
-                    quantity: 1
-                };
-                var cart = JSON.parse(localStorage.getItem('siteCartItems')) || [];
-                var existing = cart.find(function(i) { return i.id === currentProduct.id && i.variants === variantInfo; });
-                if (existing) existing.quantity = (existing.quantity || 1) + 1;
-                else cart.push(cartItem);
-                localStorage.setItem('siteCartItems', JSON.stringify(cart));
-                if (typeof updateMiniCartUI === 'function') updateMiniCartUI();
-                if (typeof updateCartBadge === 'function') updateCartBadge();
-                if (typeof openMiniCart === 'function') openMiniCart();
-            }
-        });
+    function closeAllDrawers() {
+        document.querySelectorAll('#filter-sidebar, #sort-drawer').forEach(el => el?.classList.remove('active'));
+        document.querySelectorAll('#filter-overlay, #sort-overlay').forEach(el => el?.classList.remove('active'));
+        document.body.style.overflow = '';
     }
 
-    // ==========================================
-    // RESPONSIVE
-    // ==========================================
+    window.closeAll = closeAllDrawers;
 
-    window.addEventListener('resize', function() {
-        var newIsMobile = window.innerWidth <= 768;
-        if (newIsMobile !== isMobile && currentImages.length > 0) {
-            isMobile = newIsMobile;
-            if (isMobile) renderMobileGallery();
-            else renderDesktopGallery();
-        }
-    });
+    // --- 10. BASLAT ---
+    await fetchProducts();
+    initSort();
+    initDrawers();
+    updateWishlistBadge();
 
-    // ==========================================
-    // BASLAT
-    // ==========================================
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initProductPage);
-    } else {
-        initProductPage();
-    }
-}
+    console.log('Category.js baslatildi');
+});

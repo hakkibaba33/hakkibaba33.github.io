@@ -1,5 +1,5 @@
 // ==========================================
-// CATEGORY.JS - SUPABASE UYUMLU
+// CATEGORY.JS - SUPABASE UYUMLU (v2)
 // ==========================================
 
 console.log('category.js yukleniyor...');
@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!res.ok) {
             const errText = await res.text();
             console.error('Supabase hata detayi:', errText);
-            throw new Error('Supabase GET hatasi: ' + res.status + ' - ' + errText);
+            throw new Error('Supabase GET hatasi: ' + res.status);
         }
         return res.json();
     }
@@ -50,33 +50,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     // --- 3. SUPABASE'DEN URUN CEK ---
     async function fetchProducts() {
         try {
-            // ONCELIKLE: products tablosunu tek basina cek (embed olmadan)
-            // Eger bu calisirsa RLS veya embed syntax sorunu var demek
-            let data;
-            try {
-                data = await supabaseGet('products', {
-                    select: '*,product_variants:id(*)',
-                    active: 'eq.true'
-                });
-            } catch (embedErr) {
-                console.warn('Embed cekme basarisiz, duz cekme deneniyor:', embedErr.message);
-                // Duz cekme dene
-                const products = await supabaseGet('products', {
-                    select: '*',
-                    active: 'eq.true'
-                });
+            // Duz cekme (embed olmadan - daha guvenli)
+            const products = await supabaseGet('products', {
+                select: '*',
+                active: 'eq.true'
+            });
 
-                // Varyantlari ayri cek
-                const variants = await supabaseGet('product_variants', {
-                    select: '*'
-                });
+            // Varyantlari ayri cek
+            const variants = await supabaseGet('product_variants', {
+                select: '*'
+            });
 
-                // Birlestir
-                data = products.map(p => ({
-                    ...p,
-                    product_variants: variants.filter(v => v.product_id === p.id)
-                }));
-            }
+            // Birlestir
+            const data = products.map(p => ({
+                ...p,
+                product_variants: variants.filter(v => v.product_id === p.id)
+            }));
 
             allProducts = data.map(product => ({
                 id: product.id,
@@ -164,10 +153,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             ? product.variants.length + ' storlekar' 
             : (product.variants[0]?.size || 'Standard');
 
+        // URL: /matta/slug seklinde (vercel.json rewrite ile product.html?slug=slug'e yonlenecek)
+        const productUrl = product.slug ? '/matta/' + product.slug : '/matta/' + product.id;
+
         return `
             <div class="product-card" data-id="${product.id}">
                 <div class="image-box">
-                    <a href="/matta/${product.slug}">
+                    <a href="${productUrl}">
                         <img src="${product.image}" 
                              alt="${product.name}" 
                              loading="lazy"

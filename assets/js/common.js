@@ -1,38 +1,43 @@
 // ==========================================
-// COMMON.JS - SUPABASE UYUMLU (v5)
+// COMMON.JS - SUPABASE UYUMLU (v5.1)
 // ==========================================
 
 if (typeof CONFIG === 'undefined') {
     console.error('HATA: config.js yuklenmemis!');
 }
 
-const SUPABASE_URL = (typeof CONFIG !== 'undefined' && CONFIG.SUPABASE) ? CONFIG.SUPABASE.URL : '';
-const SUPABASE_KEY = (typeof CONFIG !== 'undefined' && CONFIG.SUPABASE) ? CONFIG.SUPABASE.ANON_KEY : '';
+var SUPABASE_URL = (typeof CONFIG !== 'undefined' && CONFIG.SUPABASE) ? CONFIG.SUPABASE.URL : '';
+var SUPABASE_KEY = (typeof CONFIG !== 'undefined' && CONFIG.SUPABASE) ? CONFIG.SUPABASE.ANON_KEY : '';
 
 // ==========================================
-// SUPABASE CLIENT (Basit REST wrapper)
+// SUPABASE CLIENT
 // ==========================================
 
 async function supabaseGet(endpoint, params) {
-    const url = new URL(SUPABASE_URL + '/rest/v1/' + endpoint);
-    if (params) Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
+    var url = new URL(SUPABASE_URL + '/rest/v1/' + endpoint);
+    if (params) {
+        Object.keys(params).forEach(function(key) {
+            url.searchParams.append(key, params[key]);
+        });
+    }
 
-    const res = await fetch(url, {
+    var res = await fetch(url, {
         headers: {
             'apikey': SUPABASE_KEY,
             'Authorization': 'Bearer ' + SUPABASE_KEY,
             'Content-Type': 'application/json'
         }
     });
-    if (!res.ok) throw new Error('Supabase GET hatasi: ' + res.status);
+    if (!res.ok) {
+        var errText = await res.text();
+        console.error('Supabase hata detayi:', errText);
+        throw new Error('Supabase GET hatasi: ' + res.status);
+    }
     return res.json();
 }
 
 async function supabaseGetOne(endpoint, filter) {
-    const data = await supabaseGet(endpoint, {
-        select: '*',
-        ...filter
-    });
+    var data = await supabaseGet(endpoint, filter);
     return data[0] || null;
 }
 
@@ -54,10 +59,10 @@ function saveCart(cart) {
 }
 
 function updateCartBadge() {
-    const cart = getCart();
-    const badge = document.querySelector('.cart-count-badge');
+    var cart = getCart();
+    var badge = document.querySelector('.cart-count-badge');
     if (badge) {
-        badge.textContent = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
+        badge.textContent = cart.reduce(function(sum, item) { return sum + (item.quantity || 1); }, 0);
         badge.classList.toggle('visible', cart.length > 0);
     }
 }
@@ -68,8 +73,8 @@ function updateCartBadge() {
 
 function updateWishlistBadge() {
     try {
-        const wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
-        const badge = document.querySelector('.wishlist-count-badge');
+        var wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
+        var badge = document.querySelector('.wishlist-count-badge');
         if (badge) {
             badge.textContent = wishlist.length;
             badge.classList.toggle('visible', wishlist.length > 0);
@@ -84,7 +89,7 @@ function updateWishlistBadge() {
 // ==========================================
 
 function openMiniCart() {
-    const overlay = document.getElementById('mini-cart-overlay');
+    var overlay = document.getElementById('mini-cart-overlay');
     if (!overlay) return;
     overlay.classList.add('open');
     document.body.classList.add('cart-open');
@@ -92,7 +97,7 @@ function openMiniCart() {
 }
 
 function closeMiniCart() {
-    const overlay = document.getElementById('mini-cart-overlay');
+    var overlay = document.getElementById('mini-cart-overlay');
     if (!overlay) return;
     overlay.classList.remove('open');
     document.body.classList.remove('cart-open');
@@ -106,18 +111,18 @@ var searchDebounceTimer = null;
 var allProductsCache = [];
 
 function initSearch() {
-    const popup = document.getElementById('search-popup-overlay');
-    const input = document.getElementById('live-search-input');
-    const closeBtn = document.getElementById('close-search-popup');
-    const resultsDisplay = document.getElementById('search-results-display');
+    var popup = document.getElementById('search-popup-overlay');
+    var input = document.getElementById('live-search-input');
+    var closeBtn = document.getElementById('close-search-popup');
+    var resultsDisplay = document.getElementById('search-results-display');
 
     if (!popup || !input) {
         console.warn('Search popup elementleri bulunamadi!');
         return;
     }
 
-    document.addEventListener('click', (e) => {
-        const openBtn = e.target.closest('#search-open-btn');
+    document.addEventListener('click', function(e) {
+        var openBtn = e.target.closest('#search-open-btn');
         if (openBtn) {
             e.preventDefault();
             e.stopPropagation();
@@ -126,24 +131,24 @@ function initSearch() {
     });
 
     if (closeBtn) {
-        closeBtn.addEventListener('click', (e) => {
+        closeBtn.addEventListener('click', function(e) {
             e.stopPropagation();
             closeSearchPopup();
         });
     }
 
-    popup.addEventListener('click', (e) => {
+    popup.addEventListener('click', function(e) {
         if (e.target === popup) closeSearchPopup();
     });
 
-    document.addEventListener('keydown', (e) => {
+    document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape' && popup.classList.contains('active')) {
             closeSearchPopup();
         }
     });
 
-    input.addEventListener('input', (e) => {
-        const query = e.target.value.trim();
+    input.addEventListener('input', function(e) {
+        var query = e.target.value.trim();
         clearTimeout(searchDebounceTimer);
 
         if (query.length < 2) {
@@ -151,29 +156,29 @@ function initSearch() {
             return;
         }
 
-        searchDebounceTimer = setTimeout(() => {
+        searchDebounceTimer = setTimeout(function() {
             performSearch(query);
         }, 300);
     });
 
-    console.log('✅ Search popup baslatildi');
+    console.log('Search popup baslatildi');
 }
 
 function openSearchPopup() {
-    const popup = document.getElementById('search-popup-overlay');
-    const input = document.getElementById('live-search-input');
-    const resultsDisplay = document.getElementById('search-results-display');
+    var popup = document.getElementById('search-popup-overlay');
+    var input = document.getElementById('live-search-input');
+    var resultsDisplay = document.getElementById('search-results-display');
 
     if (!popup) return;
 
-    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+    var scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
     document.body.style.paddingRight = scrollbarWidth + 'px';
     document.body.classList.add('search-active');
 
     popup.classList.add('active');
     if (resultsDisplay) resultsDisplay.style.display = 'none';
 
-    setTimeout(() => input?.focus(), 100);
+    setTimeout(function() { if (input) input.focus(); }, 100);
 
     if (allProductsCache.length === 0) {
         fetchAllProductsForSearch();
@@ -181,8 +186,8 @@ function openSearchPopup() {
 }
 
 function closeSearchPopup() {
-    const popup = document.getElementById('search-popup-overlay');
-    const resultsDisplay = document.getElementById('search-results-display');
+    var popup = document.getElementById('search-popup-overlay');
+    var resultsDisplay = document.getElementById('search-results-display');
 
     if (!popup) return;
 
@@ -195,7 +200,7 @@ function closeSearchPopup() {
         resultsDisplay.innerHTML = '';
     }
 
-    const input = document.getElementById('live-search-input');
+    var input = document.getElementById('live-search-input');
     if (input) input.value = '';
 }
 
@@ -206,14 +211,13 @@ async function fetchAllProductsForSearch() {
     }
 
     try {
-        // products + variants birlikte çek (embed syntax düzeltildi)
-        const data = await supabaseGet('products', {
-            select: '*,product_variants:id(*)',
+        var data = await supabaseGet('products', {
+            select: '*',
             active: 'eq.true'
         });
 
-        allProductsCache = data.map(product => {
-            const displayPrice = getDisplayPrice(product);
+        allProductsCache = data.map(function(product) {
+            var displayPrice = product.discount_price || product.base_price || 0;
             return {
                 id: product.id,
                 name: product.name || '',
@@ -224,26 +228,15 @@ async function fetchAllProductsForSearch() {
             };
         });
 
-        console.log(allProductsCache.length + ' urun cache'lendi');
+        console.log(allProductsCache.length + ' urun cachelendi');
 
     } catch (error) {
         console.error('Urun cache hatasi:', error);
     }
 }
 
-// Fiyat hesaplama: discount_price varsa onu, yoksa base_price, varyant varsa varyant fiyatı
-function getDisplayPrice(product, variantSize) {
-    if (variantSize && product.product_variants) {
-        const variant = product.product_variants.find(v => v.size === variantSize);
-        if (variant) {
-            return variant.discount_price || variant.price || product.discount_price || product.base_price || 0;
-        }
-    }
-    return product.discount_price || product.base_price || 0;
-}
-
 function performSearch(query) {
-    const resultsDisplay = document.getElementById('search-results-display');
+    var resultsDisplay = document.getElementById('search-results-display');
     if (!resultsDisplay) return;
 
     if (allProductsCache.length === 0) {
@@ -252,38 +245,38 @@ function performSearch(query) {
         return;
     }
 
-    const lowerQuery = query.toLowerCase();
-    const filtered = allProductsCache.filter(product => 
-        product.name.toLowerCase().includes(lowerQuery) ||
-        product.category.toLowerCase().includes(lowerQuery)
-    );
+    var lowerQuery = query.toLowerCase();
+    var filtered = allProductsCache.filter(function(product) {
+        return product.name.toLowerCase().includes(lowerQuery) ||
+               product.category.toLowerCase().includes(lowerQuery);
+    });
 
     if (filtered.length === 0) {
         resultsDisplay.innerHTML = '<div class="no-results-found">Inga produkter hittades.</div>';
     } else {
-        resultsDisplay.innerHTML = filtered.slice(0, 8).map(product => `
-            <a href="${product.url}" class="search-item-row">
-                <div class="search-item-image">
-                    <img src="${product.image}" alt="${product.name}" onerror="this.src='https://via.placeholder.com/50'">
-                </div>
-                <div class="search-item-info">
-                    <h4 class="search-item-title">${highlightMatch(product.name, query)}</h4>
-                    <span class="search-item-price">${product.price.toLocaleString('sv-SE')} SEK</span>
-                </div>
-            </a>
-        `).join('');
+        resultsDisplay.innerHTML = filtered.slice(0, 8).map(function(product) {
+            return '<a href="' + product.url + '" class="search-item-row">' +
+                '<div class="search-item-image">' +
+                '<img src="' + product.image + '" alt="' + product.name + '" onerror="this.src='https://via.placeholder.com/50'">' +
+                '</div>' +
+                '<div class="search-item-info">' +
+                '<h4 class="search-item-title">' + highlightMatch(product.name, query) + '</h4>' +
+                '<span class="search-item-price">' + product.price.toLocaleString('sv-SE') + ' SEK</span>' +
+                '</div>' +
+                '</a>';
+        }).join('');
     }
 
     resultsDisplay.style.display = 'block';
 }
 
 function highlightMatch(text, query) {
-    const regex = new RegExp('(' + escapeRegex(query) + ')', 'gi');
+    var regex = new RegExp('(' + escapeRegex(query) + ')', 'gi');
     return text.replace(regex, '<mark style="background:#ffeb3b;color:#000;padding:0 2px;">$1</mark>');
 }
 
 function escapeRegex(string) {
-    return string.replace(/[.*+?^${}()|[\]\]/g, '\$&');
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 // ==========================================
@@ -291,10 +284,10 @@ function escapeRegex(string) {
 // ==========================================
 
 function updateMiniCartUI() {
-    const cart = getCart();
-    const emptyState = document.getElementById('cart-empty-state');
-    const filledState = document.getElementById('cart-filled-state');
-    const footer = document.getElementById('mini-cart-footer');
+    var cart = getCart();
+    var emptyState = document.getElementById('cart-empty-state');
+    var filledState = document.getElementById('cart-filled-state');
+    var footer = document.getElementById('mini-cart-footer');
 
     if (!emptyState || !filledState || !footer) return;
 
@@ -307,51 +300,49 @@ function updateMiniCartUI() {
         filledState.style.display = 'block';
         footer.style.display = 'block';
 
-        let total = 0;
-        filledState.innerHTML = cart.map(item => {
-            const qty = item.quantity || 1;
-            const itemTotal = item.price * qty;
+        var total = 0;
+        filledState.innerHTML = cart.map(function(item) {
+            var qty = item.quantity || 1;
+            var itemTotal = item.price * qty;
             total += itemTotal;
-            return `
-                <div class="mini-cart-item" data-id="${item.id}">
-                    <img src="${item.image || ''}" alt="${item.name || ''}" class="item-image" onerror="this.style.display='none'">
-                    <div class="item-details-left">
-                        <span class="item-name">${item.name || 'Urun'}</span>
-                        <span class="item-variant">${item.variants || 'Standard'}</span>
-                        <div class="quantity-control">
-                            <button class="quantity-btn minus" data-id="${item.id}" data-action="decrease">-</button>
-                            <input type="text" class="quantity-input" value="${qty}" readonly>
-                            <button class="quantity-btn plus" data-id="${item.id}" data-action="increase">+</button>
-                        </div>
-                    </div>
-                    <div class="item-price-right">
-                        <span class="item-price">${itemTotal.toLocaleString('sv-SE')} SEK</span>
-                        <button class="remove-item-btn" data-id="${item.id}">Ta bort</button>
-                    </div>
-                </div>
-            `;
+            return '<div class="mini-cart-item" data-id="' + item.id + '">' +
+                '<img src="' + (item.image || '') + '" alt="' + (item.name || '') + '" class="item-image" onerror="this.style.display='none'">' +
+                '<div class="item-details-left">' +
+                '<span class="item-name">' + (item.name || 'Urun') + '</span>' +
+                '<span class="item-variant">' + (item.variants || 'Standard') + '</span>' +
+                '<div class="quantity-control">' +
+                '<button class="quantity-btn minus" data-id="' + item.id + '" data-action="decrease">-</button>' +
+                '<input type="text" class="quantity-input" value="' + qty + '" readonly>' +
+                '<button class="quantity-btn plus" data-id="' + item.id + '" data-action="increase">+</button>' +
+                '</div>' +
+                '</div>' +
+                '<div class="item-price-right">' +
+                '<span class="item-price">' + itemTotal.toLocaleString('sv-SE') + ' SEK</span>' +
+                '<button class="remove-item-btn" data-id="' + item.id + '">Ta bort</button>' +
+                '</div>' +
+                '</div>';
         }).join('');
 
-        const grandTotal = document.getElementById('cart-grand-total');
+        var grandTotal = document.getElementById('cart-grand-total');
         if (grandTotal) grandTotal.textContent = total.toLocaleString('sv-SE') + ' SEK';
     }
 }
 
 function updateQuantity(productId, change) {
-    let cart = getCart();
-    const item = cart.find(i => i.id === productId);
+    var cart = getCart();
+    var item = cart.find(function(i) { return i.id === productId; });
     if (!item) return;
 
     item.quantity = (item.quantity || 1) + change;
     if (item.quantity <= 0) {
-        cart = cart.filter(i => i.id !== productId);
+        cart = cart.filter(function(i) { return i.id !== productId; });
     }
     saveCart(cart);
     updateMiniCartUI();
 }
 
 function removeFromCart(productId) {
-    let cart = getCart().filter(i => i.id !== productId);
+    var cart = getCart().filter(function(i) { return i.id !== productId; });
     saveCart(cart);
     updateMiniCartUI();
 }
@@ -361,13 +352,13 @@ function removeFromCart(productId) {
 // ==========================================
 
 function addProductToCart(productData) {
-    let cart = getCart();
-    const existing = cart.find(i => i.id === productData.id && i.variants === productData.variants);
+    var cart = getCart();
+    var existing = cart.find(function(i) { return i.id === productData.id && i.variants === productData.variants; });
 
     if (existing) {
         existing.quantity = (existing.quantity || 1) + 1;
     } else {
-        cart.push({ ...productData, quantity: 1 });
+        cart.push(Object.assign({}, productData, { quantity: 1 }));
     }
 
     saveCart(cart);
@@ -381,17 +372,29 @@ function addProductToCart(productData) {
 
 async function addSupabaseProductToCart(productId, variantSize) {
     try {
-        const product = await supabaseGetOne('products', {
-            id: 'eq.' + productId,
-            select: '*,product_variants:id(*)'
+        var product = await supabaseGetOne('products', {
+            id: 'eq.' + productId
         });
 
         if (!product) throw new Error('Urun bulunamadi');
 
-        const displayPrice = getDisplayPrice(product, variantSize);
-        const variantLabel = variantSize || 'Standard';
+        var variants = await supabaseGet('product_variants', {
+            product_id: 'eq.' + productId
+        });
 
-        const cartItem = {
+        product.product_variants = variants;
+
+        var displayPrice = product.discount_price || product.base_price || 0;
+        if (variantSize && variants.length > 0) {
+            var variant = variants.find(function(v) { return v.size === variantSize; });
+            if (variant) {
+                displayPrice = variant.discount_price || variant.price || displayPrice;
+            }
+        }
+
+        var variantLabel = variantSize || 'Standard';
+
+        var cartItem = {
             id: product.id,
             name: product.name,
             price: displayPrice,
@@ -401,8 +404,8 @@ async function addSupabaseProductToCart(productId, variantSize) {
             quantity: 1
         };
 
-        let cart = getCart();
-        const existing = cart.find(i => i.id === productId && i.variants === variantLabel);
+        var cart = getCart();
+        var existing = cart.find(function(i) { return i.id === productId && i.variants === variantLabel; });
         if (existing) {
             existing.quantity = (existing.quantity || 1) + 1;
         } else {
@@ -424,7 +427,7 @@ async function addSupabaseProductToCart(productId, variantSize) {
 // ==========================================
 
 function openMobileMenu() {
-    const overlay = document.getElementById('mobile-menu-overlay');
+    var overlay = document.getElementById('mobile-menu-overlay');
     if (overlay) {
         overlay.classList.add('open');
         document.body.classList.add('no-scroll');
@@ -432,7 +435,7 @@ function openMobileMenu() {
 }
 
 function closeMobileMenu() {
-    const overlay = document.getElementById('mobile-menu-overlay');
+    var overlay = document.getElementById('mobile-menu-overlay');
     if (overlay) {
         overlay.classList.remove('open');
         document.body.classList.remove('no-scroll');
@@ -447,16 +450,16 @@ var __commonListenersInitialized = false;
 
 function initEventListeners() {
     if (__commonListenersInitialized) {
-        console.log('⚠️ Event listenerlar zaten bagli, atlaniyor.');
+        console.log('Event listenerlar zaten bagli, atlaniyor.');
         return;
     }
     __commonListenersInitialized = true;
 
-    console.log('✅ Event listenerlar baslatiliyor...');
+    console.log('Event listenerlar baslatiliyor...');
 
     // SEPET ACMA
-    document.addEventListener('click', (e) => {
-        const btn = e.target.closest('#open-mini-cart-btn, .cart-icon-wrapper, .fa-shopping-bag');
+    document.addEventListener('click', function(e) {
+        var btn = e.target.closest('#open-mini-cart-btn, .cart-icon-wrapper, .fa-shopping-bag');
         if (btn) {
             e.preventDefault();
             e.stopPropagation();
@@ -465,8 +468,8 @@ function initEventListeners() {
     });
 
     // SEPET KAPAMA
-    document.addEventListener('click', (e) => {
-        const btn = e.target.closest('#close-mini-cart');
+    document.addEventListener('click', function(e) {
+        var btn = e.target.closest('#close-mini-cart');
         if (btn) {
             e.stopPropagation();
             closeMiniCart();
@@ -474,47 +477,47 @@ function initEventListeners() {
     });
 
     // MINI SEPET ICINDEKI BUTONLAR
-    document.addEventListener('click', (e) => {
-        const qtyBtn = e.target.closest('.quantity-btn');
+    document.addEventListener('click', function(e) {
+        var qtyBtn = e.target.closest('.quantity-btn');
         if (qtyBtn) {
             e.stopPropagation();
-            const id = qtyBtn.dataset.id;
-            const action = qtyBtn.dataset.action;
+            var id = qtyBtn.dataset.id;
+            var action = qtyBtn.dataset.action;
             if (id && action) updateQuantity(id, action === 'increase' ? 1 : -1);
             return;
         }
 
-        const removeBtn = e.target.closest('.remove-item-btn');
+        var removeBtn = e.target.closest('.remove-item-btn');
         if (removeBtn) {
             e.stopPropagation();
-            const id = removeBtn.dataset.id;
+            var id = removeBtn.dataset.id;
             if (id) removeFromCart(id);
             return;
         }
     });
 
     // OVERLAY'A TIKLAYINCA KAPAMA
-    document.addEventListener('click', (e) => {
+    document.addEventListener('click', function(e) {
         if (e.target.id === 'mini-cart-overlay') closeMiniCart();
         if (e.target.id === 'mobile-menu-overlay') closeMobileMenu();
     });
 
     // MOBIL MENU
-    document.addEventListener('click', (e) => {
-        const openBtn = e.target.closest('#open-mobile-menu-btn');
+    document.addEventListener('click', function(e) {
+        var openBtn = e.target.closest('#open-mobile-menu-btn');
         if (openBtn) {
             e.preventDefault();
             openMobileMenu();
         }
     });
 
-    document.addEventListener('click', (e) => {
-        const closeBtn = e.target.closest('#close-mobile-menu');
+    document.addEventListener('click', function(e) {
+        var closeBtn = e.target.closest('#close-mobile-menu');
         if (closeBtn) closeMobileMenu();
     });
 
     // ESC TUSU
-    document.addEventListener('keydown', (e) => {
+    document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
             closeMiniCart();
             closeMobileMenu();
@@ -526,7 +529,16 @@ function initEventListeners() {
     initSearch();
     updateWishlistBadge();
 
-    console.log('✅ Event listenerlar baglandi');
+    console.log('Event listenerlar baglandi');
 }
 
-console.log('📦 common.js yuklendi (baslatma bekleniyor...)');
+// ==========================================
+// OTOMATIK BASLATMA
+// ==========================================
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initEventListeners);
+} else {
+    initEventListeners();
+}
+
+console.log('common.js yuklendi ve baslatildi');
