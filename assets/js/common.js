@@ -268,7 +268,7 @@ function performSearch(query) {
 
             return '<a href="' + product.url + '" class="search-item-row">' +
                 '<div class="search-item-image">' +
-                '<img src="' + product.image + '" alt="' + product.name + '" onerror="this.src='https://via.placeholder.com/50'">' +
+                '<img src="' + product.image + '" alt="' + product.name + '" onerror="this.src=\'https://via.placeholder.com/50\'">' +
                 '</div>' +
                 '<div class="search-item-info">' +
                 '<h4 class="search-item-title">' + highlightedName + '</h4>' +
@@ -308,7 +308,7 @@ function updateMiniCartUI() {
             var itemTotal = item.price * qty;
             total += itemTotal;
             return '<div class="mini-cart-item" data-id="' + item.id + '">' +
-                '<img src="' + (item.image || '') + '" alt="' + (item.name || '') + '" class="item-image" onerror="this.style.display='none'">' +
+                '<img src="' + (item.image || '') + '" alt="' + (item.name || '') + '" class="item-image" onerror="this.style.display=\'none\'">' +
                 '<div class="item-details-left">' +
                 '<span class="item-name">' + (item.name || 'Urun') + '</span>' +
                 '<span class="item-variant">' + (item.variants || 'Standard') + '</span>' +
