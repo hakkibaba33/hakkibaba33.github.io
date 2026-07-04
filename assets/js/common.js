@@ -1,5 +1,5 @@
 // ==========================================
-// COMMON.JS - SUPABASE UYUMLU (v5.1)
+// COMMON.JS - SUPABASE UYUMLU (v5.3)
 // ==========================================
 
 if (typeof CONFIG === 'undefined') {
@@ -255,12 +255,23 @@ function performSearch(query) {
         resultsDisplay.innerHTML = '<div class="no-results-found">Inga produkter hittades.</div>';
     } else {
         resultsDisplay.innerHTML = filtered.slice(0, 8).map(function(product) {
+            // Basit highlight - regex yerine split/join kullan
+            var highlightedName = product.name;
+            var idx = product.name.toLowerCase().indexOf(lowerQuery);
+            if (idx !== -1) {
+                highlightedName = product.name.substring(0, idx) + 
+                    '<mark style="background:#ffeb3b;color:#000;padding:0 2px;">' + 
+                    product.name.substring(idx, idx + query.length) + 
+                    '</mark>' + 
+                    product.name.substring(idx + query.length);
+            }
+
             return '<a href="' + product.url + '" class="search-item-row">' +
                 '<div class="search-item-image">' +
-                '<img src="' + product.image + '" alt="' + product.name + '" onerror="this.src='https://via.placeholder.com/50'">' +
+                '<img src="' + product.image + '" alt="' + product.name + '" onerror="this.src=\'https://via.placeholder.com/50\'">' +
                 '</div>' +
                 '<div class="search-item-info">' +
-                '<h4 class="search-item-title">' + highlightMatch(product.name, query) + '</h4>' +
+                '<h4 class="search-item-title">' + highlightedName + '</h4>' +
                 '<span class="search-item-price">' + product.price.toLocaleString('sv-SE') + ' SEK</span>' +
                 '</div>' +
                 '</a>';
@@ -268,15 +279,6 @@ function performSearch(query) {
     }
 
     resultsDisplay.style.display = 'block';
-}
-
-function highlightMatch(text, query) {
-    var regex = new RegExp('(' + escapeRegex(query) + ')', 'gi');
-    return text.replace(regex, '<mark style="background:#ffeb3b;color:#000;padding:0 2px;">$1</mark>');
-}
-
-function escapeRegex(string) {
-    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 // ==========================================
@@ -306,7 +308,7 @@ function updateMiniCartUI() {
             var itemTotal = item.price * qty;
             total += itemTotal;
             return '<div class="mini-cart-item" data-id="' + item.id + '">' +
-                '<img src="' + (item.image || '') + '" alt="' + (item.name || '') + '" class="item-image" onerror="this.style.display='none'">' +
+                '<img src="' + (item.image || '') + '" alt="' + (item.name || '') + '" class="item-image" onerror="this.style.display=\'none\'">' +
                 '<div class="item-details-left">' +
                 '<span class="item-name">' + (item.name || 'Urun') + '</span>' +
                 '<span class="item-variant">' + (item.variants || 'Standard') + '</span>' +
@@ -358,7 +360,12 @@ function addProductToCart(productData) {
     if (existing) {
         existing.quantity = (existing.quantity || 1) + 1;
     } else {
-        cart.push(Object.assign({}, productData, { quantity: 1 }));
+        var newItem = {};
+        Object.keys(productData).forEach(function(key) {
+            newItem[key] = productData[key];
+        });
+        newItem.quantity = 1;
+        cart.push(newItem);
     }
 
     saveCart(cart);
