@@ -1,5 +1,5 @@
 // ==========================================
-// COMMON.JS - SUPABASE UYUMLU (v5.3)
+// COMMON.JS - SUPABASE UYUMLU (v5.4 - FIXED)
 // ==========================================
 
 if (typeof CONFIG === 'undefined') {
@@ -121,18 +121,17 @@ function initSearch() {
         return;
     }
 
-    document.addEventListener('click', function(e) {
-        var openBtn = e.target.closest('#search-open-btn');
-        if (openBtn) {
+    // Search open button - direct binding
+    var openBtn = document.getElementById('search-open-btn');
+    if (openBtn) {
+        openBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            e.stopPropagation();
             openSearchPopup();
-        }
-    });
+        });
+    }
 
     if (closeBtn) {
         closeBtn.addEventListener('click', function(e) {
-            e.stopPropagation();
             closeSearchPopup();
         });
     }
@@ -450,7 +449,7 @@ function closeMobileMenu() {
 }
 
 // ==========================================
-// 8. EVENT LISTENERS
+// 8. EVENT LISTENERS - TEMIZLENMIS
 // ==========================================
 
 var __commonListenersInitialized = false;
@@ -464,63 +463,73 @@ function initEventListeners() {
 
     console.log('Event listenerlar baslatiliyor...');
 
-    // SEPET ACMA
+    // === TEK BIR DOCUMENT CLICK LISTENER ===
     document.addEventListener('click', function(e) {
-        var btn = e.target.closest('#open-mini-cart-btn, .cart-icon-wrapper, .fa-shopping-bag');
-        if (btn) {
+        var target = e.target;
+
+        // 1. SEPET ACMA (cart icon, cart button, shopping bag icon)
+        var cartBtn = target.closest('#open-mini-cart-btn, .cart-icon-wrapper, .fa-shopping-bag, .cart-count-badge');
+        if (cartBtn) {
             e.preventDefault();
-            e.stopPropagation();
             openMiniCart();
+            return;
         }
-    });
 
-    // SEPET KAPAMA
-    document.addEventListener('click', function(e) {
-        var btn = e.target.closest('#close-mini-cart');
-        if (btn) {
-            e.stopPropagation();
+        // 2. SEPET KAPAMA
+        var closeCartBtn = target.closest('#close-mini-cart');
+        if (closeCartBtn) {
             closeMiniCart();
+            return;
         }
-    });
 
-    // MINI SEPET ICINDEKI BUTONLAR
-    document.addEventListener('click', function(e) {
-        var qtyBtn = e.target.closest('.quantity-btn');
+        // 3. MINI SEPET ICINDEKI BUTONLAR
+        var qtyBtn = target.closest('.quantity-btn');
         if (qtyBtn) {
-            e.stopPropagation();
             var id = qtyBtn.dataset.id;
             var action = qtyBtn.dataset.action;
             if (id && action) updateQuantity(id, action === 'increase' ? 1 : -1);
             return;
         }
 
-        var removeBtn = e.target.closest('.remove-item-btn');
+        var removeBtn = target.closest('.remove-item-btn');
         if (removeBtn) {
-            e.stopPropagation();
             var id = removeBtn.dataset.id;
             if (id) removeFromCart(id);
             return;
         }
-    });
 
-    // OVERLAY'A TIKLAYINCA KAPAMA
-    document.addEventListener('click', function(e) {
-        if (e.target.id === 'mini-cart-overlay') closeMiniCart();
-        if (e.target.id === 'mobile-menu-overlay') closeMobileMenu();
-    });
+        // 4. OVERLAY'A TIKLAYINCA KAPAMA
+        if (target.id === 'mini-cart-overlay') {
+            closeMiniCart();
+            return;
+        }
+        if (target.id === 'mobile-menu-overlay') {
+            closeMobileMenu();
+            return;
+        }
 
-    // MOBIL MENU
-    document.addEventListener('click', function(e) {
-        var openBtn = e.target.closest('#open-mobile-menu-btn');
-        if (openBtn) {
+        // 5. MOBIL MENU ACMA
+        var mobileOpenBtn = target.closest('#open-mobile-menu-btn');
+        if (mobileOpenBtn) {
             e.preventDefault();
             openMobileMenu();
+            return;
         }
-    });
 
-    document.addEventListener('click', function(e) {
-        var closeBtn = e.target.closest('#close-mobile-menu');
-        if (closeBtn) closeMobileMenu();
+        // 6. MOBIL MENU KAPAMA
+        var mobileCloseBtn = target.closest('#close-mobile-menu');
+        if (mobileCloseBtn) {
+            closeMobileMenu();
+            return;
+        }
+
+        // 7. SEARCH OPEN (eğer initSearch'te yakalanmadıysa)
+        var searchOpenBtn = target.closest('#search-open-btn');
+        if (searchOpenBtn) {
+            e.preventDefault();
+            openSearchPopup();
+            return;
+        }
     });
 
     // ESC TUSU
