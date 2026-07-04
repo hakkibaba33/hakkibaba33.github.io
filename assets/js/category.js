@@ -1,5 +1,5 @@
 // ==========================================
-// CATEGORY.JS - AIRTABLE UYUMLU
+// CATEGORY.JS - SUPABASE UYUMLU (v2)
 // ==========================================
 
 console.log('category.js yukleniyor...');
@@ -20,37 +20,75 @@ document.addEventListener('DOMContentLoaded', async () => {
     const totalCountEl = document.getElementById('total-count');
     const progressBar = document.getElementById('progress-bar-fill');
 
-    // --- 3. AIRTABLE'DAN URUN CEK ---
+    // --- SUPABASE CLIENT ---
+    const SUPABASE_URL = (typeof CONFIG !== 'undefined' && CONFIG.SUPABASE) ? CONFIG.SUPABASE.URL : '';
+    const SUPABASE_KEY = (typeof CONFIG !== 'undefined' && CONFIG.SUPABASE) ? CONFIG.SUPABASE.ANON_KEY : '';
+
+    async function supabaseGet(endpoint, params) {
+        const url = new URL(SUPABASE_URL + '/rest/v1/' + endpoint);
+        if (params) Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
+
+        const res = await fetch(url, {
+            headers: {
+                'apikey': SUPABASE_KEY,
+                'Authorization': 'Bearer ' + SUPABASE_KEY,
+                'Content-Type': 'application/json'
+            }
+        });
+        if (!res.ok) {
+            const errText = await res.text();
+            console.error('Supabase hata detayi:', errText);
+            throw new Error('Supabase GET hatasi: ' + res.status);
+        }
+        return res.json();
+    }
+
+    function getDisplayPrice(product) {
+        return product.discount_price || product.base_price || 0;
+    }
+
+    // --- 3. SUPABASE'DEN URUN CEK ---
     async function fetchProducts() {
         try {
-            const url = `https://api.airtable.com/v0/${CONFIG.AIRTABLE.BASE_ID}/${CONFIG.AIRTABLE.TABLE_NAME}?pageSize=100`;
-
-            const response = await fetch(url, {
-                headers: { Authorization: `Bearer ${CONFIG.AIRTABLE.API_KEY}` }
+            // Duz cekme (embed olmadan - daha guvenli)
+            const products = await supabaseGet('products', {
+                select: '*',
+                active: 'eq.true'
             });
 
-            if (!response.ok) throw new Error('API hatasi: ' + response.status);
+            // Varyantlari ayri cek
+            const variants = await supabaseGet('product_variants', {
+                select: '*'
+            });
 
-            const data = await response.json();
+            // Birlestir
+            const data = products.map(p => ({
+                ...p,
+                product_variants: variants.filter(v => v.product_id === p.id)
+            }));
 
-            allProducts = data.records.map(record => ({
-                id: record.id,
-                name: record.fields.Name || 'Urun',
-                price: parseFloat(record.fields.Price) || 0,
-                image: record.fields.imageURL && record.fields.imageURL[0] ? record.fields.imageURL[0].url : '',
-                slug: record.fields.Slug || '',
-                description: record.fields.Description || '',
-                variants: record.fields.Variants || 'Standard',
-                colors: record.fields.Colors ? record.fields.Colors.split(',').map(c => c.trim()) : [],
-                sizes: record.fields.Sizes ? record.fields.Sizes.split(',').map(s => s.trim()) : [],
-                stock: record.fields.Stock || 'In Stock'
+            allProducts = data.map(product => ({
+                id: product.id,
+                name: product.name || 'Urun',
+                price: getDisplayPrice(product),
+                base_price: product.base_price || 0,
+                discount_price: product.discount_price || null,
+                image: product.images && product.images[0] ? product.images[0] : '',
+                slug: product.slug || '',
+                description: product.description || '',
+                variants: product.product_variants || [],
+                colors: product.colors || [],
+                sizes: product.product_variants ? product.product_variants.map(v => v.size) : [],
+                stock: product.product_variants && product.product_variants.length > 0 
+                    ? (product.product_variants.some(v => v.stock > 0) ? 'In Stock' : 'Out of Stock')
+                    : 'In Stock',
+                delivery_time: product.delivery_time || '3-7 arbetsdagar'
             }));
 
             filteredProducts = [...allProducts];
 
-            console.log(`${allProducts.length} urun yuklendi`);
+            console.log(allProducts.length + ' urun yuklendi');
 
-            // Ilk render
             renderProducts();
             updateProgress();
             generateFilters();
@@ -94,10 +132,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             grid.insertAdjacentHTML('beforeend', cardHTML);
         });
 
-        // Wishlist event listenerlarini ekle
         attachWishlistEvents();
 
-        // Load more butonunu kontrol et
         const shown = (currentPage + 1) * ITEMS_PER_PAGE;
         if (shown >= filteredProducts.length) {
             document.getElementById('load-more-container').style.display = 'none';
@@ -107,16 +143,30 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function createProductCard(product, isWishlisted) {
+        const hasDiscount = product.discount_price && product.discount_price < product.base_price;
+        const priceHTML = hasDiscount 
+            ? '<span class="original-price" style="text-decoration:line-through;color:#999;font-size:14px;">' + product.base_price.toLocaleString('sv-SE') + ' SEK</span>' +
+              '<span class="current-price" style="color:#e54d42;">' + product.price.toLocaleString('sv-SE') + ' SEK</span>'
+            : '<span class="current-price">' + product.price.toLocaleString('sv-SE') + ' SEK</span>';
+
+        const variantText = product.variants.length > 1 
+            ? product.variants.length + ' storlekar' 
+            : (product.variants[0]?.size || 'Standard');
+
+        // URL: /matta/slug seklinde (vercel.json rewrite ile product.html?slug=slug'e yonlenecek)
+        const productUrl = product.slug ? '/matta/' + product.slug : '/matta/' + product.id;
+
         return `
             <div class="product-card" data-id="${product.id}">
                 <div class="image-box">
-                    <a href="/matta/${product.slug}">
+                    <a href="${productUrl}">
                         <img src="${product.image}" 
                              alt="${product.name}" 
                              loading="lazy"
                              onerror="this.style.display='none'"
                              style="width:100%; height:100%; object-fit:cover;">
                     </a>
+                    ${hasDiscount ? '<span class="discount-badge" style="position:absolute;top:8px;left:8px;background:#e54d42;color:#fff;padding:4px 8px;border-radius:4px;font-size:12px;font-weight:bold;">REA</span>' : ''}
                     <button class="wishlist-btn ${isWishlisted ? 'active' : ''}" 
                             data-product-id="${product.id}"
                             aria-label="Lagg till favoriter">
@@ -126,10 +176,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <div class="product-info">
                     <h3 class="product-title">${product.name}</h3>
                     <div class="product-meta-row">
-                        <span class="product-acf-dimension">${product.variants}</span>
+                        <span class="product-acf-dimension">${variantText}</span>
                     </div>
                     <div class="product-price">
-                        <span class="current-price">${product.price.toLocaleString('sv-SE')} SEK</span>
+                        ${priceHTML}
                     </div>
                     ${product.colors.length > 0 ? `
                         <div class="product-colors-wrapper">
@@ -140,7 +190,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                                           title="${color}"></span>
                                 `).join('')}
                             </div>
-                            ${product.colors.length > 5 ? `<span class="color-count-text">+${product.colors.length - 5} farger</span>` : ''}
+                            ${product.colors.length > 5 ? '<span class="color-count-text">+' + (product.colors.length - 5) + ' farger</span>' : ''}
                         </div>
                     ` : ''}
                 </div>
@@ -152,99 +202,73 @@ document.addEventListener('DOMContentLoaded', async () => {
     function isInWishlist(productId) {
         try {
             const wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
-            return wishlist.some(item => item.id === productId);
+            return wishlist.some(item => (typeof item === 'string' ? item : item.id) === productId);
         } catch (e) {
             return false;
         }
     }
 
-// --- 5. WISHLIST FONKSIYONLARI ---
-
-function isInWishlist(productId) {
-    try {
-        const wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
-        return wishlist.some(item => (typeof item === 'string' ? item : item.id) === productId);
-    } catch (e) {
-        return false;
-    }
-}
-
-function attachWishlistEvents() {
-    // Event delegation kullan - her seferinde tek tek ekleme
-    // Önce eski listener'ları temizlemeye gerek yok, çünkü grid değişince zaten gider
-    
-    // Grid üzerinde tek bir listener
-    const grid = document.getElementById('product-grid');
-    if (!grid) return;
-    
-    // Önceki listener'ı kaldır (varsa)
-    grid.removeEventListener('click', handleWishlistClick);
-    // Yeni listener ekle
-    grid.addEventListener('click', handleWishlistClick);
-}
-
-function handleWishlistClick(e) {
-    // Kalp butonuna veya içindeki ikona tıklandı mı?
-    const btn = e.target.closest('.wishlist-btn');
-    if (!btn) return;
-    
-    e.preventDefault();
-    e.stopPropagation();
-
-    const productId = btn.dataset.productId;
-    if (!productId) return;
-
-    // Ürün bilgilerini bul
-    const product = allProducts.find(p => p.id === productId);
-    if (!product) return;
-
-    // Wishlist'i güncelle
-    let wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
-    const index = wishlist.findIndex(item => (typeof item === 'string' ? item : item.id) === productId);
-
-    if (index > -1) {
-        // Kaldır
-        wishlist.splice(index, 1);
-        btn.classList.remove('active');
-        const icon = btn.querySelector('i');
-        if (icon) icon.className = 'fa-regular fa-heart';
-        console.log('Favorilerden kaldirildi:', product.name);
-    } else {
-        // Ekle
-        wishlist.push({
-            id: product.id,
-            name: product.name,
-            price: product.price,
-            image: product.image
-        });
-        btn.classList.add('active');
-        const icon = btn.querySelector('i');
-        if (icon) icon.className = 'fa-solid fa-heart';
-        console.log('Favorilere eklendi:', product.name);
+    function attachWishlistEvents() {
+        const grid = document.getElementById('product-grid');
+        if (!grid) return;
+        grid.removeEventListener('click', handleWishlistClick);
+        grid.addEventListener('click', handleWishlistClick);
     }
 
-    localStorage.setItem('wishlistItems', JSON.stringify(wishlist));
+    function handleWishlistClick(e) {
+        const btn = e.target.closest('.wishlist-btn');
+        if (!btn) return;
 
-    // Header badge'i güncelle
-    updateWishlistBadge();
-}
+        e.preventDefault();
+        e.stopPropagation();
 
-function updateWishlistBadge() {
-    try {
-        const wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
-        const badge = document.querySelector('.wishlist-count-badge');
-        if (badge) {
-            badge.textContent = wishlist.length;
-            badge.classList.toggle('visible', wishlist.length > 0);
+        const productId = btn.dataset.productId;
+        if (!productId) return;
+
+        const product = allProducts.find(p => p.id === productId);
+        if (!product) return;
+
+        let wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
+        const index = wishlist.findIndex(item => (typeof item === 'string' ? item : item.id) === productId);
+
+        if (index > -1) {
+            wishlist.splice(index, 1);
+            btn.classList.remove('active');
+            const icon = btn.querySelector('i');
+            if (icon) icon.className = 'fa-regular fa-heart';
+            console.log('Favorilerden kaldirildi:', product.name);
+        } else {
+            wishlist.push({
+                id: product.id,
+                name: product.name,
+                price: product.price,
+                image: product.image
+            });
+            btn.classList.add('active');
+            const icon = btn.querySelector('i');
+            if (icon) icon.className = 'fa-solid fa-heart';
+            console.log('Favorilere eklendi:', product.name);
         }
-    } catch (e) {
-        console.error('Wishlist badge hatasi:', e);
+
+        localStorage.setItem('wishlistItems', JSON.stringify(wishlist));
+        updateWishlistBadge();
     }
-}
+
+    function updateWishlistBadge() {
+        try {
+            const wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
+            const badge = document.querySelector('.wishlist-count-badge');
+            if (badge) {
+                badge.textContent = wishlist.length;
+                badge.classList.toggle('visible', wishlist.length > 0);
+            }
+        } catch (e) {
+            console.error('Wishlist badge hatasi:', e);
+        }
+    }
 
     // --- 6. FILTRELER ---
     function generateFilters() {
-        // Renk filtresi
         const allColors = [...new Set(allProducts.flatMap(p => p.colors))].filter(Boolean).sort();
         const colorContainer = document.getElementById('color-filter-list');
         if (colorContainer && allColors.length > 0) {
@@ -264,7 +288,6 @@ function updateWishlistBadge() {
             `).join('');
         }
 
-        // Boyut filtresi
         const allSizes = [...new Set(allProducts.flatMap(p => p.sizes))].filter(Boolean).sort();
         const sizeContainer = document.getElementById('size-filter-list');
         if (sizeContainer && allSizes.length > 0) {
@@ -283,7 +306,6 @@ function updateWishlistBadge() {
             `).join('');
         }
 
-        // Filtre checkbox event'lerini bagla
         document.querySelectorAll('.filter-input').forEach(input => {
             input.addEventListener('change', applyFilters);
         });
@@ -367,7 +389,6 @@ function updateWishlistBadge() {
 
     // --- 9. DRAWER AC/KAPA ---
     function initDrawers() {
-        // Filtre drawer
         const openFilter = document.getElementById('open-filter-sidebar');
         const closeFilter = document.getElementById('close-filter-sidebar');
         const filterOverlay = document.getElementById('filter-overlay');
@@ -388,7 +409,6 @@ function updateWishlistBadge() {
         closeFilter?.addEventListener('click', closeFilterFn);
         filterOverlay?.addEventListener('click', closeFilterFn);
 
-        // Sort drawer
         const openSort = document.getElementById('sort-menu-btn');
         const closeSort = document.getElementById('close-sort-drawer');
         const sortOverlay = document.getElementById('sort-overlay');
@@ -416,7 +436,6 @@ function updateWishlistBadge() {
         document.body.style.overflow = '';
     }
 
-    // Global fonksiyon (HTML onclick icin)
     window.closeAll = closeAllDrawers;
 
     // --- 10. BASLAT ---
