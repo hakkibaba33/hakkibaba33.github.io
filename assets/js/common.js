@@ -1,14 +1,12 @@
 // ==========================================
-// COMMON.JS - SUPABASE UYUMLU (v6.1 - EVENT DELEGATION FIX)
+// COMMON.JS - SUPABASE UYUMLU (v6.2 - CACHE BUSTING FIX)
 // Eski Airtable yapısını koru, sadece API Supabase'e çevrildi
 // ==========================================
 
 // ==========================================
-// GLOBAL FLAGS - window scope'a alındı (module/strict mode uyumlu)
+// CACHE BUSTING - Her yükleniste yeniden baslat
 // ==========================================
-if (typeof window.__commonListenersInitialized === 'undefined') {
-    window.__commonListenersInitialized = false;
-}
+window.__commonListenersInitialized = false;
 
 if (typeof CONFIG === 'undefined') {
     console.error('HATA: config.js yuklenmemis!');
@@ -111,7 +109,7 @@ function closeMiniCart() {
 }
 
 // ==========================================
-// 3. SEARCH POPUP - DUZELTILMIS
+// 3. SEARCH POPUP - SUPABASE UYUMLU
 // ==========================================
 
 let searchDebounceTimer = null;
@@ -128,29 +126,25 @@ function initSearch() {
         return;
     }
 
-    // Açma butonları
+    // Açma butonları - ESKI YAPI: document click listener
     document.addEventListener('click', (e) => {
         const openBtn = e.target.closest('#search-open-btn');
         if (openBtn) {
             e.preventDefault();
-            e.stopPropagation();
             openSearchPopup();
         }
     });
 
     // Kapatma butonu
     if (closeBtn) {
-        closeBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
+        closeBtn.addEventListener('click', () => {
             closeSearchPopup();
         });
     }
 
     // Overlay'a tıklayınca kapat
     popup.addEventListener('click', (e) => {
-        if (e.target === popup) {
-            closeSearchPopup();
-        }
+        if (e.target === popup) closeSearchPopup();
     });
 
     // ESC ile kapat
@@ -164,7 +158,7 @@ function initSearch() {
     input.addEventListener('input', (e) => {
         const query = e.target.value.trim();
         clearTimeout(searchDebounceTimer);
-        
+
         if (query.length < 2) {
             if (resultsDisplay) resultsDisplay.style.display = 'none';
             return;
@@ -175,14 +169,14 @@ function initSearch() {
         }, 300);
     });
 
-    console.log('✅ Search popup baslatildi');
+    console.log('Search popup baslatildi');
 }
 
 function openSearchPopup() {
     const popup = document.getElementById('search-popup-overlay');
     const input = document.getElementById('live-search-input');
     const resultsDisplay = document.getElementById('search-results-display');
-    
+
     if (!popup) return;
 
     const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
@@ -191,8 +185,8 @@ function openSearchPopup() {
 
     popup.classList.add('active');
     if (resultsDisplay) resultsDisplay.style.display = 'none';
-    
-    setTimeout(() => input?.focus(), 100);
+
+    setTimeout(() => { if (input) input.focus(); }, 100);
 
     if (allProductsCache.length === 0) {
         fetchAllProductsForSearch();
@@ -202,47 +196,44 @@ function openSearchPopup() {
 function closeSearchPopup() {
     const popup = document.getElementById('search-popup-overlay');
     const resultsDisplay = document.getElementById('search-results-display');
-    
+
     if (!popup) return;
 
     popup.classList.remove('active');
     document.body.classList.remove('search-active');
     document.body.style.paddingRight = '';
-    
+
     if (resultsDisplay) {
         resultsDisplay.style.display = 'none';
         resultsDisplay.innerHTML = '';
     }
-    
+
     const input = document.getElementById('live-search-input');
     if (input) input.value = '';
 }
 
 async function fetchAllProductsForSearch() {
-    if (!API_KEY || !BASE_ID) {
-        console.error('Airtable config eksik!');
+    if (!SUPABASE_URL || !SUPABASE_KEY) {
+        console.error('Supabase config eksik!');
         return;
     }
 
     try {
-        const response = await fetch(
-            `https://api.airtable.com/v0/${BASE_ID}/${TABLE_NAME}?pageSize=100`,
-            { headers: { Authorization: `Bearer ${API_KEY}` } }
-        );
+        const data = await supabaseGet('products', {
+            select: '*',
+            active: 'eq.true'
+        });
 
-        if (!response.ok) throw new Error('Airtable hatasi');
-
-        const data = await response.json();
-        allProductsCache = data.records.map(record => ({
-            id: record.id,
-            name: record.fields.Name || '',
-            price: parseFloat(record.fields.Price) || 0,
-            image: record.fields.imageURL && record.fields.imageURL[0] ? record.fields.imageURL[0].url : '',
-            category: record.fields.Category || '',
-            url: `/product.html?id=${record.id}`
+        allProductsCache = data.map(product => ({
+            id: product.id,
+            name: product.name || '',
+            price: product.discount_price || product.base_price || 0,
+            image: product.images && product.images[0] ? product.images[0] : '',
+            category: product.category || '',
+            url: '/matta/' + (product.slug || product.id)
         }));
 
-        console.log(`${allProductsCache.length} urun cache'lendi`);
+        console.log(allProductsCache.length + ' urun cachelendi');
 
     } catch (error) {
         console.error('Urun cache hatasi:', error);
@@ -268,29 +259,31 @@ function performSearch(query) {
     if (filtered.length === 0) {
         resultsDisplay.innerHTML = '<div class="no-results-found">Inga produkter hittades.</div>';
     } else {
-        resultsDisplay.innerHTML = filtered.slice(0, 8).map(product => `
-            <a href="${product.url}" class="search-item-row">
+        resultsDisplay.innerHTML = filtered.slice(0, 8).map(product => {
+            // Highlight
+            let highlightedName = product.name;
+            const idx = product.name.toLowerCase().indexOf(lowerQuery);
+            if (idx !== -1) {
+                highlightedName = product.name.substring(0, idx) + 
+                    '<mark style="background:#ffeb3b;color:#000;padding:0 2px;">' + 
+                    product.name.substring(idx, idx + query.length) + 
+                    '</mark>' + 
+                    product.name.substring(idx + query.length);
+            }
+
+            return `<a href="${product.url}" class="search-item-row">
                 <div class="search-item-image">
                     <img src="${product.image}" alt="${product.name}" onerror="this.src='https://via.placeholder.com/50'">
                 </div>
                 <div class="search-item-info">
-                    <h4 class="search-item-title">${highlightMatch(product.name, query)}</h4>
-                    <span class="search-item-price">${product.price.toFixed(2)} SEK</span>
+                    <h4 class="search-item-title">${highlightedName}</h4>
+                    <span class="search-item-price">${product.price.toLocaleString('sv-SE')} SEK</span>
                 </div>
-            </a>
-        `).join('');
+            </a>`;
+        }).join('');
     }
 
     resultsDisplay.style.display = 'block';
-}
-
-function highlightMatch(text, query) {
-    const regex = new RegExp(`(${escapeRegex(query)})`, 'gi');
-    return text.replace(regex, '<mark style="background:#ffeb3b;color:#000;padding:0 2px;">$1</mark>');
-}
-
-function escapeRegex(string) {
-    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 // ==========================================
@@ -315,32 +308,33 @@ function updateMiniCartUI() {
         footer.style.display = 'block';
 
         let total = 0;
-        filledState.innerHTML = cart.map(item => {
+
+        const html = cart.map(item => {
             const qty = item.quantity || 1;
             const itemTotal = item.price * qty;
             total += itemTotal;
-            return `
-                <div class="mini-cart-item" data-id="${item.id}">
-                    <img src="${item.image || ''}" alt="${item.name || ''}" class="item-image" onerror="this.style.display='none'">
-                    <div class="item-details-left">
-                        <span class="item-name">${item.name || 'Urun'}</span>
-                        <span class="item-variant">${item.variants || 'Standard'}</span>
-                        <div class="quantity-control">
-                            <button class="quantity-btn minus" data-id="${item.id}" data-action="decrease">-</button>
-                            <input type="text" class="quantity-input" value="${qty}" readonly>
-                            <button class="quantity-btn plus" data-id="${item.id}" data-action="increase">+</button>
-                        </div>
-                    </div>
-                    <div class="item-price-right">
-                        <span class="item-price">${itemTotal.toFixed(2)} SEK</span>
-                        <button class="remove-item-btn" data-id="${item.id}">Ta bort</button>
+            return `<div class="mini-cart-item" data-id="${item.id}">
+                <img src="${item.image || ''}" alt="${item.name || ''}" class="item-image" onerror="this.style.display='none'">
+                <div class="item-details-left">
+                    <span class="item-name">${item.name || 'Urun'}</span>
+                    <span class="item-variant">${item.variants || 'Standard'}</span>
+                    <div class="quantity-control">
+                        <button type="button" class="quantity-btn minus" data-id="${item.id}" data-action="decrease">-</button>
+                        <input type="text" class="quantity-input" value="${qty}" readonly>
+                        <button type="button" class="quantity-btn plus" data-id="${item.id}" data-action="increase">+</button>
                     </div>
                 </div>
-            `;
+                <div class="item-price-right">
+                    <span class="item-price">${itemTotal.toLocaleString('sv-SE')} SEK</span>
+                    <button type="button" class="remove-item-btn" data-id="${item.id}">Ta bort</button>
+                </div>
+            </div>`;
         }).join('');
 
+        filledState.innerHTML = html;
+
         const grandTotal = document.getElementById('cart-grand-total');
-        if (grandTotal) grandTotal.textContent = total.toFixed(2) + ' SEK';
+        if (grandTotal) grandTotal.textContent = total.toLocaleString('sv-SE') + ' SEK';
     }
 }
 
@@ -458,80 +452,101 @@ function closeMobileMenu() {
 }
 
 // ==========================================
-// 8. EVENT LISTENERS
+// 8. EVENT LISTENERS - DOCUMENT SEVIYESINDE DELEGATION
+// ==========================================
+// ONEMLI: Tüm event listener'lar document seviyesinde.
+// Bu sayede dinamik olarak eklenen elementler de calisir.
 // ==========================================
 
-let __commonListenersInitialized = false;
-
 function initEventListeners() {
-    if (__commonListenersInitialized) {
-        console.log('⚠️ Event listenerlar zaten bağlı, atlanıyor.');
+    console.log('initEventListeners CAGIRILDI, __commonListenersInitialized:', window.__commonListenersInitialized);
+    if (window.__commonListenersInitialized) {
+        console.log('Event listenerlar zaten bagli, atlaniyor.');
         return;
     }
-    __commonListenersInitialized = true;
+    window.__commonListenersInitialized = true;
 
-    console.log('✅ Event listenerlar başlatılıyor...');
+    console.log('Event listenerlar baslatiliyor...');
 
-    // SEPET ACMA
+    // --- 1. GENEL TIKLAMALAR (Açma/Kapama/Menü/Arama) ---
     document.addEventListener('click', (e) => {
-        const btn = e.target.closest('#open-mini-cart-btn, .cart-icon-wrapper, .fa-shopping-bag');
-        if (btn) {
+        // Mini sepet açma
+        if (e.target.closest('#open-mini-cart-btn, .cart-icon-wrapper, .fa-shopping-bag')) {
             e.preventDefault();
-            e.stopPropagation();
             openMiniCart();
+            return;
         }
-    });
 
-    // SEPET KAPAMA
-    document.addEventListener('click', (e) => {
-        const btn = e.target.closest('#close-mini-cart');
-        if (btn) {
-            e.stopPropagation();
+        // Mini sepet kapama
+        if (e.target.closest('#close-mini-cart')) {
             closeMiniCart();
-        }
-    });
-
-    // MINI SEPET ICINDEKI BUTONLAR
-    document.addEventListener('click', (e) => {
-        const qtyBtn = e.target.closest('.quantity-btn');
-        if (qtyBtn) {
-            e.stopPropagation();
-            const id = qtyBtn.dataset.id;
-            const action = qtyBtn.dataset.action;
-            if (id && action) updateQuantity(id, action === 'increase' ? 1 : -1);
             return;
         }
 
-        const removeBtn = e.target.closest('.remove-item-btn');
-        if (removeBtn) {
-            e.stopPropagation();
-            const id = removeBtn.dataset.id;
-            if (id) removeFromCart(id);
-            return;
-        }
-    });
-
-    // OVERLAY'A TIKLAYINCA KAPAMA
-    document.addEventListener('click', (e) => {
-        if (e.target.id === 'mini-cart-overlay') closeMiniCart();
-        if (e.target.id === 'mobile-menu-overlay') closeMobileMenu();
-    });
-
-    // MOBIL MENU
-    document.addEventListener('click', (e) => {
-        const openBtn = e.target.closest('#open-mobile-menu-btn');
-        if (openBtn) {
+        // Mobil menü açma
+        if (e.target.closest('#open-mobile-menu-btn')) {
             e.preventDefault();
             openMobileMenu();
+            return;
+        }
+
+        // Mobil menü kapama
+        if (e.target.closest('#close-mobile-menu')) {
+            closeMobileMenu();
+            return;
+        }
+
+        // Overlay'lara tıklama
+        if (e.target.id === 'mini-cart-overlay') {
+            closeMiniCart();
+            return;
+        }
+        if (e.target.id === 'mobile-menu-overlay') {
+            closeMobileMenu();
+            return;
+        }
+
+        // Arama popup açma
+        const searchOpen = e.target.closest('#search-open-btn');
+        if (searchOpen) {
+            e.preventDefault();
+            openSearchPopup();
+            return;
         }
     });
 
+    // --- 2. MINI SEPET İÇİ İŞLEMLER (Document seviyesinde delegation) ---
     document.addEventListener('click', (e) => {
-        const closeBtn = e.target.closest('#close-mobile-menu');
-        if (closeBtn) closeMobileMenu();
+        const filledState = document.getElementById('cart-filled-state');
+        if (!filledState) return;
+
+        // Tıklanan element filledState içinde mi kontrol et
+        if (!filledState.contains(e.target)) return;
+
+        const removeBtn = e.target.closest('.remove-item-btn');
+        const qtyBtn = e.target.closest('.quantity-btn');
+
+        if (removeBtn) {
+            const id = removeBtn.getAttribute('data-id');
+            console.log("Mini sepet: Silme tetiklendi, ID:", id);
+            if (id) {
+                e.stopPropagation();
+                removeFromCart(id);
+            }
+        } else if (qtyBtn) {
+            const id = qtyBtn.getAttribute('data-id');
+            const action = qtyBtn.getAttribute('data-action');
+            console.log("Mini sepet: Miktar değişimi tetiklendi, ID:", id, "Aksiyon:", action);
+            if (id && action) {
+                e.stopPropagation();
+                updateQuantity(id, action === 'increase' ? 1 : -1);
+            }
+        }
     });
 
-    // ESC TUSU
+    console.log('Mini sepet event listenerlari document seviyesine baglandi.');
+
+    // --- 3. ESC TUSU ---
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             closeMiniCart();
@@ -540,14 +555,18 @@ function initEventListeners() {
         }
     });
 
-    // SEARCH POPUP'I BASLAT
     initSearch();
     updateWishlistBadge();
-
-    console.log('✅ Event listenerlar bağlandı');
+    console.log('Tum event listenerlar basariyla baglandi!');
 }
 
-console.log('📦 common.js yüklendi (başlatma bekleniyor...)');
+
+// ==========================================
+// OTOMATIK BASLATMA
+// ==========================================
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initEventListeners);
+} else {
     initEventListeners();
 }
 
