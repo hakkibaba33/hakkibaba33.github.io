@@ -287,6 +287,8 @@ function performSearch(query) {
 
 function updateMiniCartUI() {
     const cart = getCart();
+    console.log("Sepet içeriği:", cart);
+    
     const emptyState = document.getElementById('cart-empty-state');
     const filledState = document.getElementById('cart-filled-state');
     const footer = document.getElementById('mini-cart-footer');
