@@ -1,5 +1,5 @@
 // ==========================================
-// PRODUCT.UI.JS - SUPABASE UYUMLU (v2.3 - FIXED)
+// PRODUCT.UI.JS - SUPABASE UYUMLU (v2.4 - FIXED)
 // ==========================================
 
 if (window.__productPageInitialized) {
@@ -58,7 +58,7 @@ if (window.__productPageInitialized) {
         return product.base_price || 0;
     }
 
-    // DÜZELTME: Fallback fonksiyonları - common.js yüklenmemişse çalışsın
+    // DUZELTME: Fallback fonksiyonlari - common.js yuklenmemisse calissin
     function fallbackGetCart() {
         try { return JSON.parse(localStorage.getItem('siteCartItems')) || []; } catch (e) { return []; }
     }
@@ -82,7 +82,6 @@ if (window.__productPageInitialized) {
         }
     }
     function fallbackUpdateMiniCartUI() {
-        // Basit implementasyon
         console.log('Mini cart UI guncellendi (fallback)');
     }
     function fallbackAddProductToCart(productData) {
@@ -111,18 +110,68 @@ if (window.__productPageInitialized) {
         } catch (e) { console.error('Wishlist badge hatasi:', e); }
     }
 
+    // DUZELTME: Slug cikarma fonksiyonu - daha guclu
+    function extractSlug() {
+        // 1. Once URLSearchParams'dan dene
+        var slug = new URLSearchParams(window.location.search).get('slug');
+        if (slug && slug !== 'product.html') {
+            console.log('Slug URLSearchParams'dan alindi:', slug);
+            return slug;
+        }
+
+        // 2. Pathname'den dene
+        var pathname = window.location.pathname;
+        var parts = pathname.split('/').filter(function(p) { return p; });
+
+        // /matta/urun-adi veya /product/urun-adi formati
+        if (parts.length >= 2) {
+            // Eger ilk parca 'matta' veya 'product' ise, son parca slug'dir
+            if (parts[0] === 'matta' || parts[0] === 'product') {
+                slug = parts[parts.length - 1];
+                console.log('Slug pathname'den alindi (/matta/ veya /product/):', slug);
+                return slug;
+            }
+        }
+
+        // 3. Son parca her zaman slug olabilir (Vercel rewrite olmadan direkt acilirsa)
+        if (parts.length > 0) {
+            var lastPart = parts[parts.length - 1];
+            // product.html degilse ve bos degilse
+            if (lastPart && lastPart !== 'product.html' && lastPart !== 'index.html') {
+                console.log('Slug pathname'den alindi (son parca):', lastPart);
+                return lastPart;
+            }
+        }
+
+        // 4. Hala bulunamadiysa, document.referrer'dan dene
+        if (document.referrer) {
+            var referrerUrl = new URL(document.referrer);
+            var referrerParts = referrerUrl.pathname.split('/').filter(function(p) { return p; });
+            if (referrerParts.length >= 2 && (referrerParts[0] === 'matta' || referrerParts[0] === 'product')) {
+                slug = referrerParts[referrerParts.length - 1];
+                console.log('Slug referrer'dan alindi:', slug);
+                return slug;
+            }
+        }
+
+        console.error('Slug bulunamadi! Pathname:', pathname, 'Search:', window.location.search);
+        return null;
+    }
+
     async function initProductPage() {
         console.log("Urun sayfasi init basliyor...");
+        console.log("URL:", window.location.href);
+        console.log("Pathname:", window.location.pathname);
+        console.log("Search:", window.location.search);
 
-        var slug = new URLSearchParams(window.location.search).get('slug');
+        var slug = extractSlug();
+
         if (!slug) {
-            var parts = window.location.pathname.split('/').filter(function(p) { return p; });
-            slug = parts[parts.length - 1];
-        }
-        if (!slug || slug === 'product.html') {
             console.error("Slug bulunamadi!");
             return;
         }
+
+        console.log("Slug:", slug);
 
         try {
             // Duz cekme (embed olmadan)
@@ -132,7 +181,7 @@ if (window.__productPageInitialized) {
             });
 
             if (products.length === 0) {
-                console.error("Urun bulunamadi!");
+                console.error("Urun bulunamadi! Slug:", slug);
                 return;
             }
 
@@ -263,7 +312,6 @@ if (window.__productPageInitialized) {
             localStorage.setItem('wishlistItems', JSON.stringify(wishlist));
             updateWishlistButtonState(btn, productId);
 
-            // DÜZELTME: Fallback kullan
             if (typeof updateWishlistBadge === 'function') {
                 updateWishlistBadge();
             } else {
@@ -699,7 +747,6 @@ if (window.__productPageInitialized) {
                 delivery: fields.Delivery_time || ''
             };
 
-            // DÜZELTME: common.js fonksiyonlarını kontrol et, yoksa fallback kullan
             if (typeof addProductToCart === 'function') {
                 addProductToCart(cartData);
             } else {
@@ -725,7 +772,6 @@ if (window.__productPageInitialized) {
     // ==========================================
     // BASLAT
     // ==========================================
-    // DÜZELTME: async fonksiyonu düzgün çağır
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', function() {
             initProductPage().catch(function(e) {
