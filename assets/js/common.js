@@ -467,71 +467,57 @@ function closeMobileMenu() {
 // 8. EVENT LISTENERS - GÜNCELLENMİŞ YAPI
 // ==========================================
 
-let __commonListenersInitialized = false;
-
 function initEventListeners() {
-    if (__commonListenersInitialized) {
-        console.log('Event listenerlar zaten bagli, atlaniyor.');
-        return;
-    }
+    if (__commonListenersInitialized) return;
     __commonListenersInitialized = true;
 
     console.log('Event listenerlar baslatiliyor...');
 
-    // TEK BİR DİNLEYİCİ İLE TÜM TIKLAMALARI YÖNETELİM (Capture Modunda)
+    // 1. GENEL TIKLAMALAR (Açma/Kapama/Menü gibi işler)
     document.addEventListener('click', (e) => {
-        
-        // 1. Sepet Açma Butonları
         if (e.target.closest('#open-mini-cart-btn, .cart-icon-wrapper, .fa-shopping-bag')) {
             e.preventDefault();
             openMiniCart();
         }
-
-        // 2. Sepet Kapama Butonları
-        if (e.target.closest('#close-mini-cart')) {
-            closeMiniCart();
-        }
-
-        // 3. Miktar Butonları (GÜVENLİ YAKALAMA)
-        const qtyBtn = e.target.closest('.quantity-btn');
-        if (qtyBtn) {
-            const id = qtyBtn.getAttribute('data-id');
-            const action = qtyBtn.getAttribute('data-action');
-            if (id && action) {
-                updateQuantity(id, action === 'increase' ? 1 : -1);
-            }
-        }
-
-        // 4. Silme Butonu (GÜVENLİ YAKALAMA)
-        const removeBtn = e.target.closest('.remove-item-btn');
-        if (removeBtn) {
-            const id = removeBtn.getAttribute('data-id');
-            if (id) removeFromCart(id);
-        }
-
-        // 5. Mobil Menü
+        if (e.target.closest('#close-mini-cart')) closeMiniCart();
+        
         if (e.target.closest('#open-mobile-menu-btn')) {
             e.preventDefault();
             openMobileMenu();
         }
-        if (e.target.closest('#close-mobile-menu')) {
-            closeMobileMenu();
-        }
-
-        // 6. Overlay Kapatma
+        if (e.target.closest('#close-mobile-menu')) closeMobileMenu();
+        
         if (e.target.id === 'mini-cart-overlay') closeMiniCart();
         if (e.target.id === 'mobile-menu-overlay') closeMobileMenu();
 
-        // 7. Search Open
         const searchOpen = e.target.closest('#search-open-btn');
         if (searchOpen) {
             e.preventDefault();
             openSearchPopup();
         }
+    });
 
-    }, true); // 'true' parametresi çok kritik: Olayı en tepeden yakalar
+    // 2. SEPET İÇİ İŞLEMLER (Doğrudan Div üzerinden)
+    const filledState = document.getElementById('cart-filled-state');
+    if (filledState) {
+        filledState.addEventListener('click', (e) => {
+            const removeBtn = e.target.closest('.remove-item-btn');
+            const qtyBtn = e.target.closest('.quantity-btn');
 
-    // ESC TUSU (Bunu değiştirmene gerek yok)
+            if (removeBtn) {
+                const id = removeBtn.getAttribute('data-id');
+                console.log("Silme tetiklendi, ID:", id);
+                if (id) removeFromCart(id);
+            } else if (qtyBtn) {
+                const id = qtyBtn.getAttribute('data-id');
+                const action = qtyBtn.getAttribute('data-action');
+                console.log("Miktar değişimi tetiklendi, ID:", id, "Aksiyon:", action);
+                if (id && action) updateQuantity(id, action === 'increase' ? 1 : -1);
+            }
+        });
+    }
+
+    // ESC TUSU
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             closeMiniCart();
@@ -542,8 +528,7 @@ function initEventListeners() {
 
     initSearch();
     updateWishlistBadge();
-
-    console.log('Event listenerlar baglandi');
+    console.log('Event listenerlar bağlandı');
 }
 
 
