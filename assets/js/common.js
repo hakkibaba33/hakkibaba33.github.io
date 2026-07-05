@@ -594,49 +594,70 @@ console.log('common.js yuklendi ve baslatildi');
 
 
 
-// ========== DINAMIK BREADCRUMB ==========
+// ============================================
+// DINAMIK BREADCRUMB - TÜM SAYFALAR
+// ============================================
 
-function generateBreadcrumb() {
-    const breadcrumbNav = document.getElementById('breadcrumb-nav');
-    if (!breadcrumbNav) return;
+function initBreadcrumb() {
+    const nav = document.getElementById('breadcrumb-nav');
+    if (!nav) return;
 
+    const path = window.location.pathname;
     const urlParams = new URLSearchParams(window.location.search);
-    const kategori = urlParams.get('kategori');
-    const pageName = document.title.replace(' | DKRUG', '').trim();
+    const crumbs = [];
 
-    // Breadcrumb yapılandırması (her sayfa için özelleştirilebilir)
-    const breadcrumbs = [
-        { name: 'Hem', url: 'index.html' },
-        { name: 'Mattor', url: 'category.html' }
-    ];
+    // 1. Her zaman "Hem" ile başla
+    crumbs.push({ name: 'Hem', url: '/' });
 
-    // Aktif kategori varsa ekle
-    if (kategori) {
-        const kategoriNames = {
-            'vardagsrum': 'Vardagsrum',
-            'sovrum': 'Sovrum',
-            'kok': 'Kök'
-        };
-        breadcrumbs.push({
-            name: kategoriNames[kategori] || kategori,
-            url: `category.html?kategori=${kategori}`
-        });
+    // 2. Sayfaya göre breadcrumb oluştur
+    if (path.includes('category') || path.includes('kategori')) {
+        // Kategori sayfası
+        crumbs.push({ name: 'Alla Mattor', url: '/category.html' });
+        
+        const cat = urlParams.get('kategori');
+        if (cat) {
+            const catNames = {
+                'vardagsrum': 'Vardagsrum',
+                'sovrum': 'Sovrum',
+                'kok': 'Kök'
+            };
+            crumbs.push({ name: catNames[cat] || cat, url: '#' });
+        }
+    } 
+    else if (path.includes('product') || document.getElementById('product-main-name-desktop')) {
+        // Ürün sayfası
+        crumbs.push({ name: 'Alla Mattor', url: '/category.html' });
+        
+        // Ürün adını JS'den al
+        const productName = document.getElementById('product-main-name-desktop')?.textContent?.trim();
+        if (productName && productName !== '---') {
+            crumbs.push({ name: productName, url: '#' });
+        } else {
+            crumbs.push({ name: 'Produkt', url: '#' });
+        }
     }
+    // Ana sayfa için sadece "Hem" yeterli
 
     // HTML oluştur
+    if (crumbs.length <= 1) {
+        // Ana sayfa - boş bırak (CSS :empty ile yer kaplar)
+        nav.innerHTML = '';
+        return;
+    }
+
     let html = '<ol class="breadcrumb-list">';
-    breadcrumbs.forEach((item, index) => {
-        const isLast = index === breadcrumbs.length - 1;
+    crumbs.forEach((crumb, i) => {
+        const isLast = i === crumbs.length - 1;
         if (isLast) {
-            html += `<li class="breadcrumb-item active" aria-current="page">${item.name}</li>`;
+            html += `<li class="active">${crumb.name}</li>`;
         } else {
-            html += `<li class="breadcrumb-item"><a href="${item.url}">${item.name}</a></li>`;
+            html += `<li><a href="${crumb.url}">${crumb.name}</a></li>`;
         }
     });
     html += '</ol>';
 
-    breadcrumbNav.innerHTML = html;
+    nav.innerHTML = html;
 }
 
 // Sayfa yüklendiğinde çalıştır
-document.addEventListener('DOMContentLoaded', generateBreadcrumb);
+document.addEventListener('DOMContentLoaded', initBreadcrumb);
