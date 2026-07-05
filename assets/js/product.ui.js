@@ -716,6 +716,66 @@ if (window.__productPageInitialized) {
 
 
 
+const mockRelatedProducts = Array.from({ length: 25 }, (_, i) => ({
+    id: 100 + i,
+    name: [
+        "Persisk Handknuten Matta", "Skandinavisk Ullmatta", "Modern Geometrisk",
+        "Vintage Kelim", "Shaggy Hårlig", "Orientalisk Silk", "Boho Bomull",
+        "Industriell Jute", "Lyxviskos", "Barnmatta Djur", "Utomhus PP",
+        "Löpare Korridor", "Rund Mandala", "3D Effekt", "Anti-Slip",
+        "Maskinvävd", "Handtuftad", "Patchwork", "Fårskinn", "Bambu",
+        "Återvunnen", "Vattentät", "Värmematta", "Sisal Natur", "Chenille"
+    ][i],
+    price: `${(Math.random() * 4000 + 1000).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, " ")} kr`,
+    oldPrice: Math.random() > 0.5 ? `${(Math.random() * 5000 + 2000).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, " ")} kr` : null,
+    image: `/assets/images/products/related-${(i % 8) + 1}.jpg`,
+    badge: Math.random() > 0.7 ? (Math.random() > 0.5 ? 'REA' : 'NYHET') : null
+}));
+
+// Render fonksiyonu
+function renderCarousel(trackId, products) {
+    const track = document.getElementById(trackId);
+    if (!track) return;
+
+    track.innerHTML = products.map(p => `
+        <div class="product-slide">
+            <article class="product-card" data-id="${p.id}">
+                <div class="product-card-image">
+                    <img src="${p.image}" alt="${p.name}" loading="lazy">
+                    ${p.badge ? `<span class="product-card-badge ${p.badge === 'REA' ? 'sale' : 'new'}">${p.badge}</span>` : ''}
+                    <button class="product-card-fav" aria-label="Favorit">
+                        <i class="fa-regular fa-heart"></i>
+                    </button>
+                    <button class="product-card-quick-add" data-id="${p.id}">
+                        Lägg i varukorg
+                    </button>
+                </div>
+                <div class="product-card-info">
+                    <h3 class="product-card-name">${p.name}</h3>
+                    <div class="product-card-meta">
+                        <div class="product-card-price">
+                            <span class="product-card-price-current">${p.price}</span>
+                            ${p.oldPrice ? `<span class="product-card-price-old">${p.oldPrice}</span>` : ''}
+                        </div>
+                    </div>
+                </div>
+            </article>
+        </div>
+    `).join('');
+}
+
+// Başlat
+document.addEventListener('DOMContentLoaded', () => {
+    renderCarousel('related-carousel-track', mockRelatedProducts);
+    // Son bakılanlar için aynısı...
+});
+
+
+
+
+
+
+
 // ============================================
 // MODERN SWIPE KARUSEL
 // ============================================
