@@ -1,146 +1,134 @@
 <!-- ========== SEARCH POPUP ========== -->
-<div class="search-popup" id="search-popup-overlay">
-    <div class="search-inner">
-        <span class="search-icon-static"><i class="fas fa-search"></i></span>
-        <form class="search-form-full" onsubmit="return false;">
-            <input type="text" id="live-search-input" class="search-input-field" placeholder="Sök namn, stil..." autocomplete="off">
-        </form>
-        <button class="search-close-x" id="close-search-popup">
-            <i class="fa-solid fa-xmark"></i>
+<div class="search-popup-overlay" id="search-popup-overlay">
+    <div class="search-popup-inner">
+        <button class="search-close-btn" id="close-search-popup" aria-label="Stäng sök">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
         </button>
+        <div class="search-field-wrap">
+            <svg class="search-field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input type="text" id="live-search-input" class="search-input-field" placeholder="Sök namn, stil..." autocomplete="off">
+        </div>
         <div id="search-results-display" style="display: none;"></div>
     </div>
 </div>
 
 <!-- ========== MOBIL MENU ========== -->
-<div class="mobile-menu-overlay" id="mobile-menu-overlay">
-    <div class="mobile-menu-content">
-        <div class="mobile-menu-header">
-            <span class="logo">DKRUG</span>
-            <button id="close-mobile-menu" class="close-btn"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-        <div class="mobile-menu-body">
-            <nav class="mobile-nav">
-                <ul class="mobile-menu-list">
-                    <li><a href="/">Start</a></li>
-                    <li><a href="/mattor">Mattor</a></li>
-                    <li><a href="/gardiner">Gardiner</a></li>
-                    <li><a href="/rea" class="menu-sale-mobile">REA</a></li>
-                    <li><a href="/kontakt">Kontakt</a></li>
-                </ul>
-            </nav>
-        </div>
+<div class="mobile-menu-overlay" id="mobile-menu-overlay"></div>
+<div class="mobile-menu-drawer" id="mobile-menu-drawer">
+    <div class="mobile-menu-header">
+        <a href="/" class="logo">DKRUG</a>
+        <button class="mobile-close-btn" id="close-mobile-menu" aria-label="Stäng meny">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+    </div>
+    <div class="mobile-menu-body">
+        <nav>
+            <ul class="mobile-nav-list">
+                <li><a href="/">Start</a></li>
+                <li><a href="/mattor">Mattor</a></li>
+                <li><a href="/gardiner">Gardiner</a></li>
+                <li><a href="/rea" class="mobile-sale">REA</a></li>
+                <li><a href="/kontakt">Kontakt</a></li>
+            </ul>
+        </nav>
+    </div>
+    <div class="mobile-menu-footer">
+        © 2021 - 2026 DKRug
     </div>
 </div>
 
+
 <!-- ========== TOP BAR ========== -->
 <div class="top-bar" id="top-bar">
-    <div class="top-bar-container">
-        <div class="top-bar-half top-bar-left">
-            <div class="top-bar-slider">
-                <div class="top-bar-item">
-                    <span class="top-bar-icon">
-                        <svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
-                            <g fill="currentColor">
-                                <path d="M476.158,231.363l-13.259-53.035c3.625-0.77,6.345-3.986,6.345-7.839v-8.551c0-18.566-15.105-33.67-33.67-33.67h-60.392V110.63c0-9.136-7.432-16.568-16.568-16.568H50.772c-9.136,0-16.568,7.432-16.568,16.568V256c0,4.427,3.589,8.017,8.017,8.017c4.427,0,8.017-3.589,8.017-8.017V110.63c0-0.295,0.239-0.534,0.534-0.534h307.841c0.295,0,0.534,0.239,0.534,0.534v145.372c0,4.427,3.589,8.017,8.017,8.017c4.427,0,8.017-3.589,8.017-8.017v-9.088h94.569c0.008,0,0.014,0.002,0.021,0.002c0.008,0,0.015-0.001,0.022-0.001c11.637,0.008,21.518,7.646,24.912,18.171h-24.928c-4.427,0-8.017,3.589-8.017,8.017v17.102c0,13.851,11.268,25.119,25.119,25.119h9.086v35.273h-20.962c-6.886-19.883-25.787-34.205-47.982-34.205s-41.097,14.322-47.982,34.205h-3.86v-60.393c0-4.427-3.589-8.017-8.017-8.017c-4.427,0-8.017,3.589-8.017,8.017v60.391H192.817c-6.886-19.883-25.787-34.205-47.982-34.205s-41.097,14.322-47.982,34.205H50.772c-0.295,0-0.534-0.239-0.534-0.534v-17.637h34.739c4.427,0,8.017-3.589,8.017-8.017s-3.589-8.017-8.017-8.017H8.017c-4.427,0-8.017,3.589-8.017,8.017s3.589,8.017,8.017,8.017h26.188v17.637c0,9.136,7.432,16.568,16.568,16.568h43.304c-0.002,0.178-0.014,0.355-0.014,0.534c0,27.996,22.777,50.772,50.772,50.772s50.772-22.776,50.772-50.772c0-0.18-0.012-0.356-0.014-0.534h180.67c-0.002,0.178-0.014,0.355-0.014,0.534c0,27.996,22.777,50.772,50.772,50.772c27.995,0,50.772-22.776,50.772-50.772c0-0.18-0.012-0.356-0.014-0.534h26.203c4.427,0,8.017-3.589,8.017-8.017v-85.511C512,251.989,496.423,234.448,476.158,231.363z M144.835,401.904c-19.155,0-34.739-15.583-34.739-34.739s15.584-34.739,34.739-34.739c19.155,0,34.739,15.583,34.739,34.739S163.99,401.904,144.835,401.904z M427.023,401.904c-19.155,0-34.739-15.583-34.739-34.739s15.584-34.739,34.739-34.739c19.155,0,34.739,15.583,34.739,34.739S446.178,401.904,427.023,401.904z"/>
-                            </g>
-                        </svg>
-                    </span>
-                    Gratis och snabb frakt
-                </div>
-                <div class="top-bar-item">
-                    <span class="top-bar-icon">
-                        <svg viewBox="0 0 490.693 490.693" xmlns="http://www.w3.org/2000/svg">
-                            <path fill="currentColor" d="M351.173,149.227H36.4L124.827,60.8c4.053-4.267,3.947-10.987-0.213-15.04c-4.16-3.947-10.667-3.947-14.827,0 L3.12,152.427c-4.16,4.16-4.16,10.88,0,15.04l106.667,106.667c4.267,4.053,10.987,3.947,15.04-0.213 c3.947-4.16,3.947-10.667,0-14.827L36.4,170.56h314.773c65.173,0,118.187,57.387,118.187,128s-53.013,128-118.187,128h-94.827 c-5.333,0-10.133,3.84-10.88,9.067c-0.96,6.613,4.16,12.267,10.56,12.267h95.147c76.907,0,139.52-66.987,139.52-149.333 S428.08,149.227,351.173,149.227z"/>
-                        </svg>
-                    </span>
-                    30 dagars öppet köp
-                </div>
-                <div class="top-bar-item">
-                    <span class="top-bar-icon">
-                        <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-                            <path fill="currentColor" d="M30 29.25h-1.25v-25.25c-0-0.414-0.336-0.75-0.75-0.75h-6c-0.414 0-0.75 0.336-0.75 0.75s0.336 0.75 0.75 0.75v0h5.25v25.25c0 0.414 0.336 0.75 0.75 0.75h2c0.414 0 0.75-0.336 0.75-0.75s-0.336-0.75-0.75-0.75v0zM17.853 1.26l-11.977 2c-0.357 0.062-0.626 0.37-0.626 0.74 0 0 0 0 0 0v0 25.25h-3.25c-0.414 0-0.75 0.336-0.75 0.75s0.336 0.75 0.75 0.75v0h15.977c0.414-0 0.75-0.336 0.75-0.75v0-28c-0.001-0.414-0.337-0.75-0.751-0.75-0.043 0-0.086 0.004-0.127 0.011l0.004-0.001zM6.75 29.25v-24.615l10.477-1.749v26.364zM13.979 15.3c-0.082-0.030-0.177-0.048-0.276-0.048-0.21 0-0.401 0.079-0.545 0.209l0.001-0.001c-0.136 0.139-0.22 0.33-0.22 0.54s0.084 0.401 0.22 0.54l-0-0c0.145 0.122 0.334 0.197 0.539 0.199h0.001c0.1-0.002 0.197-0.016 0.288-0.042l-0.008 0.002c0.094-0.039 0.173-0.092 0.24-0.159v0c0.136-0.139 0.22-0.33 0.22-0.54s-0.084-0.401-0.22-0.54l0 0c-0.067-0.068-0.147-0.122-0.236-0.158l-0.005-0.002z"></path>
-                        </svg>
-                    </span>
-                    Hemleverans
-                </div>
-                <div class="top-bar-item">
-                    <span class="top-bar-icon">
-                        <svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
-                            <g fill="currentColor">
-                                <path d="M476.158,231.363l-13.259-53.035c3.625-0.77,6.345-3.986,6.345-7.839v-8.551c0-18.566-15.105-33.67-33.67-33.67h-60.392V110.63c0-9.136-7.432-16.568-16.568-16.568H50.772c-9.136,0-16.568,7.432-16.568,16.568V256c0,4.427,3.589,8.017,8.017,8.017c4.427,0,8.017-3.589,8.017-8.017V110.63c0-0.295,0.239-0.534,0.534-0.534h307.841c0.295,0,0.534,0.239,0.534,0.534v145.372c0,4.427,3.589,8.017,8.017,8.017c4.427,0,8.017-3.589,8.017-8.017v-9.088h94.569c0.008,0,0.014,0.002,0.021,0.002c0.008,0,0.015-0.001,0.022-0.001c11.637,0.008,21.518,7.646,24.912,18.171h-24.928c-4.427,0-8.017,3.589-8.017,8.017v17.102c0,13.851,11.268,25.119,25.119,25.119h9.086v35.273h-20.962c-6.886-19.883-25.787-34.205-47.982-34.205s-41.097,14.322-47.982,34.205h-3.86v-60.393c0-4.427-3.589-8.017-8.017-8.017c-4.427,0-8.017,3.589-8.017,8.017v60.391H192.817c-6.886-19.883-25.787-34.205-47.982-34.205s-41.097,14.322-47.982,34.205H50.772c-0.295,0-0.534-0.239-0.534-0.534v-17.637h34.739c4.427,0,8.017-3.589,8.017-8.017s-3.589-8.017-8.017-8.017H8.017c-4.427,0-8.017,3.589-8.017,8.017s3.589,8.017,8.017,8.017h26.188v17.637c0,9.136,7.432,16.568,16.568,16.568h43.304c-0.002,0.178-0.014,0.355-0.014,0.534c0,27.996,22.777,50.772,50.772,50.772s50.772-22.776,50.772-50.772c0-0.18-0.012-0.356-0.014-0.534h180.67c-0.002,0.178-0.014,0.355-0.014,0.534c0,27.996,22.777,50.772,50.772,50.772c27.995,0,50.772-22.776,50.772-50.772c0-0.18-0.012-0.356-0.014-0.534h26.203c4.427,0,8.017-3.589,8.017-8.017v-85.511C512,251.989,496.423,234.448,476.158,231.363z M144.835,401.904c-19.155,0-34.739-15.583-34.739-34.739s15.584-34.739,34.739-34.739c19.155,0,34.739,15.583,34.739,34.739S163.99,401.904,144.835,401.904z M427.023,401.904c-19.155,0-34.739-15.583-34.739-34.739s15.584-34.739,34.739-34.739c19.155,0,34.739,15.583,34.739,34.739S446.178,401.904,427.023,401.904z"/>
-                            </g>
-                        </svg>
-                    </span>
-                    Gratis och snabb frakt
-                </div>
+    <div class="top-bar-inner">
+        <div class="top-bar-left">
+            <div class="top-bar-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+                Gratis och snabb frakt
+            </div>
+            <div class="top-bar-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                30 dagars öppet köp
+            </div>
+            <div class="top-bar-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                Hemleverans
             </div>
         </div>
-        <div class="top-bar-half top-bar-right">
-            <span class="promo-text">🔥 Upp till 50% REA på alla mattor!</span>
+        <div class="top-bar-right">
+            🔥 Upp till 50% REA på alla mattor!
         </div>
     </div>
 </div>
 
 <!-- ========== MAIN HEADER ========== -->
 <header class="main-header" id="main-header">
-    <div class="header-main-section">
-        <div class="header-content">
-            <div class="header-icons left-icons">
-                <button class="menu-toggle-btn" id="open-mobile-menu-btn"><i class="fa-solid fa-bars"></i></button>
-            </div>
+    <div class="header-main">
+        <div class="header-left">
+            <button class="menu-toggle-btn" id="open-mobile-menu-btn" aria-label="Öppna meny">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
             <a href="/" class="logo">DKRUG</a>
-            <div class="header-icons right-icons">
-                <a href="javascript:void(0)" id="search-open-btn"><i class="fas fa-search"></i></a>
-                <a href="/favoriter" class="wishlist-icon-wrapper"><i class="far fa-heart"></i><span class="wishlist-count-badge">0</span></a>
-                <a href="javascript:void(0)" class="cart-icon-wrapper" id="open-mini-cart-btn"><i class="fas fa-shopping-bag"></i><span class="cart-count-badge">0</span></a>
-            </div>
+        </div>
+
+        <nav class="desktop-nav">
+            <ul class="nav-list">
+                <li><a href="/mattor">Mattor</a></li>
+                <li><a href="/gardiner">Gardiner</a></li>
+                <li><a href="/rea" class="nav-sale">REA</a></li>
+                <li><a href="/kontakt">Kontakt</a></li>
+            </ul>
+        </nav>
+
+        <div class="header-right">
+            <button class="header-icon-btn" id="search-open-btn" title="Sök" aria-label="Sök">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            </button>
+            <a href="/favoriter" class="header-icon-btn" title="Favoriter" aria-label="Favoriter">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                <span class="icon-badge wishlist-count-badge">0</span>
+            </a>
+            <button class="header-icon-btn" id="open-mini-cart-btn" title="Varukorg" aria-label="Varukorg">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                <span class="icon-badge cart-count-badge">0</span>
+            </button>
         </div>
     </div>
-    
-    <!-- ========== DESKTOP NAV - SADE ========== -->
-    <nav class="main-nav desktop-only-nav">
-        <ul class="main-menu-list">
-            <li><a href="/mattor">Mattor</a></li>
-            <li><a href="/gardiner">Gardiner</a></li>
-            <li><a href="/rea" class="menu-sale">REA</a></li>
-            <li><a href="/kontakt">Kontakt</a></li>
-        </ul>
-    </nav>
 </header>
 
 <!-- ========== MINI CART ========== -->
-<div class="modal-overlay mini-cart-overlay" id="mini-cart-overlay">
-    <div class="slide-modal mini-cart-drawer" id="mini-cart-drawer">
-        <div class="mini-cart-header">
-            <h3>Din Varukorg</h3> 
-            <button class="close-btn" id="close-mini-cart">
-                <i class="fa-solid fa-xmark" style="color: black !important;"></i>
-            </button>
+<div class="mini-cart-overlay" id="mini-cart-overlay"></div>
+<div class="mini-cart-drawer" id="mini-cart-drawer">
+    <div class="mini-cart-header">
+        <h3>Din Varukorg</h3>
+        <button class="mini-cart-close" id="close-mini-cart" aria-label="Stäng varukorg">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+    </div>
+    <div class="mini-cart-body">
+        <div class="cart-empty-state" id="cart-empty-state">
+            <svg class="cart-empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+            <p>Din varukorg är tom.</p>
+            <a href="/mattor" class="cart-empty-btn">Shoppa Nu</a>
         </div>
-        <div class="mini-cart-body">
-            <div class="cart-empty-state" id="cart-empty-state">
-                <p>Din varukorg är tom.</p>
-                <a href="/mattor" class="shoppa-nu-btn">Shoppa Nu</a>
-            </div>
-            <div class="cart-filled-state" id="cart-filled-state" style="display: none;">
-            </div>
+        <div class="cart-filled-state" id="cart-filled-state" style="display: none;"></div>
+    </div>
+    <div class="mini-cart-footer" id="mini-cart-footer" style="display: none;">
+        <div class="cart-summary-line">
+            <span class="summary-label">Frakt</span>
+            <span class="summary-value" id="cart-shipping-cost" style="color: #c9a96e; font-weight: 600;">Fri frakt</span>
         </div>
-        <div id="mini-cart-footer" style="display: none;">
-            <div class="cart-summary-line shipping-line">
-                <span class="summary-label">Frakt</span>
-                <span class="summary-value" id="cart-shipping-cost">Fri frakt</span>
-            </div>
-            <div class="cart-summary-line discount-line" id="discount-wrapper" style="display: none;">
-                <span class="summary-label">Rabatt:</span>
-                <span class="summary-value discount-amount" id="cart-total-discount"></span>
-            </div>
-            <hr>
-            <div class="cart-summary-line grand-total-line">
-                <span class="summary-label">Totalt (inkl moms)</span>
-                <span class="summary-value" id="cart-grand-total"></span>
-            </div>
-            <a href="/kassa" class="checkout-btn">Till kassan</a>
+        <div class="cart-summary-line discount-line" id="discount-wrapper" style="display: none;">
+            <span class="summary-label">Rabatt:</span>
+            <span class="summary-value discount-amount" id="cart-total-discount"></span>
         </div>
+        <hr class="cart-divider">
+        <div class="cart-summary-line grand-total-line">
+            <span class="summary-label">Totalt (inkl moms)</span>
+            <span class="summary-value" id="cart-grand-total"></span>
+        </div>
+        <a href="/kassa" class="checkout-btn">Till kassan</a>
     </div>
 </div>
