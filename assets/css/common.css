@@ -76,56 +76,6 @@ body.no-scroll {
     height: 100%;
 }
 
-.top-bar-left {
-    display: flex;
-    align-items: center;
-    gap: 28px;
-}
-
-.top-bar-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.top-bar-item svg {
-    width: 16px;
-    height: 16px;
-    color: var(--dk-accent);
-    flex-shrink: 0;
-}
-
-.top-bar-right {
-    font-weight: 600;
-    color: var(--dk-accent);
-    letter-spacing: 0.5px;
-}
-
-/* ===== 1. TOP BAR ===== */
-.top-bar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
-    height: var(--header-top-height);
-    background: var(--dk-primary);
-    color: rgba(255,255,255,0.7);
-    font-size: 0.78rem;
-    z-index: 1001;
-    line-height: normal;
-}
-
-.top-bar-inner {
-    max-width: 1280px;
-    margin: 0 auto;
-    padding: 0 24px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    height: 100%;
-}
-
 /* --- TOP BAR SLIDER --- */
 .top-bar-left {
     overflow: hidden;
@@ -176,6 +126,7 @@ body.no-scroll {
     .top-bar-left { display: none; }
     .top-bar-inner { justify-content: center; }
 }
+
 
 
 /* ===== 2. MAIN HEADER ===== */
