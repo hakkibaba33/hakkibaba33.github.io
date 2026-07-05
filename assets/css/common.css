@@ -65,6 +65,10 @@
     font-weight: 500;
 }
 
+@media (max-width: 768px) {
+    .breadcrumb-nav {
+        display: none;
+    }
 
 
 
