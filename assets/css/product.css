@@ -1986,11 +1986,4 @@ body.drawer-open {
     }
 }
 
-@media (max-width: 768px) {
-    .mobile-gallery-wrapper,
-    .mobile-gallery-track,
-    .mobile-gallery-slide img {
-        position: relative !important;
-        top: -40px !important; /* Resmi yukarı taşımak için eksi değer */
-    }
-}
+
