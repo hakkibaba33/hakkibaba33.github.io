@@ -111,6 +111,9 @@ if (window.__productPageInitialized) {
                 Name: p.name,
                 Price: p.base_price,
                 Description: p.description,
+                Product_info: p.product_info || '',
+                Delivery_return: p.delivery_return || '',
+                Size_tooltip: p.size_tooltip || '',
                 Delivery_time: p.delivery_time || '3-7 arbetsdagar',
                 Variants: p.product_variants || []
             };
@@ -134,6 +137,14 @@ if (window.__productPageInitialized) {
 
             setHTML('product-description', f.Description || '');
             setText('delivery-time-display', f.Delivery_time);
+
+            // Yeni alanlari akordiyonlara ata
+            setHTML('product-specs', f.Product_info ? '<div class="specs-content-placeholder">' + f.Product_info.replace(/\n/g, '<br>') + '</div>' : '<div class="specs-content-placeholder"><p>Material, skötselråd och övrig produktinformation visas här.</p></div>');
+
+            setHTML('product-delivery', f.Delivery_return ? '<div class="delivery-content-placeholder">' + f.Delivery_return.replace(/\n/g, '<br>') + '</div>' : '<div class="delivery-content-placeholder"><p><strong>Leveranstid:</strong> <span id="delivery-time-display">' + f.Delivery_time + '</span></p><p><strong>Frakt:</strong> Fri frakt vid köp över 500 SEK</p><p><strong>Retur:</strong> 30 dagars öppet köp</p></div>');
+
+            // Tooltip'i baslat
+            setupSizeTooltip(f.Size_tooltip, f.Variants);
 
             // Gorseller
             currentImages = p.images || [];
@@ -625,6 +636,9 @@ if (window.__productPageInitialized) {
             }
         }
 
+        // Dinamik olcu gostergesini guncelle (urun isminin alti)
+        updateProductSubtitle(selectedVariant);
+
         setTimeout(closeVariantDrawer, 300);
     };
 
@@ -646,6 +660,79 @@ if (window.__productPageInitialized) {
                 item.classList.toggle('active', !isActive);
             });
         });
+    }
+
+    // ==========================================
+    // OLcu TOOLTIP
+    // ==========================================
+
+    function setupSizeTooltip(sizeTooltip, variants) {
+        const tooltipContainer = document.getElementById('tooltip-container');
+        const tooltipBody = document.getElementById('tooltip-body');
+
+        if (!tooltipContainer || !tooltipBody) return;
+
+        let tooltipContent = '';
+
+        if (sizeTooltip && sizeTooltip.trim()) {
+            tooltipContent = sizeTooltip.replace(/
+/g, '<br>');
+        } else if (variants && variants.length > 0) {
+            tooltipContent = '<strong>Tillgängliga storlekar:</strong><br><br>';
+            variants.forEach(v => {
+                const stockText = v.stock > 0 ? `(${v.stock} st i lager)` : '(Slut i lager)';
+                const priceText = v.discount_price && v.discount_price < v.price 
+                    ? `<span style="text-decoration:line-through;color:#999;">${v.price} SEK</span> <span style="color:#e54d42;">${v.discount_price} SEK</span>`
+                    : `${v.price} SEK`;
+                tooltipContent += `• <strong>${v.size}</strong> — ${priceText} ${stockText}<br>`;
+            });
+        } else {
+            tooltipContent = 'Storleksinformation kommer snart.';
+        }
+
+        tooltipBody.innerHTML = tooltipContent;
+        tooltipContainer.style.display = 'inline-block';
+
+        const toggleSpan = tooltipContainer.querySelector('.tooltip-toggle-span');
+        const popup = tooltipContainer.querySelector('.tooltip-popup-box');
+        const closeBtn = tooltipContainer.querySelector('.tooltip-close-btn');
+
+        if (toggleSpan && popup) {
+            toggleSpan.addEventListener('click', (e) => {
+                e.stopPropagation();
+                popup.classList.toggle('active');
+            });
+        }
+
+        if (closeBtn && popup) {
+            closeBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                popup.classList.remove('active');
+            });
+        }
+
+        document.addEventListener('click', (e) => {
+            if (popup && !tooltipContainer.contains(e.target)) {
+                popup.classList.remove('active');
+            }
+        });
+    }
+
+    // ==========================================
+    // DINAMIK URUN ALT BASLIK (Secilen olcu)
+    // ==========================================
+
+    function updateProductSubtitle(variant) {
+        const subtitleEl = document.getElementById('dynamic-product-subtitle');
+        if (!subtitleEl) return;
+
+        if (variant && variant.size) {
+            subtitleEl.innerHTML = `<span class="selected-size-display" style="font-size:14px;color:#666;font-weight:500;">${variant.size}</span>`;
+            subtitleEl.style.display = 'inline-block';
+        } else {
+            subtitleEl.innerHTML = '';
+            subtitleEl.style.display = 'none';
+        }
     }
 
     // ==========================================
