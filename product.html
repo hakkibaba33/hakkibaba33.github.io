@@ -22,6 +22,10 @@
             <div class="product-content">
                 <!-- SOL: Görsel Galerisi -->
                 <div class="product-gallery">
+                    <!-- MOBİL: Marka + Ürün Adı -->
+                    <div id="product-brand-mobile" style="display: none; font-size: 11px; font-weight: 600; letter-spacing: 1.5px; color: #888; text-transform: uppercase; margin-bottom: 4px;">DKRUG SWEDEN</div>
+                    <h1 id="product-main-name-mobile" style="display: none;">---</h1>
+
                     <!-- MASAÜSTÜ: 2 Büyük Resim Yan Yana -->
                     <div class="main-display-wrapper desktop-gallery" id="desktop-gallery"></div>
                     
@@ -43,21 +47,49 @@
                     <div class="brand-label-top">DKRUG SWEDEN</div>
                     <h1 id="product-main-name-desktop">---</h1> 
 
-                   
+                    <!-- ÜRÜN ALT BAŞLIK + TOOLTIP SATIRI -->
+                    <div class="product-label-row">
+                        <div id="dynamic-product-subtitle" class="product-subtitle-info">
+                            <!-- JS ile doldurulacak veya statik -->
+                        </div>
 
-                    <div class="product-price-and-rating">
-                      <div class="product-price-display">
-                      <span class="current-price" id="product-price">---</span>
-                      <span class="tax-info-static">(Inkl. moms)</span>
-                     </div>
-    
-                   <div class="google-mini-trust">
-                   <span class="g-stars">★★★★☆</span> 
-                    <span class="g-score">4.3/5</span>
-                  </div>
-                </div>
-  
-                    
+                        <!-- TOOLTIP -->
+                        <div class="custom-tooltip-container" id="tooltip-container" style="display: none;">
+                            <span class="tooltip-toggle-span">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <path d="M12 16v-4"/>
+                                    <path d="M12 8h.01"/>
+                                </svg>
+                                <span class="tooltip-label-text">Se mått</span>
+                            </span>
+                            
+                            <div class="tooltip-popup-box">
+                                <div class="tooltip-body" id="tooltip-body">
+                                    <!-- JS ile doldurulacak -->
+                                </div>
+                                <button type="button" class="tooltip-close-btn">&times;</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FİYAT + GOOGLE TRUST SATIRI -->
+                    <div class="product-price-trust-row">
+                        <div class="product-price-display">
+                            <span class="current-price" id="product-price">---</span>
+                            <span class="tax-info-static">(Inkl. moms)</span>
+                        </div>
+
+                        <!-- GOOGLE TRUST -->
+                        <div class="google-mini-trust">
+                            <div class="g-stars">★★★★☆</div> 
+                            <div class="g-text">
+                                <span class="g-score">4.3/5</span>
+                                <span class="g-brand">Butiksbetyg</span>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- VARYASYON AKORDİYONU -->
                     <div id="variant-accordion-wrapper" class="variant-accordion-box">
                         <button class="variant-accordion-header" id="variant-accordion-btn">
