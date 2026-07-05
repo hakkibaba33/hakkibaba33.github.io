@@ -1813,9 +1813,10 @@ body.no-scroll {
     }
 }
 
-
 @media (max-width: 768px) {
-    .breadcrumb-nav {
+    .breadcrumb-nav, 
+    #breadcrumb-nav, /* ID kullanıyorsa */
+    [class*="breadcrumb"] { /* Breadcrumb kelimesi geçen tüm classları hedefle */
         display: none !important;
     }
 }
