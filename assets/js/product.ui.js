@@ -714,16 +714,13 @@ if (window.__productPageInitialized) {
 }
 
 
-
-
-
 // ============================================
 // İLGİLİ ÜRÜNLER CAROUSEL - PRODUCT SAYFASI
 // ============================================
 
 async function initRelatedProductsCarousel() {
     // currentProduct yüklendikten sonra çalıştır
-    if (!currentProduct) {
+    if (typeof currentProduct === 'undefined' || !currentProduct) {
         console.warn('currentProduct henuz yuklenmedi, ilgili urunler atlaniyor');
         return;
     }
@@ -757,8 +754,11 @@ async function initRelatedProductsCarousel() {
 }
 
 // ============================================
-// BAŞLAT - initProductPage SONUNA EKLE
-// ============================================
+// BASLAT
+// ==========================================
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initProductPage);
+} else {
+    initProductPage();
+}
 
-// Mevcut initProductPage fonksiyonunun SONUNA ekle:
-// initRelatedProductsCarousel(); // <- BU SATIRI EKLE
