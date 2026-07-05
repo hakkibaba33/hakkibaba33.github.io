@@ -1,5 +1,5 @@
 // ==========================================
-// PRODUCT.UI.JS - SUPABASE UYUMLU (v3.3 - CAROUSEL FULL FIX)
+// PRODUCT.UI.JS - SUPABASE UYUMLU (v3.1 - ID FIX)
 // Eski Airtable yapısını koru, sadece API Supabase'e çevrildi
 // ==========================================
 
@@ -16,10 +16,12 @@ if (window.__productPageInitialized) {
     let isZoomed = false;
     let isMobile = window.innerWidth <= 768;
 
+    // Mobilde swipe için
     let touchStartX = 0;
     let touchCurrentX = 0;
     let isDragging = false;
 
+    // SUPABASE CLIENT
     const SUPABASE_URL = (typeof CONFIG !== 'undefined' && CONFIG.SUPABASE) ? CONFIG.SUPABASE.URL : '';
     const SUPABASE_KEY = (typeof CONFIG !== 'undefined' && CONFIG.SUPABASE) ? CONFIG.SUPABASE.ANON_KEY : '';
 
@@ -56,6 +58,8 @@ if (window.__productPageInitialized) {
         return product.base_price || 0;
     }
 
+    // DUZELTME: Eski yapıdaki gibi basit slug kontrolü
+    // ESKI KOD: "product.html" kontrolu YOK
     async function initProductPage() {
         console.log("Urun sayfasi init basliyor...");
 
@@ -65,6 +69,8 @@ if (window.__productPageInitialized) {
             slug = parts[parts.length - 1];
         }
 
+        // DUZELTME: Eski kodda bu kontrol YOKTU
+        // Ama eger slug hala yoksa veya bos ise, hata ver
         if (!slug) {
             console.error("Slug bulunamadi!");
             return;
@@ -73,6 +79,7 @@ if (window.__productPageInitialized) {
         console.log("Slug:", slug);
 
         try {
+            // Duz cekme (embed olmadan)
             const products = await supabaseGet('products', {
                 slug: 'eq.' + slug,
                 select: '*'
@@ -108,10 +115,12 @@ if (window.__productPageInitialized) {
                 Variants: p.product_variants || []
             };
 
+            // Temel bilgiler - element kontrolu ile
             setText('page-title-product-name', f.Name);
             setText('breadcrumb-product-name', f.Name);
             setText('product-main-name-desktop', f.Name);
 
+            // Fiyat gosterimi
             const hasDiscount = p.discount_price && p.discount_price < p.base_price;
             const priceEl = document.getElementById('product-price');
             if (priceEl) {
@@ -126,6 +135,7 @@ if (window.__productPageInitialized) {
             setHTML('product-description', f.Description || '');
             setText('delivery-time-display', f.Delivery_time);
 
+            // Gorseller
             currentImages = p.images || [];
             console.log(currentImages.length + ' gorsel');
 
@@ -134,6 +144,7 @@ if (window.__productPageInitialized) {
                 else renderDesktopGallery();
             }
 
+            // Varyasyonlar
             currentVariants = f.Variants;
             if (currentVariants.length > 0) {
                 setupVariantAccordion();
@@ -143,16 +154,17 @@ if (window.__productPageInitialized) {
                 if (el) el.style.display = 'none';
             }
 
+            // Lightbox (sadece masaustu)
             if (!isMobile) setupLightbox();
 
+            // Akordiyonlar
             setupAccordions();
+
+            // Sepete ekle
             setupAddToCart(f);
             setupWishlistButton(f);
 
             console.log("Urun sayfasi yuklendi:", f.Name);
-
-            // ILGILI URUNLER CAROUSEL
-            await initRelatedProductsCarousel();
 
         } catch (e) { 
             console.error("Hata:", e); 
@@ -170,7 +182,7 @@ if (window.__productPageInitialized) {
     }
 
     // ==========================================
-    // WISHLIST / FAVORI
+    // WISHLIST / FAVORI - ID FIX
     // ==========================================
 
     function setupWishlistButton(fields) {
@@ -178,8 +190,11 @@ if (window.__productPageInitialized) {
         if (!btn) return;
 
         const productId = currentProduct.id;
+
+        // Baslangic durumunu kontrol et
         updateWishlistButtonState(btn, productId);
 
+        // Click event
         btn.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -188,9 +203,11 @@ if (window.__productPageInitialized) {
             const index = wishlist.findIndex(item => (typeof item === 'string' ? item : String(item.id)) === String(productId));
 
             if (index > -1) {
+                // Kaldir
                 wishlist.splice(index, 1);
                 console.log('Favorilerden kaldirildi:', fields.Name);
             } else {
+                // Ekle
                 wishlist.push({
                     id: currentProduct.id,
                     name: fields.Name,
@@ -201,8 +218,11 @@ if (window.__productPageInitialized) {
             }
 
             localStorage.setItem('wishlistItems', JSON.stringify(wishlist));
+
+            // Buton gorunumunu guncelle
             updateWishlistButtonState(btn, productId);
 
+            // Header badge'i guncelle
             if (typeof updateWishlistBadge === 'function') {
                 updateWishlistBadge();
             }
@@ -228,7 +248,7 @@ if (window.__productPageInitialized) {
     }
 
     // ==========================================
-    // MASAUSTU GALERI
+    // MASAUSTU GALERI (2 Resim + Thumbnail'lar)
     // ==========================================
 
     function renderDesktopGallery() {
@@ -242,20 +262,32 @@ if (window.__productPageInitialized) {
 
         if (!container) return;
 
+        // 2 buyuk resim yan yana
         let mainHTML = '';
         const count = Math.min(2, currentImages.length);
 
         for (let i = 0; i < count; i++) {
-            mainHTML += '<div class="main-image-column" data-index="' + i + '">' +
-                '<img src="' + currentImages[i] + '" alt="' + currentProduct.name + ' - ' + (i+1) + '" class="main-image" onclick="openLightbox(' + i + ')">' +
-            '</div>';
+            mainHTML += `
+                <div class="main-image-column" data-index="${i}">
+                    <img src="${currentImages[i]}" 
+                         alt="${currentProduct.name} - ${i+1}" 
+                         class="main-image"
+                         onclick="openLightbox(${i})">
+                </div>
+            `;
         }
         container.innerHTML = mainHTML;
 
+        // Thumbnail'lar
         if (thumbContainer) {
             let thumbHTML = '';
             currentImages.forEach((img, i) => {
-                thumbHTML += '<img src="' + img + '" alt="thumb-' + (i+1) + '" class="thumbnail-item ' + (i === 0 ? 'selected' : '') + '" data-index="' + i + '" onclick="selectMainImage(' + i + ')">';
+                thumbHTML += `
+                    <img src="${img}" alt="thumb-${i+1}" 
+                         class="thumbnail-item ${i === 0 ? 'selected' : ''}"
+                         data-index="${i}"
+                         onclick="selectMainImage(${i})">
+                `;
             });
             thumbContainer.innerHTML = thumbHTML;
         }
@@ -280,7 +312,7 @@ if (window.__productPageInitialized) {
     };
 
     // ==========================================
-    // MOBIL GALERI
+    // MOBIL GALERI (Swipe + Sayac + Ilerleme Cubugu)
     // ==========================================
 
     function renderMobileGallery() {
@@ -297,9 +329,11 @@ if (window.__productPageInitialized) {
 
         let html = '';
         currentImages.forEach((img, i) => {
-            html += '<div class="mobile-gallery-slide" data-index="' + i + '">' +
-                '<img src="' + img + '" alt="' + currentProduct.name + ' - ' + (i+1) + '">' +
-            '</div>';
+            html += `
+                <div class="mobile-gallery-slide" data-index="${i}">
+                    <img src="${img}" alt="${currentProduct.name} - ${i+1}">
+                </div>
+            `;
         });
         track.innerHTML = html;
 
@@ -312,7 +346,7 @@ if (window.__productPageInitialized) {
         const thumb = document.getElementById('mobile-scrollbar-thumb');
         const total = currentImages.length;
 
-        if (counter) counter.innerText = (selectedImageIndex + 1) + ' / ' + total;
+        if (counter) counter.innerText = `${selectedImageIndex + 1} / ${total}`;
 
         if (thumb && total > 1) {
             const widthPercent = (1 / total) * 100;
@@ -343,7 +377,7 @@ if (window.__productPageInitialized) {
         const track = document.getElementById('mobile-gallery-track');
         if (track) {
             const offset = -selectedImageIndex * 100 + (diff / window.innerWidth) * 100;
-            track.style.transform = 'translateX(' + offset + '%)';
+            track.style.transform = `translateX(${offset}%)`;
         }
     }
 
@@ -363,14 +397,14 @@ if (window.__productPageInitialized) {
 
         if (track) {
             track.style.transition = 'transform 0.3s ease-out';
-            track.style.transform = 'translateX(-' + (selectedImageIndex * 100) + '%)';
+            track.style.transform = `translateX(-${selectedImageIndex * 100}%)`;
             setTimeout(() => { track.style.transition = ''; }, 300);
         }
         updateMobileCounter();
     }
 
     // ==========================================
-    // LIGHTBOX
+    // LIGHTBOX (Sadece Masaustu)
     // ==========================================
 
     function setupLightbox() {
@@ -378,15 +412,18 @@ if (window.__productPageInitialized) {
         const prevBtn = document.getElementById('lightbox-prev');
         const nextBtn = document.getElementById('lightbox-next');
         const imgContainer = document.getElementById('lightbox-img-container');
+        const imgWrapper = document.getElementById('lightbox-img-wrapper');
 
         if (closeBtn) closeBtn.onclick = closeLightbox;
         if (prevBtn) prevBtn.onclick = () => navigateLightbox(-1);
         if (nextBtn) nextBtn.onclick = () => navigateLightbox(1);
 
+        // Zoom
         if (imgContainer) {
             imgContainer.addEventListener('dblclick', toggleZoom);
         }
 
+        // Klavye navigasyonu
         document.addEventListener('keydown', (e) => {
             const overlay = document.getElementById('custom-lightbox');
             if (!overlay?.classList.contains('active')) return;
@@ -399,7 +436,7 @@ if (window.__productPageInitialized) {
     }
 
     window.openLightbox = function(index) {
-        if (isMobile) return;
+        if (isMobile) return; // Mobilde lightbox acilmasin
         selectedImageIndex = index;
         updateLightboxImage();
         const overlay = document.getElementById('custom-lightbox');
@@ -435,14 +472,16 @@ if (window.__productPageInitialized) {
         const nextBtn = document.getElementById('lightbox-next');
 
         if (img) img.src = currentImages[selectedImageIndex];
-        if (counter) counter.innerText = (selectedImageIndex + 1) + ' / ' + currentImages.length;
+        if (counter) counter.innerText = `${selectedImageIndex + 1} / ${currentImages.length}`;
         if (prevBtn) prevBtn.disabled = selectedImageIndex === 0;
         if (nextBtn) nextBtn.disabled = selectedImageIndex === currentImages.length - 1;
 
+        // Zoom'u resetle
         isZoomed = false;
         const wrapper = document.getElementById('lightbox-img-wrapper');
         if (wrapper) wrapper.classList.remove('zoomed');
 
+        // Thumbnail'lari guncelle
         document.querySelectorAll('.lightbox-thumb-item-container').forEach((thumb, i) => {
             thumb.classList.toggle('selected', i === selectedImageIndex);
         });
@@ -461,9 +500,12 @@ if (window.__productPageInitialized) {
 
         let html = '';
         currentImages.forEach((img, i) => {
-            html += '<div class="lightbox-thumb-item-container ' + (i === 0 ? 'selected' : '') + '" onclick="lightboxSelectThumb(' + i + ')">' +
-                '<img src="' + img + '" alt="thumb-' + (i+1) + '" class="lightbox-thumbnail-item">' +
-            '</div>';
+            html += `
+                <div class="lightbox-thumb-item-container ${i === 0 ? 'selected' : ''}" 
+                     onclick="lightboxSelectThumb(${i})">
+                    <img src="${img}" alt="thumb-${i+1}" class="lightbox-thumbnail-item">
+                </div>
+            `;
         });
         list.innerHTML = html;
     }
@@ -474,7 +516,7 @@ if (window.__productPageInitialized) {
     };
 
     // ==========================================
-    // VARYASYON
+    // VARYASYON (Ayni kaliyor)
     // ==========================================
 
     function setupVariantAccordion() {
@@ -523,24 +565,27 @@ if (window.__productPageInitialized) {
             const originalPrice = getOriginalPrice(currentProduct, variant);
             const hasDiscount = variant.discount_price && variant.discount_price < variant.price;
 
-            html += '<div class="variant-drawer-item ' + (isSelected ? 'selected' : '') + '" data-index="' + index + '" onclick="selectVariant(' + index + ')">' +
-                '<div class="variant-drawer-image">' +
-                    '<img src="' + mainImage + '" alt="' + productName + ' ' + variant.size + '">' +
-                '</div>' +
-                '<div class="variant-drawer-info">' +
-                    '<span class="variant-size">' + variant.size + '</span>' +
-                    '<span class="variant-price">' +
-                        (hasDiscount ? '<span style="text-decoration:line-through;color:#999;font-size:12px;">' + originalPrice + ' SEK</span> ' : '') +
-                        '<span style="' + (hasDiscount ? 'color:#e54d42;' : '') + '">' + displayPrice + ' SEK</span>' +
-                    '</span>' +
-                    '<span class="variant-stock" style="font-size:12px;color:' + (variant.stock > 0 ? '#22c55e' : '#e54d42') + ';">' +
-                        (variant.stock > 0 ? 'I lager (' + variant.stock + ' st)' : 'Slut i lager') +
-                    '</span>' +
-                '</div>' +
-                '<div class="variant-check">' +
-                    (isSelected ? '<i class="fa-solid fa-check-circle"></i>' : '<i class="fa-regular fa-circle"></i>') +
-                '</div>' +
-            '</div>';
+            html += `
+                <div class="variant-drawer-item ${isSelected ? 'selected' : ''}" 
+                     data-index="${index}" onclick="selectVariant(${index})">
+                    <div class="variant-drawer-image">
+                        <img src="${mainImage}" alt="${productName} ${variant.size}">
+                    </div>
+                    <div class="variant-drawer-info">
+                        <span class="variant-size">${variant.size}</span>
+                        <span class="variant-price">
+                            ${hasDiscount ? '<span style="text-decoration:line-through;color:#999;font-size:12px;">' + originalPrice + ' SEK</span> ' : ''}
+                            <span style="${hasDiscount ? 'color:#e54d42;' : ''}">${displayPrice} SEK</span>
+                        </span>
+                        <span class="variant-stock" style="font-size:12px;color:${variant.stock > 0 ? '#22c55e' : '#e54d42'};">
+                            ${variant.stock > 0 ? 'I lager (' + variant.stock + ' st)' : 'Slut i lager'}
+                        </span>
+                    </div>
+                    <div class="variant-check">
+                        ${isSelected ? '<i class="fa-solid fa-check-circle"></i>' : '<i class="fa-regular fa-circle"></i>'}
+                    </div>
+                </div>
+            `;
         });
         body.innerHTML = html;
 
@@ -566,6 +611,7 @@ if (window.__productPageInitialized) {
         if (display) display.innerText = selectedVariant.size;
         if (status) status.style.display = 'inline-flex';
 
+        // Fiyati guncelle
         if (priceDisplay) {
             const displayPrice = getDisplayPrice(currentProduct, selectedVariant);
             const originalPrice = getOriginalPrice(currentProduct, selectedVariant);
@@ -583,7 +629,7 @@ if (window.__productPageInitialized) {
     };
 
     // ==========================================
-    // AKORDIYONLAR
+    // AKORDIYONLAR (3 Adet)
     // ==========================================
 
     function setupAccordions() {
@@ -603,7 +649,7 @@ if (window.__productPageInitialized) {
     }
 
     // ==========================================
-    // SEPETE EKLE
+    // SEPETE EKLE - ID FIX
     // ==========================================
 
     function setupAddToCart(fields) {
@@ -658,43 +704,6 @@ if (window.__productPageInitialized) {
     });
 
     // ==========================================
-    // ILGILI URUNLER CAROUSEL
-    // ==========================================
-
-    async function initRelatedProductsCarousel() {
-        if (!currentProduct) {
-            console.warn('currentProduct henuz yuklenmedi, ilgili urunler atlaniyor');
-            return;
-        }
-
-        try {
-            const products = await fetchProductsForCarousel({
-                limit: 25
-            });
-
-            const filtered = products.filter(p => String(p.id) !== String(currentProduct.id));
-
-            if (filtered.length === 0) {
-                console.warn('Ilgili urun bulunamadi');
-                return;
-            }
-
-            renderProductCarousel('related-carousel-track', filtered);
-
-            new ProductCarousel('related-carousel-wrapper', 'related-carousel-track', {
-                showDots: true,
-                showArrows: true,
-                showScrollHint: true
-            });
-
-            console.log('Ilgili urunler carousel yuklendi:', filtered.length);
-
-        } catch (error) {
-            console.error('Ilgili urunler hatasi:', error);
-        }
-    }
-
-    // ==========================================
     // BASLAT
     // ==========================================
     if (document.readyState === 'loading') {
@@ -703,3 +712,246 @@ if (window.__productPageInitialized) {
         initProductPage();
     }
 }
+
+
+
+
+const mockRelatedProducts = Array.from({ length: 25 }, (_, i) => ({
+    id: 100 + i,
+    name: [
+        "Persisk Handknuten Matta", "Skandinavisk Ullmatta", "Modern Geometrisk",
+        "Vintage Kelim", "Shaggy Hårlig", "Orientalisk Silk", "Boho Bomull",
+        "Industriell Jute", "Lyxviskos", "Barnmatta Djur", "Utomhus PP",
+        "Löpare Korridor", "Rund Mandala", "3D Effekt", "Anti-Slip",
+        "Maskinvävd", "Handtuftad", "Patchwork", "Fårskinn", "Bambu",
+        "Återvunnen", "Vattentät", "Värmematta", "Sisal Natur", "Chenille"
+    ][i],
+    price: `${(Math.random() * 4000 + 1000).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, " ")} kr`,
+    oldPrice: Math.random() > 0.5 ? `${(Math.random() * 5000 + 2000).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, " ")} kr` : null,
+    image: `/assets/images/products/related-${(i % 8) + 1}.jpg`,
+    badge: Math.random() > 0.7 ? (Math.random() > 0.5 ? 'REA' : 'NYHET') : null
+}));
+
+// Render fonksiyonu
+function renderCarousel(trackId, products) {
+    const track = document.getElementById(trackId);
+    if (!track) return;
+
+    track.innerHTML = products.map(p => `
+        <div class="product-slide">
+            <article class="product-card" data-id="${p.id}">
+                <div class="product-card-image">
+                    <img src="${p.image}" alt="${p.name}" loading="lazy">
+                    ${p.badge ? `<span class="product-card-badge ${p.badge === 'REA' ? 'sale' : 'new'}">${p.badge}</span>` : ''}
+                    <button class="product-card-fav" aria-label="Favorit">
+                        <i class="fa-regular fa-heart"></i>
+                    </button>
+                    <button class="product-card-quick-add" data-id="${p.id}">
+                        Lägg i varukorg
+                    </button>
+                </div>
+                <div class="product-card-info">
+                    <h3 class="product-card-name">${p.name}</h3>
+                    <div class="product-card-meta">
+                        <div class="product-card-price">
+                            <span class="product-card-price-current">${p.price}</span>
+                            ${p.oldPrice ? `<span class="product-card-price-old">${p.oldPrice}</span>` : ''}
+                        </div>
+                    </div>
+                </div>
+            </article>
+        </div>
+    `).join('');
+}
+
+// Başlat
+document.addEventListener('DOMContentLoaded', () => {
+    renderCarousel('related-carousel-track', mockRelatedProducts);
+    // Son bakılanlar için aynısı...
+});
+
+
+
+
+
+
+
+// ============================================
+// MODERN SWIPE KARUSEL
+// ============================================
+
+class ProductCarousel {
+    constructor(wrapperId, trackId, options = {}) {
+        this.wrapper = document.getElementById(wrapperId);
+        this.track = document.getElementById(trackId);
+        if (!this.wrapper || !this.track) return;
+
+        this.options = {
+            showDots: true,
+            showArrows: true,
+            showScrollHint: true,
+            ...options
+        };
+
+        this.currentIndex = 0;
+        this.slides = [];
+        this.init();
+    }
+
+    init() {
+        this.slides = this.track.querySelectorAll('.product-slide');
+        if (this.slides.length === 0) return;
+
+        this.createNavigation();
+        this.bindEvents();
+        this.updateDots();
+    }
+
+    createNavigation() {
+        // Ok butonları (masaüstü)
+        if (this.options.showArrows && window.innerWidth > 768) {
+            const prevBtn = document.createElement('button');
+            prevBtn.className = 'carousel-nav prev';
+            prevBtn.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
+            prevBtn.setAttribute('aria-label', 'Föregående');
+
+            const nextBtn = document.createElement('button');
+            nextBtn.className = 'carousel-nav next';
+            nextBtn.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
+            nextBtn.setAttribute('aria-label', 'Nästa');
+
+            this.wrapper.appendChild(prevBtn);
+            this.wrapper.appendChild(nextBtn);
+
+            prevBtn.addEventListener('click', () => this.scrollTo('prev'));
+            nextBtn.addEventListener('click', () => this.scrollTo('next'));
+        }
+
+        // Dot pagination (mobil)
+        if (this.options.showDots) {
+            const dotsContainer = document.createElement('div');
+            dotsContainer.className = 'carousel-dots';
+
+            this.slides.forEach((_, i) => {
+                const dot = document.createElement('button');
+                dot.className = 'carousel-dot';
+                dot.setAttribute('aria-label', `Gå till produkt ${i + 1}`);
+                if (i === 0) dot.classList.add('active');
+                dot.addEventListener('click', () => this.scrollToIndex(i));
+                dotsContainer.appendChild(dot);
+            });
+
+            this.wrapper.appendChild(dotsContainer);
+            this.dots = dotsContainer.querySelectorAll('.carousel-dot');
+        }
+
+        // Scroll hint (mobil)
+        if (this.options.showScrollHint && window.innerWidth <= 768) {
+            const hint = document.createElement('div');
+            hint.className = 'scroll-hint';
+            hint.innerHTML = '<i class="fa-solid fa-arrow-left"></i> Svep för att se mer <i class="fa-solid fa-arrow-right"></i>';
+            this.wrapper.appendChild(hint);
+
+            // İlk scroll'da gizle
+            this.track.addEventListener('scroll', () => {
+                hint.style.opacity = '0';
+                setTimeout(() => hint.remove(), 500);
+            }, { once: true });
+        }
+    }
+
+    bindEvents() {
+        // Scroll event - dot'ları güncelle
+        let scrollTimeout;
+        this.track.addEventListener('scroll', () => {
+            clearTimeout(scrollTimeout);
+            scrollTimeout = setTimeout(() => this.updateDots(), 50);
+        });
+
+        // Touch swipe momentum
+        let startX, scrollLeft;
+        this.track.addEventListener('touchstart', (e) => {
+            startX = e.touches[0].pageX - this.track.offsetLeft;
+            scrollLeft = this.track.scrollLeft;
+        }, { passive: true });
+
+        this.track.addEventListener('touchmove', (e) => {
+            const x = e.touches[0].pageX - this.track.offsetLeft;
+            const walk = (x - startX) * 1.5;
+            this.track.scrollLeft = scrollLeft - walk;
+        }, { passive: true });
+
+        // Favori butonları
+        this.track.querySelectorAll('.product-card-fav').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                btn.classList.toggle('active');
+                const icon = btn.querySelector('i');
+                icon.classList.toggle('fa-regular');
+                icon.classList.toggle('fa-solid');
+            });
+        });
+
+        // Kart tıklama
+        this.track.querySelectorAll('.product-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const id = card.dataset.id;
+                if (id) window.location.href = `product.html?id=${id}`;
+            });
+        });
+
+        // Hızlı ekle butonu
+        this.track.querySelectorAll('.product-card-quick-add').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                // Sepete ekle fonksiyonu
+                console.log('Hızlı ekle:', btn.dataset.id);
+            });
+        });
+    }
+
+    scrollTo(direction) {
+        const slideWidth = this.slides[0].offsetWidth + 16; // gap
+        const scrollAmount = direction === 'next' ? slideWidth : -slideWidth;
+        this.track.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
+
+    scrollToIndex(index) {
+        const slide = this.slides[index];
+        if (slide) {
+            slide.scrollIntoView({ behavior: 'smooth', inline: 'start' });
+        }
+    }
+
+    updateDots() {
+        if (!this.dots) return;
+
+        const scrollLeft = this.track.scrollLeft;
+        const slideWidth = this.slides[0].offsetWidth + 16;
+        const newIndex = Math.round(scrollLeft / slideWidth);
+
+        this.dots.forEach((dot, i) => {
+            dot.classList.toggle('active', i === newIndex);
+        });
+    }
+}
+
+// ============================================
+// KARUSELLERİ BAŞLAT
+// ============================================
+
+document.addEventListener('DOMContentLoaded', () => {
+    // İlgili Ürünler Karuseli
+    new ProductCarousel('related-carousel-wrapper', 'related-carousel-track', {
+        showDots: true,
+        showArrows: true,
+        showScrollHint: true
+    });
+
+    // Son Bakılanlar Karuseli
+    new ProductCarousel('recent-carousel-wrapper', 'recent-carousel-track', {
+        showDots: true,
+        showArrows: false, // Son bakılanlarda ok yok
+        showScrollHint: false
+    });
+});
