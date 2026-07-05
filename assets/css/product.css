@@ -1979,10 +1979,3 @@ body.drawer-open {
         display: none !important;
     }
 }
-
-@media (min-width: 769px) {
-    .mobile-gallery-wrapper {
-        display: none !important;
-    }
-}
-
