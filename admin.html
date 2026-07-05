@@ -18,68 +18,94 @@
         .debug-log p { margin: 2px 0; }
         .slug-preview { font-size: 12px; color: #666; margin-top: 4px; font-family: monospace; background: #f3f4f6; padding: 4px 8px; border-radius: 4px; }
         .color-tag { display: inline-block; padding: 2px 8px; background: #e0e7ff; color: #4338ca; border-radius: 12px; font-size: 12px; margin: 2px; }
-        
-        /* Tab stilleri */
-        .tab-btn { 
-            padding: 12px 24px; 
-            border-bottom: 2px solid transparent; 
-            color: #6b7280; 
-            font-weight: 500;
-            transition: all 0.2s;
-            cursor: pointer;
-            background: none;
-            border-top: none;
-            border-left: none;
-            border-right: none;
-        }
+
+        .tab-btn { padding: 12px 24px; border-bottom: 2px solid transparent; color: #6b7280; font-weight: 500; transition: all 0.2s; cursor: pointer; background: none; border-top: none; border-left: none; border-right: none; }
         .tab-btn:hover { color: #374151; }
-        .tab-btn.active { 
-            border-bottom-color: #2563eb; 
-            color: #2563eb; 
-            font-weight: 700; 
-        }
-        
-        /* Sipariş tablosu stilleri */
+        .tab-btn.active { border-bottom-color: #2563eb; color: #2563eb; font-weight: 700; }
+
         .order-row { transition: background 0.2s; }
         .order-row:hover { background: #f9fafb; }
-        .status-badge {
-            padding: 4px 12px;
-            border-radius: 9999px;
-            font-size: 12px;
-            font-weight: 600;
-        }
+        .status-badge { padding: 4px 12px; border-radius: 9999px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; }
+        .status-badge:hover { transform: scale(1.05); }
         .status-pending { background: #fef3c7; color: #92400e; }
         .status-processing { background: #dbeafe; color: #1e40af; }
         .status-shipped { background: #e0e7ff; color: #3730a3; }
         .status-delivered { background: #d1fae5; color: #065f46; }
         .status-cancelled { background: #fee2e2; color: #991b1b; }
-        
-        /* Sipariş detay modal */
-        .modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 50;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
+
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 50; display: none; align-items: center; justify-content: center; padding: 20px; animation: fadeIn 0.2s ease; }
         .modal-overlay.active { display: flex; }
-        .modal-content {
-            background: white;
-            border-radius: 12px;
-            max-width: 700px;
-            width: 100%;
-            max-height: 90vh;
-            overflow-y: auto;
-            padding: 24px;
+        .modal-content { background: white; border-radius: 16px; max-width: 800px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 0; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); animation: slideUp 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .modal-header { padding: 24px 28px; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%); border-radius: 16px 16px 0 0; }
+        .modal-header h3 { color: white; font-size: 1.25rem; font-weight: 600; margin: 0; }
+        .modal-header .order-id-badge { background: rgba(201,169,110,0.2); color: #c9a96e; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-family: monospace; font-weight: 600; }
+        .modal-body { padding: 24px 28px; }
+        .modal-footer { padding: 16px 28px; border-top: 1px solid #e5e7eb; display: flex; gap: 10px; justify-content: flex-end; background: #f9fafb; border-radius: 0 0 16px 16px; }
+
+        .info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 24px; }
+        .info-card { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; }
+        .info-card h4 { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #9ca3af; margin-bottom: 8px; font-weight: 600; }
+        .info-card .value { font-size: 15px; color: #1f2937; font-weight: 500; word-break: break-word; }
+        .info-card .value.small { font-size: 13px; color: #6b7280; }
+
+        .product-list-item { display: flex; align-items: center; gap: 12px; padding: 12px; background: white; border: 1px solid #e5e7eb; border-radius: 10px; margin-bottom: 8px; }
+        .product-list-item img { width: 50px; height: 50px; object-fit: cover; border-radius: 8px; background: #f3f4f6; }
+        .product-list-item .pinfo { flex: 1; }
+        .product-list-item .pname { font-weight: 600; font-size: 14px; color: #1f2937; }
+        .product-list-item .pvariant { font-size: 12px; color: #9ca3af; }
+        .product-list-item .pprice { font-weight: 700; color: #1a1a1a; font-size: 14px; }
+        .product-list-item .pqty { font-size: 12px; color: #6b7280; }
+
+        .status-select { padding: 6px 12px; border-radius: 20px; border: 2px solid transparent; font-size: 13px; font-weight: 600; cursor: pointer; outline: none; transition: all 0.2s; }
+        .status-select:focus { box-shadow: 0 0 0 3px rgba(37,99,235,0.2); }
+
+        .action-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; border: 1px solid transparent; transition: all 0.2s; }
+        .action-btn:hover { transform: translateY(-1px); }
+        .action-btn.primary { background: #1a1a1a; color: white; }
+        .action-btn.primary:hover { background: #c9a96e; color: #1a1a1a; }
+        .action-btn.secondary { background: white; color: #374151; border-color: #d1d5db; }
+        .action-btn.secondary:hover { background: #f3f4f6; }
+
+        .filter-bar { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+        .filter-input { padding: 8px 14px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; outline: none; transition: all 0.2s; min-width: 200px; }
+        .filter-input:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+        .filter-select { padding: 8px 14px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; outline: none; background: white; cursor: pointer; }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+        .stat-card { background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; text-align: center; transition: all 0.2s; }
+        .stat-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); transform: translateY(-2px); }
+        .stat-card .icon { font-size: 28px; margin-bottom: 8px; }
+        .stat-card .value { font-size: 24px; font-weight: 700; color: #1a1a1a; }
+        .stat-card .label { font-size: 12px; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
+        .stat-card.revenue .value { color: #059669; }
+        .stat-card.pending .value { color: #d97706; }
+        .stat-card.shipped .value { color: #2563eb; }
+        .stat-card.total .value { color: #7c3aed; }
+
+        @media print { body * { visibility: hidden; } #invoice-print-area, #invoice-print-area * { visibility: visible; } #invoice-print-area { position: absolute; left: 0; top: 0; width: 100%; padding: 40px; } .no-print { display: none !important; } }
+
+        .invoice-area { background: white; padding: 40px; font-family: 'Inter', sans-serif; }
+        .invoice-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px; padding-bottom: 20px; border-bottom: 2px solid #1a1a1a; }
+        .invoice-logo { font-size: 32px; font-weight: 700; color: #1a1a1a; letter-spacing: 3px; }
+        .invoice-meta { text-align: right; }
+        .invoice-meta .inv-label { font-size: 11px; text-transform: uppercase; color: #9ca3af; letter-spacing: 1px; }
+        .invoice-meta .inv-value { font-size: 15px; font-weight: 600; color: #1f2937; margin-bottom: 8px; }
+
+        @media (max-width: 768px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .info-grid { grid-template-columns: 1fr; }
+            .filter-bar { flex-direction: column; align-items: stretch; }
+            .filter-input { min-width: auto; }
         }
     </style>
+<base target="_blank">
 </head>
 <body class="bg-gray-100 min-h-screen p-5">
 
-    <div id="token-expired-banner" class="token-expired-banner max-w-5xl mx-auto">
+    <div id="token-expired-banner" class="token-expired-banner max-w-6xl mx-auto">
         <strong>Oturum suresi doldu.</strong> Lutfen tekrar giris yapin.
         <button onclick="cikisYap()" class="ml-4 bg-amber-600 text-white px-4 py-1 rounded text-sm hover:bg-amber-700">Tekrar Giris Yap</button>
     </div>
@@ -95,27 +121,26 @@
     </div>
 
     <!-- ADMIN PANEL -->
-    <div id="admin-panel" class="max-w-5xl mx-auto bg-white rounded-xl shadow-md hidden">
-        
-        <!-- Header -->
+    <div id="admin-panel" class="max-w-6xl mx-auto bg-white rounded-xl shadow-md hidden">
+
         <div class="flex justify-between items-center p-6 border-b border-gray-200">
-            <h1 class="text-2xl font-bold text-gray-800">DKRug Yonetim Paneli</h1>
+            <div class="flex items-center gap-3">
+                <div style="width:40px;height:40px;background:linear-gradient(135deg,#1a1a1a,#c9a96e);border-radius:10px;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:18px;">D</div>
+                <h1 class="text-2xl font-bold text-gray-800">DKRug Yonetim Paneli</h1>
+            </div>
             <div class="flex items-center gap-4">
                 <span id="user-email" class="text-sm text-gray-500"></span>
                 <button onclick="cikisYap()" class="text-sm text-gray-500 hover:text-red-500 transition">Cikis Yap</button>
             </div>
         </div>
 
-        <!-- Tabs -->
         <div class="flex border-b border-gray-200 px-6">
             <button onclick="changeTab('products')" class="tab-btn active" id="tab-products">📦 Urun Ekle</button>
             <button onclick="changeTab('orders')" class="tab-btn" id="tab-orders">📋 Siparisler</button>
         </div>
 
-        <!-- ===== URUN EKLE SEKMESI ===== -->
+        <!-- URUN EKLE -->
         <div id="products-section" class="p-6">
-            
-            <!-- TEMEL BILGILER -->
             <div class="grid grid-cols-2 gap-4 mb-6">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Urun Adi *</label>
@@ -143,7 +168,6 @@
                 </div>
             </div>
 
-            <!-- INDIRIMLI FIYAT -->
             <div class="grid grid-cols-2 gap-4 mb-6">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Indirimli Fiyat (SEK)</label>
@@ -156,13 +180,11 @@
                 </div>
             </div>
 
-            <!-- ACIKLAMA -->
             <div class="mb-6">
                 <label class="block text-sm font-medium text-gray-700 mb-1">Aciklama</label>
                 <textarea id="description" rows="3" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none" placeholder="Urun aciklamasi..."></textarea>
             </div>
 
-            <!-- RENKLER -->
             <div class="mb-6">
                 <label class="block text-sm font-medium text-gray-700 mb-1">Renkler</label>
                 <input type="text" id="colors" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Kirmizi, Mavi, Yesil, Beyaz, Siyah (virgulle ayirin)" oninput="updateColorTags()">
@@ -170,7 +192,6 @@
                 <p class="text-xs text-gray-400 mt-1">Virgulle ayirarak yazin. Orn: Red, Blue, Green</p>
             </div>
 
-            <!-- GORSELLER -->
             <div class="mb-6 border-t pt-4">
                 <h2 class="font-bold mb-2 text-gray-800">Urun Gorselleri</h2>
                 <p class="text-sm text-gray-500 mb-2">Birden fazla resim secebilirsiniz (max 5 adet, her biri max 2MB)</p>
@@ -185,7 +206,6 @@
                 </div>
             </div>
 
-            <!-- VARYANTLAR -->
             <div class="border-t pt-4">
                 <h2 class="font-bold mb-3 text-gray-800">Varyant Ekle</h2>
                 <div class="grid grid-cols-5 gap-2 mb-2">
@@ -211,15 +231,51 @@
             </div>
         </div>
 
-        <!-- ===== SIPARISLER SEKMESI ===== -->
+        <!-- SIPARISLER -->
         <div id="orders-section" class="hidden p-6">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-bold text-gray-800">Gelen Siparisler</h2>
-                <button onclick="loadOrders()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-medium">
-                    🔄 Yenile
-                </button>
+
+            <div class="stats-grid">
+                <div class="stat-card total">
+                    <div class="icon">📦</div>
+                    <div class="value" id="stat-total">0</div>
+                    <div class="label">Toplam Siparis</div>
+                </div>
+                <div class="stat-card revenue">
+                    <div class="icon">💰</div>
+                    <div class="value" id="stat-revenue">0 SEK</div>
+                    <div class="label">Toplam Kazanc</div>
+                </div>
+                <div class="stat-card pending">
+                    <div class="icon">⏳</div>
+                    <div class="value" id="stat-pending">0</div>
+                    <div class="label">Bekleyen</div>
+                </div>
+                <div class="stat-card shipped">
+                    <div class="icon">🚚</div>
+                    <div class="value" id="stat-shipped">0</div>
+                    <div class="label">Kargoda</div>
+                </div>
             </div>
-            
+
+            <div class="filter-bar">
+                <input type="text" id="order-search" class="filter-input" placeholder="Musteri adi, email veya siparis no ara..." oninput="filterOrders()">
+                <select id="order-status-filter" class="filter-select" onchange="filterOrders()">
+                    <option value="">Tum Durumlar</option>
+                    <option value="pending">Bekliyor</option>
+                    <option value="processing">Isleniyor</option>
+                    <option value="shipped">Kargoda</option>
+                    <option value="delivered">Teslim Edildi</option>
+                    <option value="cancelled">Iptal</option>
+                </select>
+                <select id="order-sort" class="filter-select" onchange="filterOrders()">
+                    <option value="newest">En Yeni</option>
+                    <option value="oldest">En Eski</option>
+                    <option value="highest">En Yuksek Tutar</option>
+                    <option value="lowest">En Dusuk Tutar</option>
+                </select>
+                <button onclick="loadOrders()" class="action-btn secondary">🔄 Yenile</button>
+            </div>
+
             <div class="overflow-x-auto border rounded-lg">
                 <table class="w-full text-left border-collapse">
                     <thead>
@@ -242,22 +298,34 @@
                     </tbody>
                 </table>
             </div>
+
+            <div id="orders-empty" class="hidden p-8 text-center text-gray-400">
+                Hic siparis bulunamadi.
+            </div>
         </div>
     </div>
 
     <!-- SIPARIS DETAY MODAL -->
     <div id="order-modal" class="modal-overlay">
         <div class="modal-content">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-xl font-bold text-gray-800">Siparis Detayi</h3>
-                <button onclick="closeOrderModal()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+            <div class="modal-header">
+                <div>
+                    <h3>Siparis Detayi</h3>
+                    <span class="order-id-badge" id="modal-order-id">#---</span>
+                </div>
+                <button onclick="closeOrderModal()" class="text-white hover:text-gray-300 text-2xl" style="background:none;border:none;cursor:pointer;">&times;</button>
             </div>
-            <div id="order-modal-body"></div>
+            <div class="modal-body" id="modal-body"></div>
+            <div class="modal-footer no-print">
+                <button onclick="printInvoice()" class="action-btn secondary">🖨️ Fatura Yazdir</button>
+                <button onclick="closeOrderModal()" class="action-btn primary">Kapat</button>
+            </div>
         </div>
     </div>
 
+    <div id="invoice-print-area" style="display:none;"></div>
+
     <script>
-        // SUPABASE CONFIG
         var SUPABASE_URL = 'https://mowyhsssmpjrwxzvelax.supabase.co';
         var SUPABASE_ANON_KEY = 'sb_publishable_Fp4Nstc2lpCPNL-5OHPU8w_KD0AC6xf';
         var MAX_FILE_SIZE = 2 * 1024 * 1024;
@@ -269,13 +337,14 @@
         var currentToken = null;
         var currentRefreshToken = null;
         var currentUser = null;
+        var allOrders = [];
+        var currentOrderId = null;
 
-        // DEBUG LOG
         function log(msg) {
             var el = document.getElementById('debug-log');
             if (!el) return;
             var time = new Date().toLocaleTimeString('tr-TR');
-            el.innerHTML = el.innerHTML + '<p>[' + time + '] ' + msg + '</p>';
+            el.innerHTML += '<p>[' + time + '] ' + msg + '</p>';
             el.scrollTop = el.scrollHeight;
             console.log(msg);
         }
@@ -285,7 +354,6 @@
             if (el) el.innerHTML = '';
         }
 
-        // SLUG PREVIEW
         function slugify(text) {
             return text.toString().toLowerCase()
                 .replace(/\s+/g, '-')
@@ -299,45 +367,35 @@
             var name = document.getElementById('name').value.trim();
             var previewEl = document.getElementById('slug-preview');
             if (name) {
-                var slug = slugify(name);
-                previewEl.textContent = 'Slug: /matta/' + slug;
+                previewEl.textContent = 'Slug: /matta/' + slugify(name);
                 previewEl.classList.remove('hidden');
             } else {
                 previewEl.classList.add('hidden');
             }
         }
 
-        // COLOR TAGS
         function updateColorTags() {
             var input = document.getElementById('colors').value;
             var container = document.getElementById('color-tags');
             var colors = input.split(',').map(function(c) { return c.trim(); }).filter(function(c) { return c; });
-
             container.innerHTML = colors.map(function(color) {
                 return '<span class="color-tag">' + color + '</span>';
             }).join('');
         }
 
-        // TOKEN YONETIMI
         async function refreshTokenIfNeeded() {
             if (!currentToken) return false;
-
             try {
                 var payload = JSON.parse(atob(currentToken.split('.')[1]));
                 var exp = payload.exp * 1000;
                 var now = Date.now();
-
                 if (exp - now < 5 * 60 * 1000) {
                     log('Token yenileniyor...');
                     var res = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=refresh_token', {
                         method: 'POST',
-                        headers: { 
-                            'apikey': SUPABASE_ANON_KEY, 
-                            'Content-Type': 'application/json' 
-                        },
+                        headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
                         body: JSON.stringify({ refresh_token: currentRefreshToken })
                     });
-
                     var data = await res.json();
                     if (data.access_token) {
                         currentToken = data.access_token;
@@ -360,9 +418,7 @@
             try {
                 var payload = JSON.parse(atob(currentToken.split('.')[1]));
                 return payload.exp * 1000 > Date.now();
-            } catch {
-                return false;
-            }
+            } catch { return false; }
         }
 
         function showTokenExpired() {
@@ -372,30 +428,23 @@
             if (panel) panel.classList.add('hidden');
         }
 
-        // GIRIS / CIKIS
         async function girisYap() {
             var email = document.getElementById('email').value;
             var password = document.getElementById('password').value;
             var errorEl = document.getElementById('login-error');
-
             if (!email || !password) {
                 errorEl.textContent = 'E-posta ve sifre giriniz.';
                 errorEl.classList.remove('hidden');
                 return;
             }
-
             try {
                 log('Giris yapiliyor...');
                 var res = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=password', {
                     method: 'POST',
-                    headers: { 
-                        'apikey': SUPABASE_ANON_KEY, 
-                        'Content-Type': 'application/json' 
-                    },
+                    headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email: email, password: password })
                 });
                 var data = await res.json();
-
                 if (data.access_token) {
                     currentToken = data.access_token;
                     currentRefreshToken = data.refresh_token;
@@ -403,9 +452,7 @@
                     localStorage.setItem('token', data.access_token);
                     localStorage.setItem('refresh_token', data.refresh_token);
                     localStorage.setItem('user_email', data.user ? data.user.email : '');
-
                     log('Giris basarili!');
-
                     document.getElementById('login-form').classList.add('hidden');
                     document.getElementById('admin-panel').classList.remove('hidden');
                     var banner = document.getElementById('token-expired-banner');
@@ -450,7 +497,6 @@
             document.getElementById('colors').value = '';
             document.getElementById('slug-preview').classList.add('hidden');
             document.getElementById('color-tags').innerHTML = '';
-
             varyantlar = [];
             uploadedImages = [];
             renderVariants();
@@ -461,12 +507,10 @@
             var savedToken = localStorage.getItem('token');
             var savedRefresh = localStorage.getItem('refresh_token');
             var savedEmail = localStorage.getItem('user_email');
-
             if (savedToken && savedRefresh) {
                 currentToken = savedToken;
                 currentRefreshToken = savedRefresh;
                 log('Token localStorage dan yuklendi');
-
                 if (isTokenValid()) {
                     document.getElementById('login-form').classList.add('hidden');
                     document.getElementById('admin-panel').classList.remove('hidden');
@@ -477,53 +521,27 @@
                             document.getElementById('login-form').classList.add('hidden');
                             document.getElementById('admin-panel').classList.remove('hidden');
                             document.getElementById('user-email').textContent = savedEmail || '';
-                        } else {
-                            cikisYap();
-                        }
+                        } else { cikisYap(); }
                     });
                 }
             }
         });
 
-        // API CAGIRISI
         async function apiCall(url, options) {
             options = options || {};
             var tokenValid = await refreshTokenIfNeeded();
-            if (!tokenValid) {
-                showTokenExpired();
-                throw new Error('Oturum suresi doldu');
-            }
-
-            var headers = {
-                'apikey': SUPABASE_ANON_KEY,
-                'Authorization': 'Bearer ' + currentToken
-            };
-
+            if (!tokenValid) { showTokenExpired(); throw new Error('Oturum suresi doldu'); }
+            var headers = { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + currentToken };
             if (options.headers) {
-                Object.keys(options.headers).forEach(function(key) {
-                    headers[key] = options.headers[key];
-                });
+                Object.keys(options.headers).forEach(function(key) { headers[key] = options.headers[key]; });
             }
-
             log('API cagrisi: ' + url.split('/').pop());
-
-            var res = await fetch(url, { 
-                method: options.method || 'GET',
-                headers: headers,
-                body: options.body
-            });
-
+            var res = await fetch(url, { method: options.method || 'GET', headers: headers, body: options.body });
             log('Response status: ' + res.status);
-
-            if (res.status === 401) {
-                showTokenExpired();
-                throw new Error('Oturum suresi doldu');
-            }
-
+            if (res.status === 401) { showTokenExpired(); throw new Error('Oturum suresi doldu'); }
             return res;
         }
 
-        // RESIM YUKLEME
         function formatBytes(bytes) {
             if (bytes === 0) return '0 Bytes';
             var k = 1024;
@@ -535,25 +553,19 @@
         function onImageSelect(event) {
             var files = Array.from(event.target.files);
             if (!files || files.length === 0) return;
-
             if (uploadedImages.length + files.length > MAX_IMAGES) {
                 alert('En fazla ' + MAX_IMAGES + ' resim yukleyebilirsiniz.');
                 return;
             }
-
             var oversized = files.filter(function(f) { return f.size > MAX_FILE_SIZE; });
             if (oversized.length > 0) {
                 var names = oversized.map(function(f) { return f.name + ' (' + formatBytes(f.size) + ')'; }).join(', ');
                 alert('Bu dosyalar cok buyuk (max ' + formatBytes(MAX_FILE_SIZE) + '): ' + names);
                 var validFiles = files.filter(function(f) { return f.size <= MAX_FILE_SIZE; });
-                if (validFiles.length === 0) {
-                    event.target.value = '';
-                    return;
-                }
+                if (validFiles.length === 0) { event.target.value = ''; return; }
                 uploadImages(validFiles);
                 return;
             }
-
             uploadImages(files);
         }
 
@@ -563,40 +575,27 @@
             var fileInfo = document.getElementById('file-info');
             progressContainer.classList.remove('hidden');
             fileInfo.textContent = files.length + ' dosya yukleniyor...';
-
             var successCount = 0;
             var failCount = 0;
-
             for (var i = 0; i < files.length; i++) {
                 var file = files[i];
                 var progress = ((i + 1) / files.length) * 100;
                 progressBar.style.width = progress + '%';
                 fileInfo.textContent = 'Yukleniyor: ' + file.name + ' (' + formatBytes(file.size) + ')...';
-
                 try {
                     var url = await uploadSingleImage(file);
-                    if (url) {
-                        uploadedImages.push(url);
-                        successCount++;
-                    }
+                    if (url) { uploadedImages.push(url); successCount++; }
                 } catch (err) {
                     failCount++;
                     log('Yukleme HATASI: ' + err.message);
-
                     if (err.message.indexOf('exp') !== -1 || err.message.indexOf('token') !== -1 || err.message.indexOf('Oturum') !== -1) {
-                        showTokenExpired();
-                        progressContainer.classList.add('hidden');
-                        return;
+                        showTokenExpired(); progressContainer.classList.add('hidden'); return;
                     }
-
                     if (err.message.indexOf('size') !== -1 || err.message.indexOf('maximum') !== -1 || err.message.indexOf('exceeded') !== -1) {
-                        alert('"' + file.name + '" cok buyuk! Dosya boyutu: ' + formatBytes(file.size) + ' Max izin verilen: ' + formatBytes(MAX_FILE_SIZE));
-                    } else {
-                        alert('"' + file.name + '" yuklenemedi: ' + err.message);
-                    }
+                        alert('"' + file.name + '" cok buyuk!');
+                    } else { alert('"' + file.name + '" yuklenemedi: ' + err.message); }
                 }
             }
-
             progressContainer.classList.add('hidden');
             progressBar.style.width = '0%';
             fileInfo.textContent = successCount + ' basarili, ' + failCount + ' basarisiz | Toplam: ' + uploadedImages.length + ' resim';
@@ -607,48 +606,27 @@
         async function uploadSingleImage(file) {
             var fileExt = file.name.split('.').pop();
             var fileName = Date.now() + '_' + Math.random().toString(36).substring(2, 10) + '.' + fileExt;
-            var filePath = fileName;
-            var uploadUrl = SUPABASE_URL + '/storage/v1/object/' + BUCKET_NAME + '/' + filePath;
-
+            var uploadUrl = SUPABASE_URL + '/storage/v1/object/' + BUCKET_NAME + '/' + fileName;
             log('Upload URL: ' + uploadUrl);
-            log('File: ' + file.name + ' (' + formatBytes(file.size) + ')');
-
-            var uploadRes = await apiCall(uploadUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': file.type },
-                body: file
-            });
-
+            var uploadRes = await apiCall(uploadUrl, { method: 'POST', headers: { 'Content-Type': file.type }, body: file });
             if (!uploadRes.ok) {
                 var errMsg = 'Yukleme basarisiz';
-                try {
-                    var errData = await uploadRes.json();
-                    errMsg = errData.message || errData.error || errMsg;
-                    log('Hata detayi: ' + JSON.stringify(errData));
-                } catch (e) {
-                    errMsg = 'HTTP ' + uploadRes.status + ': ' + uploadRes.statusText;
-                }
+                try { var errData = await uploadRes.json(); errMsg = errData.message || errData.error || errMsg; }
+                catch (e) { errMsg = 'HTTP ' + uploadRes.status; }
                 throw new Error(errMsg);
             }
-
             var result = await uploadRes.json();
             log('Yukleme basarili! Key: ' + result.Key);
-
-            var publicUrl = SUPABASE_URL + '/storage/v1/object/public/' + BUCKET_NAME + '/' + filePath;
-            log('Public URL: ' + publicUrl);
-
-            return publicUrl;
+            return SUPABASE_URL + '/storage/v1/object/public/' + BUCKET_NAME + '/' + fileName;
         }
 
         function renderImagePreviews() {
             var container = document.getElementById('image-previews');
             container.innerHTML = '';
-
             uploadedImages.forEach(function(url, index) {
                 var box = document.createElement('div');
                 box.className = 'image-preview-box';
-                box.innerHTML = '<img src="' + url + '" class="image-preview" alt="Urun resmi">' +
-                    '<button class="remove-img" onclick="removeImage(' + index + ')" title="Kaldir">×</button>';
+                box.innerHTML = '<img src="' + url + '" class="image-preview" alt="Urun resmi"><button class="remove-img" onclick="removeImage(' + index + ')" title="Kaldir">×</button>';
                 container.appendChild(box);
             });
         }
@@ -659,32 +637,17 @@
             document.getElementById('file-info').textContent = 'Toplam: ' + uploadedImages.length + ' resim';
         }
 
-        // VARYANT YONETIMI
         function varyantEkle() {
             var size = document.getElementById('size').value.trim();
             var price = document.getElementById('v_price').value;
             var discount = document.getElementById('v_discount').value;
             var stock = document.getElementById('v_stock').value;
-
-            if (!size || !price) {
-                alert('Olcu ve fiyat zorunludur.');
-                return;
-            }
-
-            var v = {
-                size: size,
-                price: parseFloat(price),
-                discount_price: discount ? parseFloat(discount) : null,
-                stock: stock ? parseInt(stock) : 0
-            };
-
-            varyantlar.push(v);
-
+            if (!size || !price) { alert('Olcu ve fiyat zorunludur.'); return; }
+            varyantlar.push({ size: size, price: parseFloat(price), discount_price: discount ? parseFloat(discount) : null, stock: stock ? parseInt(stock) : 0 });
             document.getElementById('size').value = '';
             document.getElementById('v_price').value = '';
             document.getElementById('v_discount').value = '';
             document.getElementById('v_stock').value = '';
-
             renderVariants();
         }
 
@@ -695,58 +658,35 @@
 
         function renderVariants() {
             var list = document.getElementById('variant-list');
-            if (varyantlar.length === 0) {
-                list.innerHTML = '<p class="text-gray-400 text-sm italic">Henüz varyant eklenmedi.</p>';
-                return;
-            }
-
+            if (varyantlar.length === 0) { list.innerHTML = '<p class="text-gray-400 text-sm italic">Henuez varyant eklenmedi.</p>'; return; }
             var html = '';
             for (var i = 0; i < varyantlar.length; i++) {
                 var v = varyantlar[i];
-                html = html + '<div class="variant-row">' +
-                    '<span><strong>Olcu:</strong> ' + v.size + '</span>' +
-                    '<span><strong>Fiyat:</strong> ' + v.price + ' SEK</span>' +
-                    '<span><strong>Indirimli:</strong> ' + (v.discount_price || '-') + '</span>' +
-                    '<span><strong>Stok:</strong> ' + v.stock + '</span>' +
-                    '<button onclick="removeVariant(' + i + ')">Sil</button>' +
-                    '</div>';
+                html += '<div class="variant-row"><span><strong>Olcu:</strong> ' + v.size + '</span><span><strong>Fiyat:</strong> ' + v.price + ' SEK</span><span><strong>Indirimli:</strong> ' + (v.discount_price || '-') + '</span><span><strong>Stok:</strong> ' + v.stock + '</span><button onclick="removeVariant(' + i + ')">Sil</button></div>';
             }
             list.innerHTML = html;
         }
 
-        // KAYDETME
         async function tamamiKaydet() {
             var saveBtn = document.getElementById('save-btn');
             var statusEl = document.getElementById('save-status');
-
             var name = document.getElementById('name').value.trim();
             var category = document.getElementById('category').value;
             var basePrice = document.getElementById('base_price').value;
             var discountPrice = document.getElementById('discount_price').value;
             var deliveryTime = document.getElementById('delivery_time').value.trim();
             var colorsInput = document.getElementById('colors').value.trim();
-
-            if (!name || !category) {
-                alert('Urun adi ve kategori zorunludur.');
-                return;
-            }
-            if (varyantlar.length === 0) {
-                alert('En az bir varyant eklemelisiniz.');
-                return;
-            }
-
+            if (!name || !category) { alert('Urun adi ve kategori zorunludur.'); return; }
+            if (varyantlar.length === 0) { alert('En az bir varyant eklemelisiniz.'); return; }
             saveBtn.disabled = true;
             saveBtn.classList.add('loading');
             statusEl.textContent = 'Kaydediliyor...';
             statusEl.className = 'text-center mt-3 text-sm text-blue-600';
-
             try {
                 var colorsArray = colorsInput ? colorsInput.split(',').map(function(c) { return c.trim(); }).filter(function(c) { return c; }) : [];
                 var slug = slugify(name);
-
                 var productData = {
-                    name: name,
-                    category: category,
+                    name: name, category: category,
                     brand: document.getElementById('brand').value.trim() || null,
                     description: document.getElementById('description').value.trim() || null,
                     base_price: basePrice ? parseFloat(basePrice) : null,
@@ -754,217 +694,208 @@
                     delivery_time: deliveryTime || '3-7 arbetsdagar',
                     colors: colorsArray.length > 0 ? colorsArray : null,
                     images: uploadedImages.length > 0 ? uploadedImages : null,
-                    slug: slug,
-                    active: true
+                    slug: slug, active: true
                 };
-
                 log('Urun verisi: ' + JSON.stringify(productData));
-
                 var pRes = await apiCall(SUPABASE_URL + '/rest/v1/products', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
                     body: JSON.stringify(productData)
                 });
-
-                if (!pRes.ok) {
-                    var err = await pRes.json();
-                    throw new Error(err.message || 'Urun kaydedilemedi');
-                }
-
+                if (!pRes.ok) { var err = await pRes.json(); throw new Error(err.message || 'Urun kaydedilemedi'); }
                 var pData = await pRes.json();
                 var pId = pData[0].id;
                 log('Urun kaydedildi, ID: ' + pId);
-
                 var variantPromises = [];
                 for (var j = 0; j < varyantlar.length; j++) {
                     var v = varyantlar[j];
                     variantPromises.push(apiCall(SUPABASE_URL + '/rest/v1/product_variants', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ 
-                            product_id: pId, 
-                            size: v.size,
-                            price: v.price,
-                            discount_price: v.discount_price,
-                            stock: v.stock
-                        })
+                        body: JSON.stringify({ product_id: pId, size: v.size, price: v.price, discount_price: v.discount_price, stock: v.stock })
                     }));
                 }
-
                 await Promise.all(variantPromises);
                 log('Varyantlar kaydedildi: ' + varyantlar.length + ' adet');
-
-                statusEl.textContent = 'Urun ve varyantlar basariyla kaydedildi! Slug: /matta/' + slug;
+                statusEl.textContent = 'Urun ve varyantlar basariyla kaydedildi!';
                 statusEl.className = 'text-center mt-3 text-sm text-green-600 font-medium';
-
-                setTimeout(function() {
-                    resetForm();
-                    statusEl.textContent = '';
-                }, 3000);
-
+                setTimeout(function() { resetForm(); statusEl.textContent = ''; }, 3000);
             } catch (err) {
                 log('Kaydetme hatasi: ' + err.message);
                 statusEl.textContent = 'Hata: ' + err.message;
                 statusEl.className = 'text-center mt-3 text-sm text-red-500';
-            } finally {
-                saveBtn.disabled = false;
-                saveBtn.classList.remove('loading');
-            }
+            } finally { saveBtn.disabled = false; saveBtn.classList.remove('loading'); }
         }
 
-        // ==========================================
-        // SEKME YONETIMI
-        // ==========================================
         function changeTab(tabName) {
-            // Tüm sekmeleri gizle
             document.getElementById('products-section').classList.add('hidden');
             document.getElementById('orders-section').classList.add('hidden');
-            
-            // Tüm tab butonlarını pasif yap
             document.getElementById('tab-products').classList.remove('active');
             document.getElementById('tab-orders').classList.remove('active');
-            
-            // Seçili sekmeyi göster
             document.getElementById(tabName + '-section').classList.remove('hidden');
             document.getElementById('tab-' + tabName).classList.add('active');
-            
-            // Siparişler sekmesine geçildiğinde otomatik yükle
-            if (tabName === 'orders') {
-                loadOrders();
-            }
+            if (tabName === 'orders') { loadOrders(); }
         }
 
-        // ==========================================
-        // SIPARISLER - SUPABASE REST API ILE
-        // ==========================================
         async function loadOrders() {
             var ordersList = document.getElementById('orders-list');
-            ordersList.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-gray-400"><div class="animate-pulse">Yukleniyor...</div></td></tr>';
-            
+            var emptyMsg = document.getElementById('orders-empty');
+            ordersList.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-gray-400"><div style="display:inline-block;width:24px;height:24px;border:3px solid #e5e7eb;border-top-color:#2563eb;border-radius:50%;animation:spin 1s linear infinite;"></div><p class="mt-2">Yukleniyor...</p></td></tr>';
+            emptyMsg.classList.add('hidden');
             try {
                 log('Siparisler cekiliyor...');
-                
-                // Mevcut apiCall fonksiyonunu kullan (token yonetimi dahil)
                 var res = await apiCall(SUPABASE_URL + '/rest/v1/orders?select=*&order=created_at.desc', {
-                    method: 'GET',
-                    headers: { 'Content-Type': 'application/json' }
+                    method: 'GET', headers: { 'Content-Type': 'application/json' }
                 });
-                
-                if (!res.ok) {
-                    var err = await res.json();
-                    throw new Error(err.message || 'Siparisler alinamadi');
-                }
-                
-                var orders = await res.json();
-                log(orders.length + ' siparis bulundu');
-
-                if (orders.length === 0) {
-                    ordersList.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-gray-400">Henüz siparis yok.</td></tr>';
-                    return;
-                }
-
-                ordersList.innerHTML = orders.map(function(o) {
-                    var customer = o.customer_info;
-                    var name = 'Bilinmiyor';
-                    var email = '';
-                    
-                    if (typeof customer === 'string') {
-                        try { customer = JSON.parse(customer); } catch(e) {}
-                    }
-                    if (customer && typeof customer === 'object') {
-                        name = customer.name || customer.firstName + ' ' + customer.lastName || 'Bilinmiyor';
-                        email = customer.email || '';
-                    }
-                    
-                    var statusClass = 'status-' + (o.status || 'pending');
-                    var statusText = {
-                        'pending': 'Bekliyor',
-                        'processing': 'Isleniyor',
-                        'shipped': 'Kargoda',
-                        'delivered': 'Teslim Edildi',
-                        'cancelled': 'Iptal'
-                    }[o.status] || o.status;
-                    
-                    var date = o.created_at ? new Date(o.created_at).toLocaleString('tr-TR') : '-';
-                    
-                    return '<tr class="order-row border-b">' +
-                        '<td class="p-3 text-sm font-mono text-gray-500">#' + o.id + '</td>' +
-                        '<td class="p-3">' +
-                            '<div class="font-medium text-gray-800">' + name + '</div>' +
-                            (email ? '<div class="text-xs text-gray-400">' + email + '</div>' : '') +
-                        '</td>' +
-                        '<td class="p-3 font-semibold text-gray-800">' + o.total_price + ' SEK</td>' +
-                        '<td class="p-3 text-sm text-gray-600">' + (o.payment_method || '-') + '</td>' +
-                        '<td class="p-3"><span class="status-badge ' + statusClass + '">' + statusText + '</span></td>' +
-                        '<td class="p-3 text-sm text-gray-500">' + date + '</td>' +
-                        '<td class="p-3">' +
-                            '<button onclick="showOrderDetail(' + o.id + ')" class="text-blue-600 hover:text-blue-800 text-sm font-medium">Detay</button>' +
-                        '</td>' +
-                    '</tr>';
-                }).join('');
-
+                if (!res.ok) { var err = await res.json(); throw new Error(err.message || 'Siparisler alinamadi'); }
+                allOrders = await res.json();
+                log(allOrders.length + ' siparis bulundu');
+                updateStats(allOrders);
+                filterOrders();
             } catch (err) {
                 log('Siparis yukleme hatasi: ' + err.message);
                 ordersList.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-red-500">Siparisler yuklenemedi: ' + err.message + '</td></tr>';
             }
         }
 
-        // Sipariş detayını göster
+        function updateStats(orders) {
+            var total = orders.length;
+            var revenue = orders.reduce(function(sum, o) { return sum + (parseFloat(o.total_price) || 0); }, 0);
+            var pending = orders.filter(function(o) { return o.status === 'pending'; }).length;
+            var shipped = orders.filter(function(o) { return o.status === 'shipped'; }).length;
+            document.getElementById('stat-total').textContent = total;
+            document.getElementById('stat-revenue').textContent = revenue.toLocaleString('sv-SE') + ' SEK';
+            document.getElementById('stat-pending').textContent = pending;
+            document.getElementById('stat-shipped').textContent = shipped;
+        }
+
+        function filterOrders() {
+            var searchTerm = document.getElementById('order-search').value.toLowerCase().trim();
+            var statusFilter = document.getElementById('order-status-filter').value;
+            var sortType = document.getElementById('order-sort').value;
+            var filtered = allOrders.filter(function(o) {
+                var customer = o.customer_info;
+                if (typeof customer === 'string') { try { customer = JSON.parse(customer); } catch(e) {} }
+                var name = (customer?.name || '').toLowerCase();
+                var email = (customer?.email || '').toLowerCase();
+                var id = String(o.id);
+                var matchesSearch = !searchTerm || name.includes(searchTerm) || email.includes(searchTerm) || id.includes(searchTerm);
+                var matchesStatus = !statusFilter || o.status === statusFilter;
+                return matchesSearch && matchesStatus;
+            });
+            filtered.sort(function(a, b) {
+                switch(sortType) {
+                    case 'oldest': return new Date(a.created_at) - new Date(b.created_at);
+                    case 'highest': return (parseFloat(b.total_price) || 0) - (parseFloat(a.total_price) || 0);
+                    case 'lowest': return (parseFloat(a.total_price) || 0) - (parseFloat(b.total_price) || 0);
+                    default: return new Date(b.created_at) - new Date(a.created_at);
+                }
+            });
+            renderOrdersTable(filtered);
+        }
+
+        function renderOrdersTable(orders) {
+            var ordersList = document.getElementById('orders-list');
+            var emptyMsg = document.getElementById('orders-empty');
+            if (orders.length === 0) { ordersList.innerHTML = ''; emptyMsg.classList.remove('hidden'); emptyMsg.innerHTML = '<p>🤷 Hic siparis bulunamadi.</p>'; return; }
+            emptyMsg.classList.add('hidden');
+            ordersList.innerHTML = orders.map(function(o) {
+                var customer = o.customer_info;
+                var name = 'Bilinmiyor';
+                var email = '';
+                if (typeof customer === 'string') { try { customer = JSON.parse(customer); } catch(e) {} }
+                if (customer && typeof customer === 'object') {
+                    name = customer.name || (customer.firstName + ' ' + customer.lastName) || 'Bilinmiyor';
+                    email = customer.email || '';
+                }
+                var statusClass = 'status-' + (o.status || 'pending');
+                var statusText = { 'pending': 'Bekliyor', 'processing': 'Isleniyor', 'shipped': 'Kargoda', 'delivered': 'Teslim Edildi', 'cancelled': 'Iptal' }[o.status] || o.status;
+                var date = o.created_at ? new Date(o.created_at).toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-';
+                return '<tr class="order-row border-b">' +
+                    '<td class="p-3 text-sm font-mono text-gray-500">#' + o.id + '</td>' +
+                    '<td class="p-3"><div class="font-medium text-gray-800">' + name + '</div>' + (email ? '<div class="text-xs text-gray-400">' + email + '</div>' : '') + '</td>' +
+                    '<td class="p-3 font-semibold text-gray-800">' + o.total_price + ' SEK</td>' +
+                    '<td class="p-3 text-sm text-gray-600">' + (o.payment_method || '-') + '</td>' +
+                    '<td class="p-3"><select class="status-select ' + statusClass + '" onchange="updateOrderStatus(' + o.id + ', this.value)">' +
+                        '<option value="pending" ' + (o.status === 'pending' ? 'selected' : '') + '>Bekliyor</option>' +
+                        '<option value="processing" ' + (o.status === 'processing' ? 'selected' : '') + '>Isleniyor</option>' +
+                        '<option value="shipped" ' + (o.status === 'shipped' ? 'selected' : '') + '>Kargoda</option>' +
+                        '<option value="delivered" ' + (o.status === 'delivered' ? 'selected' : '') + '>Teslim Edildi</option>' +
+                        '<option value="cancelled" ' + (o.status === 'cancelled' ? 'selected' : '') + '>Iptal</option>' +
+                    '</select></td>' +
+                    '<td class="p-3 text-sm text-gray-500">' + date + '</td>' +
+                    '<td class="p-3"><button onclick="showOrderDetail(' + o.id + ')" class="text-blue-600 hover:text-blue-800 text-sm font-medium">Detay</button></td>' +
+                '</tr>';
+            }).join('');
+        }
+
+        async function updateOrderStatus(orderId, newStatus) {
+            try {
+                log('Siparis #' + orderId + ' durumu guncelleniyor: ' + newStatus);
+                var res = await apiCall(SUPABASE_URL + '/rest/v1/orders?id=eq.' + orderId, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+                    body: JSON.stringify({ status: newStatus })
+                });
+                if (!res.ok) { var err = await res.json(); throw new Error(err.message || 'Guncelleme basarisiz'); }
+                log('✅ Durum guncellendi');
+                var order = allOrders.find(function(o) { return o.id === orderId; });
+                if (order) { order.status = newStatus; updateStats(allOrders); }
+                if (currentOrderId === orderId) { showOrderDetail(orderId); }
+            } catch (err) {
+                log('Durum guncelleme hatasi: ' + err.message);
+                alert('Durum guncellenemedi: ' + err.message);
+                loadOrders();
+            }
+        }
+
         async function showOrderDetail(orderId) {
+            currentOrderId = orderId;
             try {
                 var res = await apiCall(SUPABASE_URL + '/rest/v1/orders?id=eq.' + orderId + '&select=*', {
-                    method: 'GET',
-                    headers: { 'Content-Type': 'application/json' }
+                    method: 'GET', headers: { 'Content-Type': 'application/json' }
                 });
-                
                 if (!res.ok) throw new Error('Siparis bulunamadi');
-                
                 var orders = await res.json();
                 if (orders.length === 0) return;
-                
                 var o = orders[0];
                 var customer = o.customer_info;
                 var items = o.items;
-                
-                if (typeof customer === 'string') {
-                    try { customer = JSON.parse(customer); } catch(e) {}
-                }
-                if (typeof items === 'string') {
-                    try { items = JSON.parse(items); } catch(e) {}
-                }
-                
+                if (typeof customer === 'string') { try { customer = JSON.parse(customer); } catch(e) {} }
+                if (typeof items === 'string') { try { items = JSON.parse(items); } catch(e) {} }
+                document.getElementById('modal-order-id').textContent = '#ORD-' + String(o.id).padStart(4, '0');
+
                 var itemsHtml = '';
                 if (Array.isArray(items)) {
                     itemsHtml = items.map(function(item) {
-                        return '<div class="flex justify-between py-2 border-b border-gray-100">' +
-                            '<span>' + (item.name || 'Urun') + ' x' + (item.quantity || 1) + '</span>' +
-                            '<span class="font-medium">' + (item.price * (item.quantity || 1)) + ' SEK</span>' +
-                        '</div>';
+                        var itemTotal = (parseFloat(item.price) || 0) * (item.quantity || 1);
+                        return '<div class="product-list-item">' +
+                            '<div class="pinfo"><div class="pname">' + (item.name || 'Urun') + '</div><div class="pvariant">Varyant: ' + (item.variant || 'Standard') + ' | Adet: ' + (item.quantity || 1) + '</div></div>' +
+                            '<div class="pprice">' + itemTotal.toLocaleString('sv-SE') + ' SEK</div></div>';
                     }).join('');
                 }
-                
-                var html = '<div class="space-y-4">' +
-                    '<div class="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg">' +
-                        '<div><strong class="text-gray-600">Musteri:</strong><br>' + (customer?.name || '-') + '</div>' +
-                        '<div><strong class="text-gray-600">E-posta:</strong><br>' + (customer?.email || '-') + '</div>' +
-                        '<div><strong class="text-gray-600">Telefon:</strong><br>' + (customer?.phone || '-') + '</div>' +
-                        '<div><strong class="text-gray-600">Adres:</strong><br>' + (customer?.address || '-') + '</div>' +
-                    '</div>' +
-                    '<div><strong class="text-gray-700">Urunler:</strong></div>' +
-                    '<div class="bg-gray-50 p-4 rounded-lg">' + itemsHtml + '</div>' +
-                    '<div class="flex justify-between items-center pt-2 border-t">' +
-                        '<span class="text-gray-600">Toplam:</span>' +
-                        '<span class="text-xl font-bold text-gray-800">' + o.total_price + ' SEK</span>' +
-                    '</div>' +
-                    '<div class="flex justify-between items-center">' +
-                        '<span class="text-gray-600">Odeme ID:</span>' +
-                        '<span class="font-mono text-sm text-gray-500">' + (o.payment_id || '-') + '</span>' +
-                    '</div>' +
+
+                var statusOptions = { 'pending': 'Bekliyor', 'processing': 'Isleniyor', 'shipped': 'Kargoda', 'delivered': 'Teslim Edildi', 'cancelled': 'Iptal' };
+                var statusSelectHtml = Object.keys(statusOptions).map(function(key) {
+                    return '<option value="' + key + '" ' + (o.status === key ? 'selected' : '') + '>' + statusOptions[key] + '</option>';
+                }).join('');
+
+                var date = o.created_at ? new Date(o.created_at).toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-';
+
+                var html = '<div class="info-grid">' +
+                    '<div class="info-card"><h4>Musteri</h4><div class="value">' + (customer?.name || 'Bilinmiyor') + '</div><div class="value small">' + (customer?.email || '-') + '</div></div>' +
+                    '<div class="info-card"><h4>Iletisim</h4><div class="value small">📞 ' + (customer?.phone || '-') + '</div><div class="value small">📍 ' + (customer?.address || '-') + '</div></div>' +
+                    '<div class="info-card"><h4>Siparis Bilgisi</h4><div class="value small">Tarih: ' + date + '</div><div class="value small">Odeme: ' + (o.payment_method || '-') + '</div><div class="value small">ID: ' + (o.payment_id || '-') + '</div></div>' +
+                    '<div class="info-card"><h4>Durum</h4><select class="status-select status-' + (o.status || 'pending') + '" onchange="updateOrderStatus(' + o.id + ', this.value); showOrderDetail(' + o.id + ');" style="width:100%;">' + statusSelectHtml + '</select></div>' +
+                '</div>' +
+                '<div style="margin-bottom:16px;"><h4 style="font-size:14px;font-weight:600;color:#374151;margin-bottom:12px;">🛒 Urunler</h4>' + itemsHtml + '</div>' +
+                '<div style="background:linear-gradient(135deg,#1a1a1a,#2d2d2d);color:white;padding:20px;border-radius:12px;display:flex;justify-content:space-between;align-items:center;">' +
+                    '<div><div style="font-size:12px;text-transform:uppercase;letter-spacing:1px;opacity:0.7;margin-bottom:4px;">Toplam Tutar</div><div style="font-size:28px;font-weight:700;">' + (parseFloat(o.total_price) || 0).toLocaleString('sv-SE') + ' SEK</div></div>' +
+                    '<div style="text-align:right;"><div style="font-size:12px;opacity:0.7;">Durum</div><div style="font-size:16px;font-weight:600;color:#c9a96e;">' + (statusOptions[o.status] || o.status) + '</div></div>' +
                 '</div>';
-                
-                document.getElementById('order-modal-body').innerHTML = html;
+
+                document.getElementById('modal-body').innerHTML = html;
                 document.getElementById('order-modal').classList.add('active');
-                
             } catch (err) {
                 alert('Siparis detayi yuklenemedi: ' + err.message);
             }
@@ -972,12 +903,44 @@
 
         function closeOrderModal() {
             document.getElementById('order-modal').classList.remove('active');
+            currentOrderId = null;
         }
 
-        // Modal dışına tıklayınca kapat
         document.getElementById('order-modal').addEventListener('click', function(e) {
             if (e.target === this) closeOrderModal();
         });
+
+        function printInvoice() {
+            if (!currentOrderId) return;
+            var order = allOrders.find(function(o) { return o.id === currentOrderId; });
+            if (!order) return;
+            var customer = order.customer_info;
+            var items = order.items;
+            if (typeof customer === 'string') { try { customer = JSON.parse(customer); } catch(e) {} }
+            if (typeof items === 'string') { try { items = JSON.parse(items); } catch(e) {} }
+
+            var itemsRows = '';
+            if (Array.isArray(items)) {
+                itemsRows = items.map(function(item) {
+                    var total = (parseFloat(item.price) || 0) * (item.quantity || 1);
+                    return '<tr><td style="padding:12px;border-bottom:1px solid #eee;">' + (item.name || 'Urun') + '</td><td style="padding:12px;border-bottom:1px solid #eee;text-align:center;">' + (item.variant || 'Standard') + '</td><td style="padding:12px;border-bottom:1px solid #eee;text-align:center;">' + (item.quantity || 1) + '</td><td style="padding:12px;border-bottom:1px solid #eee;text-align:right;">' + (parseFloat(item.price) || 0).toLocaleString('sv-SE') + ' SEK</td><td style="padding:12px;border-bottom:1px solid #eee;text-align:right;font-weight:600;">' + total.toLocaleString('sv-SE') + ' SEK</td></tr>';
+                }).join('');
+            }
+
+            var invoiceHtml = '<div class="invoice-area">' +
+                '<div class="invoice-header"><div class="invoice-logo">DKRUG</div><div class="invoice-meta"><div class="inv-label">FATURA</div><div class="inv-value">#' + String(order.id).padStart(4, '0') + '</div><div class="inv-label">Tarih</div><div class="inv-value">' + new Date().toLocaleDateString('sv-SE') + '</div></div></div>' +
+                '<div style="display:flex;justify-content:space-between;margin-bottom:40px;"><div><div style="font-size:11px;text-transform:uppercase;color:#9ca3af;letter-spacing:1px;margin-bottom:8px;">Satici</div><div style="font-weight:600;font-size:16px;">DKRUG Sweden</div><div style="color:#6b7280;font-size:14px;line-height:1.6;">Sverige<br>Org.nr: 559123-4567<br>info@dkrug.se</div></div><div style="text-align:right;"><div style="font-size:11px;text-transform:uppercase;color:#9ca3af;letter-spacing:1px;margin-bottom:8px;">Musteri</div><div style="font-weight:600;font-size:16px;">' + (customer?.name || 'Bilinmiyor') + '</div><div style="color:#6b7280;font-size:14px;line-height:1.6;">' + (customer?.address || '') + '<br>' + (customer?.email || '') + '<br>' + (customer?.phone || '') + '</div></div></div>' +
+                '<table style="width:100%;border-collapse:collapse;margin-bottom:30px;"><thead><tr style="background:#f9fafb;"><th style="padding:12px;text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#9ca3af;">Urun</th><th style="padding:12px;text-align:center;font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#9ca3af;">Varyant</th><th style="padding:12px;text-align:center;font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#9ca3af;">Adet</th><th style="padding:12px;text-align:right;font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#9ca3af;">Birim Fiyat</th><th style="padding:12px;text-align:right;font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#9ca3af;">Toplam</th></tr></thead><tbody>' + itemsRows + '</tbody></table>' +
+                '<div style="border-top:2px solid #1a1a1a;padding-top:20px;display:flex;justify-content:flex-end;"><div style="text-align:right;"><div style="display:flex;justify-content:space-between;gap:40px;margin-bottom:8px;"><span style="color:#6b7280;">Ara Toplam</span><span style="font-weight:600;">' + (parseFloat(order.total_price) || 0).toLocaleString('sv-SE') + ' SEK</span></div><div style="display:flex;justify-content:space-between;gap:40px;margin-bottom:8px;"><span style="color:#6b7280;">KDV (%25)</span><span style="font-weight:600;">' + ((parseFloat(order.total_price) || 0) * 0.25).toLocaleString('sv-SE') + ' SEK</span></div><div style="display:flex;justify-content:space-between;gap:40px;padding-top:12px;border-top:1px solid #e5e7eb;"><span style="font-size:18px;font-weight:700;">GENEL TOPLAM</span><span style="font-size:18px;font-weight:700;color:#1a1a1a;">' + ((parseFloat(order.total_price) || 0) * 1.25).toLocaleString('sv-SE') + ' SEK</span></div></div></div>' +
+                '<div style="margin-top:40px;padding-top:20px;border-top:1px solid #e5e7eb;text-align:center;color:#9ca3af;font-size:12px;">Tesekkur ederiz! | DKRUG Sweden | www.dkrug.se</div>' +
+            '</div>';
+
+            var printArea = document.getElementById('invoice-print-area');
+            printArea.innerHTML = invoiceHtml;
+            printArea.style.display = 'block';
+            window.print();
+            printArea.style.display = 'none';
+        }
     </script>
 </body>
 </html>
