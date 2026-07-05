@@ -163,6 +163,8 @@
     </style>
 <base target="_blank">
 <base target="_blank">
+<base target="_blank">
+<base target="_blank">
 </head>
 <body class="bg-gray-100 min-h-screen p-5">
 
@@ -196,6 +198,7 @@
 
         <div class="flex border-b border-gray-200 px-6">
             <button onclick="changeTab('products')" class="tab-btn active" id="tab-products">📦 Urun Ekle</button>
+            <button onclick="changeTab('product-list')" class="tab-btn" id="tab-product-list">📋 Urun Listesi</button>
             <button onclick="changeTab('orders')" class="tab-btn" id="tab-orders">📋 Siparisler</button>
         </div>
 
@@ -274,6 +277,46 @@
                 <div id="debug-log" class="debug-log"></div>
                 <button onclick="clearDebugLog()" class="text-xs text-gray-400 hover:text-gray-600 mt-1">Temizle</button>
             </div>
+        </div>
+
+        <div id="product-list-section" class="hidden p-6">
+            <div class="filter-bar">
+                <input type="text" id="product-search" class="filter-input" placeholder="Urun adi veya kategori ara..." oninput="filterProducts()">
+                <select id="product-category-filter" class="filter-select" onchange="filterProducts()">
+                    <option value="">Tum Kategoriler</option>
+                    <option value="mattor">Mattor</option>
+                    <option value="gardiner">Gardiner</option>
+                    <option value="mobler">Mobler</option>
+                    <option value="belysning">Belysning</option>
+                    <option value="dekoration">Dekoration</option>
+                </select>
+                <select id="product-status-filter" class="filter-select" onchange="filterProducts()">
+                    <option value="">Tum Durumlar</option>
+                    <option value="active">Aktif</option>
+                    <option value="inactive">Pasif</option>
+                </select>
+                <button onclick="loadProducts()" class="action-btn secondary">🔄 Yenile</button>
+            </div>
+
+            <div class="overflow-x-auto border rounded-lg">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-50 border-b">
+                            <th class="p-3 text-sm font-semibold text-gray-600">ID</th>
+                            <th class="p-3 text-sm font-semibold text-gray-600">Urun</th>
+                            <th class="p-3 text-sm font-semibold text-gray-600">Kategori</th>
+                            <th class="p-3 text-sm font-semibold text-gray-600">Fiyat</th>
+                            <th class="p-3 text-sm font-semibold text-gray-600">Varyantlar</th>
+                            <th class="p-3 text-sm font-semibold text-gray-600">Durum</th>
+                            <th class="p-3 text-sm font-semibold text-gray-600">Islem</th>
+                        </tr>
+                    </thead>
+                    <tbody id="products-list">
+                        <tr><td colspan="7" class="p-8 text-center text-gray-400">Urunleri gormek icin "Yenile" butonuna tiklayin.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div id="products-empty" class="hidden p-8 text-center text-gray-400">Hic urun bulunamadi.</div>
         </div>
 
         <div id="orders-section" class="hidden p-6">
@@ -734,14 +777,209 @@
             } finally { saveBtn.disabled = false; saveBtn.classList.remove('loading'); }
         }
 
+        var allProducts = [];
+        var currentProductId = null;
+
         function changeTab(tabName) {
             document.getElementById('products-section').classList.add('hidden');
+            document.getElementById('product-list-section').classList.add('hidden');
             document.getElementById('orders-section').classList.add('hidden');
             document.getElementById('tab-products').classList.remove('active');
+            document.getElementById('tab-product-list').classList.remove('active');
             document.getElementById('tab-orders').classList.remove('active');
             document.getElementById(tabName + '-section').classList.remove('hidden');
             document.getElementById('tab-' + tabName).classList.add('active');
             if (tabName === 'orders') { loadOrders(); }
+            if (tabName === 'product-list') { loadProducts(); }
+        }
+
+        async function loadProducts() {
+            var productsList = document.getElementById('products-list');
+            var emptyMsg = document.getElementById('products-empty');
+            productsList.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-gray-400"><div style="display:inline-block;width:24px;height:24px;border:3px solid #e5e7eb;border-top-color:#2563eb;border-radius:50%;animation:spin 1s linear infinite;"></div><p class="mt-2">Yukleniyor...</p></td></tr>';
+            emptyMsg.classList.add('hidden');
+            try {
+                log('Urunler cekiliyor...');
+                // Once urunleri cek
+                var res = await apiCall(SUPABASE_URL + '/rest/v1/products?select=*&order=created_at.desc', {
+                    method: 'GET', headers: { 'Content-Type': 'application/json' }
+                });
+                if (!res.ok) { var err = await res.json(); throw new Error(err.message || 'Urunler alinamadi'); }
+                allProducts = await res.json();
+                log(allProducts.length + ' urun bulundu');
+
+                // Sonra varyantlari cek (ayri istek)
+                var vRes = await apiCall(SUPABASE_URL + '/rest/v1/product_variants?select=*', {
+                    method: 'GET', headers: { 'Content-Type': 'application/json' }
+                });
+                if (vRes.ok) {
+                    var allVariants = await vRes.json();
+                    log(allVariants.length + ' varyant bulundu');
+                    // Her urune kendi varyantlarini eslestir
+                    allProducts.forEach(function(p) {
+                        p.product_variants = allVariants.filter(function(v) { return v.product_id === p.id; });
+                    });
+                } else {
+                    log('Varyantlar alinamadi, urunler varyantsiz gosterilecek');
+                    allProducts.forEach(function(p) { p.product_variants = []; });
+                }
+
+                filterProducts();
+            } catch (err) {
+                log('Urun yukleme hatasi: ' + err.message);
+                productsList.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-red-500">Urunler yuklenemedi: ' + err.message + '</td></tr>';
+            }
+        }
+
+        function filterProducts() {
+            var searchTerm = document.getElementById('product-search').value.toLowerCase().trim();
+            var categoryFilter = document.getElementById('product-category-filter').value;
+            var statusFilter = document.getElementById('product-status-filter').value;
+            var filtered = allProducts.filter(function(p) {
+                var matchesSearch = !searchTerm || (p.name || '').toLowerCase().includes(searchTerm) || (p.category || '').toLowerCase().includes(searchTerm);
+                var matchesCategory = !categoryFilter || p.category === categoryFilter;
+                var matchesStatus = !statusFilter || (statusFilter === 'active' ? p.active !== false : p.active === false);
+                return matchesSearch && matchesCategory && matchesStatus;
+            });
+            renderProductsTable(filtered);
+        }
+
+        function renderProductsTable(products) {
+            var productsList = document.getElementById('products-list');
+            var emptyMsg = document.getElementById('products-empty');
+            if (products.length === 0) { productsList.innerHTML = ''; emptyMsg.classList.remove('hidden'); emptyMsg.innerHTML = '<p>🤷 Hic urun bulunamadi.</p>'; return; }
+            emptyMsg.classList.add('hidden');
+            productsList.innerHTML = products.map(function(p) {
+                var variants = p.product_variants || [];
+                var variantsHtml = variants.map(function(v) {
+                    return '<div style="font-size:12px;padding:2px 0;">' + (v.size || '-') + ': <strong>' + (v.stock || 0) + '</strong> st</div>';
+                }).join('');
+                var statusClass = p.active !== false ? 'status-delivered' : 'status-cancelled';
+                var statusText = p.active !== false ? 'Aktif' : 'Pasif';
+                return '<tr class="order-row border-b">' +
+                    '<td class="p-3 text-sm font-mono text-gray-500">#' + p.id + '</td>' +
+                    '<td class="p-3"><div class="font-medium text-gray-800">' + (p.name || 'Isimsiz') + '</div>' + (p.brand ? '<div class="text-xs text-gray-400">' + p.brand + '</div>' : '') + '</td>' +
+                    '<td class="p-3 text-sm text-gray-600">' + (p.category || '-') + '</td>' +
+                    '<td class="p-3 font-semibold text-gray-800">' + (p.base_price || '-') + ' SEK</td>' +
+                    '<td class="p-3">' + variantsHtml + '</td>' +
+                    '<td class="p-3"><span class="status-badge ' + statusClass + '">' + statusText + '</span></td>' +
+                    '<td class="p-3"><div style="display:flex;gap:6px;">' +
+                        '<button onclick="editProduct(' + p.id + ')" class="text-blue-600 hover:text-blue-800 text-xs font-medium">Duzenle</button>' +
+                        '<button onclick="toggleProductActive(' + p.id + ', ' + (p.active !== false ? 'false' : 'true') + ')" class="text-amber-600 hover:text-amber-800 text-xs font-medium">' + (p.active !== false ? 'Pasif Yap' : 'Aktif Yap') + '</button>' +
+                        '<button onclick="deleteProduct(' + p.id + ')" class="text-red-600 hover:text-red-800 text-xs font-medium">Sil</button>' +
+                    '</div></td>' +
+                '</tr>';
+            }).join('');
+        }
+
+        async function editProduct(productId) {
+            var product = allProducts.find(function(p) { return p.id === productId; });
+            if (!product) return;
+            currentProductId = productId;
+            document.getElementById('name').value = product.name || '';
+            document.getElementById('category').value = product.category || '';
+            document.getElementById('brand').value = product.brand || '';
+            document.getElementById('base_price').value = product.base_price || '';
+            document.getElementById('discount_price').value = product.discount_price || '';
+            document.getElementById('delivery_time').value = product.delivery_time || '3-7 arbetsdagar';
+            document.getElementById('description').value = product.description || '';
+            document.getElementById('colors').value = (product.colors || []).join(', ');
+            updateSlugPreview(); updateColorTags();
+            varyantlar = (product.product_variants || []).map(function(v) {
+                return { size: v.size, price: v.price, discount_price: v.discount_price, stock: v.stock };
+            });
+            renderVariants();
+            uploadedImages = product.images || [];
+            renderImagePreviews();
+            var saveBtn = document.getElementById('save-btn');
+            saveBtn.textContent = 'Urunu Guncelle';
+            saveBtn.onclick = function() { updateProduct(productId); };
+            changeTab('products');
+            showToast('Urun bilgileri yuklendi. Duzenleyip kaydedebilirsiniz.', 'info');
+        }
+
+        async function updateProduct(productId) {
+            var saveBtn = document.getElementById('save-btn');
+            var statusEl = document.getElementById('save-status');
+            var name = document.getElementById('name').value.trim();
+            var category = document.getElementById('category').value;
+            var basePrice = document.getElementById('base_price').value;
+            if (!name || !category) { alert('Urun adi ve kategori zorunludur.'); return; }
+            saveBtn.disabled = true; saveBtn.classList.add('loading');
+            statusEl.textContent = 'Guncelleniyor...'; statusEl.className = 'text-center mt-3 text-sm text-blue-600';
+            try {
+                var colorsArray = document.getElementById('colors').value.split(',').map(function(c) { return c.trim(); }).filter(function(c) { return c; });
+                var productData = {
+                    name: name, category: category,
+                    brand: document.getElementById('brand').value.trim() || null,
+                    description: document.getElementById('description').value.trim() || null,
+                    base_price: basePrice ? parseFloat(basePrice) : null,
+                    discount_price: document.getElementById('discount_price').value ? parseFloat(document.getElementById('discount_price').value) : null,
+                    delivery_time: document.getElementById('delivery_time').value.trim() || '3-7 arbetsdagar',
+                    colors: colorsArray.length > 0 ? colorsArray : null,
+                    images: uploadedImages.length > 0 ? uploadedImages : null,
+                    slug: slugify(name)
+                };
+                var pRes = await apiCall(SUPABASE_URL + '/rest/v1/products?id=eq.' + productId, {
+                    method: 'PATCH', headers: { 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+                    body: JSON.stringify(productData)
+                });
+                if (!pRes.ok) { var err = await pRes.json(); throw new Error(err.message || 'Urun guncellenemedi'); }
+                await apiCall(SUPABASE_URL + '/rest/v1/product_variants?product_id=eq.' + productId, {
+                    method: 'DELETE', headers: { 'Prefer': 'return=minimal' }
+                });
+                for (var j = 0; j < varyantlar.length; j++) {
+                    var v = varyantlar[j];
+                    await apiCall(SUPABASE_URL + '/rest/v1/product_variants', {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ product_id: productId, size: v.size, price: v.price, discount_price: v.discount_price, stock: v.stock })
+                    });
+                }
+                statusEl.textContent = 'Urun basariyla guncellendi!';
+                statusEl.className = 'text-center mt-3 text-sm text-green-600 font-medium';
+                setTimeout(function() { resetForm(); statusEl.textContent = ''; saveBtn.textContent = 'Tumunu Kaydet'; saveBtn.onclick = tamamiKaydet; }, 3000);
+            } catch (err) {
+                log('Guncelleme hatasi: ' + err.message);
+                statusEl.textContent = 'Hata: ' + err.message; statusEl.className = 'text-center mt-3 text-sm text-red-500';
+            } finally { saveBtn.disabled = false; saveBtn.classList.remove('loading'); }
+        }
+
+        async function toggleProductActive(productId, newActive) {
+            try {
+                log('Urun #' + productId + ' durumu guncelleniyor: ' + (newActive ? 'Aktif' : 'Pasif'));
+                var res = await apiCall(SUPABASE_URL + '/rest/v1/products?id=eq.' + productId, {
+                    method: 'PATCH', headers: { 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+                    body: JSON.stringify({ active: newActive })
+                });
+                if (!res.ok) { var err = await res.json(); throw new Error(err.message || 'Guncelleme basarisiz'); }
+                var product = allProducts.find(function(p) { return p.id === productId; });
+                if (product) { product.active = newActive; }
+                showToast('Urun durumu guncellendi: ' + (newActive ? 'Aktif' : 'Pasif'), 'success');
+                filterProducts();
+            } catch (err) {
+                log('Durum guncelleme hatasi: ' + err.message);
+                showToast('Durum guncellenemedi: ' + err.message, 'error');
+            }
+        }
+
+        async function deleteProduct(productId) {
+            if (!confirm('Bu urunu kalici olarak silmek istediginizden emin misiniz?')) return;
+            try {
+                log('Urun #' + productId + ' siliniyor...');
+                await apiCall(SUPABASE_URL + '/rest/v1/product_variants?product_id=eq.' + productId, {
+                    method: 'DELETE', headers: { 'Prefer': 'return=minimal' }
+                });
+                var res = await apiCall(SUPABASE_URL + '/rest/v1/products?id=eq.' + productId, {
+                    method: 'DELETE', headers: { 'Prefer': 'return=minimal' }
+                });
+                if (!res.ok) { var err = await res.json(); throw new Error(err.message || 'Silme basarisiz'); }
+                allProducts = allProducts.filter(function(p) { return p.id !== productId; });
+                showToast('Urun basariyla silindi!', 'success');
+                filterProducts();
+            } catch (err) {
+                log('Silme hatasi: ' + err.message);
+                showToast('Urun silinemedi: ' + err.message, 'error');
+            }
         }
 
         async function loadOrders() {
@@ -913,16 +1151,29 @@
                 if (!email) { log('Musteri emaili bulunamadi, mail gonderilemedi'); return; }
                 var carrierName = CARRIER_NAMES[carrier] || 'Diger';
                 var trackingUrl = CARRIER_TRACKING_URLS[carrier] + trackingNumber;
+
+                var shippingHtml = '<div style="text-align:center;padding:20px;">' +
+                    '<h2 style="color:#1a1a1a;">📦 Din beställning har skickats!</h2>' +
+                    '<p style="color:#6b7280;font-size:16px;">Hej ' + name + ',</p>' +
+                    '<p style="color:#6b7280;">Din beställning <strong>#' + orderId + '</strong> har nu lämnat vårt lager.</p>' +
+                    '<div style="background:#f9fafb;border-radius:12px;padding:20px;margin:20px 0;text-align:left;">' +
+                    '<p style="margin:0 0 8px;"><strong>Kund:</strong> ' + carrierName + '</p>' +
+                    '<p style="margin:0 0 8px;"><strong>Spårningsnummer:</strong> ' + trackingNumber + '</p>' +
+                    '<p style="margin:0;"><strong>Spåra:</strong> <a href="' + trackingUrl + '" style="color:#2563eb;">' + trackingUrl + '</a></p>' +
+                    '</div>' +
+                    '<p style="color:#9ca3af;font-size:14px;">Har du frågor? Kontakta oss på info@dekorist.se</p>' +
+                    '</div>';
+
                 var templateParams = {
                     customer_email: email,
                     customer_name: name,
                     order_id: orderId,
                     order_date: new Date().toLocaleDateString('sv-SE'),
-                    order_items: '<p style="text-align:center;color:#6b7280;">Din beställning har skickats! Se spårningsinformation nedan.</p>',
-                    total_price: '-',
-                    payment_method: '-',
-                    customer_address: '-',
-                    customer_phone: '-',
+                    order_items: shippingHtml,
+                    total_price: (parseFloat(order.total_price) || 0).toLocaleString('sv-SE') + ' SEK',
+                    payment_method: order.payment_method || '-',
+                    customer_address: (customer?.address || 'Sverige'),
+                    customer_phone: (customer?.phone || '-'),
                     tracking_link: trackingUrl
                 };
                 log('Kargo bildirim maili gonderiliyor... ' + email);
