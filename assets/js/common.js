@@ -1,5 +1,5 @@
 // ==========================================
-// COMMON.JS - SUPABASE UYUMLU (v6.5 - SEARCH FIX v2)
+// COMMON.JS - SUPABASE UYUMLU (v6.6 - BREADCRUMB + CAROUSEL FIX)
 // Eski Airtable yapısını koru, sadece API Supabase'e çevrildi
 // ==========================================
 
@@ -464,11 +464,11 @@ function initEventListeners() {
 
     console.log('Event listenerlar baslatiliyor...');
 
-    // --- 1. GENEL TIKLAMALAR (Açma/Kapama/Menü/Arama/Search Kapama) ---
+    // --- 1. GENEL TIKLAMALAR (Acma/Kapama/Menu/Arama/Search Kapama) ---
     document.addEventListener('click', (e) => {
         console.log('DOCUMENT CLICK:', e.target.tagName, e.target.id, e.target.className);
 
-        // Mini sepet açma
+        // Mini sepet acma
         if (e.target.closest('#open-mini-cart-btn, .cart-icon-wrapper, .fa-shopping-bag')) {
             e.preventDefault();
             openMiniCart();
@@ -481,20 +481,20 @@ function initEventListeners() {
             return;
         }
 
-        // Mobil menü açma
+        // Mobil menu acma
         if (e.target.closest('#open-mobile-menu-btn')) {
             e.preventDefault();
             openMobileMenu();
             return;
         }
 
-        // Mobil menü kapama
+        // Mobil menu kapama
         if (e.target.closest('#close-mobile-menu')) {
             closeMobileMenu();
             return;
         }
 
-        // Overlay'lara tıklama
+        // Overlay'lara tiklama
         if (e.target.id === 'mini-cart-overlay') {
             closeMiniCart();
             return;
@@ -504,7 +504,7 @@ function initEventListeners() {
             return;
         }
 
-        // Arama popup açma
+        // Arama popup acma
         const searchOpen = e.target.closest('#search-open-btn');
         if (searchOpen) {
             e.preventDefault();
@@ -531,12 +531,12 @@ function initEventListeners() {
         }
     });
 
-    // --- 2. MINI SEPET İÇİ İŞLEMLER (Document seviyesinde delegation) ---
+    // --- 2. MINI SEPET ICI ISLEMLER (Document seviyesinde delegation) ---
     document.addEventListener('click', (e) => {
         const filledState = document.getElementById('cart-filled-state');
         if (!filledState) return;
 
-        // Tıklanan element filledState içinde mi kontrol et
+        // Tiklanan element filledState icinde mi kontrol et
         if (!filledState.contains(e.target)) return;
 
         const removeBtn = e.target.closest('.remove-item-btn');
@@ -552,7 +552,7 @@ function initEventListeners() {
         } else if (qtyBtn) {
             const id = qtyBtn.getAttribute('data-id');
             const action = qtyBtn.getAttribute('data-action');
-            console.log("Mini sepet: Miktar değişimi tetiklendi, ID:", id, 'tip:', typeof id, "Aksiyon:", action);
+            console.log("Mini sepet: Miktar degisimi tetiklendi, ID:", id, 'tip:', typeof id, "Aksiyon:", action);
             if (id && action) {
                 e.stopPropagation();
                 updateQuantity(id, action === 'increase' ? 1 : -1);
@@ -588,42 +588,42 @@ if (document.readyState === 'loading') {
 console.log('common.js yuklendi ve baslatildi');
 
 // ============================================
-// BREADCRUMB - HEMEN ÇALIŞTIR
+// BREADCRUMB - HEMEN CALISTIR
 // ============================================
 
 (function() {
-    // MOBİL EKRANSA HİÇ ÇALIŞTIRMA VE ÇIK
+    // MOBIL EKRANSA HIC CALISTIRMA VE CIK
     if (window.innerWidth <= 768) return;
 
     const nav = document.getElementById('breadcrumb-nav');
-    if (!nav) return;  // <-- ÇİFT NOKTALI VİRGÜL YOK! Tek ; 
+    if (!nav) return;
 
     const path = window.location.pathname;
     const urlParams = new URLSearchParams(window.location.search);
     const crumbs = [{ name: 'Hem', url: '/' }];
 
-    // KATEGORİ SAYFASI
+    // KATEGORI SAYFASI
     if (path.includes('category') || path.includes('kategori') || document.getElementById('category-main-title')) {
         crumbs.push({ name: 'Alla Mattor', url: '/category.html' });
-        
+
         const cat = urlParams.get('kategori');
         if (cat) {
             const catNames = {
                 'vardagsrum': 'Vardagsrum',
                 'sovrum': 'Sovrum', 
-                'kok': 'Kök'
+                'kok': 'Kok'
             };
             crumbs.push({ name: catNames[cat] || cat, url: '#' });
         }
     }
-    // ÜRÜN SAYFASI
+    // URUN SAYFASI
     else if (path.includes('product') || document.getElementById('product-main-name-desktop')) {
         crumbs.push({ name: 'Alla Mattor', url: '/category.html' });
         const productName = document.getElementById('product-main-name-desktop')?.textContent?.trim();
         crumbs.push({ name: (productName && productName !== '---') ? productName : 'Produkt', url: '#' });
     }
 
-    // HTML oluştur
+    // HTML olustur
     let html = '<ol class="breadcrumb-list">';
     crumbs.forEach((crumb, i) => {
         const isLast = i === crumbs.length - 1;
@@ -634,19 +634,32 @@ console.log('common.js yuklendi ve baslatildi');
     html += '</ol>';
 
     nav.innerHTML = html;
-    console.log('✅ Breadcrumb oluşturuldu:', crumbs.map(c => c.name).join(' > '));
+    console.log('Breadcrumb olusturuldu:', crumbs.map(c => c.name).join(' > '));
 })();
-
 
 
 // ============================================
 // MODERN PRODUCT CAROUSEL SYSTEM (v1.0)
-// Tüm sayfalarda kullanılabilir
+// Tum sayfalarda kullanilabilir
 // ============================================
 
 /**
- * Ürün kartı oluştur (Kategori sayfası ile AYNI yapı)
- * @param {Object} product - Ürün verisi
+ * Wishlist kontrolu
+ */
+function isInWishlist(productId) {
+    try {
+        const wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
+        return wishlist.some(item => 
+            (typeof item === 'string' ? item : String(item.id)) === String(productId)
+        );
+    } catch (e) {
+        return false;
+    }
+}
+
+/**
+ * Urun karti olustur (Kategori sayfasi ile AYNI yapi)
+ * @param {Object} product - Urun verisi
  * @param {boolean} isWishlisted - Favori durumu
  * @returns {string} HTML string
  */
@@ -705,16 +718,16 @@ function createProductCard(product, isWishlisted) {
 }
 
 /**
- * Carousel slide wrapper'ı ekle
+ * Carousel slide wrapper'i ekle
  */
 function createCarouselSlide(product, isWishlisted) {
     return `<div class="product-slide">${createProductCard(product, isWishlisted)}</div>`;
 }
 
 /**
- * Carousel'ı render et
+ * Carousel'i render et
  * @param {string} trackId - Track element ID
- * @param {Array} products - Ürün dizisi
+ * @param {Array} products - Urun dizisi
  * @param {Object} options - Ayarlar
  */
 function renderProductCarousel(trackId, products, options = {}) {
@@ -735,12 +748,12 @@ function renderProductCarousel(trackId, products, options = {}) {
         return createCarouselSlide(p, isWishlisted);
     }).join('');
 
-    // Event listener'ları bağla
+    // Event listener'lari bagla
     if (settings.showWishlist) {
         attachCarouselWishlistEvents(track);
     }
 
-    // Kart tıklama
+    // Kart tiklama
     track.querySelectorAll('.product-card').forEach(card => {
         card.addEventListener('click', (e) => {
             if (e.target.closest('.wishlist-btn')) return;
@@ -760,17 +773,17 @@ function renderProductCarousel(trackId, products, options = {}) {
  */
 function attachCarouselWishlistEvents(container) {
     container.querySelectorAll('.wishlist-btn').forEach(btn => {
-        // Önceki event'leri temizle (clone)
+        // Onceki event'leri temizle (clone)
         const newBtn = btn.cloneNode(true);
         btn.parentNode.replaceChild(newBtn, btn);
-        
+
         newBtn.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
 
             const productId = newBtn.dataset.productId;
             const product = findProductInCarousel(container, productId);
-            
+
             if (!product) return;
 
             let wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
@@ -806,12 +819,12 @@ function attachCarouselWishlistEvents(container) {
 }
 
 /**
- * Carousel içinden ürün bul
+ * Carousel icinden urun bul
  */
 function findProductInCarousel(container, productId) {
     const card = container.querySelector(`.product-card[data-id="${productId}"]`);
     if (!card) return null;
-    
+
     return {
         id: productId,
         name: card.querySelector('.product-title')?.textContent || '',
@@ -821,7 +834,7 @@ function findProductInCarousel(container, productId) {
 }
 
 /**
- * Carousel navigasyon sınıfı
+ * Carousel navigasyon sinifi
  */
 class ProductCarousel {
     constructor(wrapperId, trackId, options = {}) {
@@ -858,17 +871,17 @@ class ProductCarousel {
     }
 
     createNavigation() {
-        // Ok butonları (masaüstü)
+        // Ok butonlari (masaustu)
         if (this.options.showArrows && window.innerWidth > 768) {
             const prevBtn = document.createElement('button');
             prevBtn.className = 'carousel-nav prev';
             prevBtn.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
-            prevBtn.setAttribute('aria-label', 'Föregående');
+            prevBtn.setAttribute('aria-label', 'Foregaende');
 
             const nextBtn = document.createElement('button');
             nextBtn.className = 'carousel-nav next';
             nextBtn.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
-            nextBtn.setAttribute('aria-label', 'Nästa');
+            nextBtn.setAttribute('aria-label', 'Nasta');
 
             this.wrapper.appendChild(prevBtn);
             this.wrapper.appendChild(nextBtn);
@@ -885,7 +898,7 @@ class ProductCarousel {
             this.slides.forEach((_, i) => {
                 const dot = document.createElement('button');
                 dot.className = 'carousel-dot';
-                dot.setAttribute('aria-label', `Gå till produkt ${i + 1}`);
+                dot.setAttribute('aria-label', `Ga till produkt ${i + 1}`);
                 if (i === 0) dot.classList.add('active');
                 dot.addEventListener('click', () => this.scrollToIndex(i));
                 dotsContainer.appendChild(dot);
@@ -899,7 +912,7 @@ class ProductCarousel {
         if (this.options.showScrollHint && window.innerWidth <= 768) {
             const hint = document.createElement('div');
             hint.className = 'scroll-hint';
-            hint.innerHTML = '<i class="fa-solid fa-arrow-left"></i> Svep för att se mer <i class="fa-solid fa-arrow-right"></i>';
+            hint.innerHTML = '<i class="fa-solid fa-arrow-left"></i> Svep for att se mer <i class="fa-solid fa-arrow-right"></i>';
             this.wrapper.appendChild(hint);
 
             this.track.addEventListener('scroll', () => {
@@ -910,7 +923,7 @@ class ProductCarousel {
     }
 
     bindEvents() {
-        // Scroll event - dot'ları güncelle
+        // Scroll event - dot'lari guncelle
         let scrollTimeout;
         this.track.addEventListener('scroll', () => {
             clearTimeout(scrollTimeout);
@@ -961,9 +974,9 @@ class ProductCarousel {
 }
 
 /**
- * Supabase'den ürün çek ve carousel'e dönüştür
+ * Supabase'den urun cek ve carousel'e donustur
  * @param {Object} params - Sorgu parametreleri
- * @returns {Array} Ürün dizisi
+ * @returns {Array} Urun dizisi
  */
 async function fetchProductsForCarousel(params = {}) {
     try {
@@ -1001,23 +1014,23 @@ async function fetchProductsForCarousel(params = {}) {
 }
 
 // ============================================
-// KULLANIM ÖRNEKLERİ
+// KULLANIM ORNEKLERI
 // ============================================
 
 /**
- * Örnek: İlgili Ürünler (Product sayfası)
+ * Ornek: Ilgili Urunler (Product sayfasi)
  */
 async function initRelatedProducts(productId, category) {
     const products = await fetchProductsForCarousel({
         category: category ? `eq.${category}` : undefined,
         limit: 25
     });
-    
-    // Mevcut ürünü filtrele
+
+    // Mevcut urunu filtrele
     const filtered = products.filter(p => p.id !== productId);
-    
+
     renderProductCarousel('related-carousel-track', filtered);
-    
+
     new ProductCarousel('related-carousel-wrapper', 'related-carousel-track', {
         showDots: true,
         showArrows: true,
@@ -1026,17 +1039,17 @@ async function initRelatedProducts(productId, category) {
 }
 
 /**
- * Örnek: Bäst Säljare (Index sayfası)
+ * Ornek: Bast Saljare (Index sayfasi)
  */
 async function initBestSellers() {
     const products = await fetchProductsForCarousel({
         limit: 20,
-        // Sıralama: çok satanlar (varsayımsal)
+        // Siralama: cok satanlar (varsayimsal)
         order: 'sales.desc.nullslast'
     });
-    
+
     renderProductCarousel('bestseller-carousel-track', products);
-    
+
     new ProductCarousel('bestseller-carousel-wrapper', 'bestseller-carousel-track', {
         showDots: true,
         showArrows: true,
@@ -1045,17 +1058,17 @@ async function initBestSellers() {
 }
 
 /**
- * Örnek: Populär (Index sayfası)
+ * Ornek: Popular (Index sayfasi)
  */
 async function initPopular() {
     const products = await fetchProductsForCarousel({
         limit: 20,
-        // Sıralama: görüntülenme (varsayımsal)
+        // Siralama: goruntulenme (varsayimsal)
         order: 'views.desc.nullslast'
     });
-    
+
     renderProductCarousel('popular-carousel-track', products);
-    
+
     new ProductCarousel('popular-carousel-wrapper', 'popular-carousel-track', {
         showDots: true,
         showArrows: false, // Ok yok
@@ -1064,7 +1077,7 @@ async function initPopular() {
 }
 
 /**
- * Örnek: Son Bakılanlar (localStorage)
+ * Ornek: Son Bakilanlar (localStorage)
  */
 function initRecentlyViewed() {
     const items = JSON.parse(localStorage.getItem('recentlyViewed')) || [];
@@ -1073,10 +1086,10 @@ function initRecentlyViewed() {
         return;
     }
 
-    // localStorage'daki ID'leri ürün detaylarına çevir
-    // (Basit versiyon - detayları localStorage'da tutabilirsin)
+    // localStorage'daki ID'leri urun detaylarina cevir
+    // (Basit versiyon - detaylari localStorage'da tutabilirsin)
     renderProductCarousel('recent-carousel-track', items);
-    
+
     new ProductCarousel('recent-carousel-wrapper', 'recent-carousel-track', {
         showDots: true,
         showArrows: false,
@@ -1085,5 +1098,3 @@ function initRecentlyViewed() {
 }
 
 console.log('Product Carousel System yuklendi');
-
-
