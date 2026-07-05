@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DKRUG Sweden | Exklusiva Mattor</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Stil Dosyaları -->
     <link rel="stylesheet" href="assets/css/reset.css">
     <link rel="stylesheet" href="assets/css/common.css">
@@ -16,52 +20,191 @@
     <div id="header-placeholder"></div>
 
     <main class="main-content">
-        <!-- Hero Section (Vitrin) -->
+        <!-- ========== HERO SECTION ========== -->
         <section class="hero-section">
+            <div class="hero-bg"></div>
+            <div class="hero-pattern"></div>
             <div class="hero-content">
-                <h1>Förvandla ditt hem</h1>
-                <p>Upptäck vårt handplockade sortiment av exklusiva mattor.</p>
-                <a href="/produkt-kategori/alla-mattor/" class="hero-btn">Shoppa Nu</a>
+                <span class="hero-label">Handplockat sedan 2021</span>
+                <h1>Förvandla ditt hem med <span>exklusiva mattor</span></h1>
+                <p>Upptäck vårt noggrant utvalda sortiment av premiumkvalitet — designade för att lyfta varje rum.</p>
+                <a href="/produkt-kategori/alla-mattor/" class="hero-btn">
+                    Shoppa Nu
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                </a>
+            </div>
+            <div class="hero-scroll">
+                <span>Scrolla ner</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
             </div>
         </section>
 
-        <!-- Öne Çıkan Kategoriler -->
+        <!-- ========== CATEGORIES ========== -->
         <section class="categories-preview">
             <div class="container">
-                <h2>Våra Kategorier</h2>
+                <div class="section-header fade-in">
+                    <div class="section-label">Utforska</div>
+                    <h2 class="section-title">Våra Kategorier</h2>
+                </div>
                 <div class="cat-grid" id="category-list">
                     <!-- JS ile dinamik olarak doldurulacak -->
+                    <!-- Örnek yapı: -->
+                    <div class="cat-card fade-in">
+                        <div class="cat-card-img" style="background: linear-gradient(135deg, #3a3a3a 0%, #1a1a1a 100%);"></div>
+                        <div class="cat-card-bg"></div>
+                        <div class="cat-card-content">
+                            <h3>Moderna Mattor</h3>
+                            <p>Minimalistisk design för det moderna hemmet</p>
+                            <a href="/mattor/moderna/" class="cat-link">
+                                Utforska
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="cat-card fade-in">
+                        <div class="cat-card-img" style="background: linear-gradient(135deg, #4a3a2a 0%, #2a1a0a 100%);"></div>
+                        <div class="cat-card-bg"></div>
+                        <div class="cat-card-content">
+                            <h3>Orientaliska Mattor</h3>
+                            <p>Tidlös elegans med autentisk känsla</p>
+                            <a href="/mattor/orientaliska/" class="cat-link">
+                                Utforska
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="cat-card fade-in">
+                        <div class="cat-card-img" style="background: linear-gradient(135deg, #2a3a4a 0%, #0a1a2a 100%);"></div>
+                        <div class="cat-card-bg"></div>
+                        <div class="cat-card-content">
+                            <h3>Gardiner</h3>
+                            <p>Stilrena textilier som kompletterar ditt hem</p>
+                            <a href="/gardiner/" class="cat-link">
+                                Utforska
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="cat-card fade-in">
+                        <div class="cat-card-img" style="background: linear-gradient(135deg, #5a3a4a 0%, #2a0a1a 100%);"></div>
+                        <div class="cat-card-bg"></div>
+                        <div class="cat-card-content">
+                            <h3>REA</h3>
+                            <p>Upp till 50% rabatt på utvalda favoriter</p>
+                            <a href="/rea/" class="cat-link">
+                                Shoppa Nu
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
 
-        <!-- Öne Çıkan Ürünler (Best Sellers) -->
+        <!-- ========== PROMO BANNER ========== -->
+        <section class="promo-section">
+            <div class="container">
+                <div class="promo-grid">
+                    <div class="promo-content fade-in">
+                        <div class="section-label">Kampanj</div>
+                        <h2>Sommarrea — <span>Upp till 50%</span> på alla mattor</h2>
+                        <p>Passa på att förnya ditt hem till ett ofattbart pris. Våra handplockade mattor är nu tillgängliga med upp till halva priset. Erbjudandet gäller så länge lagret räcker.</p>
+                        <a href="/rea/" class="hero-btn">
+                            Se alla erbjudanden
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                        </a>
+                    </div>
+                    <div class="promo-img fade-in">
+                        <!-- Buraya kampanya görseli eklenebilir -->
+                        <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,0.08); font-family:'Playfair Display', serif; font-size:3.5rem; font-style:italic;">DKRUG</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========== BEST SELLERS ========== -->
         <section class="best-sellers">
             <div class="container">
-                <h2>Bästsäljare</h2>
+                <div class="section-header fade-in">
+                    <div class="section-label">Populärt just nu</div>
+                    <h2 class="section-title">Bästsäljare</h2>
+                </div>
                 <div class="product-grid" id="featured-products">
                     <!-- JS ile Airtable'dan ürünler gelecek -->
+                    <!-- Örnek yapı: -->
+                    <div class="product-card fade-in">
+                        <div class="product-img-wrap">
+                            <div class="product-img" style="background: linear-gradient(135deg, #e8e0d8 0%, #d4ccc4 100%);"></div>
+                            <span class="product-badge">Bästsäljare</span>
+                            <div class="product-actions">
+                                <button class="product-action-btn" title="Favorit">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                                </button>
+                                <button class="product-action-btn" title="Snabbvy">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="product-info">
+                            <div class="product-cat">Moderna Mattor</div>
+                            <h4 class="product-name">Premium Viskos Matta — Beige</h4>
+                            <div class="product-price">
+                                <span class="price-current">1 299 kr</span>
+                                <span class="price-old">1 899 kr</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
 
-        <!-- Güven / Avantaj Bölümü -->
+        <!-- ========== FEATURES ========== -->
         <section class="features-section">
             <div class="container">
-                <div class="feature-item">
-                    <i class="fa-solid fa-truck"></i>
-                    <h3>Fri Frakt</h3>
-                    <p>Snabb och smidig leverans direkt till dörren.</p>
+                <div class="features-grid">
+                    <div class="feature-item fade-in">
+                        <div class="feature-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+                        </div>
+                        <h3>Fri Frakt</h3>
+                        <p>Snabb och smidig leverans direkt till dörren på alla beställningar över 500 kr.</p>
+                    </div>
+                    <div class="feature-item fade-in">
+                        <div class="feature-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        </div>
+                        <h3>Säker Betalning</h3>
+                        <p>Krypterade betallösningar med Klarna, Visa och Mastercard för din trygghet.</p>
+                    </div>
+                    <div class="feature-item fade-in">
+                        <div class="feature-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                        </div>
+                        <h3>30 Dagars Öppet Köp</h3>
+                        <p>Inte nöjd? Returnera inom 30 dagar för full återbetalning — inga frågor.</p>
+                    </div>
+                    <div class="feature-item fade-in">
+                        <div class="feature-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                        </div>
+                        <h3>Kvalitetsgaranti</h3>
+                        <p>Varje matta är noggrant utvald och kontrollerad för högsta kvalitetsstandard.</p>
+                    </div>
                 </div>
-                <div class="feature-item">
-                    <i class="fa-solid fa-lock"></i>
-                    <h3>Säker Betalning</h3>
-                    <p>Vi använder krypterade betallösningar.</p>
-                </div>
-                <div class="feature-item">
-                    <i class="fa-solid fa-headset"></i>
-                    <h3>Support</h3>
-                    <p>Vi finns här för att hjälpa dig dygnet runt.</p>
+            </div>
+        </section>
+
+        <!-- ========== NEWSLETTER ========== -->
+        <section class="newsletter-section">
+            <div class="container">
+                <div class="newsletter-box fade-in">
+                    <div class="section-label">Nyhetsbrev</div>
+                    <h3>Få 10% rabatt på första köpet</h3>
+                    <p>Prenumerera på vårt nyhetsbrev och få exklusiva erbjudanden, nyheter och inspiration direkt till din inkorg.</p>
+                    <form class="newsletter-form" onsubmit="event.preventDefault(); alert('Tack för din prenumeration!');">
+                        <input type="email" placeholder="Din e-postadress" required>
+                        <button type="submit">Prenumerera</button>
+                    </form>
                 </div>
             </div>
         </section>
@@ -84,6 +227,20 @@
             }
         }
         initPage();
+
+        // Scroll animation observer
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        // Observe elements after DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+        });
     </script>
 
     <script src="/assets/js/config.js"></script>
