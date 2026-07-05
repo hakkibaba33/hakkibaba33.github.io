@@ -340,6 +340,11 @@
                 // ==========================================
                 await sendOrderConfirmationEmail(customer, cart, total, orderId, paymentIntentId);
 
+                // ==========================================
+                // STOK DUSURME
+                // ==========================================
+                await updateStockAfterOrder(cart);
+
                 // Sepeti ve musteri bilgilerini temizle
                 localStorage.removeItem('siteCartItems');
                 localStorage.removeItem('dkrug_checkout_customer');
