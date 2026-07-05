@@ -1,52 +1,39 @@
+/* ========== BREADCRUMB STYLES ========== */
 .breadcrumb-nav {
-    display: flex;
-    align-items: center;
-    white-space: nowrap; /* Satır başı yapmayı engeller */
-    overflow: hidden;    /* Taşan kısmı gizler */
-    text-overflow: ellipsis; /* Taşan yere ... koyar */
-    max-width: 100%;
+    padding: 12px 0;
+    margin-bottom: 8px;
 }
 
-.breadcrumb-nav a, .breadcrumb-nav .current {
-    overflow: hidden;
-    text-overflow: ellipsis; /* İçerik uzunsa üç nokta ile kısaltır */
-    max-width: 200px;        /* İstersen bir limit koyabilirsin */
-    display: inline-block;
-}
-/* Breadcrumb'ın header'ın altında düzgün durması için */
-.breadcrumb-nav {
-    width: 100%;
-    padding: 15px 5%; /* Yanlardan boşluk */
-    background-color: #f9f9f9; /* Arka planı hafif gri yaparak ayırıyoruz */
-    border-bottom: 1px solid #eee;
-    z-index: 900; /* Header'dan düşük, içerikten yüksek */
-    margin-top: o; /* Header'ın hemen altından başlasın */
+.breadcrumb-list {
     display: flex;
     align-items: center;
+    list-style: none;
+    gap: 8px;
     font-size: 14px;
     color: #666;
 }
 
-/* Linkler ve ayraçlar için */
-.breadcrumb-nav a {
+.breadcrumb-item a {
     color: #333;
     text-decoration: none;
-    transition: color 0.3s;
+    transition: color 0.2s;
 }
 
-.breadcrumb-nav a:hover {
+.breadcrumb-item a:hover {
     color: #000;
     text-decoration: underline;
 }
 
-.breadcrumb-nav .separator {
-    margin: 0 8px;
-    color: #ccc;
+.breadcrumb-item.active {
+    color: #999;
+    font-weight: 500;
 }
 
-.breadcrumb-nav .current {
-    font-weight: bold;
-    color: #000;
+/* Separator */
+.breadcrumb-item:not(:last-child)::after {
+    content: '/';
+    margin-left: 8px;
+    color: #ccc;
 }
 
 
