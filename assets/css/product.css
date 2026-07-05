@@ -1987,9 +1987,10 @@ body.drawer-open {
 }
 
 @media (max-width: 768px) {
-    /* Mobil galerideki ana slaytın kendisini yukarı çekiyoruz */
-    .mobile-gallery-slide {
-        margin-top: -100px !important; /* İhtiyaca göre -20px ile -60px arası değer verebilirsin */
-        position: relative;
+    .mobile-gallery-wrapper,
+    .mobile-gallery-track,
+    .mobile-gallery-slide img {
+        position: relative !important;
+        top: -40px !important; /* Resmi yukarı taşımak için eksi değer */
     }
 }
