@@ -1814,7 +1814,9 @@ body.no-scroll {
 }
 
 @media (max-width: 768px) {
-    #breadcrumb-nav { /* Nokta yerine # geldi çünkü bu bir ID */
-        display: none !important;
+    /* breadcrumb-nav hem id hem class olarak hedef alındı */
+    #breadcrumb-nav, 
+    .breadcrumb-nav {
+        display: none !important; /* Elementi DOM'dan görsel olarak tamamen kaldırır */
     }
 }
