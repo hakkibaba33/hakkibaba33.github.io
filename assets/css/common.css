@@ -1795,7 +1795,7 @@ body.no-scroll {
 @media (max-width: 768px) {
     /* 1. Sayfa içeriğini yukarı çek */
     .main-content {
-        padding-top: 50px !important; /* Deneme yanılma ile burayı 80-110 arası ayarla */
+        padding-top: 0px !important; /* Deneme yanılma ile burayı 80-110 arası ayarla */
     }
 
     /* 2. Breadcrumb'ın üstündeki gereksiz margin'i sıfırla */
