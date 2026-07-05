@@ -713,245 +713,208 @@ if (window.__productPageInitialized) {
     }
 }
 
+// ============================================
+// İLGİLİ ÜRÜNLER CAROUSEL - KATEGORİ KARTI YAPISI
+// ============================================
 
+// Kategori sayfasındaki createProductCard ile aynı yapı
+function createCarouselProductCard(product) {
+    const hasDiscount = product.discount_price && product.discount_price < product.base_price;
+    const priceHTML = hasDiscount 
+        ? `<span class="original-price" style="text-decoration:line-through;color:#999;font-size:14px;">${product.base_price.toLocaleString('sv-SE')} SEK</span>
+           <span class="current-price" style="color:#e54d42;">${product.price.toLocaleString('sv-SE')} SEK</span>`
+        : `<span class="current-price">${product.price.toLocaleString('sv-SE')} SEK</span>`;
 
+    const variantText = product.variants?.length > 1 
+        ? `${product.variants.length} storlekar` 
+        : (product.variants?.[0]?.size || 'Standard');
 
-const mockRelatedProducts = Array.from({ length: 25 }, (_, i) => ({
-    id: 100 + i,
-    name: [
-        "Persisk Handknuten Matta", "Skandinavisk Ullmatta", "Modern Geometrisk",
-        "Vintage Kelim", "Shaggy Hårlig", "Orientalisk Silk", "Boho Bomull",
-        "Industriell Jute", "Lyxviskos", "Barnmatta Djur", "Utomhus PP",
-        "Löpare Korridor", "Rund Mandala", "3D Effekt", "Anti-Slip",
-        "Maskinvävd", "Handtuftad", "Patchwork", "Fårskinn", "Bambu",
-        "Återvunnen", "Vattentät", "Värmematta", "Sisal Natur", "Chenille"
-    ][i],
-    price: `${(Math.random() * 4000 + 1000).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, " ")} kr`,
-    oldPrice: Math.random() > 0.5 ? `${(Math.random() * 5000 + 2000).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, " ")} kr` : null,
-    image: `/assets/images/products/related-${(i % 8) + 1}.jpg`,
-    badge: Math.random() > 0.7 ? (Math.random() > 0.5 ? 'REA' : 'NYHET') : null
-}));
+    const productUrl = product.slug ? `/matta/${product.slug}` : `/matta/${product.id}`;
 
-// Render fonksiyonu
-function renderCarousel(trackId, products) {
-    const track = document.getElementById(trackId);
-    if (!track) return;
-
-    track.innerHTML = products.map(p => `
+    return `
         <div class="product-slide">
-            <article class="product-card" data-id="${p.id}">
-                <div class="product-card-image">
-                    <img src="${p.image}" alt="${p.name}" loading="lazy">
-                    ${p.badge ? `<span class="product-card-badge ${p.badge === 'REA' ? 'sale' : 'new'}">${p.badge}</span>` : ''}
-                    <button class="product-card-fav" aria-label="Favorit">
+            <article class="product-card" data-id="${product.id}">
+                <div class="image-box" style="position:relative; aspect-ratio:3/4; overflow:hidden;">
+                    <a href="${productUrl}">
+                        <img src="${product.image}" 
+                             alt="${product.name}" 
+                             loading="lazy"
+                             onerror="this.style.display='none'"
+                             style="width:100%; height:100%; object-fit:cover; transition:transform 0.4s ease;">
+                    </a>
+                    ${hasDiscount ? `<span class="discount-badge" style="position:absolute; top:8px; left:8px; background:#e54d42; color:#fff; padding:4px 8px; border-radius:4px; font-size:12px; font-weight:bold;">REA</span>` : ''}
+                    <button class="wishlist-btn" 
+                            data-product-id="${product.id}"
+                            aria-label="Lägg till favoriter"
+                            style="position:absolute; top:8px; right:8px; width:36px; height:36px; background:rgba(255,255,255,0.9); border:none; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; z-index:2;">
                         <i class="fa-regular fa-heart"></i>
                     </button>
-                    <button class="product-card-quick-add" data-id="${p.id}">
+                    <button class="quick-add-btn" 
+                            data-product-id="${product.id}"
+                            style="position:absolute; bottom:0; left:0; right:0; background:#000; color:#fff; text-align:center; padding:12px; font-size:13px; font-weight:600; text-transform:uppercase; border:none; cursor:pointer; transform:translateY(100%); transition:transform 0.3s ease; z-index:3;">
                         Lägg i varukorg
                     </button>
                 </div>
-                <div class="product-card-info">
-                    <h3 class="product-card-name">${p.name}</h3>
-                    <div class="product-card-meta">
-                        <div class="product-card-price">
-                            <span class="product-card-price-current">${p.price}</span>
-                            ${p.oldPrice ? `<span class="product-card-price-old">${p.oldPrice}</span>` : ''}
-                        </div>
+                <div class="product-info" style="padding:12px 0;">
+                    <h3 class="product-title" style="font-size:14px; font-weight:500; color:#333; margin-bottom:4px; line-height:1.3; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; min-height:40px;">${product.name}</h3>
+                    <div class="product-meta-row" style="margin-bottom:8px;">
+                        <span class="product-acf-dimension" style="font-size:13px; color:#666;">${variantText}</span>
                     </div>
+                    <div class="product-price" style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+                        ${priceHTML}
+                    </div>
+                    ${product.colors?.length > 0 ? `
+                        <div class="product-colors-wrapper">
+                            <div class="product-colors-swatches" style="display:flex; gap:4px;">
+                                ${product.colors.slice(0, 5).map(color => `
+                                    <span class="swatch-circle" 
+                                          style="width:16px; height:16px; border-radius:50%; background-color:${color}; border:1px solid #ddd; display:inline-block;"
+                                          title="${color}"></span>
+                                `).join('')}
+                            </div>
+                            ${product.colors.length > 5 ? `<span class="color-count-text" style="font-size:12px; color:#999; margin-left:4px;">+${product.colors.length - 5} färger</span>` : ''}
+                        </div>
+                    ` : ''}
                 </div>
             </article>
         </div>
-    `).join('');
+    `;
 }
 
-// Başlat
-document.addEventListener('DOMContentLoaded', () => {
-    renderCarousel('related-carousel-track', mockRelatedProducts);
-    // Son bakılanlar için aynısı...
-});
+// Carousel render fonksiyonu
+function renderRelatedCarousel(products) {
+    const track = document.getElementById('related-carousel-track');
+    if (!track) return;
 
+    track.innerHTML = products.map(p => createCarouselProductCard(p)).join('');
 
+    // Hover efekti - quick add butonu göster
+    track.querySelectorAll('.product-card').forEach(card => {
+        const img = card.querySelector('img');
+        const quickAdd = card.querySelector('.quick-add-btn');
+        
+        card.addEventListener('mouseenter', () => {
+            if (img) img.style.transform = 'scale(1.05)';
+            if (quickAdd) quickAdd.style.transform = 'translateY(0)';
+        });
+        
+        card.addEventListener('mouseleave', () => {
+            if (img) img.style.transform = 'scale(1)';
+            if (quickAdd) quickAdd.style.transform = 'translateY(100%)';
+        });
+    });
 
+    // Favori butonları
+    track.querySelectorAll('.wishlist-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const productId = btn.dataset.productId;
+            const icon = btn.querySelector('i');
+            const isActive = icon.classList.contains('fa-solid');
+            
+            if (isActive) {
+                icon.className = 'fa-regular fa-heart';
+                btn.style.color = '';
+            } else {
+                icon.className = 'fa-solid fa-heart';
+                btn.style.color = '#e54d42';
+            }
+            
+            // localStorage wishlist güncelle
+            let wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
+            if (!isActive) {
+                const product = products.find(p => p.id === productId);
+                if (product) wishlist.push({ id: productId, name: product.name, price: product.price, image: product.image });
+            } else {
+                wishlist = wishlist.filter(item => String(item.id) !== String(productId));
+            }
+            localStorage.setItem('wishlistItems', JSON.stringify(wishlist));
+            if (typeof updateWishlistBadge === 'function') updateWishlistBadge();
+        });
+    });
 
+    // Quick add butonları
+    track.querySelectorAll('.quick-add-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const productId = btn.dataset.productId;
+            const product = products.find(p => p.id === productId);
+            if (product && typeof addProductToCart === 'function') {
+                addProductToCart({
+                    id: product.id,
+                    name: product.name,
+                    price: product.price,
+                    image: product.image,
+                    variants: product.variants?.[0]?.size || 'Standard',
+                    delivery: '3-7 arbetsdagar'
+                });
+            }
+        });
+    });
 
-
+    // Kart tıklama - sadece link'e tıklanınca git
+    track.querySelectorAll('.product-card a').forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+    });
+}
 
 // ============================================
-// MODERN SWIPE KARUSEL
+// GERÇEK ÜRÜN VERİSİ ÇEK (Supabase)
 // ============================================
 
-class ProductCarousel {
-    constructor(wrapperId, trackId, options = {}) {
-        this.wrapper = document.getElementById(wrapperId);
-        this.track = document.getElementById(trackId);
-        if (!this.wrapper || !this.track) return;
+async function fetchRelatedProducts() {
+    try {
+        // Aynı kategoriden ürünleri çek (şimdilik rastgele 25 ürün)
+        const products = await supabaseGet('products', {
+            select: '*',
+            active: 'eq.true',
+            limit: 25
+        });
 
-        this.options = {
+        const variants = await supabaseGet('product_variants', {
+            select: '*'
+        });
+
+        // Birleştir
+        const relatedProducts = products.map(p => ({
+            id: p.id,
+            name: p.name || 'Urun',
+            price: p.discount_price || p.base_price || 0,
+            base_price: p.base_price || 0,
+            discount_price: p.discount_price || null,
+            image: p.images && p.images[0] ? p.images[0] : '',
+            slug: p.slug || '',
+            colors: p.colors || [],
+            variants: variants.filter(v => v.product_id === p.id)
+        }));
+
+        renderRelatedCarousel(relatedProducts);
+        
+        // Carousel navigasyonunu başlat
+        new ProductCarousel('related-carousel-wrapper', 'related-carousel-track', {
             showDots: true,
             showArrows: true,
-            showScrollHint: true,
-            ...options
-        };
-
-        this.currentIndex = 0;
-        this.slides = [];
-        this.init();
-    }
-
-    init() {
-        this.slides = this.track.querySelectorAll('.product-slide');
-        if (this.slides.length === 0) return;
-
-        this.createNavigation();
-        this.bindEvents();
-        this.updateDots();
-    }
-
-    createNavigation() {
-        // Ok butonları (masaüstü)
-        if (this.options.showArrows && window.innerWidth > 768) {
-            const prevBtn = document.createElement('button');
-            prevBtn.className = 'carousel-nav prev';
-            prevBtn.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
-            prevBtn.setAttribute('aria-label', 'Föregående');
-
-            const nextBtn = document.createElement('button');
-            nextBtn.className = 'carousel-nav next';
-            nextBtn.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
-            nextBtn.setAttribute('aria-label', 'Nästa');
-
-            this.wrapper.appendChild(prevBtn);
-            this.wrapper.appendChild(nextBtn);
-
-            prevBtn.addEventListener('click', () => this.scrollTo('prev'));
-            nextBtn.addEventListener('click', () => this.scrollTo('next'));
-        }
-
-        // Dot pagination (mobil)
-        if (this.options.showDots) {
-            const dotsContainer = document.createElement('div');
-            dotsContainer.className = 'carousel-dots';
-
-            this.slides.forEach((_, i) => {
-                const dot = document.createElement('button');
-                dot.className = 'carousel-dot';
-                dot.setAttribute('aria-label', `Gå till produkt ${i + 1}`);
-                if (i === 0) dot.classList.add('active');
-                dot.addEventListener('click', () => this.scrollToIndex(i));
-                dotsContainer.appendChild(dot);
-            });
-
-            this.wrapper.appendChild(dotsContainer);
-            this.dots = dotsContainer.querySelectorAll('.carousel-dot');
-        }
-
-        // Scroll hint (mobil)
-        if (this.options.showScrollHint && window.innerWidth <= 768) {
-            const hint = document.createElement('div');
-            hint.className = 'scroll-hint';
-            hint.innerHTML = '<i class="fa-solid fa-arrow-left"></i> Svep för att se mer <i class="fa-solid fa-arrow-right"></i>';
-            this.wrapper.appendChild(hint);
-
-            // İlk scroll'da gizle
-            this.track.addEventListener('scroll', () => {
-                hint.style.opacity = '0';
-                setTimeout(() => hint.remove(), 500);
-            }, { once: true });
-        }
-    }
-
-    bindEvents() {
-        // Scroll event - dot'ları güncelle
-        let scrollTimeout;
-        this.track.addEventListener('scroll', () => {
-            clearTimeout(scrollTimeout);
-            scrollTimeout = setTimeout(() => this.updateDots(), 50);
+            showScrollHint: true
         });
 
-        // Touch swipe momentum
-        let startX, scrollLeft;
-        this.track.addEventListener('touchstart', (e) => {
-            startX = e.touches[0].pageX - this.track.offsetLeft;
-            scrollLeft = this.track.scrollLeft;
-        }, { passive: true });
-
-        this.track.addEventListener('touchmove', (e) => {
-            const x = e.touches[0].pageX - this.track.offsetLeft;
-            const walk = (x - startX) * 1.5;
-            this.track.scrollLeft = scrollLeft - walk;
-        }, { passive: true });
-
-        // Favori butonları
-        this.track.querySelectorAll('.product-card-fav').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                btn.classList.toggle('active');
-                const icon = btn.querySelector('i');
-                icon.classList.toggle('fa-regular');
-                icon.classList.toggle('fa-solid');
-            });
-        });
-
-        // Kart tıklama
-        this.track.querySelectorAll('.product-card').forEach(card => {
-            card.addEventListener('click', () => {
-                const id = card.dataset.id;
-                if (id) window.location.href = `product.html?id=${id}`;
-            });
-        });
-
-        // Hızlı ekle butonu
-        this.track.querySelectorAll('.product-card-quick-add').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                // Sepete ekle fonksiyonu
-                console.log('Hızlı ekle:', btn.dataset.id);
-            });
-        });
-    }
-
-    scrollTo(direction) {
-        const slideWidth = this.slides[0].offsetWidth + 16; // gap
-        const scrollAmount = direction === 'next' ? slideWidth : -slideWidth;
-        this.track.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-    }
-
-    scrollToIndex(index) {
-        const slide = this.slides[index];
-        if (slide) {
-            slide.scrollIntoView({ behavior: 'smooth', inline: 'start' });
-        }
-    }
-
-    updateDots() {
-        if (!this.dots) return;
-
-        const scrollLeft = this.track.scrollLeft;
-        const slideWidth = this.slides[0].offsetWidth + 16;
-        const newIndex = Math.round(scrollLeft / slideWidth);
-
-        this.dots.forEach((dot, i) => {
-            dot.classList.toggle('active', i === newIndex);
-        });
+    } catch (error) {
+        console.error('İlgili ürünler çekilemedi:', error);
+        // Fallback: Mock veri
+        renderRelatedCarousel(mockRelatedProducts);
     }
 }
 
 // ============================================
-// KARUSELLERİ BAŞLAT
+// BAŞLAT
 // ============================================
 
 document.addEventListener('DOMContentLoaded', () => {
-    // İlgili Ürünler Karuseli
-    new ProductCarousel('related-carousel-wrapper', 'related-carousel-track', {
-        showDots: true,
-        showArrows: true,
-        showScrollHint: true
-    });
-
-    // Son Bakılanlar Karuseli
-    new ProductCarousel('recent-carousel-wrapper', 'recent-carousel-track', {
-        showDots: true,
-        showArrows: false, // Son bakılanlarda ok yok
-        showScrollHint: false
-    });
+    // Önceki initProductPage zaten çalıştı
+    // İlgili ürünleri çek
+    fetchRelatedProducts();
 });
