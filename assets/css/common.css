@@ -1812,3 +1812,10 @@ body.no-scroll {
         top: -20px !important; /* Negatif değer vererek yukarı çekmeye çalış */
     }
 }
+
+
+@media (max-width: 768px) {
+    .breadcrumb-nav {
+        display: none !important;
+    }
+}
