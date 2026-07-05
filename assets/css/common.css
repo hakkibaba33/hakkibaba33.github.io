@@ -4,7 +4,7 @@
 
 /* Header yüksekliğine göre ayarla (örn: 80px header) */
 .main-content {
-    padding-top: 140px;  /* Her sayfada aynı */
+    padding-top: 200px;  /* Her sayfada aynı */
 }
 
 /* Breadcrumb - JS ile dinamik, boşken bile yer kaplar */
