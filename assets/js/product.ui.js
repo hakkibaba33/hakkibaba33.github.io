@@ -1,5 +1,5 @@
 // ==========================================
-// PRODUCT.UI.JS - SUPABASE UYUMLU (v3.1 - ID FIX)
+// PRODUCT.UI.JS - SUPABASE UYUMLU (v3.2 - CAROUSEL FIX)
 // Eski Airtable yapısını koru, sadece API Supabase'e çevrildi
 // ==========================================
 
@@ -163,12 +163,11 @@ if (window.__productPageInitialized) {
             // Sepete ekle
             setupAddToCart(f);
             setupWishlistButton(f);
-            
-            console.log("Urun sayfasi yuklendi:", f.Name);
-            
-             await initRelatedProductsCarousel();
 
             console.log("Urun sayfasi yuklendi:", f.Name);
+
+            // === ILGILI URUNLER CAROUSEL ===
+            await initRelatedProductsCarousel();
 
         } catch (e) { 
             console.error("Hata:", e); 
@@ -708,6 +707,45 @@ if (window.__productPageInitialized) {
     });
 
     // ==========================================
+    // ILGILI URUNLER CAROUSEL
+    // ==========================================
+
+    async function initRelatedProductsCarousel() {
+        // currentProduct yüklendikten sonra çalıştır
+        if (!currentProduct) {
+            console.warn('currentProduct henuz yuklenmedi, ilgili urunler atlaniyor');
+            return;
+        }
+
+        try {
+            const products = await fetchProductsForCarousel({
+                limit: 25
+            });
+
+            // Mevcut ürünü filtrele
+            const filtered = products.filter(p => String(p.id) !== String(currentProduct.id));
+
+            if (filtered.length === 0) {
+                console.warn('Ilgili urun bulunamadi');
+                return;
+            }
+
+            renderProductCarousel('related-carousel-track', filtered);
+
+            new ProductCarousel('related-carousel-wrapper', 'related-carousel-track', {
+                showDots: true,
+                showArrows: true,
+                showScrollHint: true
+            });
+
+            console.log('Ilgili urunler carousel yuklendi:', filtered.length);
+
+        } catch (error) {
+            console.error('Ilgili urunler hatasi:', error);
+        }
+    }
+
+    // ==========================================
     // BASLAT
     // ==========================================
     if (document.readyState === 'loading') {
@@ -715,53 +753,4 @@ if (window.__productPageInitialized) {
     } else {
         initProductPage();
     }
-}
-
-
-// ============================================
-// İLGİLİ ÜRÜNLER CAROUSEL - PRODUCT SAYFASI
-// ============================================
-
-async function initRelatedProductsCarousel() {
-    // currentProduct yüklendikten sonra çalıştır
-    if (typeof currentProduct === 'undefined' || !currentProduct) {
-        console.warn('currentProduct henuz yuklenmedi, ilgili urunler atlaniyor');
-        return;
-    }
-
-    try {
-        const products = await fetchProductsForCarousel({
-            limit: 25
-        });
-        
-        // Mevcut ürünü filtrele
-        const filtered = products.filter(p => String(p.id) !== String(currentProduct.id));
-        
-        if (filtered.length === 0) {
-            console.warn('Ilgili urun bulunamadi');
-            return;
-        }
-
-        renderProductCarousel('related-carousel-track', filtered);
-        
-        new ProductCarousel('related-carousel-wrapper', 'related-carousel-track', {
-            showDots: true,
-            showArrows: true,
-            showScrollHint: true
-        });
-
-        console.log('Ilgili urunler carousel yuklendi:', filtered.length);
-
-    } catch (error) {
-        console.error('Ilgili urunler hatasi:', error);
-    }
-}
-
-// ============================================
-// BASLAT
-// ==========================================
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initProductPage);
-} else {
-    initProductPage();
 }
