@@ -599,8 +599,11 @@ console.log('common.js yuklendi ve baslatildi');
 // ============================================
 
 (function() {
+    // MOBİL EKRANSA HİÇ ÇALIŞTIRMA VE ÇIK
+    if (window.innerWidth <= 768) return; 
+
     const nav = document.getElementById('breadcrumb-nav');
-    if (!nav) return;
+    if (!nav) return;;
 
     const path = window.location.pathname;
     const urlParams = new URLSearchParams(window.location.search);
