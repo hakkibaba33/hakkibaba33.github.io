@@ -659,7 +659,11 @@ if (window.__productPageInitialized) {
         btn.parentNode.replaceChild(newBtn, btn);
 
         newBtn.addEventListener('click', () => {
-            const variantInfo = selectedVariant ? selectedVariant.size : (fields.Variants || 'Standard');
+           const variantInfo = selectedVariant 
+    ? selectedVariant.size 
+    : (Array.isArray(fields.Variants) && fields.Variants.length > 0 
+        ? fields.Variants[0].size 
+        : 'Standard');
             const displayPrice = getDisplayPrice(currentProduct, selectedVariant);
 
             if (typeof addProductToCart === 'function') {
