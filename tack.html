@@ -361,9 +361,24 @@
 
                 cart.forEach(function(item) {
                     const itemTotal = (parseFloat(item.price) * (item.quantity || 1)).toLocaleString('sv-SE');
+                    // Varyant bilgisini guvenli sekilde al
+                    var variantText = 'Standard';
+                    if (item.variant) {
+                        if (typeof item.variant === 'string') {
+                            variantText = item.variant;
+                        } else if (typeof item.variant === 'object') {
+                            variantText = item.variant.size || item.variant.name || JSON.stringify(item.variant);
+                        }
+                    } else if (item.variants) {
+                        if (typeof item.variants === 'string') {
+                            variantText = item.variants;
+                        } else if (typeof item.variants === 'object') {
+                            variantText = item.variants.size || item.variants.name || JSON.stringify(item.variants);
+                        }
+                    }
                     itemsHtml += '<tr>' +
                         '<td style="padding:8px;border:1px solid #e5e7eb;">' + (item.name || 'Urun') + '</td>' +
-                        '<td style="padding:8px;text-align:center;border:1px solid #e5e7eb;">' + (item.variants || 'Standard') + '</td>' +
+                        '<td style="padding:8px;text-align:center;border:1px solid #e5e7eb;">' + variantText + '</td>' +
                         '<td style="padding:8px;text-align:center;border:1px solid #e5e7eb;">' + (item.quantity || 1) + '</td>' +
                         '<td style="padding:8px;text-align:right;border:1px solid #e5e7eb;font-weight:600;">' + itemTotal + ' SEK</td>' +
                     '</tr>';
