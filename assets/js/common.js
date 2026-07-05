@@ -593,10 +593,10 @@ console.log('common.js yuklendi ve baslatildi');
 
 (function() {
     // MOBİL EKRANSA HİÇ ÇALIŞTIRMA VE ÇIK
-    if (window.innerWidth <= 768) return; 
+    if (window.innerWidth <= 768) return;
 
     const nav = document.getElementById('breadcrumb-nav');
-    if (!nav) return;;
+    if (!nav) return;  // <-- ÇİFT NOKTALI VİRGÜL YOK! Tek ; 
 
     const path = window.location.pathname;
     const urlParams = new URLSearchParams(window.location.search);
@@ -636,7 +636,6 @@ console.log('common.js yuklendi ve baslatildi');
     nav.innerHTML = html;
     console.log('✅ Breadcrumb oluşturuldu:', crumbs.map(c => c.name).join(' > '));
 })();
-
 
 
 
