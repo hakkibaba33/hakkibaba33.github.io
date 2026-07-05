@@ -381,9 +381,7 @@
                     payment_method: 'Stripe',
                     customer_address: (customer.address + ', ' + customer.postcode + ' ' + customer.city).trim() || 'Sverige',
                     customer_phone: customer.phone || 'N/A',
-                    tracking_link: 'https://www.dekorist.se/orders/' + orderId + '
-
-(Du kommer att få ett separat mail med spårningsinformation när din beställning skickas.)'
+                    tracking_link: 'https://www.dekorist.se/orders/' + orderId + '\n\n(Du kommer att få ett separat mail med spårningsinformation när din beställning skickas.)'
                 };
 
                 console.log('>>> EmailJS gonderiliyor...', JSON.stringify(templateParams));
