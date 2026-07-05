@@ -393,7 +393,15 @@
                 for (var i = 0; i < cart.length; i++) {
                     var item = cart[i];
                     var productId = item.id;
-                    var variantSize = item.variant || (Array.isArray(item.variants) && item.variants.length > 0 ? item.variants[0].size : null);
+                    var variantSize = null;
+                    if (typeof item.variant === 'string' && item.variant !== 'Standard') {
+                        variantSize = item.variant;
+                    } else if (Array.isArray(item.variants) && item.variants.length > 0) {
+                        variantSize = item.variants[0].size;
+                    } else if (typeof item.variants === 'string') {
+                        variantSize = item.variants;
+                    }
+                    console.log('>>> Varyant bilgisi:', item.name, 'variant:', item.variant, 'variants:', JSON.stringify(item.variants), '-> secilen:', variantSize);
                     var quantity = item.quantity || 1;
 
                     if (!productId || !variantSize) {
