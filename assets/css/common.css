@@ -76,13 +76,38 @@ body.no-scroll {
     height: 100%;
 }
 
-/* --- TOP BAR SLIDER --- */
+/* ===== 1. TOP BAR ===== */
+.top-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: var(--header-top-height);
+    background: var(--dk-primary);
+    color: rgba(255,255,255,0.7);
+    font-size: 0.78rem;
+    z-index: 1001;
+    line-height: normal;
+    overflow: hidden; /* <-- EKLENDİ */
+}
+
+.top-bar-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 100%;
+}
+
+/* --- SOL: Slider Alanı --- */
 .top-bar-left {
+    flex: 1;
+    height: 40px;
     overflow: hidden;
     position: relative;
-    height: 40px;
-    display: flex;
-    align-items: center;
 }
 
 .top-bar-slider {
@@ -92,13 +117,15 @@ body.no-scroll {
 }
 
 .top-bar-item {
-    height: 40px !important;
+    height: 40px;
     min-height: 40px;
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     gap: 8px;
     flex-shrink: 0;
+    color: rgba(255,255,255,0.7);
+    font-size: 0.78rem;
 }
 
 .top-bar-item svg {
@@ -115,11 +142,13 @@ body.no-scroll {
     100%      { transform: translateY(-120px); }
 }
 
-/* --- TOP BAR RIGHT (REA) --- */
+/* --- SAĞ: REA --- */
 .top-bar-right {
     font-weight: 600;
     color: var(--dk-accent);
     letter-spacing: 0.5px;
+    white-space: nowrap;
+    padding-left: 20px;
 }
 
 @media (max-width: 768px) {
