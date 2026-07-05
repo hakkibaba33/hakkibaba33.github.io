@@ -595,69 +595,48 @@ console.log('common.js yuklendi ve baslatildi');
 
 
 // ============================================
-// DINAMIK BREADCRUMB - TÜM SAYFALAR
+// BREADCRUMB - HEMEN ÇALIŞTIR
 // ============================================
 
-function initBreadcrumb() {
+(function() {
     const nav = document.getElementById('breadcrumb-nav');
     if (!nav) return;
 
     const path = window.location.pathname;
     const urlParams = new URLSearchParams(window.location.search);
-    const crumbs = [];
+    const crumbs = [{ name: 'Hem', url: '/' }];
 
-    // 1. Her zaman "Hem" ile başla
-    crumbs.push({ name: 'Hem', url: '/' });
-
-    // 2. Sayfaya göre breadcrumb oluştur
-    if (path.includes('category') || path.includes('kategori')) {
-        // Kategori sayfası
+    // KATEGORİ SAYFASI
+    if (path.includes('category') || path.includes('kategori') || document.getElementById('category-main-title')) {
         crumbs.push({ name: 'Alla Mattor', url: '/category.html' });
         
         const cat = urlParams.get('kategori');
         if (cat) {
             const catNames = {
                 'vardagsrum': 'Vardagsrum',
-                'sovrum': 'Sovrum',
+                'sovrum': 'Sovrum', 
                 'kok': 'Kök'
             };
             crumbs.push({ name: catNames[cat] || cat, url: '#' });
         }
-    } 
-    else if (path.includes('product') || document.getElementById('product-main-name-desktop')) {
-        // Ürün sayfası
-        crumbs.push({ name: 'Alla Mattor', url: '/category.html' });
-        
-        // Ürün adını JS'den al
-        const productName = document.getElementById('product-main-name-desktop')?.textContent?.trim();
-        if (productName && productName !== '---') {
-            crumbs.push({ name: productName, url: '#' });
-        } else {
-            crumbs.push({ name: 'Produkt', url: '#' });
-        }
     }
-    // Ana sayfa için sadece "Hem" yeterli
+    // ÜRÜN SAYFASI
+    else if (path.includes('product') || document.getElementById('product-main-name-desktop')) {
+        crumbs.push({ name: 'Alla Mattor', url: '/category.html' });
+        const productName = document.getElementById('product-main-name-desktop')?.textContent?.trim();
+        crumbs.push({ name: (productName && productName !== '---') ? productName : 'Produkt', url: '#' });
+    }
 
     // HTML oluştur
-    if (crumbs.length <= 1) {
-        // Ana sayfa - boş bırak (CSS :empty ile yer kaplar)
-        nav.innerHTML = '';
-        return;
-    }
-
     let html = '<ol class="breadcrumb-list">';
     crumbs.forEach((crumb, i) => {
         const isLast = i === crumbs.length - 1;
-        if (isLast) {
-            html += `<li class="active">${crumb.name}</li>`;
-        } else {
-            html += `<li><a href="${crumb.url}">${crumb.name}</a></li>`;
-        }
+        html += isLast 
+            ? `<li class="active">${crumb.name}</li>`
+            : `<li><a href="${crumb.url}">${crumb.name}</a></li>`;
     });
     html += '</ol>';
 
     nav.innerHTML = html;
-}
-
-// Sayfa yüklendiğinde çalıştır
-document.addEventListener('DOMContentLoaded', initBreadcrumb);
+    console.log('✅ Breadcrumb oluşturuldu:', crumbs.map(c => c.name).join(' > '));
+})();
