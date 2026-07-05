@@ -823,6 +823,41 @@
     }
 }
 
+
+
+
+
+
+.product-price-and-rating {
+    display: flex;
+    flex-direction: column; /* Önce alt alta diziyoruz */
+    align-items: flex-end;  /* Burası çok önemli: Her şeyi SAĞA yaslar */
+    margin: 15px 0;
+}
+
+.google-mini-trust {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 5px; /* Fiyatın biraz altında olması için boşluk */
+    color: #555;
+    font-size: 13px;
+}
+
+.g-stars {
+    color: #ffb800;
+}
+
+
+
+
+
+
+
+
+
+
+
 /* Ana Satır Hizalaması */
 .product-label-row {
     display: flex;
