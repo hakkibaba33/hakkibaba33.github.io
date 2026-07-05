@@ -1800,7 +1800,7 @@ body.no-scroll {
 /* Tablet ve Mobilde header yüksekliğine göre otomatik ayar */
 @media (max-width: 1024px) {
     body {
-        padding-top: 50px; /* Header'ın o anki toplam yüksekliği neyse onu yaz */
+        padding-top: 0px; /* Header'ın o anki toplam yüksekliği neyse onu yaz */
     }
     
     .main-content {
