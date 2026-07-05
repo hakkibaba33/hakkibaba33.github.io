@@ -66,10 +66,10 @@
 }
 
 @media (max-width: 768px) {
-    #breadcrumb-container {
-        display: none !important;
+    .breadcrumb-nav {
+        display: none;
     }
-}
+
 
 
 
