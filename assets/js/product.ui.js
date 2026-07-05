@@ -139,9 +139,9 @@ if (window.__productPageInitialized) {
             setText('delivery-time-display', f.Delivery_time);
 
             // Yeni alanlari akordiyonlara ata
-            setHTML('product-specs', f.Product_info ? '<div class="specs-content-placeholder">' + f.Product_info.replace(/\n/g, '<br>') + '</div>' : '<div class="specs-content-placeholder"><p>Material, skötselråd och övrig produktinformation visas här.</p></div>');
+            setHTML('product-specs', f.Product_info ? '<div class="specs-content-placeholder">' + f.Product_info.split('\n').join('<br>') + '</div>' : '<div class="specs-content-placeholder"><p>Material, skötselråd och övrig produktinformation visas här.</p></div>');
 
-            setHTML('product-delivery', f.Delivery_return ? '<div class="delivery-content-placeholder">' + f.Delivery_return.replace(/\n/g, '<br>') + '</div>' : '<div class="delivery-content-placeholder"><p><strong>Leveranstid:</strong> <span id="delivery-time-display">' + f.Delivery_time + '</span></p><p><strong>Frakt:</strong> Fri frakt vid köp över 500 SEK</p><p><strong>Retur:</strong> 30 dagars öppet köp</p></div>');
+            setHTML('product-delivery', f.Delivery_return ? '<div class="delivery-content-placeholder">' + f.Delivery_return.split('\n').join('<br>') + '</div>' : '<div class="delivery-content-placeholder"><p><strong>Leveranstid:</strong> <span id="delivery-time-display">' + f.Delivery_time + '</span></p><p><strong>Frakt:</strong> Fri frakt vid köp över 500 SEK</p><p><strong>Retur:</strong> 30 dagars öppet köp</p></div>');
 
             // Tooltip'i baslat
             setupSizeTooltip(f.Size_tooltip, f.Variants);
@@ -675,9 +675,7 @@ if (window.__productPageInitialized) {
         let tooltipContent = '';
 
         if (sizeTooltip && sizeTooltip.trim()) {
-            tooltipContent = sizeTooltip.replace(/
-/g, '<br>');
-        } else if (variants && variants.length > 0) {
+            tooltipContent = sizeTooltip.split('\n').join('<br>');
             tooltipContent = '<strong>Tillgängliga storlekar:</strong><br><br>';
             variants.forEach(v => {
                 const stockText = v.stock > 0 ? `(${v.stock} st i lager)` : '(Slut i lager)';
