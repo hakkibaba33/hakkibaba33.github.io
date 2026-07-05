@@ -384,3 +384,80 @@ document.addEventListener('DOMContentLoaded', () => {
 
     checkFormValidity();
 });
+
+
+
+
+
+
+
+// ==========================================
+// SIPARISI SUPABASE'E KAYDET
+// ==========================================
+async function saveOrderToSupabase(paymentId) {
+    try {
+        const cart = getCart();
+        if (cart.length === 0) return;
+
+        const firstName = document.getElementById('billing_first_name').value.trim();
+        const lastName = document.getElementById('billing_last_name').value.trim();
+        const email = document.getElementById('billing_email').value.trim();
+        const phone = document.getElementById('billing_phone').value.trim();
+        const address = document.getElementById('billing_address_1').value.trim();
+        const postcode = document.getElementById('billing_postcode').value.trim();
+        const city = document.getElementById('billing_city').value.trim();
+
+        const total = cart.reduce((sum, item) => sum + (parseFloat(item.price) * (item.quantity || 1)), 0);
+
+        const orderData = {
+            customer_info: {
+                name: `${firstName} ${lastName}`,
+                email: email,
+                phone: phone,
+                address: `${address}, ${postcode} ${city}`
+            },
+            items: cart.map(item => ({
+                id: item.id,
+                name: item.name,
+                price: parseFloat(item.price),
+                quantity: item.quantity || 1,
+                variant: item.variants || 'Standard'
+            })),
+            total_price: total,
+            status: 'pending',
+            payment_id: paymentId,
+            payment_method: 'stripe'
+        };
+
+        console.log('Siparis Supabase e kaydediliyor...', orderData);
+
+        const SUPABASE_URL = (typeof CONFIG !== 'undefined' && CONFIG.SUPABASE) ? CONFIG.SUPABASE.URL : '';
+        const SUPABASE_KEY = (typeof CONFIG !== 'undefined' && CONFIG.SUPABASE) ? CONFIG.SUPABASE.ANON_KEY : '';
+
+        const res = await fetch(SUPABASE_URL + '/rest/v1/orders', {
+            method: 'POST',
+            headers: {
+                'apikey': SUPABASE_KEY,
+                'Authorization': 'Bearer ' + SUPABASE_KEY,
+                'Content-Type': 'application/json',
+                'Prefer': 'return=representation'
+            },
+            body: JSON.stringify(orderData)
+        });
+
+        if (!res.ok) {
+            const err = await res.json();
+            console.error('Siparis kayit hatasi:', err);
+            // Hata olsa bile kullaniciya gostermeyelim, odeme zaten alindi
+            return;
+        }
+
+        const result = await res.json();
+        console.log('✅ Siparis basariyla kaydedildi! ID:', result[0].id);
+
+    } catch (err) {
+        console.error('Siparis kaydetme hatasi:', err);
+        // Hata olsa bile kullanici yonlendirilsin, odeme alindi
+    }
+}
+
