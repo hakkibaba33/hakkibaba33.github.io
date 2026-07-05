@@ -65,7 +65,11 @@
     font-weight: 500;
 }
 
-
+@media (max-width: 768px) {
+    #breadcrumb-container {
+        display: none !important;
+    }
+}
 
 
 
