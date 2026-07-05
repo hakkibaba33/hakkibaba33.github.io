@@ -64,31 +64,6 @@ body.no-scroll {
     font-size: 0.78rem;
     z-index: 1001;
     line-height: normal;
-}
-
-.top-bar-inner {
-    max-width: 1280px;
-    margin: 0 auto;
-    padding: 0 24px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    height: 100%;
-}
-
-/* ===== 1. TOP BAR ===== */
-.top-bar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
-    height: var(--header-top-height);
-    background: var(--dk-primary);
-    color: rgba(255,255,255,0.7);
-    font-size: 0.78rem;
-    z-index: 1001;
-    line-height: normal;
     overflow: hidden; /* <-- EKLENDİ */
 }
 
@@ -108,6 +83,7 @@ body.no-scroll {
     height: 40px;
     overflow: hidden;
     position: relative;
+    min-width: 0; /* flex shrink için gerekli */
 }
 
 .top-bar-slider {
@@ -126,6 +102,7 @@ body.no-scroll {
     flex-shrink: 0;
     color: rgba(255,255,255,0.7);
     font-size: 0.78rem;
+    padding-left: 4px; /* soldan hafif boşluk */
 }
 
 .top-bar-item svg {
@@ -148,7 +125,9 @@ body.no-scroll {
     color: var(--dk-accent);
     letter-spacing: 0.5px;
     white-space: nowrap;
-    padding-left: 20px;
+    padding-left: 24px;
+    flex-shrink: 0; /* küçülmesini engelle */
+    margin-left: 16px; /* soldan ekstra boşluk */
 }
 
 @media (max-width: 768px) {
