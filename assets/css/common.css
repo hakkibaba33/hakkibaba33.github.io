@@ -20,7 +20,7 @@
     background-color: #f9f9f9; /* Arka planı hafif gri yaparak ayırıyoruz */
     border-bottom: 1px solid #eee;
     z-index: 900; /* Header'dan düşük, içerikten yüksek */
-    margin-top: 200px; /* Header'ın hemen altından başlasın */
+    margin-top: o; /* Header'ın hemen altından başlasın */
     display: flex;
     align-items: center;
     font-size: 14px;
