@@ -281,7 +281,24 @@
                         name: item.name,
                         price: parseFloat(item.price),
                         quantity: item.quantity || 1,
-                        variant: item.variants || 'Standard'
+                        variant: (function() {
+                            // variants array ise (sepet yapisi)
+                            if (Array.isArray(item.variants) && item.variants.length > 0) {
+                                return item.variants[0].size || item.variants[0].name || 'Standard';
+                            }
+                            // variants string ise
+                            if (typeof item.variants === 'string') return item.variants;
+                            // variants obje ise
+                            if (typeof item.variants === 'object' && item.variants) {
+                                return item.variants.size || item.variants.name || item.variants.color || 'Standard';
+                            }
+                            // variant (tekil) kontrol
+                            if (typeof item.variant === 'string') return item.variant;
+                            if (typeof item.variant === 'object' && item.variant) {
+                                return item.variant.size || item.variant.name || 'Standard';
+                            }
+                            return 'Standard';
+                        })()
                     };
                 }),
                 total_price: total,
@@ -363,17 +380,20 @@
                     const itemTotal = (parseFloat(item.price) * (item.quantity || 1)).toLocaleString('sv-SE');
                     // Varyant bilgisini guvenli sekilde al
                     var variantText = 'Standard';
-                    if (item.variant) {
+                    // variants array ise (sepet yapisi: [{size: "80x300"}])
+                    if (Array.isArray(item.variants) && item.variants.length > 0) {
+                        variantText = item.variants[0].size || item.variants[0].name || 'Standard';
+                    } else if (item.variant) {
                         if (typeof item.variant === 'string') {
                             variantText = item.variant;
                         } else if (typeof item.variant === 'object') {
-                            variantText = item.variant.size || item.variant.name || JSON.stringify(item.variant);
+                            variantText = item.variant.size || item.variant.name || 'Standard';
                         }
                     } else if (item.variants) {
                         if (typeof item.variants === 'string') {
                             variantText = item.variants;
                         } else if (typeof item.variants === 'object') {
-                            variantText = item.variants.size || item.variants.name || JSON.stringify(item.variants);
+                            variantText = item.variants.size || item.variants.name || 'Standard';
                         }
                     }
                     itemsHtml += '<tr>' +
