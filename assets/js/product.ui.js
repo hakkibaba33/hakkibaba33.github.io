@@ -171,6 +171,17 @@ if (window.__productPageInitialized) {
         }
     }
 
+         // İlgili ürünleri yükle
+            await initRelatedProductsCarousel();
+
+            console.log("Urun sayfasi yuklendi:", f.Name);
+
+        } catch (e) { 
+            console.error("Hata:", e); 
+        }
+    }
+    
+
     function setText(id, text) {
         const el = document.getElementById(id);
         if (el) el.innerText = text || '---';
