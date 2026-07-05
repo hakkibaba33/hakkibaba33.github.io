@@ -468,7 +468,7 @@ body {
 }
 
 .main-content {
-    padding-top: 180px; /* Header yüksekliği kadar - her sayfada aynı */
+    padding-top: 200px; /* Header yüksekliği kadar - her sayfada aynı */
 }
 
 h1, h2, h3, h4, h5, h6 {
