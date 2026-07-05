@@ -1986,20 +1986,3 @@ body.drawer-open {
     }
 }
 
-
-@media (max-width: 768px) {
-    /* Mavi kutu (galeri veya ürün alanı) neyse onu normal akışa döndür */
-    .product-gallery, 
-    .mobile-gallery-wrapper {
-        position: relative !important;
-        top: auto !important;
-        margin-top: 0 !important;
-        padding-top: 0 !important;
-        display: block !important;
-    }
-
-    /* Eğer hala Header'ın altındaysa, bir margin-top vererek Header'dan uzaklaştır */
-    .mobile-gallery-wrapper {
-        margin-top: 140px !important; /* Header yüksekliği kadar (yaklaşık 140px) aşağı it */
-    }
-}
