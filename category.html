@@ -14,13 +14,11 @@
     <div id="header-placeholder"></div>
 
     <main class="main-content">
+        <!-- Breadcrumb (JS ile dinamik) -->
+        <nav class="breadcrumb-nav" id="breadcrumb-nav" aria-label="Breadcrumb"></nav>
+
         <div class="category-page-wrapper">
             <div class="custom-container">
-
-                <!-- Breadcrumb (JS ile dinamik) -->
-                <nav class="breadcrumb-nav" id="breadcrumb-nav" aria-label="Breadcrumb">
-                    <!-- JS ile doldurulacak -->
-                </nav>
 
                 <!-- Header -->
                 <div class="category-header-bar">
@@ -166,7 +164,6 @@
             document.getElementById('header-placeholder').innerHTML = await headerRes.text();
             document.getElementById('footer-placeholder').innerHTML = await footerRes.text();
             
-            // 🔥 BURASI EKSIKTİ! Event listenerları başlat
             if (typeof initEventListeners === 'function') {
                 initEventListeners();
             }
@@ -174,7 +171,6 @@
         loadComponents();
     </script>
 
-    <!-- JS Dosyalari - ONCE config, SONRA digerleri -->
     <script src="/assets/js/config.js"></script>
     <script src="/assets/js/common.js"></script>
     <script src="/assets/js/category.js"></script>
