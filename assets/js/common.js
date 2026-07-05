@@ -1,5 +1,5 @@
 // ==========================================
-// COMMON.JS - SUPABASE UYUMLU (v6.6 - BREADCRUMB + CAROUSEL FIX)
+// COMMON.JS - SUPABASE UYUMLU (v6.7 - FULL FIX)
 // Eski Airtable yapısını koru, sadece API Supabase'e çevrildi
 // ==========================================
 
@@ -134,7 +134,6 @@ function initSearch() {
 
     console.log('Search popup init basladi');
 
-    // Input dinleme
     input.addEventListener('input', (e) => {
         const query = e.target.value.trim();
         clearTimeout(searchDebounceTimer);
@@ -251,7 +250,6 @@ function performSearch(query) {
         resultsDisplay.innerHTML = '<div class="no-results-found">Inga produkter hittades.</div>';
     } else {
         resultsDisplay.innerHTML = filtered.slice(0, 8).map(product => {
-            // Highlight
             let highlightedName = product.name;
             const idx = product.name.toLowerCase().indexOf(lowerQuery);
             if (idx !== -1) {
@@ -262,15 +260,15 @@ function performSearch(query) {
                     product.name.substring(idx + query.length);
             }
 
-            return `<a href="${product.url}" class="search-item-row">
-                <div class="search-item-image">
-                    <img src="${product.image}" alt="${product.name}" onerror="this.src='https://via.placeholder.com/50'">
-                </div>
-                <div class="search-item-info">
-                    <h4 class="search-item-title">${highlightedName}</h4>
-                    <span class="search-item-price">${product.price.toLocaleString('sv-SE')} SEK</span>
-                </div>
-            </a>`;
+            return '<a href="' + product.url + '" class="search-item-row">' +
+                '<div class="search-item-image">' +
+                    '<img src="' + product.image + '" alt="' + product.name + '" onerror="this.src='https://via.placeholder.com/50'">' +
+                '</div>' +
+                '<div class="search-item-info">' +
+                    '<h4 class="search-item-title">' + highlightedName + '</h4>' +
+                    '<span class="search-item-price">' + product.price.toLocaleString('sv-SE') + ' SEK</span>' +
+                '</div>' +
+            '</a>';
         }).join('');
     }
 
@@ -304,24 +302,23 @@ function updateMiniCartUI() {
             const qty = item.quantity || 1;
             const itemTotal = item.price * qty;
             total += itemTotal;
-            // ID'yi string olarak yazdir (int8 uyumluluk)
             const itemId = String(item.id);
-            return `<div class="mini-cart-item" data-id="${itemId}">
-                <img src="${item.image || ''}" alt="${item.name || ''}" class="item-image" onerror="this.style.display='none'">
-                <div class="item-details-left">
-                    <span class="item-name">${item.name || 'Urun'}</span>
-                    <span class="item-variant">${item.variants || 'Standard'}</span>
-                    <div class="quantity-control">
-                        <button type="button" class="quantity-btn minus" data-id="${itemId}" data-action="decrease">-</button>
-                        <input type="text" class="quantity-input" value="${qty}" readonly>
-                        <button type="button" class="quantity-btn plus" data-id="${itemId}" data-action="increase">+</button>
-                    </div>
-                </div>
-                <div class="item-price-right">
-                    <span class="item-price">${itemTotal.toLocaleString('sv-SE')} SEK</span>
-                    <button type="button" class="remove-item-btn" data-id="${itemId}">Ta bort</button>
-                </div>
-            </div>`;
+            return '<div class="mini-cart-item" data-id="' + itemId + '">' +
+                '<img src="' + (item.image || '') + '" alt="' + (item.name || '') + '" class="item-image" onerror="this.style.display='none'">' +
+                '<div class="item-details-left">' +
+                    '<span class="item-name">' + (item.name || 'Urun') + '</span>' +
+                    '<span class="item-variant">' + (item.variants || 'Standard') + '</span>' +
+                    '<div class="quantity-control">' +
+                        '<button type="button" class="quantity-btn minus" data-id="' + itemId + '" data-action="decrease">-</button>' +
+                        '<input type="text" class="quantity-input" value="' + qty + '" readonly>' +
+                        '<button type="button" class="quantity-btn plus" data-id="' + itemId + '" data-action="increase">+</button>' +
+                    '</div>' +
+                '</div>' +
+                '<div class="item-price-right">' +
+                    '<span class="item-price">' + itemTotal.toLocaleString('sv-SE') + ' SEK</span>' +
+                    '<button type="button" class="remove-item-btn" data-id="' + itemId + '">Ta bort</button>' +
+                '</div>' +
+            '</div>';
         }).join('');
 
         filledState.innerHTML = html;
@@ -364,7 +361,7 @@ function addProductToCart(productData) {
     if (existing) {
         existing.quantity = (existing.quantity || 1) + 1;
     } else {
-        const newItem = { ...productData, quantity: 1 };
+        const newItem = Object.assign({}, productData, { quantity: 1 });
         cart.push(newItem);
     }
 
@@ -450,9 +447,6 @@ function closeMobileMenu() {
 // ==========================================
 // 8. EVENT LISTENERS - TUMU DOCUMENT SEVIYESINDE
 // ==========================================
-// ONEMLI: Tüm event listener'lar document seviyesinde.
-// Bu sayede dinamik olarak eklenen elementler de calisir.
-// ==========================================
 
 function initEventListeners() {
     console.log('initEventListeners CAGIRILDI, __commonListenersInitialized:', window.__commonListenersInitialized);
@@ -464,37 +458,31 @@ function initEventListeners() {
 
     console.log('Event listenerlar baslatiliyor...');
 
-    // --- 1. GENEL TIKLAMALAR (Acma/Kapama/Menu/Arama/Search Kapama) ---
     document.addEventListener('click', (e) => {
         console.log('DOCUMENT CLICK:', e.target.tagName, e.target.id, e.target.className);
 
-        // Mini sepet acma
         if (e.target.closest('#open-mini-cart-btn, .cart-icon-wrapper, .fa-shopping-bag')) {
             e.preventDefault();
             openMiniCart();
             return;
         }
 
-        // Mini sepet kapama
         if (e.target.closest('#close-mini-cart')) {
             closeMiniCart();
             return;
         }
 
-        // Mobil menu acma
         if (e.target.closest('#open-mobile-menu-btn')) {
             e.preventDefault();
             openMobileMenu();
             return;
         }
 
-        // Mobil menu kapama
         if (e.target.closest('#close-mobile-menu')) {
             closeMobileMenu();
             return;
         }
 
-        // Overlay'lara tiklama
         if (e.target.id === 'mini-cart-overlay') {
             closeMiniCart();
             return;
@@ -504,7 +492,6 @@ function initEventListeners() {
             return;
         }
 
-        // Arama popup acma
         const searchOpen = e.target.closest('#search-open-btn');
         if (searchOpen) {
             e.preventDefault();
@@ -512,7 +499,6 @@ function initEventListeners() {
             return;
         }
 
-        // Search popup KAPATMA - X butonu
         const searchClose = e.target.closest('#close-search-popup');
         if (searchClose) {
             e.preventDefault();
@@ -522,7 +508,6 @@ function initEventListeners() {
             return;
         }
 
-        // Search popup KAPATMA - overlay/bos alan
         const searchOverlay = document.getElementById('search-popup-overlay');
         if (searchOverlay && e.target === searchOverlay) {
             console.log('Search overlaya tiklandi (document delegation)');
@@ -531,12 +516,9 @@ function initEventListeners() {
         }
     });
 
-    // --- 2. MINI SEPET ICI ISLEMLER (Document seviyesinde delegation) ---
     document.addEventListener('click', (e) => {
         const filledState = document.getElementById('cart-filled-state');
         if (!filledState) return;
-
-        // Tiklanan element filledState icinde mi kontrol et
         if (!filledState.contains(e.target)) return;
 
         const removeBtn = e.target.closest('.remove-item-btn');
@@ -562,7 +544,6 @@ function initEventListeners() {
 
     console.log('Mini sepet event listenerlari document seviyesine baglandi.');
 
-    // --- 3. ESC TUSU ---
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             closeMiniCart();
@@ -592,7 +573,6 @@ console.log('common.js yuklendi ve baslatildi');
 // ============================================
 
 (function() {
-    // MOBIL EKRANSA HIC CALISTIRMA VE CIK
     if (window.innerWidth <= 768) return;
 
     const nav = document.getElementById('breadcrumb-nav');
@@ -602,7 +582,6 @@ console.log('common.js yuklendi ve baslatildi');
     const urlParams = new URLSearchParams(window.location.search);
     const crumbs = [{ name: 'Hem', url: '/' }];
 
-    // KATEGORI SAYFASI
     if (path.includes('category') || path.includes('kategori') || document.getElementById('category-main-title')) {
         crumbs.push({ name: 'Alla Mattor', url: '/category.html' });
 
@@ -616,20 +595,20 @@ console.log('common.js yuklendi ve baslatildi');
             crumbs.push({ name: catNames[cat] || cat, url: '#' });
         }
     }
-    // URUN SAYFASI
     else if (path.includes('product') || document.getElementById('product-main-name-desktop')) {
         crumbs.push({ name: 'Alla Mattor', url: '/category.html' });
         const productName = document.getElementById('product-main-name-desktop')?.textContent?.trim();
         crumbs.push({ name: (productName && productName !== '---') ? productName : 'Produkt', url: '#' });
     }
 
-    // HTML olustur
     let html = '<ol class="breadcrumb-list">';
     crumbs.forEach((crumb, i) => {
         const isLast = i === crumbs.length - 1;
-        html += isLast 
-            ? `<li class="active">${crumb.name}</li>`
-            : `<li><a href="${crumb.url}">${crumb.name}</a></li>`;
+        if (isLast) {
+            html += '<li class="active">' + crumb.name + '</li>';
+        } else {
+            html += '<li><a href="' + crumb.url + '">' + crumb.name + '</a></li>';
+        }
     });
     html += '</ol>';
 
@@ -643,9 +622,6 @@ console.log('common.js yuklendi ve baslatildi');
 // Tum sayfalarda kullanilabilir
 // ============================================
 
-/**
- * Wishlist kontrolu
- */
 function isInWishlist(productId) {
     try {
         const wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
@@ -657,110 +633,89 @@ function isInWishlist(productId) {
     }
 }
 
-/**
- * Urun karti olustur (Kategori sayfasi ile AYNI yapi)
- * @param {Object} product - Urun verisi
- * @param {boolean} isWishlisted - Favori durumu
- * @returns {string} HTML string
- */
 function createProductCard(product, isWishlisted) {
     const hasDiscount = product.discount_price && product.discount_price < product.base_price;
-    const priceHTML = hasDiscount 
-        ? `<span class="original-price" style="text-decoration:line-through;color:#999;font-size:14px;">${product.base_price.toLocaleString('sv-SE')} SEK</span>
-           <span class="current-price" style="color:#e54d42;">${product.price.toLocaleString('sv-SE')} SEK</span>`
-        : `<span class="current-price">${product.price.toLocaleString('sv-SE')} SEK</span>`;
 
-    const variantText = product.variants?.length > 1 
-        ? `${product.variants.length} storlekar` 
-        : (product.variants?.[0]?.size || 'Standard');
+    let priceHTML;
+    if (hasDiscount) {
+        priceHTML = '<span class="original-price" style="text-decoration:line-through;color:#999;font-size:14px;">' + product.base_price.toLocaleString('sv-SE') + ' SEK</span>' +
+           '<span class="current-price" style="color:#e54d42;">' + product.price.toLocaleString('sv-SE') + ' SEK</span>';
+    } else {
+        priceHTML = '<span class="current-price">' + product.price.toLocaleString('sv-SE') + ' SEK</span>';
+    }
 
-    const productUrl = product.slug ? `/matta/${product.slug}` : `/matta/${product.id}`;
+    const variantText = product.variants && product.variants.length > 1 
+        ? product.variants.length + ' storlekar' 
+        : (product.variants && product.variants[0] ? product.variants[0].size : 'Standard');
 
-    return `
-        <div class="product-card" data-id="${product.id}">
-            <div class="image-box">
-                <a href="${productUrl}">
-                    <img src="${product.image}" 
-                         alt="${product.name}" 
-                         loading="lazy"
-                         onerror="this.style.display='none'">
-                </a>
-                ${hasDiscount ? '<span class="discount-badge">REA</span>' : ''}
-                <button class="wishlist-btn ${isWishlisted ? 'active' : ''}" 
-                        data-product-id="${product.id}"
-                        aria-label="Lagg till favoriter">
-                    <i class="${isWishlisted ? 'fa-solid' : 'fa-regular'} fa-heart"></i>
-                </button>
-            </div>
-            <div class="product-info">
-                <h3 class="product-title">${product.name}</h3>
-                <div class="product-meta-row">
-                    <span class="product-acf-dimension">${variantText}</span>
-                </div>
-                <div class="product-price">
-                    ${priceHTML}
-                </div>
-                ${product.colors?.length > 0 ? `
-                    <div class="product-colors-wrapper">
-                        <div class="product-colors-swatches">
-                            ${product.colors.slice(0, 5).map(color => `
-                                <span class="swatch-circle" 
-                                      style="background-color:${color};"
-                                      title="${color}"></span>
-                            `).join('')}
-                        </div>
-                        ${product.colors.length > 5 ? '<span class="color-count-text">+' + (product.colors.length - 5) + ' farger</span>' : ''}
-                    </div>
-                ` : ''}
-            </div>
-        </div>
-    `;
+    const productUrl = product.slug ? '/matta/' + product.slug : '/matta/' + product.id;
+
+    let colorsHTML = '';
+    if (product.colors && product.colors.length > 0) {
+        let swatches = '';
+        for (let j = 0; j < Math.min(5, product.colors.length); j++) {
+            swatches += '<span class="swatch-circle" style="background-color:' + product.colors[j] + ';" title="' + product.colors[j] + '"></span>';
+        }
+        colorsHTML = '<div class="product-colors-wrapper">' +
+            '<div class="product-colors-swatches">' + swatches + '</div>' +
+            (product.colors.length > 5 ? '<span class="color-count-text">+' + (product.colors.length - 5) + ' farger</span>' : '') +
+        '</div>';
+    }
+
+    return '<div class="product-card" data-id="' + product.id + '">' +
+        '<div class="image-box">' +
+            '<a href="' + productUrl + '">' +
+                '<img src="' + product.image + '" alt="' + product.name + '" loading="lazy" onerror="this.style.display='none'">' +
+            '</a>' +
+            (hasDiscount ? '<span class="discount-badge">REA</span>' : '') +
+            '<button class="wishlist-btn ' + (isWishlisted ? 'active' : '') + '" data-product-id="' + product.id + '" aria-label="Lagg till favoriter">' +
+                '<i class="' + (isWishlisted ? 'fa-solid' : 'fa-regular') + ' fa-heart"></i>' +
+            '</button>' +
+        '</div>' +
+        '<div class="product-info">' +
+            '<h3 class="product-title">' + product.name + '</h3>' +
+            '<div class="product-meta-row">' +
+                '<span class="product-acf-dimension">' + variantText + '</span>' +
+            '</div>' +
+            '<div class="product-price">' + priceHTML + '</div>' +
+            colorsHTML +
+        '</div>' +
+    '</div>';
 }
 
-/**
- * Carousel slide wrapper'i ekle
- */
 function createCarouselSlide(product, isWishlisted) {
-    return `<div class="product-slide">${createProductCard(product, isWishlisted)}</div>`;
+    return '<div class="product-slide">' + createProductCard(product, isWishlisted) + '</div>';
 }
 
-/**
- * Carousel'i render et
- * @param {string} trackId - Track element ID
- * @param {Array} products - Urun dizisi
- * @param {Object} options - Ayarlar
- */
-function renderProductCarousel(trackId, products, options = {}) {
+function renderProductCarousel(trackId, products, options) {
+    options = options || {};
     const track = document.getElementById(trackId);
-    if (!track || !products?.length) {
-        console.warn(`Carousel track bulunamadi veya urun yok: ${trackId}`);
+    if (!track || !products || products.length === 0) {
+        console.warn('Carousel track bulunamadi veya urun yok: ' + trackId);
         return;
     }
 
-    const settings = {
+    const settings = Object.assign({
         showWishlist: true,
-        showQuickAdd: false,
-        ...options
-    };
+        showQuickAdd: false
+    }, options);
 
-    track.innerHTML = products.map(p => {
+    track.innerHTML = products.map(function(p) {
         const isWishlisted = settings.showWishlist ? isInWishlist(p.id) : false;
         return createCarouselSlide(p, isWishlisted);
     }).join('');
 
-    // Event listener'lari bagla
     if (settings.showWishlist) {
         attachCarouselWishlistEvents(track);
     }
 
-    // Kart tiklama
-    track.querySelectorAll('.product-card').forEach(card => {
-        card.addEventListener('click', (e) => {
+    track.querySelectorAll('.product-card').forEach(function(card) {
+        card.addEventListener('click', function(e) {
             if (e.target.closest('.wishlist-btn')) return;
             const id = card.dataset.id;
-            const product = products.find(p => p.id === id);
+            const product = products.find(function(p) { return p.id === id; });
             if (product) {
-                window.location.href = product.slug ? `/matta/${product.slug}` : `/matta/${id}`;
+                window.location.href = product.slug ? '/matta/' + product.slug : '/matta/' + id;
             }
         });
     });
@@ -768,16 +723,12 @@ function renderProductCarousel(trackId, products, options = {}) {
     return track;
 }
 
-/**
- * Carousel wishlist event'leri
- */
 function attachCarouselWishlistEvents(container) {
-    container.querySelectorAll('.wishlist-btn').forEach(btn => {
-        // Onceki event'leri temizle (clone)
+    container.querySelectorAll('.wishlist-btn').forEach(function(btn) {
         const newBtn = btn.cloneNode(true);
         btn.parentNode.replaceChild(newBtn, btn);
 
-        newBtn.addEventListener('click', (e) => {
+        newBtn.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
 
@@ -787,9 +738,9 @@ function attachCarouselWishlistEvents(container) {
             if (!product) return;
 
             let wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
-            const index = wishlist.findIndex(item => 
-                (typeof item === 'string' ? item : String(item.id)) === String(productId)
-            );
+            const index = wishlist.findIndex(function(item) {
+                return (typeof item === 'string' ? item : String(item.id)) === String(productId);
+            });
 
             const icon = newBtn.querySelector('i');
 
@@ -818,40 +769,34 @@ function attachCarouselWishlistEvents(container) {
     });
 }
 
-/**
- * Carousel icinden urun bul
- */
 function findProductInCarousel(container, productId) {
-    const card = container.querySelector(`.product-card[data-id="${productId}"]`);
+    const card = container.querySelector('.product-card[data-id="' + productId + '"]');
     if (!card) return null;
 
     return {
         id: productId,
         name: card.querySelector('.product-title')?.textContent || '',
-        price: 0, // Fiyat hesaplanabilir
+        price: 0,
         image: card.querySelector('img')?.src || ''
     };
 }
 
-/**
- * Carousel navigasyon sinifi
- */
 class ProductCarousel {
-    constructor(wrapperId, trackId, options = {}) {
+    constructor(wrapperId, trackId, options) {
+        options = options || {};
         this.wrapper = document.getElementById(wrapperId);
         this.track = document.getElementById(trackId);
         if (!this.wrapper || !this.track) {
-            console.warn(`Carousel elementleri bulunamadi: ${wrapperId}, ${trackId}`);
+            console.warn('Carousel elementleri bulunamadi: ' + wrapperId + ', ' + trackId);
             return;
         }
 
-        this.options = {
+        this.options = Object.assign({
             showDots: true,
             showArrows: true,
             showScrollHint: true,
-            slidesToShow: 'auto',
-            ...options
-        };
+            slidesToShow: 'auto'
+        }, options);
 
         this.currentIndex = 0;
         this.slides = [];
@@ -871,7 +816,6 @@ class ProductCarousel {
     }
 
     createNavigation() {
-        // Ok butonlari (masaustu)
         if (this.options.showArrows && window.innerWidth > 768) {
             const prevBtn = document.createElement('button');
             prevBtn.className = 'carousel-nav prev';
@@ -890,25 +834,23 @@ class ProductCarousel {
             nextBtn.addEventListener('click', () => this.scrollTo('next'));
         }
 
-        // Dot pagination
         if (this.options.showDots) {
             const dotsContainer = document.createElement('div');
             dotsContainer.className = 'carousel-dots';
 
-            this.slides.forEach((_, i) => {
+            for (let i = 0; i < this.slides.length; i++) {
                 const dot = document.createElement('button');
                 dot.className = 'carousel-dot';
-                dot.setAttribute('aria-label', `Ga till produkt ${i + 1}`);
+                dot.setAttribute('aria-label', 'Ga till produkt ' + (i + 1));
                 if (i === 0) dot.classList.add('active');
                 dot.addEventListener('click', () => this.scrollToIndex(i));
                 dotsContainer.appendChild(dot);
-            });
+            }
 
             this.wrapper.appendChild(dotsContainer);
             this.dots = dotsContainer.querySelectorAll('.carousel-dot');
         }
 
-        // Scroll hint (mobil)
         if (this.options.showScrollHint && window.innerWidth <= 768) {
             const hint = document.createElement('div');
             hint.className = 'scroll-hint';
@@ -923,14 +865,12 @@ class ProductCarousel {
     }
 
     bindEvents() {
-        // Scroll event - dot'lari guncelle
         let scrollTimeout;
         this.track.addEventListener('scroll', () => {
             clearTimeout(scrollTimeout);
             scrollTimeout = setTimeout(() => this.updateDots(), 50);
         });
 
-        // Touch swipe
         let startX, scrollLeft;
         this.track.addEventListener('touchstart', (e) => {
             startX = e.touches[0].pageX - this.track.offsetLeft;
@@ -958,7 +898,7 @@ class ProductCarousel {
     }
 
     updateDots() {
-        if (!this.dots?.length) return;
+        if (!this.dots || this.dots.length === 0) return;
 
         const scrollLeft = this.track.scrollLeft;
         const slideWidth = this.slides[0].offsetWidth + 16;
@@ -973,39 +913,36 @@ class ProductCarousel {
     }
 }
 
-/**
- * Supabase'den urun cek ve carousel'e donustur
- * @param {Object} params - Sorgu parametreleri
- * @returns {Array} Urun dizisi
- */
-async function fetchProductsForCarousel(params = {}) {
+async function fetchProductsForCarousel(params) {
+    params = params || {};
     try {
-        const defaultParams = {
+        const defaultParams = Object.assign({
             select: '*',
             active: 'eq.true',
-            limit: 25,
-            ...params
-        };
+            limit: 25
+        }, params);
 
         const products = await supabaseGet('products', defaultParams);
         const variants = await supabaseGet('product_variants', { select: '*' });
 
-        return products.map(p => ({
-            id: p.id,
-            name: p.name || 'Urun',
-            price: p.discount_price || p.base_price || 0,
-            base_price: p.base_price || 0,
-            discount_price: p.discount_price || null,
-            image: p.images && p.images[0] ? p.images[0] : '',
-            slug: p.slug || '',
-            colors: p.colors || [],
-            variants: variants.filter(v => v.product_id === p.id),
-            sizes: variants.filter(v => v.product_id === p.id).map(v => v.size),
-            stock: variants.filter(v => v.product_id === p.id).some(v => v.stock > 0) 
-                ? 'In Stock' 
-                : 'Out of Stock',
-            delivery_time: p.delivery_time || '3-7 arbetsdagar'
-        }));
+        return products.map(function(p) {
+            return {
+                id: p.id,
+                name: p.name || 'Urun',
+                price: p.discount_price || p.base_price || 0,
+                base_price: p.base_price || 0,
+                discount_price: p.discount_price || null,
+                image: p.images && p.images[0] ? p.images[0] : '',
+                slug: p.slug || '',
+                colors: p.colors || [],
+                variants: variants.filter(function(v) { return v.product_id === p.id; }),
+                sizes: variants.filter(function(v) { return v.product_id === p.id; }).map(function(v) { return v.size; }),
+                stock: variants.filter(function(v) { return v.product_id === p.id; }).some(function(v) { return v.stock > 0; }) 
+                    ? 'In Stock' 
+                    : 'Out of Stock',
+                delivery_time: p.delivery_time || '3-7 arbetsdagar'
+            };
+        });
 
     } catch (error) {
         console.error('Urun cekme hatasi:', error);
@@ -1013,21 +950,13 @@ async function fetchProductsForCarousel(params = {}) {
     }
 }
 
-// ============================================
-// KULLANIM ORNEKLERI
-// ============================================
-
-/**
- * Ornek: Ilgili Urunler (Product sayfasi)
- */
 async function initRelatedProducts(productId, category) {
     const products = await fetchProductsForCarousel({
-        category: category ? `eq.${category}` : undefined,
+        category: category ? 'eq.' + category : undefined,
         limit: 25
     });
 
-    // Mevcut urunu filtrele
-    const filtered = products.filter(p => p.id !== productId);
+    const filtered = products.filter(function(p) { return p.id !== productId; });
 
     renderProductCarousel('related-carousel-track', filtered);
 
@@ -1038,13 +967,9 @@ async function initRelatedProducts(productId, category) {
     });
 }
 
-/**
- * Ornek: Bast Saljare (Index sayfasi)
- */
 async function initBestSellers() {
     const products = await fetchProductsForCarousel({
         limit: 20,
-        // Siralama: cok satanlar (varsayimsal)
         order: 'sales.desc.nullslast'
     });
 
@@ -1057,13 +982,9 @@ async function initBestSellers() {
     });
 }
 
-/**
- * Ornek: Popular (Index sayfasi)
- */
 async function initPopular() {
     const products = await fetchProductsForCarousel({
         limit: 20,
-        // Siralama: goruntulenme (varsayimsal)
         order: 'views.desc.nullslast'
     });
 
@@ -1071,23 +992,19 @@ async function initPopular() {
 
     new ProductCarousel('popular-carousel-wrapper', 'popular-carousel-track', {
         showDots: true,
-        showArrows: false, // Ok yok
+        showArrows: false,
         showScrollHint: true
     });
 }
 
-/**
- * Ornek: Son Bakilanlar (localStorage)
- */
 function initRecentlyViewed() {
     const items = JSON.parse(localStorage.getItem('recentlyViewed')) || [];
     if (items.length < 2) {
-        document.getElementById('recently-viewed-section')?.style.display = 'none';
+        const el = document.getElementById('recently-viewed-section');
+        if (el) el.style.display = 'none';
         return;
     }
 
-    // localStorage'daki ID'leri urun detaylarina cevir
-    // (Basit versiyon - detaylari localStorage'da tutabilirsin)
     renderProductCarousel('recent-carousel-track', items);
 
     new ProductCarousel('recent-carousel-wrapper', 'recent-carousel-track', {
