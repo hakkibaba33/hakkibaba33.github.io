@@ -1340,8 +1340,8 @@ body.modal-open {
 
     .wishlist-btn {
         position: absolute;
-        top: 0px;
-        right: -5px;
+        top: 5px;
+        right: 5px;
     }
 } 
 
