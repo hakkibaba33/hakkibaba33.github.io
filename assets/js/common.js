@@ -643,3 +643,111 @@ console.log('common.js yuklendi ve baslatildi');
     nav.innerHTML = html;
     console.log('✅ Breadcrumb oluşturuldu:', crumbs.map(c => c.name).join(' > '));
 })();
+
+
+
+
+
+// ============================================
+// DKRUG MODERN UI — Event Listeners
+// ============================================
+
+function initEventListeners() {
+    // Header scroll effect
+    const header = document.getElementById('main-header');
+    if (header) {
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 10) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+    }
+
+    // Search popup
+    const searchOverlay = document.getElementById('search-popup-overlay');
+    const searchOpenBtn = document.getElementById('search-open-btn');
+    const searchCloseBtn = document.getElementById('close-search-popup');
+    const searchInput = document.getElementById('live-search-input');
+
+    if (searchOpenBtn && searchOverlay) {
+        searchOpenBtn.addEventListener('click', () => {
+            searchOverlay.classList.add('active');
+            if (searchInput) searchInput.focus();
+        });
+    }
+
+    if (searchCloseBtn && searchOverlay) {
+        searchCloseBtn.addEventListener('click', () => {
+            searchOverlay.classList.remove('active');
+        });
+    }
+
+    if (searchOverlay) {
+        searchOverlay.addEventListener('click', (e) => {
+            if (e.target === searchOverlay) searchOverlay.classList.remove('active');
+        });
+    }
+
+    // Mobile menu
+    const mobileOverlay = document.getElementById('mobile-menu-overlay');
+    const mobileDrawer = document.getElementById('mobile-menu-drawer');
+    const mobileOpenBtn = document.getElementById('open-mobile-menu-btn');
+    const mobileCloseBtn = document.getElementById('close-mobile-menu');
+
+    function openMobileMenu() {
+        if (mobileOverlay) mobileOverlay.classList.add('active');
+        if (mobileDrawer) mobileDrawer.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeMobileMenu() {
+        if (mobileOverlay) mobileOverlay.classList.remove('active');
+        if (mobileDrawer) mobileDrawer.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    if (mobileOpenBtn) mobileOpenBtn.addEventListener('click', openMobileMenu);
+    if (mobileCloseBtn) mobileCloseBtn.addEventListener('click', closeMobileMenu);
+    if (mobileOverlay) mobileOverlay.addEventListener('click', closeMobileMenu);
+
+    // Mini cart
+    const cartOverlay = document.getElementById('mini-cart-overlay');
+    const cartDrawer = document.getElementById('mini-cart-drawer');
+    const cartOpenBtn = document.getElementById('open-mini-cart-btn');
+    const cartCloseBtn = document.getElementById('close-mini-cart');
+
+    function openMiniCart() {
+        if (cartOverlay) cartOverlay.classList.add('active');
+        if (cartDrawer) cartDrawer.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeMiniCart() {
+        if (cartOverlay) cartOverlay.classList.remove('active');
+        if (cartDrawer) cartDrawer.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    if (cartOpenBtn) cartOpenBtn.addEventListener('click', openMiniCart);
+    if (cartCloseBtn) cartCloseBtn.addEventListener('click', closeMiniCart);
+    if (cartOverlay) cartOverlay.addEventListener('click', closeMiniCart);
+
+    // ESC key to close all modals
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            if (searchOverlay) searchOverlay.classList.remove('active');
+            closeMobileMenu();
+            closeMiniCart();
+        }
+    });
+}
+
+// Auto-init if DOM is already loaded
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initEventListeners);
+} else {
+    initEventListeners();
+}
+
