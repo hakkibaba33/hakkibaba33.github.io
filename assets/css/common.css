@@ -101,6 +101,83 @@ body.no-scroll {
     letter-spacing: 0.5px;
 }
 
+/* ===== 1. TOP BAR ===== */
+.top-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: var(--header-top-height);
+    background: var(--dk-primary);
+    color: rgba(255,255,255,0.7);
+    font-size: 0.78rem;
+    z-index: 1001;
+    line-height: normal;
+}
+
+.top-bar-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 100%;
+}
+
+/* --- TOP BAR SLIDER --- */
+.top-bar-left {
+    overflow: hidden;
+    position: relative;
+    height: 40px;
+    display: flex;
+    align-items: center;
+}
+
+.top-bar-slider {
+    display: flex;
+    flex-direction: column;
+    animation: slideUp 9s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+
+.top-bar-item {
+    height: 40px !important;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.top-bar-item svg {
+    width: 16px;
+    height: 16px;
+    color: var(--dk-accent);
+    flex-shrink: 0;
+}
+
+@keyframes slideUp {
+    0%, 28%   { transform: translateY(0); }
+    33%, 61%  { transform: translateY(-40px); }
+    66%, 94%  { transform: translateY(-80px); }
+    100%      { transform: translateY(-120px); }
+}
+
+/* --- TOP BAR RIGHT (REA) --- */
+.top-bar-right {
+    font-weight: 600;
+    color: var(--dk-accent);
+    letter-spacing: 0.5px;
+}
+
+@media (max-width: 768px) {
+    .top-bar-left { display: none; }
+    .top-bar-inner { justify-content: center; }
+}
+
+
 /* ===== 2. MAIN HEADER ===== */
 .main-header {
     position: fixed;
