@@ -1,8 +1,9 @@
+// ==========================================
+// CHECKOUT.JS - GUNCELLENMIS
+// ==========================================
+
 document.addEventListener('DOMContentLoaded', () => {
 
-    // ==========================================
-    // YARDIMCI FONKSIYONLAR (En üste taşındı)
-    // ==========================================
     function getCart() {
         try {
             return JSON.parse(localStorage.getItem('siteCartItems')) || [];
@@ -15,108 +16,21 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('siteCartItems', JSON.stringify(cart));
     }
 
-    // ==========================================
-    // SIPARISI SUPABASE'E KAYDET (Event listener İÇİNE taşındı)
-    // ==========================================
-    async function saveOrderToSupabase(paymentId) {
-        console.log('>>> saveOrderToSupabase BASLADI, paymentId:', paymentId);
-        
-        try {
-            const cart = getCart();
-            console.log('>>> Sepet:', JSON.stringify(cart));
-            
-            if (cart.length === 0) {
-                console.log('>>> Sepet bos, kayit iptal');
-                return;
-            }
-
-            const firstName = document.getElementById('billing_first_name').value.trim();
-            const lastName = document.getElementById('billing_last_name').value.trim();
-            const email = document.getElementById('billing_email').value.trim();
-            const phone = document.getElementById('billing_phone').value.trim();
-            const address = document.getElementById('billing_address_1').value.trim();
-            const postcode = document.getElementById('billing_postcode').value.trim();
-            const city = document.getElementById('billing_city').value.trim();
-
-            console.log('>>> Form verileri:', { firstName, lastName, email });
-
-            const total = cart.reduce((sum, item) => sum + (parseFloat(item.price) * (item.quantity || 1)), 0);
-
-            const orderData = {
-                customer_info: {
-                    name: firstName + ' ' + lastName,
-                    email: email,
-                    phone: phone,
-                    address: address + ', ' + postcode + ' ' + city
-                },
-                items: cart.map(function(item) {
-                    return {
-                        id: item.id,
-                        name: item.name,
-                        price: parseFloat(item.price),
-                        quantity: item.quantity || 1,
-                        variant: item.variants || 'Standard'
-                    };
-                }),
-                total_price: total,
-                status: 'pending',
-                payment_id: paymentId,
-                payment_method: 'stripe'
-            };
-
-            console.log('>>> orderData:', JSON.stringify(orderData));
-
-            var SUPABASE_URL = '';
-            var SUPABASE_KEY = '';
-            
-            if (typeof CONFIG !== 'undefined' && CONFIG.SUPABASE) {
-                SUPABASE_URL = CONFIG.SUPABASE.URL;
-                SUPABASE_KEY = CONFIG.SUPABASE.ANON_KEY;
-            }
-            
-            console.log('>>> SUPABASE_URL:', SUPABASE_URL ? 'VAR' : 'YOK');
-            console.log('>>> SUPABASE_KEY:', SUPABASE_KEY ? 'VAR' : 'YOK');
-
-            if (!SUPABASE_URL || !SUPABASE_KEY) {
-                console.error('>>> HATA: Supabase config eksik!');
-                return;
-            }
-
-            var apiUrl = SUPABASE_URL + '/rest/v1/orders';
-            console.log('>>> API URL:', apiUrl);
-
-            var res = await fetch(apiUrl, {
-                method: 'POST',
-                headers: {
-                    'apikey': SUPABASE_KEY,
-                    'Authorization': 'Bearer ' + SUPABASE_KEY,
-                    'Content-Type': 'application/json',
-                    'Prefer': 'return=representation'
-                },
-                body: JSON.stringify(orderData)
-            });
-
-            console.log('>>> Response status:', res.status);
-            console.log('>>> Response ok:', res.ok);
-
-            if (!res.ok) {
-                var errText = await res.text();
-                console.error('>>> Siparis kayit hatasi (HTTP ' + res.status + '):', errText);
-                return;
-            }
-
-            var result = await res.json();
-            console.log('>>> ✅ Siparis basariyla kaydedildi! ID:', result[0].id);
-
-        } catch (err) {
-            console.error('>>> Siparis kaydetme hatasi:', err.message);
-            console.error('>>> Stack:', err.stack);
-        }
+    // Musteri bilgilerini localStorage'a kaydet (tack sayfasi icin)
+    function saveCustomerToLocalStorage() {
+        const customerData = {
+            firstName: document.getElementById('billing_first_name')?.value?.trim() || '',
+            lastName: document.getElementById('billing_last_name')?.value?.trim() || '',
+            email: document.getElementById('billing_email')?.value?.trim() || '',
+            phone: document.getElementById('billing_phone')?.value?.trim() || '',
+            address: document.getElementById('billing_address_1')?.value?.trim() || '',
+            postcode: document.getElementById('billing_postcode')?.value?.trim() || '',
+            city: document.getElementById('billing_city')?.value?.trim() || ''
+        };
+        localStorage.setItem('dkrug_checkout_customer', JSON.stringify(customerData));
+        console.log('Musteri bilgileri kaydedildi:', customerData);
     }
 
-    // ==========================================
-    // STRIPE
-    // ==========================================
     let stripe = null;
     let elements = null;
     let paymentElement = null;
@@ -285,13 +199,13 @@ document.addEventListener('DOMContentLoaded', () => {
             return false;
         }
 
-        const firstName = document.getElementById('billing_first_name').value?.trim();
-        const lastName = document.getElementById('billing_last_name').value?.trim();
-        const email = document.getElementById('billing_email').value?.trim();
-        const phone = document.getElementById('billing_phone').value?.trim();
-        const address = document.getElementById('billing_address_1').value?.trim();
-        const postcode = document.getElementById('billing_postcode').value?.trim();
-        const city = document.getElementById('billing_city').value?.trim();
+        const firstName = document.getElementById('billing_first_name')?.value?.trim();
+        const lastName = document.getElementById('billing_last_name')?.value?.trim();
+        const email = document.getElementById('billing_email')?.value?.trim();
+        const phone = document.getElementById('billing_phone')?.value?.trim();
+        const address = document.getElementById('billing_address_1')?.value?.trim();
+        const postcode = document.getElementById('billing_postcode')?.value?.trim();
+        const city = document.getElementById('billing_city')?.value?.trim();
 
         const customerData = {};
         if (firstName) customerData.firstName = firstName;
@@ -417,11 +331,14 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        // Musteri bilgilerini kaydet (tack sayfasi icin)
+        saveCustomerToLocalStorage();
+
         confirmBtn.disabled = true;
         confirmBtn.innerText = 'Bearbetar betalning...';
 
         try {
-            const { error, paymentIntent } = await stripe.confirmPayment({
+            const { error } = await stripe.confirmPayment({
                 elements,
                 confirmParams: {
                     return_url: window.location.origin + '/tack',
@@ -447,14 +364,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 statusMessage.innerHTML = `<span style="color:#e54d42;">${error.message}</span>`;
                 confirmBtn.disabled = false;
                 confirmBtn.innerText = 'Betala nu';
-            } else if (paymentIntent && paymentIntent.status === 'succeeded') {
-                console.log('Ödeme başarılı! Sipariş kaydediliyor...');
-                
-                await saveOrderToSupabase(paymentIntent.id);
-                
-                saveCart([]);
-                window.location.href = '/tack?payment_intent=' + paymentIntent.id;
             }
+            // NOT: Basarili odeme durumunda Stripe otomatik /tack sayfasina yonlendirir
+            // Kayit islemi tack.html'de yapilir
 
         } catch (error) {
             console.error('Beklenmeyen hata:', error);
@@ -472,13 +384,16 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Form degisikliklerini dinle + musteri bilgilerini kaydet
     document.querySelectorAll('#address-form input, #accept-terms').forEach(input => {
         input.addEventListener('input', () => {
             input.classList.remove('input-error');
             checkFormValidity();
+            saveCustomerToLocalStorage(); // Her degisiklikte kaydet
         });
         input.addEventListener('change', () => {
             checkFormValidity();
+            saveCustomerToLocalStorage();
         });
     });
 
