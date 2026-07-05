@@ -1804,12 +1804,8 @@ body.no-scroll {
     }
     
     .main-content {
-        padding-top: 20px; /* Breadcrumb için ek bir boşluk bırak, header'dan bağımsız */
+        padding-top: 0px; /* Breadcrumb için ek bir boşluk bırak, header'dan bağımsız */
     }
 }
 
-/* Breadcrumb'ın header ile olan bağını koparıp, akışa bırakalım */
-.breadcrumb-nav {
-    margin-top: 0 !important; /* Eğer fixed header kullanıyorsan margin-top'ı kaldır */
-}
 
