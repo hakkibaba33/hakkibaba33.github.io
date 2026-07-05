@@ -592,31 +592,51 @@ console.log('common.js yuklendi ve baslatildi');
 
 
 
-function initBreadcrumbs() {
-    const container = document.getElementById('breadcrumb-container');
-    if (!container) return;
 
-    const pathArray = window.location.pathname.split('/').filter(p => p);
-    
-    // "Hem" her zaman en başta
-    let html = '<a href="/">Hem</a>';
-    let path = '';
 
-    pathArray.forEach((part, index) => {
-        path += '/' + part;
-        
-        // URL'deki "matta" gibi kısımları daha güzel görünsün diye temizliyoruz
-        // Eğer özel isimlerin varsa (örn: 'orientalisk-matta' -> 'Orientalisk matta')
-        let name = part.replace(/-/g, ' '); 
-        name = name.charAt(0).toUpperCase() + name.slice(1);
-        
-        if (index === pathArray.length - 1) {
-            html += ` <span class="separator">/</span> <span class="current" title="${name}">${name}</span>`;
+// ========== DINAMIK BREADCRUMB ==========
+
+function generateBreadcrumb() {
+    const breadcrumbNav = document.getElementById('breadcrumb-nav');
+    if (!breadcrumbNav) return;
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const kategori = urlParams.get('kategori');
+    const pageName = document.title.replace(' | DKRUG', '').trim();
+
+    // Breadcrumb yapılandırması (her sayfa için özelleştirilebilir)
+    const breadcrumbs = [
+        { name: 'Hem', url: 'index.html' },
+        { name: 'Mattor', url: 'category.html' }
+    ];
+
+    // Aktif kategori varsa ekle
+    if (kategori) {
+        const kategoriNames = {
+            'vardagsrum': 'Vardagsrum',
+            'sovrum': 'Sovrum',
+            'kok': 'Kök'
+        };
+        breadcrumbs.push({
+            name: kategoriNames[kategori] || kategori,
+            url: `category.html?kategori=${kategori}`
+        });
+    }
+
+    // HTML oluştur
+    let html = '<ol class="breadcrumb-list">';
+    breadcrumbs.forEach((item, index) => {
+        const isLast = index === breadcrumbs.length - 1;
+        if (isLast) {
+            html += `<li class="breadcrumb-item active" aria-current="page">${item.name}</li>`;
         } else {
-            html += ` <span class="separator">/</span> <a href="${path}" title="${name}">${name}</a>`;
+            html += `<li class="breadcrumb-item"><a href="${item.url}">${item.name}</a></li>`;
         }
     });
+    html += '</ol>';
 
-    container.innerHTML = html;
+    breadcrumbNav.innerHTML = html;
 }
 
+// Sayfa yüklendiğinde çalıştır
+document.addEventListener('DOMContentLoaded', generateBreadcrumb);
