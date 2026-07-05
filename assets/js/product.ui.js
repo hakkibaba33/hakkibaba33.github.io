@@ -163,6 +163,10 @@ if (window.__productPageInitialized) {
             // Sepete ekle
             setupAddToCart(f);
             setupWishlistButton(f);
+            
+            console.log("Urun sayfasi yuklendi:", f.Name);
+            
+             await initRelatedProductsCarousel();
 
             console.log("Urun sayfasi yuklendi:", f.Name);
 
