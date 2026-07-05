@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- EmailJS SDK -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <title>DKRug Admin Paneli</title>
     <style>
         .image-preview { width: 80px; height: 80px; object-fit: cover; border-radius: 6px; border: 1px solid #ddd; }
@@ -68,6 +70,8 @@
         .action-btn.primary:hover { background: #c9a96e; color: #1a1a1a; }
         .action-btn.secondary { background: white; color: #374151; border-color: #d1d5db; }
         .action-btn.secondary:hover { background: #f3f4f6; }
+        .action-btn.success { background: #059669; color: white; border-color: #059669; }
+        .action-btn.success:hover { background: #047857; }
 
         .filter-bar { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
         .filter-input { padding: 8px 14px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; outline: none; transition: all 0.2s; min-width: 200px; }
@@ -84,6 +88,62 @@
         .stat-card.pending .value { color: #d97706; }
         .stat-card.shipped .value { color: #2563eb; }
         .stat-card.total .value { color: #7c3aed; }
+
+        .tracking-display {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            background: #e0e7ff;
+            color: #3730a3;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .tracking-display a {
+            color: #3730a3;
+            text-decoration: none;
+        }
+        .tracking-display a:hover {
+            text-decoration: underline;
+        }
+
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .toast {
+            padding: 12px 20px;
+            border-radius: 10px;
+            color: white;
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            animation: toastSlide 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        @keyframes toastSlide {
+            from { transform: translateX(100px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .toast.success { background: #059669; }
+        .toast.error { background: #dc2626; }
+        .toast.info { background: #2563eb; }
+
+        .tracking-modal-body { padding: 24px 28px; }
+        .tracking-form-row { margin-bottom: 16px; }
+        .tracking-form-row label { display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px; }
+        .tracking-form-row input,
+        .tracking-form-row select { width: 100%; padding: 10px 14px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; outline: none; transition: all 0.2s; }
+        .tracking-form-row input:focus,
+        .tracking-form-row select:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
 
         @media print { body * { visibility: hidden; } #invoice-print-area, #invoice-print-area * { visibility: visible; } #invoice-print-area { position: absolute; left: 0; top: 0; width: 100%; padding: 40px; } .no-print { display: none !important; } }
 
@@ -102,15 +162,17 @@
         }
     </style>
 <base target="_blank">
+<base target="_blank">
 </head>
 <body class="bg-gray-100 min-h-screen p-5">
+
+    <div id="toast-container" class="toast-container"></div>
 
     <div id="token-expired-banner" class="token-expired-banner max-w-6xl mx-auto">
         <strong>Oturum suresi doldu.</strong> Lutfen tekrar giris yapin.
         <button onclick="cikisYap()" class="ml-4 bg-amber-600 text-white px-4 py-1 rounded text-sm hover:bg-amber-700">Tekrar Giris Yap</button>
     </div>
 
-    <!-- LOGIN FORM -->
     <div id="login-form" class="max-w-md mx-auto bg-white p-8 rounded-xl shadow-md">
         <h1 class="text-2xl font-bold mb-2 text-gray-800">DKRug Admin</h1>
         <p class="text-gray-500 mb-6 text-sm">Urun yonetim paneli</p>
@@ -120,9 +182,7 @@
         <p id="login-error" class="text-red-500 text-sm mt-3 hidden"></p>
     </div>
 
-    <!-- ADMIN PANEL -->
     <div id="admin-panel" class="max-w-6xl mx-auto bg-white rounded-xl shadow-md hidden">
-
         <div class="flex justify-between items-center p-6 border-b border-gray-200">
             <div class="flex items-center gap-3">
                 <div style="width:40px;height:40px;background:linear-gradient(135deg,#1a1a1a,#c9a96e);border-radius:10px;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:18px;">D</div>
@@ -139,7 +199,6 @@
             <button onclick="changeTab('orders')" class="tab-btn" id="tab-orders">📋 Siparisler</button>
         </div>
 
-        <!-- URUN EKLE -->
         <div id="products-section" class="p-6">
             <div class="grid grid-cols-2 gap-4 mb-6">
                 <div>
@@ -167,34 +226,27 @@
                     <input type="number" id="base_price" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="2499">
                 </div>
             </div>
-
             <div class="grid grid-cols-2 gap-4 mb-6">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Indirimli Fiyat (SEK)</label>
                     <input type="number" id="discount_price" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="1999 (bos birak = indirim yok)">
-                    <p class="text-xs text-gray-400 mt-1">Bos birakilirsa indirimli fiyat gosterilmez.</p>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Teslimat Suresi</label>
                     <input type="text" id="delivery_time" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="3-7 arbetsdagar" value="3-7 arbetsdagar">
                 </div>
             </div>
-
             <div class="mb-6">
                 <label class="block text-sm font-medium text-gray-700 mb-1">Aciklama</label>
                 <textarea id="description" rows="3" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none" placeholder="Urun aciklamasi..."></textarea>
             </div>
-
             <div class="mb-6">
                 <label class="block text-sm font-medium text-gray-700 mb-1">Renkler</label>
                 <input type="text" id="colors" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Kirmizi, Mavi, Yesil, Beyaz, Siyah (virgulle ayirin)" oninput="updateColorTags()">
                 <div id="color-tags" class="mt-2"></div>
-                <p class="text-xs text-gray-400 mt-1">Virgulle ayirarak yazin. Orn: Red, Blue, Green</p>
             </div>
-
             <div class="mb-6 border-t pt-4">
                 <h2 class="font-bold mb-2 text-gray-800">Urun Gorselleri</h2>
-                <p class="text-sm text-gray-500 mb-2">Birden fazla resim secebilirsiniz (max 5 adet, her biri max 2MB)</p>
                 <input type="file" id="imageFiles" multiple accept="image/jpeg,image/png,image/webp,image/gif" class="w-full p-2 border rounded-lg mb-2" onchange="onImageSelect(event)">
                 <p id="file-info" class="file-info"></p>
                 <div id="image-previews" class="flex flex-wrap gap-2 mt-2"></div>
@@ -202,10 +254,8 @@
                     <div class="w-full bg-gray-200 rounded-full h-2">
                         <div id="progress-bar" class="bg-blue-600 h-2 rounded-full transition-all" style="width: 0%"></div>
                     </div>
-                    <p class="text-sm text-gray-500 mt-1">Yukleniyor...</p>
                 </div>
             </div>
-
             <div class="border-t pt-4">
                 <h2 class="font-bold mb-3 text-gray-800">Varyant Ekle</h2>
                 <div class="grid grid-cols-5 gap-2 mb-2">
@@ -216,14 +266,9 @@
                     <button type="button" onclick="varyantEkle()" class="bg-indigo-500 text-white p-2 rounded-lg hover:bg-indigo-600 transition font-medium">Ekle</button>
                 </div>
             </div>
-
             <div id="variant-list" class="mt-4"></div>
-
-            <button type="button" onclick="tamamiKaydet()" id="save-btn" class="w-full mt-6 bg-green-600 text-white p-3 rounded-lg font-bold hover:bg-green-700 transition disabled:bg-gray-400">
-                Tumunu Kaydet
-            </button>
+            <button type="button" onclick="tamamiKaydet()" id="save-btn" class="w-full mt-6 bg-green-600 text-white p-3 rounded-lg font-bold hover:bg-green-700 transition disabled:bg-gray-400">Tumunu Kaydet</button>
             <p id="save-status" class="text-center mt-3 text-sm"></p>
-
             <div class="mt-6">
                 <p class="text-xs text-gray-400 mb-1">Debug Log:</p>
                 <div id="debug-log" class="debug-log"></div>
@@ -231,9 +276,7 @@
             </div>
         </div>
 
-        <!-- SIPARISLER -->
         <div id="orders-section" class="hidden p-6">
-
             <div class="stats-grid">
                 <div class="stat-card total">
                     <div class="icon">📦</div>
@@ -256,7 +299,6 @@
                     <div class="label">Kargoda</div>
                 </div>
             </div>
-
             <div class="filter-bar">
                 <input type="text" id="order-search" class="filter-input" placeholder="Musteri adi, email veya siparis no ara..." oninput="filterOrders()">
                 <select id="order-status-filter" class="filter-select" onchange="filterOrders()">
@@ -275,7 +317,6 @@
                 </select>
                 <button onclick="loadOrders()" class="action-btn secondary">🔄 Yenile</button>
             </div>
-
             <div class="overflow-x-auto border rounded-lg">
                 <table class="w-full text-left border-collapse">
                     <thead>
@@ -285,27 +326,20 @@
                             <th class="p-3 text-sm font-semibold text-gray-600">Tutar</th>
                             <th class="p-3 text-sm font-semibold text-gray-600">Odeme</th>
                             <th class="p-3 text-sm font-semibold text-gray-600">Durum</th>
+                            <th class="p-3 text-sm font-semibold text-gray-600">Kargo</th>
                             <th class="p-3 text-sm font-semibold text-gray-600">Tarih</th>
                             <th class="p-3 text-sm font-semibold text-gray-600">Islem</th>
                         </tr>
                     </thead>
                     <tbody id="orders-list">
-                        <tr>
-                            <td colspan="7" class="p-8 text-center text-gray-400">
-                                Siparisleri gormek icin "Yenile" butonuna tiklayin.
-                            </td>
-                        </tr>
+                        <tr><td colspan="8" class="p-8 text-center text-gray-400">Siparisleri gormek icin "Yenile" butonuna tiklayin.</td></tr>
                     </tbody>
                 </table>
             </div>
-
-            <div id="orders-empty" class="hidden p-8 text-center text-gray-400">
-                Hic siparis bulunamadi.
-            </div>
+            <div id="orders-empty" class="hidden p-8 text-center text-gray-400">Hic siparis bulunamadi.</div>
         </div>
     </div>
 
-    <!-- SIPARIS DETAY MODAL -->
     <div id="order-modal" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header">
@@ -317,8 +351,47 @@
             </div>
             <div class="modal-body" id="modal-body"></div>
             <div class="modal-footer no-print">
+                <button onclick="openTrackingModal()" class="action-btn secondary">🚚 Kargo Takip No</button>
                 <button onclick="printInvoice()" class="action-btn secondary">🖨️ Fatura Yazdir</button>
                 <button onclick="closeOrderModal()" class="action-btn primary">Kapat</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="tracking-modal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <div>
+                    <h3>🚚 Kargo Takip No Ekle</h3>
+                    <span class="order-id-badge" id="tracking-modal-order-id">#---</span>
+                </div>
+                <button onclick="closeTrackingModal()" class="text-white hover:text-gray-300 text-2xl" style="background:none;border:none;cursor:pointer;">&times;</button>
+            </div>
+            <div class="tracking-modal-body">
+                <div class="tracking-form-row">
+                    <label>Kargo Firmasi</label>
+                    <select id="tracking-carrier">
+                        <option value="postnord">PostNord</option>
+                        <option value="schenker">DB Schenker</option>
+                        <option value="dhl">DHL</option>
+                        <option value="ups">UPS</option>
+                        <option value="bring">Bring</option>
+                        <option value="instabox">Instabox</option>
+                        <option value="budbee">Budbee</option>
+                        <option value="other">Diger</option>
+                    </select>
+                </div>
+                <div class="tracking-form-row">
+                    <label>Takip Numarasi</label>
+                    <input type="text" id="tracking-number" placeholder="ORN: 1234567890">
+                </div>
+                <div class="tracking-form-row">
+                    <label><input type="checkbox" id="send-email-notification" checked style="margin-right: 6px;">Musteriye email bildirimi gonder</label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button onclick="closeTrackingModal()" class="action-btn secondary">Iptal</button>
+                <button onclick="saveTrackingNumber()" class="action-btn success">💾 Kaydet</button>
             </div>
         </div>
     </div>
@@ -326,12 +399,18 @@
     <div id="invoice-print-area" style="display:none;"></div>
 
     <script>
+        const EMAILJS_CONFIG = {
+            PUBLIC_KEY: '30giLeeAUgDsJSx6q',
+            SERVICE_ID: 'service_ip7lisb',
+            TEMPLATE_ID: 'template_s80ep5m'
+        };
+        (function() { emailjs.init(EMAILJS_CONFIG.PUBLIC_KEY); })();
+
         var SUPABASE_URL = 'https://mowyhsssmpjrwxzvelax.supabase.co';
         var SUPABASE_ANON_KEY = 'sb_publishable_Fp4Nstc2lpCPNL-5OHPU8w_KD0AC6xf';
         var MAX_FILE_SIZE = 2 * 1024 * 1024;
         var MAX_IMAGES = 5;
         var BUCKET_NAME = 'product-images';
-
         var varyantlar = [];
         var uploadedImages = [];
         var currentToken = null;
@@ -339,6 +418,21 @@
         var currentUser = null;
         var allOrders = [];
         var currentOrderId = null;
+
+        const CARRIER_TRACKING_URLS = {
+            'postnord': 'https://www.postnord.se/vara-verktyg/spara-brev-paket-och-pall?shipmentId=',
+            'schenker': 'https://www.dbschenker.com/se-sv/tracking?refNumber=',
+            'dhl': 'https://www.dhl.com/se-en/home/tracking/tracking-express.html?submit=1&tracking-id=',
+            'ups': 'https://www.ups.com/track?loc=en_US&requester=QUIC&tracknum=',
+            'bring': 'https://tracking.bring.com/tracking/',
+            'instabox': 'https://instabox.se/en/tracking/',
+            'budbee': 'https://tracking.budbee.com/',
+            'other': '#'
+        };
+        const CARRIER_NAMES = {
+            'postnord': 'PostNord', 'schenker': 'DB Schenker', 'dhl': 'DHL', 'ups': 'UPS',
+            'bring': 'Bring', 'instabox': 'Instabox', 'budbee': 'Budbee', 'other': 'Diger'
+        };
 
         function log(msg) {
             var el = document.getElementById('debug-log');
@@ -348,39 +442,37 @@
             el.scrollTop = el.scrollHeight;
             console.log(msg);
         }
+        function clearDebugLog() { var el = document.getElementById('debug-log'); if (el) el.innerHTML = ''; }
 
-        function clearDebugLog() {
-            var el = document.getElementById('debug-log');
-            if (el) el.innerHTML = '';
+        function showToast(message, type) {
+            type = type || 'success';
+            var container = document.getElementById('toast-container');
+            var toast = document.createElement('div');
+            toast.className = 'toast ' + type;
+            var icon = type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️';
+            toast.innerHTML = icon + ' ' + message;
+            container.appendChild(toast);
+            setTimeout(function() {
+                toast.style.opacity = '0'; toast.style.transform = 'translateX(100px)';
+                toast.style.transition = 'all 0.3s ease';
+                setTimeout(function() { toast.remove(); }, 300);
+            }, 4000);
         }
 
         function slugify(text) {
-            return text.toString().toLowerCase()
-                .replace(/\s+/g, '-')
-                .replace(/[^\w\-]+/g, '')
-                .replace(/\-\-+/g, '-')
-                .replace(/^-+/, '')
-                .replace(/-+$/, '');
+            return text.toString().toLowerCase().replace(/\s+/g, '-').replace(/[^\w\-]+/g, '').replace(/\-\-+/g, '-').replace(/^-+/, '').replace(/-+$/, '');
         }
-
         function updateSlugPreview() {
             var name = document.getElementById('name').value.trim();
             var previewEl = document.getElementById('slug-preview');
-            if (name) {
-                previewEl.textContent = 'Slug: /matta/' + slugify(name);
-                previewEl.classList.remove('hidden');
-            } else {
-                previewEl.classList.add('hidden');
-            }
+            if (name) { previewEl.textContent = 'Slug: /matta/' + slugify(name); previewEl.classList.remove('hidden'); }
+            else { previewEl.classList.add('hidden'); }
         }
-
         function updateColorTags() {
             var input = document.getElementById('colors').value;
             var container = document.getElementById('color-tags');
             var colors = input.split(',').map(function(c) { return c.trim(); }).filter(function(c) { return c; });
-            container.innerHTML = colors.map(function(color) {
-                return '<span class="color-tag">' + color + '</span>';
-            }).join('');
+            container.innerHTML = colors.map(function(color) { return '<span class="color-tag">' + color + '</span>'; }).join('');
         }
 
         async function refreshTokenIfNeeded() {
@@ -388,119 +480,75 @@
             try {
                 var payload = JSON.parse(atob(currentToken.split('.')[1]));
                 var exp = payload.exp * 1000;
-                var now = Date.now();
-                if (exp - now < 5 * 60 * 1000) {
+                if (exp - Date.now() < 5 * 60 * 1000) {
                     log('Token yenileniyor...');
                     var res = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=refresh_token', {
-                        method: 'POST',
-                        headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+                        method: 'POST', headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
                         body: JSON.stringify({ refresh_token: currentRefreshToken })
                     });
                     var data = await res.json();
                     if (data.access_token) {
-                        currentToken = data.access_token;
-                        currentRefreshToken = data.refresh_token;
-                        localStorage.setItem('token', data.access_token);
-                        localStorage.setItem('refresh_token', data.refresh_token);
-                        log('Token yenilendi!');
-                        return true;
+                        currentToken = data.access_token; currentRefreshToken = data.refresh_token;
+                        localStorage.setItem('token', data.access_token); localStorage.setItem('refresh_token', data.refresh_token);
+                        log('Token yenilendi!'); return true;
                     }
                 }
                 return true;
-            } catch (err) {
-                log('Token kontrol hatasi: ' + err.message);
-                return false;
-            }
+            } catch (err) { log('Token kontrol hatasi: ' + err.message); return false; }
         }
-
         function isTokenValid() {
             if (!currentToken) return false;
-            try {
-                var payload = JSON.parse(atob(currentToken.split('.')[1]));
-                return payload.exp * 1000 > Date.now();
-            } catch { return false; }
+            try { var payload = JSON.parse(atob(currentToken.split('.')[1])); return payload.exp * 1000 > Date.now(); }
+            catch { return false; }
         }
-
         function showTokenExpired() {
             var banner = document.getElementById('token-expired-banner');
             if (banner) banner.style.display = 'block';
-            var panel = document.getElementById('admin-panel');
-            if (panel) panel.classList.add('hidden');
+            document.getElementById('admin-panel').classList.add('hidden');
         }
 
         async function girisYap() {
             var email = document.getElementById('email').value;
             var password = document.getElementById('password').value;
             var errorEl = document.getElementById('login-error');
-            if (!email || !password) {
-                errorEl.textContent = 'E-posta ve sifre giriniz.';
-                errorEl.classList.remove('hidden');
-                return;
-            }
+            if (!email || !password) { errorEl.textContent = 'E-posta ve sifre giriniz.'; errorEl.classList.remove('hidden'); return; }
             try {
                 log('Giris yapiliyor...');
                 var res = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=password', {
-                    method: 'POST',
-                    headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+                    method: 'POST', headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email: email, password: password })
                 });
                 var data = await res.json();
                 if (data.access_token) {
-                    currentToken = data.access_token;
-                    currentRefreshToken = data.refresh_token;
-                    currentUser = data.user;
-                    localStorage.setItem('token', data.access_token);
-                    localStorage.setItem('refresh_token', data.refresh_token);
-                    localStorage.setItem('user_email', data.user ? data.user.email : '');
+                    currentToken = data.access_token; currentRefreshToken = data.refresh_token; currentUser = data.user;
+                    localStorage.setItem('token', data.access_token); localStorage.setItem('refresh_token', data.refresh_token); localStorage.setItem('user_email', data.user ? data.user.email : '');
                     log('Giris basarili!');
                     document.getElementById('login-form').classList.add('hidden');
                     document.getElementById('admin-panel').classList.remove('hidden');
-                    var banner = document.getElementById('token-expired-banner');
-                    if (banner) banner.style.display = 'none';
+                    document.getElementById('token-expired-banner').style.display = 'none';
                     document.getElementById('user-email').textContent = data.user ? data.user.email : '';
                     errorEl.classList.add('hidden');
                 } else {
                     log('Giris basarisiz: ' + (data.error_description || 'Bilinmeyen hata'));
-                    errorEl.textContent = data.error_description || 'Giris basarisiz!';
-                    errorEl.classList.remove('hidden');
+                    errorEl.textContent = data.error_description || 'Giris basarisiz!'; errorEl.classList.remove('hidden');
                 }
-            } catch (err) {
-                log('Baglanti hatasi: ' + err.message);
-                errorEl.textContent = 'Baglanti hatasi: ' + err.message;
-                errorEl.classList.remove('hidden');
-            }
+            } catch (err) { log('Baglanti hatasi: ' + err.message); errorEl.textContent = 'Baglanti hatasi: ' + err.message; errorEl.classList.remove('hidden'); }
         }
-
         function cikisYap() {
-            localStorage.removeItem('token');
-            localStorage.removeItem('refresh_token');
-            localStorage.removeItem('user_email');
-            currentToken = null;
-            currentRefreshToken = null;
-            currentUser = null;
+            localStorage.removeItem('token'); localStorage.removeItem('refresh_token'); localStorage.removeItem('user_email');
+            currentToken = null; currentRefreshToken = null; currentUser = null;
             document.getElementById('admin-panel').classList.add('hidden');
             document.getElementById('login-form').classList.remove('hidden');
-            var banner = document.getElementById('token-expired-banner');
-            if (banner) banner.style.display = 'none';
-            clearDebugLog();
-            resetForm();
+            document.getElementById('token-expired-banner').style.display = 'none';
+            clearDebugLog(); resetForm();
         }
-
         function resetForm() {
-            document.getElementById('name').value = '';
-            document.getElementById('category').value = '';
-            document.getElementById('brand').value = '';
-            document.getElementById('base_price').value = '';
-            document.getElementById('discount_price').value = '';
-            document.getElementById('delivery_time').value = '3-7 arbetsdagar';
-            document.getElementById('description').value = '';
-            document.getElementById('colors').value = '';
-            document.getElementById('slug-preview').classList.add('hidden');
-            document.getElementById('color-tags').innerHTML = '';
-            varyantlar = [];
-            uploadedImages = [];
-            renderVariants();
-            renderImagePreviews();
+            document.getElementById('name').value = ''; document.getElementById('category').value = '';
+            document.getElementById('brand').value = ''; document.getElementById('base_price').value = '';
+            document.getElementById('discount_price').value = ''; document.getElementById('delivery_time').value = '3-7 arbetsdagar';
+            document.getElementById('description').value = ''; document.getElementById('colors').value = '';
+            document.getElementById('slug-preview').classList.add('hidden'); document.getElementById('color-tags').innerHTML = '';
+            varyantlar = []; uploadedImages = []; renderVariants(); renderImagePreviews();
         }
 
         document.addEventListener('DOMContentLoaded', function() {
@@ -508,8 +556,7 @@
             var savedRefresh = localStorage.getItem('refresh_token');
             var savedEmail = localStorage.getItem('user_email');
             if (savedToken && savedRefresh) {
-                currentToken = savedToken;
-                currentRefreshToken = savedRefresh;
+                currentToken = savedToken; currentRefreshToken = savedRefresh;
                 log('Token localStorage dan yuklendi');
                 if (isTokenValid()) {
                     document.getElementById('login-form').classList.add('hidden');
@@ -532,9 +579,7 @@
             var tokenValid = await refreshTokenIfNeeded();
             if (!tokenValid) { showTokenExpired(); throw new Error('Oturum suresi doldu'); }
             var headers = { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + currentToken };
-            if (options.headers) {
-                Object.keys(options.headers).forEach(function(key) { headers[key] = options.headers[key]; });
-            }
+            if (options.headers) { Object.keys(options.headers).forEach(function(key) { headers[key] = options.headers[key]; }); }
             log('API cagrisi: ' + url.split('/').pop());
             var res = await fetch(url, { method: options.method || 'GET', headers: headers, body: options.body });
             log('Response status: ' + res.status);
@@ -544,65 +589,48 @@
 
         function formatBytes(bytes) {
             if (bytes === 0) return '0 Bytes';
-            var k = 1024;
-            var sizes = ['Bytes', 'KB', 'MB'];
+            var k = 1024; var sizes = ['Bytes', 'KB', 'MB'];
             var i = Math.floor(Math.log(bytes) / Math.log(k));
             return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
         }
-
         function onImageSelect(event) {
             var files = Array.from(event.target.files);
             if (!files || files.length === 0) return;
-            if (uploadedImages.length + files.length > MAX_IMAGES) {
-                alert('En fazla ' + MAX_IMAGES + ' resim yukleyebilirsiniz.');
-                return;
-            }
+            if (uploadedImages.length + files.length > MAX_IMAGES) { alert('En fazla ' + MAX_IMAGES + ' resim yukleyebilirsiniz.'); return; }
             var oversized = files.filter(function(f) { return f.size > MAX_FILE_SIZE; });
             if (oversized.length > 0) {
                 var names = oversized.map(function(f) { return f.name + ' (' + formatBytes(f.size) + ')'; }).join(', ');
                 alert('Bu dosyalar cok buyuk (max ' + formatBytes(MAX_FILE_SIZE) + '): ' + names);
                 var validFiles = files.filter(function(f) { return f.size <= MAX_FILE_SIZE; });
                 if (validFiles.length === 0) { event.target.value = ''; return; }
-                uploadImages(validFiles);
-                return;
+                uploadImages(validFiles); return;
             }
             uploadImages(files);
         }
-
         async function uploadImages(files) {
             var progressBar = document.getElementById('progress-bar');
             var progressContainer = document.getElementById('upload-progress');
             var fileInfo = document.getElementById('file-info');
-            progressContainer.classList.remove('hidden');
-            fileInfo.textContent = files.length + ' dosya yukleniyor...';
-            var successCount = 0;
-            var failCount = 0;
+            progressContainer.classList.remove('hidden'); fileInfo.textContent = files.length + ' dosya yukleniyor...';
+            var successCount = 0; var failCount = 0;
             for (var i = 0; i < files.length; i++) {
                 var file = files[i];
-                var progress = ((i + 1) / files.length) * 100;
-                progressBar.style.width = progress + '%';
+                progressBar.style.width = (((i + 1) / files.length) * 100) + '%';
                 fileInfo.textContent = 'Yukleniyor: ' + file.name + ' (' + formatBytes(file.size) + ')...';
                 try {
                     var url = await uploadSingleImage(file);
                     if (url) { uploadedImages.push(url); successCount++; }
                 } catch (err) {
-                    failCount++;
-                    log('Yukleme HATASI: ' + err.message);
-                    if (err.message.indexOf('exp') !== -1 || err.message.indexOf('token') !== -1 || err.message.indexOf('Oturum') !== -1) {
-                        showTokenExpired(); progressContainer.classList.add('hidden'); return;
-                    }
-                    if (err.message.indexOf('size') !== -1 || err.message.indexOf('maximum') !== -1 || err.message.indexOf('exceeded') !== -1) {
-                        alert('"' + file.name + '" cok buyuk!');
-                    } else { alert('"' + file.name + '" yuklenemedi: ' + err.message); }
+                    failCount++; log('Yukleme HATASI: ' + err.message);
+                    if (err.message.indexOf('exp') !== -1 || err.message.indexOf('token') !== -1 || err.message.indexOf('Oturum') !== -1) { showTokenExpired(); progressContainer.classList.add('hidden'); return; }
+                    if (err.message.indexOf('size') !== -1 || err.message.indexOf('maximum') !== -1 || err.message.indexOf('exceeded') !== -1) { alert('"' + file.name + '" cok buyuk!'); }
+                    else { alert('"' + file.name + '" yuklenemedi: ' + err.message); }
                 }
             }
-            progressContainer.classList.add('hidden');
-            progressBar.style.width = '0%';
+            progressContainer.classList.add('hidden'); progressBar.style.width = '0%';
             fileInfo.textContent = successCount + ' basarili, ' + failCount + ' basarisiz | Toplam: ' + uploadedImages.length + ' resim';
-            renderImagePreviews();
-            document.getElementById('imageFiles').value = '';
+            renderImagePreviews(); document.getElementById('imageFiles').value = '';
         }
-
         async function uploadSingleImage(file) {
             var fileExt = file.name.split('.').pop();
             var fileName = Date.now() + '_' + Math.random().toString(36).substring(2, 10) + '.' + fileExt;
@@ -619,23 +647,15 @@
             log('Yukleme basarili! Key: ' + result.Key);
             return SUPABASE_URL + '/storage/v1/object/public/' + BUCKET_NAME + '/' + fileName;
         }
-
         function renderImagePreviews() {
-            var container = document.getElementById('image-previews');
-            container.innerHTML = '';
+            var container = document.getElementById('image-previews'); container.innerHTML = '';
             uploadedImages.forEach(function(url, index) {
-                var box = document.createElement('div');
-                box.className = 'image-preview-box';
+                var box = document.createElement('div'); box.className = 'image-preview-box';
                 box.innerHTML = '<img src="' + url + '" class="image-preview" alt="Urun resmi"><button class="remove-img" onclick="removeImage(' + index + ')" title="Kaldir">×</button>';
                 container.appendChild(box);
             });
         }
-
-        function removeImage(index) {
-            uploadedImages.splice(index, 1);
-            renderImagePreviews();
-            document.getElementById('file-info').textContent = 'Toplam: ' + uploadedImages.length + ' resim';
-        }
+        function removeImage(index) { uploadedImages.splice(index, 1); renderImagePreviews(); document.getElementById('file-info').textContent = 'Toplam: ' + uploadedImages.length + ' resim'; }
 
         function varyantEkle() {
             var size = document.getElementById('size').value.trim();
@@ -644,18 +664,11 @@
             var stock = document.getElementById('v_stock').value;
             if (!size || !price) { alert('Olcu ve fiyat zorunludur.'); return; }
             varyantlar.push({ size: size, price: parseFloat(price), discount_price: discount ? parseFloat(discount) : null, stock: stock ? parseInt(stock) : 0 });
-            document.getElementById('size').value = '';
-            document.getElementById('v_price').value = '';
-            document.getElementById('v_discount').value = '';
-            document.getElementById('v_stock').value = '';
+            document.getElementById('size').value = ''; document.getElementById('v_price').value = '';
+            document.getElementById('v_discount').value = ''; document.getElementById('v_stock').value = '';
             renderVariants();
         }
-
-        function removeVariant(index) {
-            varyantlar.splice(index, 1);
-            renderVariants();
-        }
-
+        function removeVariant(index) { varyantlar.splice(index, 1); renderVariants(); }
         function renderVariants() {
             var list = document.getElementById('variant-list');
             if (varyantlar.length === 0) { list.innerHTML = '<p class="text-gray-400 text-sm italic">Henuez varyant eklenmedi.</p>'; return; }
@@ -678,10 +691,8 @@
             var colorsInput = document.getElementById('colors').value.trim();
             if (!name || !category) { alert('Urun adi ve kategori zorunludur.'); return; }
             if (varyantlar.length === 0) { alert('En az bir varyant eklemelisiniz.'); return; }
-            saveBtn.disabled = true;
-            saveBtn.classList.add('loading');
-            statusEl.textContent = 'Kaydediliyor...';
-            statusEl.className = 'text-center mt-3 text-sm text-blue-600';
+            saveBtn.disabled = true; saveBtn.classList.add('loading');
+            statusEl.textContent = 'Kaydediliyor...'; statusEl.className = 'text-center mt-3 text-sm text-blue-600';
             try {
                 var colorsArray = colorsInput ? colorsInput.split(',').map(function(c) { return c.trim(); }).filter(function(c) { return c; }) : [];
                 var slug = slugify(name);
@@ -698,20 +709,17 @@
                 };
                 log('Urun verisi: ' + JSON.stringify(productData));
                 var pRes = await apiCall(SUPABASE_URL + '/rest/v1/products', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+                    method: 'POST', headers: { 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
                     body: JSON.stringify(productData)
                 });
                 if (!pRes.ok) { var err = await pRes.json(); throw new Error(err.message || 'Urun kaydedilemedi'); }
-                var pData = await pRes.json();
-                var pId = pData[0].id;
+                var pData = await pRes.json(); var pId = pData[0].id;
                 log('Urun kaydedildi, ID: ' + pId);
                 var variantPromises = [];
                 for (var j = 0; j < varyantlar.length; j++) {
                     var v = varyantlar[j];
                     variantPromises.push(apiCall(SUPABASE_URL + '/rest/v1/product_variants', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ product_id: pId, size: v.size, price: v.price, discount_price: v.discount_price, stock: v.stock })
                     }));
                 }
@@ -722,8 +730,7 @@
                 setTimeout(function() { resetForm(); statusEl.textContent = ''; }, 3000);
             } catch (err) {
                 log('Kaydetme hatasi: ' + err.message);
-                statusEl.textContent = 'Hata: ' + err.message;
-                statusEl.className = 'text-center mt-3 text-sm text-red-500';
+                statusEl.textContent = 'Hata: ' + err.message; statusEl.className = 'text-center mt-3 text-sm text-red-500';
             } finally { saveBtn.disabled = false; saveBtn.classList.remove('loading'); }
         }
 
@@ -740,7 +747,7 @@
         async function loadOrders() {
             var ordersList = document.getElementById('orders-list');
             var emptyMsg = document.getElementById('orders-empty');
-            ordersList.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-gray-400"><div style="display:inline-block;width:24px;height:24px;border:3px solid #e5e7eb;border-top-color:#2563eb;border-radius:50%;animation:spin 1s linear infinite;"></div><p class="mt-2">Yukleniyor...</p></td></tr>';
+            ordersList.innerHTML = '<tr><td colspan="8" class="p-8 text-center text-gray-400"><div style="display:inline-block;width:24px;height:24px;border:3px solid #e5e7eb;border-top-color:#2563eb;border-radius:50%;animation:spin 1s linear infinite;"></div><p class="mt-2">Yukleniyor...</p></td></tr>';
             emptyMsg.classList.add('hidden');
             try {
                 log('Siparisler cekiliyor...');
@@ -750,11 +757,10 @@
                 if (!res.ok) { var err = await res.json(); throw new Error(err.message || 'Siparisler alinamadi'); }
                 allOrders = await res.json();
                 log(allOrders.length + ' siparis bulundu');
-                updateStats(allOrders);
-                filterOrders();
+                updateStats(allOrders); filterOrders();
             } catch (err) {
                 log('Siparis yukleme hatasi: ' + err.message);
-                ordersList.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-red-500">Siparisler yuklenemedi: ' + err.message + '</td></tr>';
+                ordersList.innerHTML = '<tr><td colspan="8" class="p-8 text-center text-red-500">Siparisler yuklenemedi: ' + err.message + '</td></tr>';
             }
         }
 
@@ -801,8 +807,7 @@
             emptyMsg.classList.add('hidden');
             ordersList.innerHTML = orders.map(function(o) {
                 var customer = o.customer_info;
-                var name = 'Bilinmiyor';
-                var email = '';
+                var name = 'Bilinmiyor'; var email = '';
                 if (typeof customer === 'string') { try { customer = JSON.parse(customer); } catch(e) {} }
                 if (customer && typeof customer === 'object') {
                     name = customer.name || (customer.firstName + ' ' + customer.lastName) || 'Bilinmiyor';
@@ -811,6 +816,15 @@
                 var statusClass = 'status-' + (o.status || 'pending');
                 var statusText = { 'pending': 'Bekliyor', 'processing': 'Isleniyor', 'shipped': 'Kargoda', 'delivered': 'Teslim Edildi', 'cancelled': 'Iptal' }[o.status] || o.status;
                 var date = o.created_at ? new Date(o.created_at).toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-';
+                var trackingHtml = '-';
+                if (o.tracking_number) {
+                    var carrier = o.tracking_carrier || 'other';
+                    var carrierName = CARRIER_NAMES[carrier] || 'Diger';
+                    var trackingUrl = CARRIER_TRACKING_URLS[carrier] + o.tracking_number;
+                    trackingHtml = '<div class="tracking-display"><a href="' + trackingUrl + '" target="_blank">📦 ' + carrierName + '<br><span style="font-size:11px;">' + o.tracking_number + '</span></a></div>';
+                } else {
+                    trackingHtml = '<button onclick="event.stopPropagation(); openTrackingModalForOrder(' + o.id + ')" class="text-blue-600 hover:text-blue-800 text-xs font-medium">+ Ekle</button>';
+                }
                 return '<tr class="order-row border-b">' +
                     '<td class="p-3 text-sm font-mono text-gray-500">#' + o.id + '</td>' +
                     '<td class="p-3"><div class="font-medium text-gray-800">' + name + '</div>' + (email ? '<div class="text-xs text-gray-400">' + email + '</div>' : '') + '</td>' +
@@ -823,6 +837,7 @@
                         '<option value="delivered" ' + (o.status === 'delivered' ? 'selected' : '') + '>Teslim Edildi</option>' +
                         '<option value="cancelled" ' + (o.status === 'cancelled' ? 'selected' : '') + '>Iptal</option>' +
                     '</select></td>' +
+                    '<td class="p-3">' + trackingHtml + '</td>' +
                     '<td class="p-3 text-sm text-gray-500">' + date + '</td>' +
                     '<td class="p-3"><button onclick="showOrderDetail(' + o.id + ')" class="text-blue-600 hover:text-blue-800 text-sm font-medium">Detay</button></td>' +
                 '</tr>';
@@ -833,8 +848,7 @@
             try {
                 log('Siparis #' + orderId + ' durumu guncelleniyor: ' + newStatus);
                 var res = await apiCall(SUPABASE_URL + '/rest/v1/orders?id=eq.' + orderId, {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+                    method: 'PATCH', headers: { 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
                     body: JSON.stringify({ status: newStatus })
                 });
                 if (!res.ok) { var err = await res.json(); throw new Error(err.message || 'Guncelleme basarisiz'); }
@@ -842,10 +856,82 @@
                 var order = allOrders.find(function(o) { return o.id === orderId; });
                 if (order) { order.status = newStatus; updateStats(allOrders); }
                 if (currentOrderId === orderId) { showOrderDetail(orderId); }
+                showToast('Siparis durumu guncellendi: ' + newStatus, 'success');
             } catch (err) {
                 log('Durum guncelleme hatasi: ' + err.message);
-                alert('Durum guncellenemedi: ' + err.message);
+                showToast('Durum guncellenemedi: ' + err.message, 'error');
                 loadOrders();
+            }
+        }
+
+        function openTrackingModal() {
+            if (!currentOrderId) return;
+            var order = allOrders.find(function(o) { return o.id === currentOrderId; });
+            if (!order) return;
+            document.getElementById('tracking-modal-order-id').textContent = '#ORD-' + String(currentOrderId).padStart(4, '0');
+            document.getElementById('tracking-number').value = order.tracking_number || '';
+            document.getElementById('tracking-carrier').value = order.tracking_carrier || 'postnord';
+            document.getElementById('tracking-modal').classList.add('active');
+        }
+        function openTrackingModalForOrder(orderId) { currentOrderId = orderId; openTrackingModal(); }
+        function closeTrackingModal() { document.getElementById('tracking-modal').classList.remove('active'); }
+
+        async function saveTrackingNumber() {
+            if (!currentOrderId) return;
+            var trackingNumber = document.getElementById('tracking-number').value.trim();
+            var carrier = document.getElementById('tracking-carrier').value;
+            var sendEmail = document.getElementById('send-email-notification').checked;
+            if (!trackingNumber) { showToast('Lutfen takip numarasi girin', 'error'); return; }
+            try {
+                log('Kargo takip no kaydediliyor... #' + currentOrderId);
+                var res = await apiCall(SUPABASE_URL + '/rest/v1/orders?id=eq.' + currentOrderId, {
+                    method: 'PATCH', headers: { 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+                    body: JSON.stringify({ tracking_number: trackingNumber, tracking_carrier: carrier, status: 'shipped' })
+                });
+                if (!res.ok) { var err = await res.json(); throw new Error(err.message || 'Kaydetme basarisiz'); }
+                var order = allOrders.find(function(o) { return o.id === currentOrderId; });
+                if (order) { order.tracking_number = trackingNumber; order.tracking_carrier = carrier; order.status = 'shipped'; }
+                log('✅ Kargo takip no kaydedildi');
+                showToast('Kargo takip no kaydedildi!', 'success');
+                if (sendEmail) { await sendShippingNotificationEmail(currentOrderId, trackingNumber, carrier); }
+                closeTrackingModal(); filterOrders();
+                if (currentOrderId) { showOrderDetail(currentOrderId); }
+            } catch (err) {
+                log('Kargo kaydetme hatasi: ' + err.message);
+                showToast('Kargo takip no kaydedilemedi: ' + err.message, 'error');
+            }
+        }
+
+        async function sendShippingNotificationEmail(orderId, trackingNumber, carrier) {
+            try {
+                var order = allOrders.find(function(o) { return o.id === orderId; });
+                if (!order) return;
+                var customer = order.customer_info;
+                if (typeof customer === 'string') { try { customer = JSON.parse(customer); } catch(e) {} }
+                var email = customer?.email || '';
+                var name = customer?.name || 'Kund';
+                if (!email) { log('Musteri emaili bulunamadi, mail gonderilemedi'); return; }
+                var carrierName = CARRIER_NAMES[carrier] || 'Diger';
+                var trackingUrl = CARRIER_TRACKING_URLS[carrier] + trackingNumber;
+                var templateParams = {
+                    customer_email: email,
+                    customer_name: name,
+                    order_id: orderId,
+                    order_date: new Date().toLocaleDateString('sv-SE'),
+                    order_items: '<p style="text-align:center;color:#6b7280;">Din beställning har skickats! Se spårningsinformation nedan.</p>',
+                    total_price: '-',
+                    payment_method: '-',
+                    customer_address: '-',
+                    customer_phone: '-',
+                    tracking_link: trackingUrl
+                };
+                log('Kargo bildirim maili gonderiliyor... ' + email);
+                var response = await emailjs.send(EMAILJS_CONFIG.SERVICE_ID, EMAILJS_CONFIG.TEMPLATE_ID, templateParams);
+                log('✅ Kargo bildirim maili gonderildi!');
+                showToast('Musteriye kargo bildirim maili gonderildi!', 'success');
+            } catch (err) {
+                log('Kargo mail gonderme hatasi: ' + err.message);
+                showToast('Kargo maili gonderilemedi', 'error');
             }
         }
 
@@ -859,66 +945,57 @@
                 var orders = await res.json();
                 if (orders.length === 0) return;
                 var o = orders[0];
-                var customer = o.customer_info;
-                var items = o.items;
+                var customer = o.customer_info; var items = o.items;
                 if (typeof customer === 'string') { try { customer = JSON.parse(customer); } catch(e) {} }
                 if (typeof items === 'string') { try { items = JSON.parse(items); } catch(e) {} }
                 document.getElementById('modal-order-id').textContent = '#ORD-' + String(o.id).padStart(4, '0');
-
                 var itemsHtml = '';
                 if (Array.isArray(items)) {
                     itemsHtml = items.map(function(item) {
                         var itemTotal = (parseFloat(item.price) || 0) * (item.quantity || 1);
-                        return '<div class="product-list-item">' +
-                            '<div class="pinfo"><div class="pname">' + (item.name || 'Urun') + '</div><div class="pvariant">Varyant: ' + (item.variant || 'Standard') + ' | Adet: ' + (item.quantity || 1) + '</div></div>' +
-                            '<div class="pprice">' + itemTotal.toLocaleString('sv-SE') + ' SEK</div></div>';
+                        return '<div class="product-list-item"><div class="pinfo"><div class="pname">' + (item.name || 'Urun') + '</div><div class="pvariant">Varyant: ' + (item.variant || 'Standard') + ' | Adet: ' + (item.quantity || 1) + '</div></div><div class="pprice">' + itemTotal.toLocaleString('sv-SE') + ' SEK</div></div>';
                     }).join('');
                 }
-
                 var statusOptions = { 'pending': 'Bekliyor', 'processing': 'Isleniyor', 'shipped': 'Kargoda', 'delivered': 'Teslim Edildi', 'cancelled': 'Iptal' };
                 var statusSelectHtml = Object.keys(statusOptions).map(function(key) {
                     return '<option value="' + key + '" ' + (o.status === key ? 'selected' : '') + '>' + statusOptions[key] + '</option>';
                 }).join('');
-
                 var date = o.created_at ? new Date(o.created_at).toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-';
-
+                var trackingInfoHtml = '';
+                if (o.tracking_number) {
+                    var carrier = o.tracking_carrier || 'other';
+                    var carrierName = CARRIER_NAMES[carrier] || 'Diger';
+                    var trackingUrl = CARRIER_TRACKING_URLS[carrier] + o.tracking_number;
+                    trackingInfoHtml = '<div class="info-card" style="grid-column: span 2;"><h4>🚚 Kargo Bilgisi</h4><div class="value">' + carrierName + '</div><div class="value small">Takip No: <a href="' + trackingUrl + '" target="_blank" style="color:#2563eb;font-weight:600;">' + o.tracking_number + '</a></div></div>';
+                }
                 var html = '<div class="info-grid">' +
                     '<div class="info-card"><h4>Musteri</h4><div class="value">' + (customer?.name || 'Bilinmiyor') + '</div><div class="value small">' + (customer?.email || '-') + '</div></div>' +
                     '<div class="info-card"><h4>Iletisim</h4><div class="value small">📞 ' + (customer?.phone || '-') + '</div><div class="value small">📍 ' + (customer?.address || '-') + '</div></div>' +
                     '<div class="info-card"><h4>Siparis Bilgisi</h4><div class="value small">Tarih: ' + date + '</div><div class="value small">Odeme: ' + (o.payment_method || '-') + '</div><div class="value small">ID: ' + (o.payment_id || '-') + '</div></div>' +
                     '<div class="info-card"><h4>Durum</h4><select class="status-select status-' + (o.status || 'pending') + '" onchange="updateOrderStatus(' + o.id + ', this.value); showOrderDetail(' + o.id + ');" style="width:100%;">' + statusSelectHtml + '</select></div>' +
+                    trackingInfoHtml +
                 '</div>' +
                 '<div style="margin-bottom:16px;"><h4 style="font-size:14px;font-weight:600;color:#374151;margin-bottom:12px;">🛒 Urunler</h4>' + itemsHtml + '</div>' +
                 '<div style="background:linear-gradient(135deg,#1a1a1a,#2d2d2d);color:white;padding:20px;border-radius:12px;display:flex;justify-content:space-between;align-items:center;">' +
                     '<div><div style="font-size:12px;text-transform:uppercase;letter-spacing:1px;opacity:0.7;margin-bottom:4px;">Toplam Tutar</div><div style="font-size:28px;font-weight:700;">' + (parseFloat(o.total_price) || 0).toLocaleString('sv-SE') + ' SEK</div></div>' +
                     '<div style="text-align:right;"><div style="font-size:12px;opacity:0.7;">Durum</div><div style="font-size:16px;font-weight:600;color:#c9a96e;">' + (statusOptions[o.status] || o.status) + '</div></div>' +
                 '</div>';
-
                 document.getElementById('modal-body').innerHTML = html;
                 document.getElementById('order-modal').classList.add('active');
-            } catch (err) {
-                alert('Siparis detayi yuklenemedi: ' + err.message);
-            }
+            } catch (err) { alert('Siparis detayi yuklenemedi: ' + err.message); }
         }
 
-        function closeOrderModal() {
-            document.getElementById('order-modal').classList.remove('active');
-            currentOrderId = null;
-        }
-
-        document.getElementById('order-modal').addEventListener('click', function(e) {
-            if (e.target === this) closeOrderModal();
-        });
+        function closeOrderModal() { document.getElementById('order-modal').classList.remove('active'); currentOrderId = null; }
+        document.getElementById('order-modal').addEventListener('click', function(e) { if (e.target === this) closeOrderModal(); });
+        document.getElementById('tracking-modal').addEventListener('click', function(e) { if (e.target === this) closeTrackingModal(); });
 
         function printInvoice() {
             if (!currentOrderId) return;
             var order = allOrders.find(function(o) { return o.id === currentOrderId; });
             if (!order) return;
-            var customer = order.customer_info;
-            var items = order.items;
+            var customer = order.customer_info; var items = order.items;
             if (typeof customer === 'string') { try { customer = JSON.parse(customer); } catch(e) {} }
             if (typeof items === 'string') { try { items = JSON.parse(items); } catch(e) {} }
-
             var itemsRows = '';
             if (Array.isArray(items)) {
                 itemsRows = items.map(function(item) {
@@ -926,7 +1003,6 @@
                     return '<tr><td style="padding:12px;border-bottom:1px solid #eee;">' + (item.name || 'Urun') + '</td><td style="padding:12px;border-bottom:1px solid #eee;text-align:center;">' + (item.variant || 'Standard') + '</td><td style="padding:12px;border-bottom:1px solid #eee;text-align:center;">' + (item.quantity || 1) + '</td><td style="padding:12px;border-bottom:1px solid #eee;text-align:right;">' + (parseFloat(item.price) || 0).toLocaleString('sv-SE') + ' SEK</td><td style="padding:12px;border-bottom:1px solid #eee;text-align:right;font-weight:600;">' + total.toLocaleString('sv-SE') + ' SEK</td></tr>';
                 }).join('');
             }
-
             var invoiceHtml = '<div class="invoice-area">' +
                 '<div class="invoice-header"><div class="invoice-logo">DKRUG</div><div class="invoice-meta"><div class="inv-label">FATURA</div><div class="inv-value">#' + String(order.id).padStart(4, '0') + '</div><div class="inv-label">Tarih</div><div class="inv-value">' + new Date().toLocaleDateString('sv-SE') + '</div></div></div>' +
                 '<div style="display:flex;justify-content:space-between;margin-bottom:40px;"><div><div style="font-size:11px;text-transform:uppercase;color:#9ca3af;letter-spacing:1px;margin-bottom:8px;">Satici</div><div style="font-weight:600;font-size:16px;">DKRUG Sweden</div><div style="color:#6b7280;font-size:14px;line-height:1.6;">Sverige<br>Org.nr: 559123-4567<br>info@dkrug.se</div></div><div style="text-align:right;"><div style="font-size:11px;text-transform:uppercase;color:#9ca3af;letter-spacing:1px;margin-bottom:8px;">Musteri</div><div style="font-weight:600;font-size:16px;">' + (customer?.name || 'Bilinmiyor') + '</div><div style="color:#6b7280;font-size:14px;line-height:1.6;">' + (customer?.address || '') + '<br>' + (customer?.email || '') + '<br>' + (customer?.phone || '') + '</div></div></div>' +
@@ -934,12 +1010,9 @@
                 '<div style="border-top:2px solid #1a1a1a;padding-top:20px;display:flex;justify-content:flex-end;"><div style="text-align:right;"><div style="display:flex;justify-content:space-between;gap:40px;margin-bottom:8px;"><span style="color:#6b7280;">Ara Toplam</span><span style="font-weight:600;">' + (parseFloat(order.total_price) || 0).toLocaleString('sv-SE') + ' SEK</span></div><div style="display:flex;justify-content:space-between;gap:40px;margin-bottom:8px;"><span style="color:#6b7280;">KDV (%25)</span><span style="font-weight:600;">' + ((parseFloat(order.total_price) || 0) * 0.25).toLocaleString('sv-SE') + ' SEK</span></div><div style="display:flex;justify-content:space-between;gap:40px;padding-top:12px;border-top:1px solid #e5e7eb;"><span style="font-size:18px;font-weight:700;">GENEL TOPLAM</span><span style="font-size:18px;font-weight:700;color:#1a1a1a;">' + ((parseFloat(order.total_price) || 0) * 1.25).toLocaleString('sv-SE') + ' SEK</span></div></div></div>' +
                 '<div style="margin-top:40px;padding-top:20px;border-top:1px solid #e5e7eb;text-align:center;color:#9ca3af;font-size:12px;">Tesekkur ederiz! | DKRUG Sweden | www.dkrug.se</div>' +
             '</div>';
-
             var printArea = document.getElementById('invoice-print-area');
-            printArea.innerHTML = invoiceHtml;
-            printArea.style.display = 'block';
-            window.print();
-            printArea.style.display = 'none';
+            printArea.innerHTML = invoiceHtml; printArea.style.display = 'block';
+            window.print(); printArea.style.display = 'none';
         }
     </script>
 </body>
