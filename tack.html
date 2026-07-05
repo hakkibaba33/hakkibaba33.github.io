@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tack för din beställning | DKRUG</title>
     <script src="/assets/js/config.js"></script>
+    <!-- EmailJS SDK -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -136,24 +138,41 @@
         }
         @keyframes spin { to { transform: rotate(360deg); } }
         .hidden { display: none !important; }
-        
+        .email-status {
+            margin-top: 12px;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        .email-status.sent {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .email-status.failed {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
         @media (max-width: 480px) {
             .success-box { padding: 40px 24px; }
             h1 { font-size: 1.5rem; }
         }
     </style>
+<base target="_blank">
 </head>
 <body>
     <div class="success-box">
         <div class="success-icon">✅</div>
         <h1>Tack för din beställning!</h1>
         <p class="subtitle">Din betalning har godkänts och din beställning bearbetas nu.</p>
-        
+
         <div class="status-box" id="status-box">
             <p id="status-text" class="status-loading">
                 <span class="spinner"></span>
                 Sparar din beställning...
             </p>
+            <div id="email-status" class="hidden"></div>
         </div>
 
         <div id="order-info" class="hidden">
@@ -165,12 +184,26 @@
 
     <script>
         // ==========================================
-        // SUPABASE SIPARIS KAYDETME
+        // EMAILJS KONFIGURASYONU
+        // ==========================================
+        const EMAILJS_CONFIG = {
+            PUBLIC_KEY: '30giLeeAUgDsJSx6q',
+            SERVICE_ID: 'service_ip7lisb',
+            TEMPLATE_ID: 'template_s80ep5m'
+        };
+
+        // EmailJS baslat
+        (function() {
+            emailjs.init(EMAILJS_CONFIG.PUBLIC_KEY);
+        })();
+
+        // ==========================================
+        // SUPABASE SIPARIS KAYDETME + EMAIL GONDERME
         // ==========================================
         async function saveOrderAfterPayment() {
             const urlParams = new URLSearchParams(window.location.search);
             const paymentIntentId = urlParams.get('payment_intent');
-            
+
             console.log('>>> Tack sayfasi yuklendi');
             console.log('>>> payment_intent:', paymentIntentId);
 
@@ -178,11 +211,12 @@
             const statusText = document.getElementById('status-text');
             const orderInfo = document.getElementById('order-info');
             const orderDetails = document.getElementById('order-details');
+            const emailStatusDiv = document.getElementById('email-status');
 
             // Supabase config
             var SUPABASE_URL = '';
             var SUPABASE_KEY = '';
-            
+
             if (typeof CONFIG !== 'undefined' && CONFIG.SUPABASE) {
                 SUPABASE_URL = CONFIG.SUPABASE.URL;
                 SUPABASE_KEY = CONFIG.SUPABASE.ANON_KEY;
@@ -281,7 +315,13 @@
                 }
 
                 const result = await res.json();
-                console.log('>>> ✅ Siparis kaydedildi! ID:', result[0].id);
+                const orderId = result[0].id;
+                console.log('>>> ✅ Siparis kaydedildi! ID:', orderId);
+
+                // ==========================================
+                // EMAILJS ILE SIPARIS OZETI MAILI GONDER
+                // ==========================================
+                await sendOrderConfirmationEmail(customer, cart, total, orderId, paymentIntentId);
 
                 // Sepeti ve musteri bilgilerini temizle
                 localStorage.removeItem('siteCartItems');
@@ -290,11 +330,11 @@
                 // UI guncelle
                 statusText.className = 'status-success';
                 statusText.innerHTML = '✅ Din beställning har sparats!';
-                
+
                 orderInfo.classList.remove('hidden');
                 orderDetails.innerHTML = 
                     '<h3>Beställningsdetaljer</h3>' +
-                    '<div class="detail-row"><span class="detail-label">Ordernummer:</span><span class="detail-value">#' + result[0].id + '</span></div>' +
+                    '<div class="detail-row"><span class="detail-label">Ordernummer:</span><span class="detail-value">#' + orderId + '</span></div>' +
                     '<div class="detail-row"><span class="detail-label">Totalt:</span><span class="detail-value">' + total.toLocaleString('sv-SE') + ' SEK</span></div>' +
                     '<div class="detail-row"><span class="detail-label">Betalningsmetod:</span><span class="detail-value">Stripe</span></div>' +
                     '<div class="detail-row"><span class="detail-label">Status:</span><span class="detail-value">Väntar på behandling</span></div>' +
@@ -305,6 +345,66 @@
                 console.error('>>> Hata:', err);
                 statusText.className = 'status-error';
                 statusText.innerHTML = '❌ Ett fel uppstod. Kontakta support.<br><small style="color:#999;font-weight:400;">' + err.message + '</small>';
+            }
+        }
+
+        // ==========================================
+        // EMAILJS SIPARIS ONAY MAILI
+        // ==========================================
+        async function sendOrderConfirmationEmail(customer, cart, total, orderId, paymentId) {
+            const emailStatusDiv = document.getElementById('email-status');
+
+            try {
+                // Urun listesini HTML tablo formatinda olustur
+                let itemsHtml = '<table style="width:100%;border-collapse:collapse;font-size:14px;">';
+                itemsHtml += '<thead><tr style="background:#f9fafb;"><th style="padding:8px;text-align:left;border:1px solid #e5e7eb;">Urun</th><th style="padding:8px;text-align:center;border:1px solid #e5e7eb;">Varyant</th><th style="padding:8px;text-align:center;border:1px solid #e5e7eb;">Adet</th><th style="padding:8px;text-align:right;border:1px solid #e5e7eb;">Fiyat</th></tr></thead><tbody>';
+
+                cart.forEach(function(item) {
+                    const itemTotal = (parseFloat(item.price) * (item.quantity || 1)).toLocaleString('sv-SE');
+                    itemsHtml += '<tr>' +
+                        '<td style="padding:8px;border:1px solid #e5e7eb;">' + (item.name || 'Urun') + '</td>' +
+                        '<td style="padding:8px;text-align:center;border:1px solid #e5e7eb;">' + (item.variants || 'Standard') + '</td>' +
+                        '<td style="padding:8px;text-align:center;border:1px solid #e5e7eb;">' + (item.quantity || 1) + '</td>' +
+                        '<td style="padding:8px;text-align:right;border:1px solid #e5e7eb;font-weight:600;">' + itemTotal + ' SEK</td>' +
+                    '</tr>';
+                });
+                itemsHtml += '</tbody></table>';
+
+                // EmailJS template parametreleri (senin template'ine gore)
+                const templateParams = {
+                    customer_email: customer.email || 'kund@example.com',
+                    customer_name: (customer.firstName + ' ' + customer.lastName).trim() || 'Kund',
+                    order_id: orderId,
+                    order_date: new Date().toLocaleDateString('sv-SE'),
+                    order_items: itemsHtml,
+                    total_price: total.toLocaleString('sv-SE') + ' SEK',
+                    payment_method: 'Stripe',
+                    customer_address: (customer.address + ', ' + customer.postcode + ' ' + customer.city).trim() || 'Sverige',
+                    customer_phone: customer.phone || 'N/A',
+                    tracking_link: 'https://www.dekorist.se/orders/' + orderId + '
+
+(Du kommer att få ett separat mail med spårningsinformation när din beställning skickas.)'
+                };
+
+                console.log('>>> EmailJS gonderiliyor...', JSON.stringify(templateParams));
+
+                const response = await emailjs.send(
+                    EMAILJS_CONFIG.SERVICE_ID,
+                    EMAILJS_CONFIG.TEMPLATE_ID,
+                    templateParams
+                );
+
+                console.log('>>> ✅ Email gonderildi! Status:', response.status, response.text);
+
+                emailStatusDiv.className = 'email-status sent';
+                emailStatusDiv.innerHTML = '✉️ En bekräftelse har skickats till din e-post.';
+                emailStatusDiv.classList.remove('hidden');
+
+            } catch (emailErr) {
+                console.error('>>> Email gonderme hatasi:', emailErr);
+                emailStatusDiv.className = 'email-status failed';
+                emailStatusDiv.innerHTML = '⚠️ Kunde inte skicka bekräftelsemail. Kontakta oss om du inte får någon bekräftelse.';
+                emailStatusDiv.classList.remove('hidden');
             }
         }
 
