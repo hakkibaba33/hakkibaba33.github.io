@@ -1820,3 +1820,138 @@ body.no-scroll {
         display: none !important; /* Elementi DOM'dan görsel olarak tamamen kaldırır */
     }
 }
+
+
+/* ============================================
+   PRODUCT CAROUSEL SYSTEM CSS
+   ============================================ */
+
+/* --- Carousel Container --- */
+.product-carousel-wrapper {
+    position: relative;
+    overflow: hidden;
+}
+
+.product-carousel-track {
+    display: flex;
+    gap: 16px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    padding: 4px 0 24px;
+    /* Scrollbar gizle */
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.product-carousel-track::-webkit-scrollbar {
+    display: none;
+}
+
+/* --- Slide --- */
+.product-slide {
+    flex: 0 0 auto;
+    width: 280px;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+}
+
+/* --- Navigasyon Okları --- */
+.carousel-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 44px;
+    height: 44px;
+    background: var(--color-white, #fff);
+    border: 1px solid var(--color-gray-300, #eee);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    transition: all 0.2s;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.product-carousel-wrapper:hover .carousel-nav {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.carousel-nav:hover {
+    background: var(--color-black, #000);
+    color: var(--color-white, #fff);
+    border-color: var(--color-black, #000);
+}
+
+.carousel-nav.prev { left: 16px; }
+.carousel-nav.next { right: 16px; }
+
+.carousel-nav:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+/* --- Dot Pagination --- */
+.carousel-dots {
+    display: none;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 16px;
+    padding: 0 var(--container-padding, 20px);
+}
+
+.carousel-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--color-gray-400, #ccc);
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.carousel-dot.active {
+    background: var(--color-black, #000);
+    width: 24px;
+    border-radius: 3px;
+}
+
+/* --- Scroll Hint --- */
+.scroll-hint {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 12px;
+    font-size: 12px;
+    color: var(--color-gray-500, #999);
+    animation: pulseHint 2s ease-in-out infinite;
+}
+
+@keyframes pulseHint {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+}
+
+/* --- Responsive --- */
+@media (max-width: 1024px) {
+    .product-slide { width: 240px; }
+}
+
+@media (max-width: 768px) {
+    .product-slide { width: 200px; }
+    .carousel-dots { display: flex; }
+    .scroll-hint { display: flex; }
+    .carousel-nav { display: none; }
+}
+
+@media (max-width: 480px) {
+    .product-slide { width: 160px; }
+}
