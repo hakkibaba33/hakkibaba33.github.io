@@ -1790,3 +1790,26 @@ body.no-scroll {
 .reviews-footer { text-align: center; }
 
 
+/* Masaüstünde header altı boşluğu düzelt */
+@media (min-width: 1025px) {
+    .main-content {
+        padding-top: 140px; /* Header (40+60) + Nav (40) toplamına göre ayarla */
+    }
+}
+
+/* Tablet ve Mobilde header yüksekliğine göre otomatik ayar */
+@media (max-width: 1024px) {
+    body {
+        padding-top: 130px; /* Header'ın o anki toplam yüksekliği neyse onu yaz */
+    }
+    
+    .main-content {
+        padding-top: 20px; /* Breadcrumb için ek bir boşluk bırak, header'dan bağımsız */
+    }
+}
+
+/* Breadcrumb'ın header ile olan bağını koparıp, akışa bırakalım */
+.breadcrumb-nav {
+    margin-top: 0 !important; /* Eğer fixed header kullanıyorsan margin-top'ı kaldır */
+}
+
