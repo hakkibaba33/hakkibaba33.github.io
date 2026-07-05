@@ -65,12 +65,6 @@
     font-weight: 500;
 }
 
-@media (max-width: 768px) {
-    .breadcrumb-nav {
-        margin-top: 5px !important; /* Header'a biraz daha yakınlaşsın */
-        margin-bottom: 5px !important;
-    }
-}
 
 /* ==================================================== */
 /* 🔍 YÜZEN ARAMA POPUP (MODERN FLOATING) */
@@ -1797,3 +1791,17 @@ body.no-scroll {
 .reviews-footer { text-align: center; }
 
 
+/* Mobildeki boşluğu milimetrik düzeltmek için */
+@media (max-width: 768px) {
+    /* 1. Sayfa içeriğini yukarı çek */
+    .main-content {
+        padding-top: 100px !important; /* Deneme yanılma ile burayı 80-110 arası ayarla */
+    }
+
+    /* 2. Breadcrumb'ın üstündeki gereksiz margin'i sıfırla */
+    .breadcrumb-nav {
+        margin-top: 0 !important;
+        padding-top: 5px !important;
+        padding-bottom: 5px !important;
+    }
+}
