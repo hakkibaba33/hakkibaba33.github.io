@@ -343,10 +343,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 statusMessage.innerHTML = `<span style="color:#e54d42;">${error.message}</span>`;
                 confirmBtn.disabled = false;
                 confirmBtn.innerText = 'Betala nu';
-            } else if (paymentIntent && paymentIntent.status === 'succeeded') {
-                saveCart([]);
-                window.location.href = '/tack?payment_intent=' + paymentIntent.id;
-            }
+              } else if (paymentIntent && paymentIntent.status === 'succeeded') {
+    // 1. Önce siparişi Supabase'e kaydet
+    await saveOrderToSupabase(paymentIntent.id);
+    
+    // 2. Sepeti temizle
+    saveCart([]);
+    
+    // 3. Teşekkür sayfasına yönlendir
+    window.location.href = '/tack?payment_intent=' + paymentIntent.id;
+}
 
         } catch (error) {
             console.error('Beklenmeyen hata:', error);
