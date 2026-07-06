@@ -427,6 +427,7 @@ body:has(.custom-lightbox-overlay.active) {
 
 .product-accordion-wrapper {
     margin-top: 25px;
+   margin-bottom: 10px;
     border: 1px solid var(--dk-border);
     border-radius: var(--dk-radius-sm);
     background: var(--dk-white);
