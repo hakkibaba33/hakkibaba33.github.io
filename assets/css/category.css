@@ -1,25 +1,4 @@
 /* ============================================================
-   🎨 DKRUG RENK PALETI (Global CSS Variables)
-   ============================================================ */
-:root {
-    --dk-primary: #1a1a1a;
-    --dk-secondary: #f5f0eb;
-    --dk-accent: #c9a96e;
-    --dk-accent-hover: #b8945a;
-    --dk-text: #333333;
-    --dk-text-light: #666666;
-    --dk-white: #ffffff;
-    --dk-border: #e8e4df;
-    --dk-radius: 12px;
-    --dk-radius-sm: 8px;
-    --dk-shadow: 0 4px 24px rgba(0,0,0,0.08);
-    --dk-shadow-lg: 0 12px 48px rgba(0,0,0,0.12);
-    --dk-transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    --dk-font-heading: 'Playfair Display', Georgia, serif;
-    --dk-font-body: 'Inter', -apple-system, sans-serif;
-}
-
-/* ============================================================
    RENK KUTUCUKLARI (Global Clean-Up)
    ============================================================ */
 
