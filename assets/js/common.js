@@ -732,3 +732,25 @@ window.addEventListener('load', () => {
 });
 
 console.log('common.js v7.2 yuklendi - Race Condition Fix aktif');
+
+
+
+
+
+
+
+
+
+
+const trigger = document.getElementById('chat-trigger');
+const windowChat = document.getElementById('chat-window');
+const closeBtn = document.getElementById('close-chat');
+
+trigger.addEventListener('click', () => {
+    windowChat.style.display = windowChat.style.display === 'flex' ? 'none' : 'flex';
+});
+
+closeBtn.addEventListener('click', () => {
+    windowChat.style.display = 'none';
+});
+
