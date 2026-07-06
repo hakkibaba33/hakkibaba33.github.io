@@ -552,7 +552,8 @@ body:has(.custom-lightbox-overlay.active) {
 
 .delivery-time-box {
     border-left: 3px solid var(--dk-border); /* Sol tarafta gri şerit */
-    padding-left: 15px;
+    padding-left: 10px;
+    margin-top: 25px;
     margin-bottom: 10px;
     display: flex;
     flex-direction: column;
