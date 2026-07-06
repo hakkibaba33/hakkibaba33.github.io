@@ -726,7 +726,6 @@ body:has(.custom-lightbox-overlay.active) {
     display: flex;
     align-items: center;
     gap: 8px;
-   margin-top: 10px;
     margin-bottom: 12px;
 }
 
