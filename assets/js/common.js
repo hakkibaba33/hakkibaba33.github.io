@@ -745,6 +745,8 @@ function initEventListeners() {
 // ==========================================
 
 function initAll() {
+    fetchAllProductsForSearch(); // Bu satır mutlaka olsun!
+    initSearch();
     console.log('[Init] common.js initAll baslatiliyor...');
 
     // 1. Event listenerlar (cache flag kontrollu)
