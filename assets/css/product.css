@@ -1056,7 +1056,7 @@ button:not(:disabled),
 .add-to-cart-btn {
     flex-grow: 1;
     background-color: var(--dk-primary);
-    color: var(--dk-white);
+    color: var(--dk-accent);
     padding: 15px 30px;
     font-size: 1.1rem;
     font-weight: 600;
