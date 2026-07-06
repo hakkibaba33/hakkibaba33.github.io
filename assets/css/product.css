@@ -964,7 +964,6 @@ body:has(.custom-lightbox-overlay.active) {
     letter-spacing: 2px;          /* Harf aralıklarını açarak premium hava verme */
     color: var(--dk-text-light);  /* Genelde gri tonlarında bir renk */
     text-transform: uppercase;    /* Hepsini büyük harf yap */
-    margin-bottom: 8px;           /* Altındaki ürün ismiyle arasındaki boşluk */
 }
 
 /* 1. KAPSAYICIYI FLEX YAP (Bu şart) */
@@ -1031,7 +1030,7 @@ body:has(.custom-lightbox-overlay.active) {
 /* INKL. MOMS YAZISI */
 .tax-info-static {
     display: block;
-    font-size: 0.8rem;
+    font-size: 0.7rem;
     font-weight: 600;
     color: var(--dk-text-light);
     margin-top: 3px; /* Fiyat ile arasında 3px boşluk */
