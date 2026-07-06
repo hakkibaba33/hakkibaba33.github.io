@@ -660,7 +660,7 @@ body:has(.custom-lightbox-overlay.active) {
     justify-content: space-between; /* Fiyat sola, Trust sağa */
     align-items: flex-end;          /* İkisini alt çizgide hizalar */
     width: 100%;
-    margin-top: 15px;
+    margin-top: 5px;
     margin-bottom: 15px;
     position: relative;             /* Artık absolute içermez, akışa dahil */
 }
@@ -726,7 +726,7 @@ body:has(.custom-lightbox-overlay.active) {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-bottom: 12px;
+    margin-bottom: 5px;
 }
 
 /* Tooltip Kapsayıcı */
@@ -954,7 +954,7 @@ body:has(.custom-lightbox-overlay.active) {
     font-size: 1.4rem;
     font-weight: 700;
     margin-top: 25px; /* Tekrar silindi */
-    margin-bottom: 5px;
+    margin-bottom: 2px;
     line-height: 1.2;
 }
 
