@@ -20,8 +20,6 @@
     --dk-transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     --dk-font-heading: 'Playfair Display', Georgia, serif;
     --dk-font-body: 'Inter', -apple-system, sans-serif;
-    --header-top-height: 40px;
-    --header-main-height: 72px;
 }
 
 *, *::before, *::after {
