@@ -1,10 +1,11 @@
 // ==========================================
-// COMMON.JS - SUPABASE UYUMLU (v7.2 - RACE CONDITION FIX)
-// Badge'ler her zaman çalışacak - MutationObserver + Retry mekanizması
+// COMMON.JS - HYBRID AI CHAT + SUPABASE (v8.0)
+// Badge'ler her zaman calisacak - MutationObserver + Retry mekanizmasi
+// Hybrid AI Chat: Rule-based + AI API + Supabase Entegrasyonu
 // ==========================================
 
 // ==========================================
-// CACHE BUSTING (Sadece event listenerlar için)
+// CACHE BUSTING
 // ==========================================
 window.__commonListenersInitialized = false;
 
@@ -48,6 +49,25 @@ async function supabaseGetOne(endpoint, filter) {
     return data[0] || null;
 }
 
+async function supabasePost(endpoint, data) {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/' + endpoint, {
+        method: 'POST',
+        headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': 'Bearer ' + SUPABASE_KEY,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=representation'
+        },
+        body: JSON.stringify(data)
+    });
+    if (!res.ok) {
+        const errText = await res.text();
+        console.error('Supabase POST hata:', errText);
+        throw new Error('Supabase POST hatasi: ' + res.status);
+    }
+    return res.json();
+}
+
 // ==========================================
 // YARDIMCI: ID karsilastirma (int8/string uyumlu)
 // ==========================================
@@ -72,14 +92,14 @@ function saveCart(cart) {
     window.updateCartBadge();
 }
 
-// 🔥 GLOBAL: window'a ata, shadow edilmesin!
+// GLOBAL: window'a ata, shadow edilmesin!
 window.updateCartBadge = function() {
     const cart = getCart();
     const badges = document.querySelectorAll('.cart-count-badge');
 
     if (badges.length === 0) {
-        console.warn('[Badge] .cart-count-badge elementi henuz DOM\'da yok, retry...');
-        return false; // Retry gerekiyor
+        console.warn('[Badge] .cart-count-badge elementi henuz DOM'da yok, retry...');
+        return false;
     }
 
     const count = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
@@ -92,15 +112,15 @@ window.updateCartBadge = function() {
     return true;
 };
 
-// 🔥 GLOBAL: window'a ata, shadow edilmesin!
+// GLOBAL: window'a ata, shadow edilmesin!
 window.updateWishlistBadge = function() {
     try {
         const wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
         const badges = document.querySelectorAll('.wishlist-count-badge');
 
         if (badges.length === 0) {
-            console.warn('[Badge] .wishlist-count-badge elementi henuz DOM\'da yok, retry...');
-            return false; // Retry gerekiyor
+            console.warn('[Badge] .wishlist-count-badge elementi henuz DOM'da yok, retry...');
+            return false;
         }
 
         badges.forEach(badge => {
@@ -112,12 +132,12 @@ window.updateWishlistBadge = function() {
         return true;
     } catch (e) {
         console.error('[Badge] Wishlist badge hatasi:', e);
-        return true; // Hata durumunda retry yapma
+        return true;
     }
 };
 
 // ==========================================
-// 🔥 RACE CONDITION FIX: BADGE INIT SISTEMI
+// RACE CONDITION FIX: BADGE INIT SISTEMI
 // ==========================================
 
 window.__dkBadgeInitDone = false;
@@ -138,13 +158,12 @@ function initBadgesWithRetry(maxRetries = 20, interval = 100) {
 
         if (cartOk && wishOk) {
             window.__dkBadgeInitDone = true;
-            console.log('[Badge] ✅ Init basarili! Deneme:', attempts);
+            console.log('[Badge] Init basarili! Deneme:', attempts);
             return;
         }
 
         if (attempts >= maxRetries) {
-            console.warn('[Badge] ⚠️ Max retry asildi (' + maxRetries + '). Badge elementleri bulunamadi.');
-            console.warn('[Badge] HTML\'de .cart-count-badge ve .wishlist-count-badge elementleri var mi kontrol et!');
+            console.warn('[Badge] Max retry asildi (' + maxRetries + '). Badge elementleri bulunamadi.');
             return;
         }
 
@@ -156,15 +175,14 @@ function initBadgesWithRetry(maxRetries = 20, interval = 100) {
 }
 
 // ==========================================
-// 🔥 MUTATION OBSERVER: DOM degisikliklerini izle
+// MUTATION OBSERVER: DOM degisikliklerini izle
 // ==========================================
 
 function observeBadgeElements() {
     const observer = new MutationObserver((mutations) => {
-        // Badge elementleri yeni eklendiyse, badge'leri guncelle
         const hasNewBadges = mutations.some(mutation => {
             return Array.from(mutation.addedNodes).some(node => {
-                if (node.nodeType !== 1) return false; // Element degilse atla
+                if (node.nodeType !== 1) return false;
                 return node.querySelector && (
                     node.querySelector('.cart-count-badge') ||
                     node.querySelector('.wishlist-count-badge') ||
@@ -350,6 +368,7 @@ async function addSupabaseProductToCart(productId, variantSize) {
         alert('Urun sepete eklenirken bir hata olustu.');
     }
 }
+
 
 // ==========================================
 // SEARCH POPUP
@@ -537,6 +556,7 @@ function initHeaderScroll() {
     });
 }
 
+
 // ==========================================
 // EVENT LISTENERS - TEK BIR YERDE
 // ==========================================
@@ -642,6 +662,11 @@ function initEventListeners() {
             closeMiniCart();
             closeMobileMenu();
             closeSearchPopup();
+            // Chat widget close
+            const chatWindow = document.getElementById('dk-chat-window');
+            if (chatWindow && chatWindow.classList.contains('active')) {
+                closeChat();
+            }
         }
     });
 
@@ -672,7 +697,7 @@ function initEventListeners() {
             const catNames = {
                 'vardagsrum': 'Vardagsrum',
                 'sovrum': 'Sovrum',
-                'kok': 'Kök'
+                'kok': 'Kok'
             };
             crumbs.push({ name: catNames[cat] || cat, url: '#' });
         }
@@ -692,8 +717,688 @@ function initEventListeners() {
     html += '</ol>';
 
     nav.innerHTML = html;
-    console.log('✅ Breadcrumb oluşturuldu:', crumbs.map(c => c.name).join(' > '));
+    console.log('Breadcrumb olusturuldu:', crumbs.map(c => c.name).join(' > '));
 })();
+
+
+// ==========================================
+// HYBRID AI CHAT WIDGET v2.0
+// Supabase Entegrasyonlu | WhatsApp | Siparis Takibi | Urun Onerisi
+// ==========================================
+
+(function() {
+    'use strict';
+
+    // ===== KONFIGURATION =====
+    const CHAT_CONFIG = {
+        lang: 'sv',
+        botName: 'Dream Kilim Support',
+        // AI API (OpenAI/Claude - opsiyonel)
+        aiApiEndpoint: (typeof CONFIG !== 'undefined' && CONFIG.AI_API) ? CONFIG.AI_API.ENDPOINT : '',
+        aiApiKey: (typeof CONFIG !== 'undefined' && CONFIG.AI_API) ? CONFIG.AI_API.KEY : '',
+        aiModel: (typeof CONFIG !== 'undefined' && CONFIG.AI_API) ? CONFIG.AI_API.MODEL : 'gpt-3.5-turbo',
+        // WhatsApp
+        whatsappNumber: '+46701234567', // BURAYI KENDI NUMARANLA DEGISTIR
+        whatsappMessage: 'Hej! Jag behover hjalp med min bestallning fran Dream Kilim.',
+        // Supabase Tables
+        tables: {
+            orders: 'orders',
+            orderItems: 'order_items',
+            products: 'products',
+            chatHistory: 'chat_history',
+            chatTickets: 'chat_tickets'
+        },
+        maxHistory: 10,
+        typingDelay: 600,
+        responseDelay: 900,
+        enableSupabase: !!(SUPABASE_URL && SUPABASE_KEY)
+    };
+
+    const I18N = {
+        sv: {
+            welcome: "Hej! 👋 Valkommen till Dream Kilim. Jag ar din AI-assistent och kan hjalpa dig med fragor om vara mattor, gardiner, leveranser och bestallningar.",
+            placeholder: "Skriv ett meddelande...",
+            send: "Skicka",
+            close: "Stang",
+            online: "Online nu",
+            typing: "Skriver...",
+            footer: "AI-driven assistent • For bradskande arenden, kontakta oss direkt",
+            quickProducts: "Visa produkter",
+            quickOrder: "Spåra bestallning",
+            quickHuman: "Prata med manniska",
+            quickFaq: "Vanliga fragor",
+            error: "Ursakta, jag kunde inte bearbeta din forfragan just nu. Forsok igen eller kontakta var kundtjanst.",
+            humanTransfer: "Jag forstar att du vill prata med en manniska. Jag kopplar dig vidare till var kundtjanst...",
+            orderPrompt: "Ange ditt ordernummer (t.ex. DK-12345) eller e-postadress sa kan jag hjalpa dig att spara din bestallning.",
+            productPrompt: "Vad letar du efter? Jag kan hjalpa dig hitta mattor, gardiner eller ge inredningstips! Beskriv garna storlek, farg eller stil.",
+            faqPrompt: "Har ar nagra vanliga fragor:\n\n1. Leveranstid: 3-7 arbetsdagar\n2. Fri frakt over 1000 SEK\n3. 30 dagars oppet kop\n4. Betalning: Klarna, Visa, Mastercard\n\nVad undrar du over?",
+            orderFound: "Hittade din bestallning!\n\n**Ordernummer:** {orderNumber}\n**Status:** {status}\n**Beraknad leverans:** {deliveryDate}\n**Totalt:** {total} SEK\n\nVill du veta mer om en specifik produkt i bestallningen?",
+            orderNotFound: "Jag kunde inte hitta nagon bestallning med den informationen. Kontrollera ordernumret eller e-postadressen och forsok igen.\n\nDu kan aven kontakta oss:\n📧 info@dekorist.se",
+            productFound: "Hittade nagra produkter som kan passa dig:\n\n{products}\n\nVill du se fler eller filtrera pa nagot specifikt?",
+            noProductsFound: "Jag hittade tyvarr inga produkter som matchar din beskrivning just nu.\n\nBesok var katalog for att se hela utbudet:\nhttps://dekorist.se/category.html",
+            whatsappRedirect: "Perfekt! Jag oppnar WhatsApp sa du kan prata direkt med var kundtjanst.\n\nOm WhatsApp inte oppnas automatiskt, kan du na oss pa:\n📞 {number}",
+            ticketCreated: "Tack! Ditt arende har registrerats.\n\n**Arendenummer:** #{ticketId}\n\nVar kundtjanst kommer att kontakta dig inom 24 timmar. Du kan aven na oss via WhatsApp for snabbare hjalp.",
+            sizeHelp: "📏 **Storleksguide:**\n\n• 80x150 cm - Passar vid sangen eller i sma hallar\n• 120x170 cm - Perfekt for vardagsrummet\n• 160x230 cm - Standardstorlek for soffgruppen\n• 200x300 cm - Stort rum eller under matbordet\n• 300x400 cm - Stora vardagsrum\n\nVilken storlek letar du efter?"
+        },
+        en: {
+            welcome: "Hello! 👋 Welcome to Dream Kilim. I'm your AI assistant and can help you with questions about our rugs, curtains, deliveries, and orders.",
+            placeholder: "Type a message...",
+            send: "Send",
+            close: "Close",
+            online: "Online now",
+            typing: "Typing...",
+            footer: "AI-powered assistant • For urgent matters, contact us directly",
+            quickProducts: "Browse products",
+            quickOrder: "Track order",
+            quickHuman: "Talk to human",
+            quickFaq: "FAQ",
+            error: "Sorry, I couldn't process your request right now. Please try again or contact our customer service.",
+            humanTransfer: "I understand you'd like to speak with a human. I'm connecting you to our customer service...",
+            orderPrompt: "Please enter your order number (e.g. DK-12345) or email address so I can help you track your order.",
+            productPrompt: "What are you looking for? I can help you find rugs, curtains, or give interior design tips! Please describe size, color, or style.",
+            faqPrompt: "Here are some common questions:\n\n1. Delivery time: 3-7 business days\n2. Free shipping over 1000 SEK\n3. 30-day return policy\n4. Payment: Klarna, Visa, Mastercard\n\nWhat would you like to know?",
+            orderFound: "Found your order!\n\n**Order Number:** {orderNumber}\n**Status:** {status}\n**Estimated delivery:** {deliveryDate}\n**Total:** {total} SEK\n\nWould you like to know more about a specific product in your order?",
+            orderNotFound: "I couldn't find any order with that information. Please check the order number or email address and try again.\n\nYou can also contact us:\n📧 info@dekorist.se",
+            productFound: "Found some products that might suit you:\n\n{products}\n\nWould you like to see more or filter by something specific?",
+            noProductsFound: "Unfortunately, I couldn't find any products matching your description right now.\n\nVisit our catalog to see the full range:\nhttps://dekorist.se/category.html",
+            whatsappRedirect: "Perfect! I'm opening WhatsApp so you can talk directly to our customer service.\n\nIf WhatsApp doesn't open automatically, you can reach us at:\n📞 {number}",
+            ticketCreated: "Thank you! Your case has been registered.\n\n**Ticket Number:** #{ticketId}\n\nOur customer service will contact you within 24 hours. You can also reach us via WhatsApp for faster help.",
+            sizeHelp: "📏 **Size Guide:**\n\n• 80x150 cm - Fits by the bed or in small hallways\n• 120x170 cm - Perfect for the living room\n• 160x230 cm - Standard size for sofa groups\n• 200x300 cm - Large room or under dining table\n• 300x400 cm - Large living rooms\n\nWhat size are you looking for?"
+        }
+    };
+
+    // ===== STATE =====
+    let isOpen = false;
+    let messageHistory = [];
+    let currentLang = CHAT_CONFIG.lang;
+    let chatSessionId = localStorage.getItem('dk_chat_session') || generateSessionId();
+    let isAwaitingOrderNumber = false;
+    let isAwaitingProductQuery = false;
+    let lastContext = null;
+
+    function generateSessionId() {
+        const id = 'dk_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('dk_chat_session', id);
+        return id;
+    }
+
+    // ===== DOM ELEMENTS =====
+    let trigger, window_, closeBtn, langToggle, messagesContainer, input, sendBtn, typingIndicator, unreadBadge;
+
+    function getElements() {
+        trigger = document.getElementById('dk-chat-trigger');
+        window_ = document.getElementById('dk-chat-window');
+        closeBtn = document.getElementById('dk-chat-close');
+        langToggle = document.getElementById('dk-chat-lang-toggle');
+        messagesContainer = document.getElementById('dk-chat-messages');
+        input = document.getElementById('dk-chat-input');
+        sendBtn = document.getElementById('dk-chat-send');
+        typingIndicator = document.getElementById('dk-chat-typing');
+        unreadBadge = document.getElementById('dk-chat-unread');
+    }
+
+    // ===== EVENT LISTENERS =====
+    function initChatEvents() {
+        if (!trigger) return;
+
+        trigger.addEventListener('click', toggleChat);
+        if (closeBtn) closeBtn.addEventListener('click', closeChat);
+        if (langToggle) langToggle.addEventListener('click', toggleLanguage);
+        if (sendBtn) sendBtn.addEventListener('click', handleSend);
+        if (input) {
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSend();
+                }
+            });
+        }
+
+        // Quick action buttons
+        document.querySelectorAll('.dk-quick-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const action = e.target.closest('.dk-quick-btn').dataset.action;
+                handleQuickAction(action);
+            });
+        });
+    }
+
+    // ===== CHAT FUNCTIONS =====
+    function toggleChat() {
+        isOpen = !isOpen;
+        if (isOpen) {
+            window_.style.display = 'flex';
+            setTimeout(() => window_.classList.add('active'), 10);
+            if (unreadBadge) unreadBadge.style.display = 'none';
+            if (input) input.focus();
+            // Load chat history from Supabase
+            if (CHAT_CONFIG.enableSupabase) {
+                loadChatHistory();
+            }
+        } else {
+            window_.classList.remove('active');
+            setTimeout(() => window_.style.display = 'none', 300);
+        }
+    }
+
+    function closeChat() {
+        isOpen = false;
+        if (window_) {
+            window_.classList.remove('active');
+            setTimeout(() => window_.style.display = 'none', 300);
+        }
+    }
+
+    function toggleLanguage() {
+        currentLang = currentLang === 'sv' ? 'en' : 'sv';
+        if (langToggle) langToggle.textContent = currentLang.toUpperCase();
+
+        const t = I18N[currentLang];
+
+        if (input) input.placeholder = t.placeholder;
+
+        const footerP = document.querySelector('#dk-chat-window > div:last-child > p');
+        if (footerP) footerP.textContent = t.footer;
+
+        document.querySelectorAll('.dk-quick-btn').forEach(btn => {
+            const key = btn.dataset.action;
+            const textKey = 'quick' + key.charAt(0).toUpperCase() + key.slice(1);
+            if (t[textKey]) btn.textContent = t[textKey];
+        });
+
+        const welcomeMsg = messagesContainer.querySelector('.dk-message-bot p');
+        if (welcomeMsg) welcomeMsg.textContent = t.welcome;
+
+        // Update online status text
+        const statusText = document.querySelector('.chat-header-info span:last-child');
+        if (statusText) statusText.innerHTML = `<span class="chat-status-dot"></span> ${t.online}`;
+    }
+
+    function handleQuickAction(action) {
+        const t = I18N[currentLang];
+        let userText = '';
+        let botResponse = '';
+
+        switch(action) {
+            case 'products':
+                userText = t.quickProducts;
+                botResponse = t.productPrompt;
+                isAwaitingProductQuery = true;
+                isAwaitingOrderNumber = false;
+                lastContext = 'products';
+                break;
+            case 'order':
+                userText = t.quickOrder;
+                botResponse = t.orderPrompt;
+                isAwaitingOrderNumber = true;
+                isAwaitingProductQuery = false;
+                lastContext = 'order';
+                break;
+            case 'contact':
+                userText = t.quickHuman;
+                botResponse = t.humanTransfer;
+                // Open WhatsApp after delay
+                setTimeout(() => {
+                    openWhatsApp();
+                }, 1500);
+                break;
+            case 'faq':
+                userText = t.quickFaq;
+                botResponse = t.faqPrompt;
+                break;
+        }
+
+        if (userText) {
+            addMessage('user', userText);
+            showTyping();
+            setTimeout(() => {
+                hideTyping();
+                addMessage('bot', botResponse);
+            }, CHAT_CONFIG.responseDelay);
+        }
+    }
+
+    async function handleSend() {
+        if (!input) return;
+        const text = input.value.trim();
+        if (!text) return;
+
+        addMessage('user', text);
+        input.value = '';
+        showTyping();
+
+        // Save to Supabase
+        if (CHAT_CONFIG.enableSupabase) {
+            await saveChatMessage('user', text);
+        }
+
+        try {
+            const response = await processMessage(text);
+            hideTyping();
+            addMessage('bot', response);
+
+            if (CHAT_CONFIG.enableSupabase) {
+                await saveChatMessage('bot', response);
+            }
+        } catch (err) {
+            hideTyping();
+            const errorMsg = I18N[currentLang].error;
+            addMessage('bot', errorMsg);
+        }
+    }
+
+    async function processMessage(text) {
+        const lowerText = text.toLowerCase();
+        const t = I18N[currentLang];
+
+        // CONTEXT-AWARE RESPONSES
+
+        // If awaiting order number
+        if (isAwaitingOrderNumber) {
+            isAwaitingOrderNumber = false;
+            return await trackOrder(text);
+        }
+
+        // If awaiting product query
+        if (isAwaitingProductQuery) {
+            isAwaitingProductQuery = false;
+            return await recommendProducts(text);
+        }
+
+        // 1. RULE-BASED RESPONSES
+
+        // Human transfer
+        if (lowerText.includes('manniska') || lowerText.includes('human') || lowerText.includes('agent') || 
+            lowerText.includes('person') || lowerText.includes('kundtjanst') || lowerText.includes('support')) {
+            setTimeout(() => openWhatsApp(), 2000);
+            return t.humanTransfer + "\n\n📧 info@dekorist.se\n📞 " + CHAT_CONFIG.whatsappNumber;
+        }
+
+        // Order tracking
+        if (lowerText.includes('order') || lowerText.includes('bestallning') || lowerText.includes('spara') ||
+            lowerText.includes('leverans') || lowerText.match(/dk-\d+/i)) {
+            if (text.match(/dk-\d+/i) || text.includes('@')) {
+                return await trackOrder(text);
+            }
+            isAwaitingOrderNumber = true;
+            return t.orderPrompt;
+        }
+
+        // Delivery/Shipping
+        if (lowerText.includes('leverans') || lowerText.includes('delivery') || lowerText.includes('frakt') || 
+            lowerText.includes('shipping') || lowerText.includes('leveranstid')) {
+            return "🚚 **Leveransinformation:**\n\n• Standardleverans: 3-7 arbetsdagar\n• Expressleverans: 1-3 arbetsdagar (extra kostnad)\n• Fri frakt pa bestallningar over 1000 SEK\n• Vi levererar med PostNord, DHL och UPS\n\nVill du spara en specifik bestallning? Ange ditt ordernummer!";
+        }
+
+        // Returns
+        if (lowerText.includes('retur') || lowerText.includes('return') || lowerText.includes('aterbetalning') || 
+            lowerText.includes('refund') || lowerText.includes('oppet kop')) {
+            return "🔄 **Returpolicy:**\n\n• 30 dagars oppet kop\n• Produkten maste vara i originalskick\n• Kontakta oss for returfraktsedel\n• Aterbetalning inom 5-10 arbetsdagar efter mottagen retur\n\nLäs mer: https://dekorist.se/returratt/";
+        }
+
+        // Payment
+        if (lowerText.includes('betalning') || lowerText.includes('payment') || lowerText.includes('klarna') || 
+            lowerText.includes('pris') || lowerText.includes('price') || lowerText.includes('faktura')) {
+            return "💳 **Betalningsalternativ:**\n\n• Klarna - Betala nu, dela upp eller betala senare\n• Visa / Mastercard\n• Alla transaktioner ar krypterade och sakra\n\nHar du fragor om en specifik faktura?";
+        }
+
+        // Products - Rugs/Curtains
+        if (lowerText.includes('matta') || lowerText.includes('rug') || lowerText.includes('gardin') || 
+            lowerText.includes('curtain') || lowerText.includes('produkt') || lowerText.includes('sortiment')) {
+            isAwaitingProductQuery = true;
+            return t.productPrompt;
+        }
+
+        // Size help
+        if (lowerText.includes('storlek') || lowerText.includes('size') || lowerText.includes('dimension') ||
+            lowerText.includes('cm') || lowerText.includes('meter')) {
+            return t.sizeHelp;
+        }
+
+        // Contact/Hours
+        if (lowerText.includes('oppettid') || lowerText.includes('hour') || lowerText.includes('kontakt') || 
+            lowerText.includes('contact') || lowerText.includes('telefon') || lowerText.includes('email')) {
+            return "📞 **Kontaktuppgifter:**\n\n• E-post: info@dekorist.se\n• Telefon: " + CHAT_CONFIG.whatsappNumber + "\n• Oppettider: Man-Fre 09:00-17:00\n• Adress: Stockholm, Sverige\n\nDu kan aven na oss via WhatsApp for snabbast hjalp!";
+        }
+
+        // WhatsApp specific
+        if (lowerText.includes('whatsapp') || lowerText.includes('chat') || lowerText.includes('meddelande')) {
+            setTimeout(() => openWhatsApp(), 1000);
+            return t.whatsappRedirect.replace('{number}', CHAT_CONFIG.whatsappNumber);
+        }
+
+        // FAQ
+        if (lowerText.includes('faq') || lowerText.includes('fragor') || lowerText.includes('hjalp') ||
+            lowerText.includes('help')) {
+            return t.faqPrompt;
+        }
+
+        // 2. AI API FALLBACK (for complex questions)
+        if (CHAT_CONFIG.aiApiKey && CHAT_CONFIG.aiApiEndpoint) {
+            try {
+                return await callAIAPI(text);
+            } catch (e) {
+                console.error('AI API error:', e);
+            }
+        }
+
+        // 3. PRODUCT RECOMMENDATION FALLBACK
+        if (CHAT_CONFIG.enableSupabase) {
+            try {
+                return await recommendProducts(text);
+            } catch (e) {
+                console.error('Product recommendation error:', e);
+            }
+        }
+
+        // 4. DEFAULT FALLBACK - Create ticket
+        if (CHAT_CONFIG.enableSupabase) {
+            try {
+                const ticket = await createTicket(text);
+                return t.ticketCreated.replace('{ticketId}', ticket.id);
+            } catch (e) {
+                console.error('Ticket creation error:', e);
+            }
+        }
+
+        return "Tack for din fraga! 😊\n\nJag ar inte helt saker pa svaret just nu. Lat mig koppla dig till var kundtjanst som kan hjalpa dig battre.\n\n📧 info@dekorist.se\n📞 " + CHAT_CONFIG.whatsappNumber + "\n\nEller besok var FAQ: https://dekorist.se/returratt/";
+    }
+
+    // ===== SUPABASE INTEGRATIONS =====
+
+    async function trackOrder(query) {
+        if (!CHAT_CONFIG.enableSupabase) {
+            return "📦 For att spara din bestallning, kontakta oss:\n📧 info@dekorist.se\n📞 " + CHAT_CONFIG.whatsappNumber;
+        }
+
+        try {
+            let order = null;
+
+            // Try by order number
+            if (query.match(/dk-\d+/i)) {
+                const orders = await supabaseGet(CHAT_CONFIG.tables.orders, {
+                    order_number: 'eq.' + query.toUpperCase(),
+                    select: '*'
+                });
+                order = orders[0];
+            }
+
+            // Try by email
+            if (!order && query.includes('@')) {
+                const orders = await supabaseGet(CHAT_CONFIG.tables.orders, {
+                    email: 'eq.' + query,
+                    select: '*',
+                    order: 'created_at.desc',
+                    limit: '1'
+                });
+                order = orders[0];
+            }
+
+            if (order) {
+                const t = I18N[currentLang];
+                const statusMap = {
+                    'pending': 'Vantar pa betalning',
+                    'paid': 'Betalning mottagen',
+                    'processing': 'Behandlas',
+                    'shipped': 'Skickad',
+                    'delivered': 'Levererad',
+                    'cancelled': 'Avbruten'
+                };
+
+                return t.orderFound
+                    .replace('{orderNumber}', order.order_number)
+                    .replace('{status}', statusMap[order.status] || order.status)
+                    .replace('{deliveryDate}', order.estimated_delivery || '3-7 arbetsdagar')
+                    .replace('{total}', order.total_amount);
+            } else {
+                return I18N[currentLang].orderNotFound;
+            }
+        } catch (error) {
+            console.error('Order tracking error:', error);
+            return I18N[currentLang].error;
+        }
+    }
+
+    async function recommendProducts(query) {
+        if (!CHAT_CONFIG.enableSupabase) {
+            return "🛍️ Besok var katalog for att se hela utbudet:\nhttps://dekorist.se/category.html";
+        }
+
+        try {
+            const lowerQuery = query.toLowerCase();
+            let filters = { active: 'eq.true', limit: '5' };
+
+            // Parse query for filters
+            if (lowerQuery.includes('matta') || lowerQuery.includes('rug')) {
+                filters.category = 'ilike.*matta*';
+            } else if (lowerQuery.includes('gardin') || lowerQuery.includes('curtain')) {
+                filters.category = 'ilike.*gardin*';
+            }
+
+            // Size filter
+            const sizeMatch = query.match(/(\d+)\s*x\s*(\d+)/);
+            if (sizeMatch) {
+                filters.size = 'ilike.*' + sizeMatch[1] + '*';
+            }
+
+            // Color filter
+            const colors = ['rod', 'rod', 'blue', 'blå', 'green', 'gron', 'svart', 'black', 'vit', 'white', 'grå', 'gray', 'beige', 'brun', 'brown'];
+            const foundColor = colors.find(c => lowerQuery.includes(c));
+            if (foundColor) {
+                filters.color = 'ilike.*' + foundColor + '*';
+            }
+
+            const products = await supabaseGet(CHAT_CONFIG.tables.products, filters);
+
+            if (products && products.length > 0) {
+                const productList = products.map(p => {
+                    const price = p.discount_price || p.base_price || 0;
+                    return `• **${p.name}** - ${price.toLocaleString('sv-SE')} SEK\n  [Se produkt](https://dekorist.se/matta/${p.slug || p.id})`;
+                }).join('\n\n');
+
+                return I18N[currentLang].productFound.replace('{products}', productList);
+            } else {
+                return I18N[currentLang].noProductsFound;
+            }
+        } catch (error) {
+            console.error('Product recommendation error:', error);
+            return I18N[currentLang].noProductsFound;
+        }
+    }
+
+    async function createTicket(message) {
+        if (!CHAT_CONFIG.enableSupabase) return { id: 'N/A' };
+
+        try {
+            const ticket = await supabasePost(CHAT_CONFIG.tables.chatTickets, {
+                session_id: chatSessionId,
+                message: message,
+                status: 'open',
+                language: currentLang,
+                created_at: new Date().toISOString()
+            });
+            return ticket[0] || { id: Math.floor(Math.random() * 10000) };
+        } catch (error) {
+            console.error('Ticket creation error:', error);
+            return { id: Math.floor(Math.random() * 10000) };
+        }
+    }
+
+    async function saveChatMessage(role, content) {
+        if (!CHAT_CONFIG.enableSupabase) return;
+
+        try {
+            await supabasePost(CHAT_CONFIG.tables.chatHistory, {
+                session_id: chatSessionId,
+                role: role,
+                content: content,
+                language: currentLang,
+                created_at: new Date().toISOString()
+            });
+        } catch (error) {
+            console.error('Chat history save error:', error);
+        }
+    }
+
+    async function loadChatHistory() {
+        if (!CHAT_CONFIG.enableSupabase) return;
+
+        try {
+            const history = await supabaseGet(CHAT_CONFIG.tables.chatHistory, {
+                session_id: 'eq.' + chatSessionId,
+                order: 'created_at.asc',
+                limit: '20'
+            });
+
+            if (history && history.length > 0) {
+                // Clear current messages except welcome
+                const welcomeMsg = messagesContainer.querySelector('.dk-message-bot');
+                const quickActions = messagesContainer.querySelector('#dk-quick-actions');
+                messagesContainer.innerHTML = '';
+                if (welcomeMsg) messagesContainer.appendChild(welcomeMsg);
+                if (quickActions) messagesContainer.appendChild(quickActions);
+
+                // Load history
+                history.forEach(msg => {
+                    if (msg.role === 'user' || msg.role === 'bot') {
+                        addMessage(msg.role, msg.content, false);
+                    }
+                });
+            }
+        } catch (error) {
+            console.error('Chat history load error:', error);
+        }
+    }
+
+    async function callAIAPI(text) {
+        const response = await fetch(CHAT_CONFIG.aiApiEndpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + CHAT_CONFIG.aiApiKey
+            },
+            body: JSON.stringify({
+                model: CHAT_CONFIG.aiModel,
+                messages: [
+                    { 
+                        role: 'system', 
+                        content: 'You are a helpful customer service assistant for Dream Kilim (DKRug & Gardiner), a Swedish rug and curtain store. Answer in ' + (currentLang === 'sv' ? 'Swedish' : 'English') + '. Be concise, friendly, and helpful. If you cannot help with a specific order issue, suggest contacting info@dekorist.se or WhatsApp ' + CHAT_CONFIG.whatsappNumber + '. Keep responses under 150 words.' 
+                    },
+                    ...messageHistory.slice(-CHAT_CONFIG.maxHistory),
+                    { role: 'user', content: text }
+                ],
+                max_tokens: 250,
+                temperature: 0.7
+            })
+        });
+        const data = await response.json();
+        return data.choices[0].message.content;
+    }
+
+    // ===== WHATSAPP INTEGRATION =====
+    function openWhatsApp() {
+        const message = encodeURIComponent(CHAT_CONFIG.whatsappMessage);
+        const url = 'https://wa.me/' + CHAT_CONFIG.whatsappNumber.replace(/[^0-9]/g, '') + '?text=' + message;
+
+        // Try to open WhatsApp
+        const newWindow = window.open(url, '_blank');
+
+        // If popup blocked, show fallback
+        if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+            addMessage('bot', "📱 **WhatsApp:**\n\nKlicka pa lanken for att oppna WhatsApp:\nhttps://wa.me/" + CHAT_CONFIG.whatsappNumber.replace(/[^0-9]/g, '') + "\n\nEller skicka ett meddelande till: " + CHAT_CONFIG.whatsappNumber);
+        }
+    }
+
+    // ===== UI FUNCTIONS =====
+    function addMessage(sender, text, save = true) {
+        if (!messagesContainer) return;
+
+        const div = document.createElement('div');
+        div.className = 'dk-message dk-message-' + sender;
+        div.style.cssText = sender === 'user' 
+            ? 'display: flex; gap: 10px; max-width: 85%; align-self: flex-end; flex-direction: row-reverse; animation: dk-fadeIn 0.3s ease;'
+            : 'display: flex; gap: 10px; max-width: 85%; align-self: flex-start; animation: dk-fadeIn 0.3s ease;';
+
+        const avatar = sender === 'bot' 
+            ? '<div style="width: 32px; height: 32px; background: linear-gradient(135deg, #1a1a2e, #16213e); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 4px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>'
+            : '<div style="width: 32px; height: 32px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 4px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>';
+
+        const bubbleStyle = sender === 'user'
+            ? 'background: linear-gradient(135deg, #1a1a2e, #16213e); padding: 14px 18px; border-radius: 18px 18px 4px 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);'
+            : 'background: white; padding: 14px 18px; border-radius: 18px 18px 18px 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border: 1px solid rgba(0,0,0,0.06);';
+
+        const textColor = sender === 'user' ? 'color: white;' : 'color: #1a1a2e;';
+
+        div.innerHTML = avatar + '<div style="' + bubbleStyle + '"><p style="margin: 0; font-size: 14px; line-height: 1.6; ' + textColor + '">' + formatText(text) + '</p></div>';
+
+        messagesContainer.appendChild(div);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+        if (save) {
+            messageHistory.push({ role: sender === 'user' ? 'user' : 'assistant', content: text });
+            if (messageHistory.length > CHAT_CONFIG.maxHistory) {
+                messageHistory = messageHistory.slice(-CHAT_CONFIG.maxHistory);
+            }
+        }
+    }
+
+    function formatText(text) {
+        return text
+            .replace(/\*\*(.*?)\*\*/g, '<strong style="font-weight: 600;">$1</strong>')
+            .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" style="color: inherit; text-decoration: underline;">$1</a>')
+            .replace(/\n/g, '<br>');
+    }
+
+    function showTyping() {
+        if (typingIndicator) typingIndicator.style.display = 'block';
+        if (messagesContainer) messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    function hideTyping() {
+        if (typingIndicator) typingIndicator.style.display = 'none';
+    }
+
+    // ===== INIT =====
+    function init() {
+        // Wait for DOM
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initChat);
+        } else {
+            initChat();
+        }
+    }
+
+    function initChat() {
+        getElements();
+        if (!trigger) {
+            console.warn('[DK Chat] Trigger element not found, retrying...');
+            setTimeout(initChat, 500);
+            return;
+        }
+        initChatEvents();
+        console.log('[DK Chat] Hybrid AI Chat v2.0 initialized | Supabase: ' + (CHAT_CONFIG.enableSupabase ? 'AKTIF' : 'PASIF') + ' | Lang: ' + currentLang);
+
+        // Show unread badge after 5 seconds
+        setTimeout(() => {
+            if (!isOpen && unreadBadge) {
+                unreadBadge.style.display = 'flex';
+            }
+        }, 5000);
+    }
+
+    // Add CSS animation
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes dk-fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    `;
+    document.head.appendChild(style);
+
+    init();
+})();
+
 
 // ==========================================
 // OTOMATIK BASLATMA - RACE CONDITION FIX
@@ -711,6 +1416,9 @@ function initAll() {
     // 3. MutationObserver (DOM degisikliklerini izle)
     observeBadgeElements();
 
+    // 4. Hybrid AI Chat (otomatik init icinde kendi init fonksiyonu var)
+    // Chat widget IIFE olarak calisir, kendi init'ini kendisi yapar
+
     console.log('[Init] common.js initAll tamamlandi.');
 }
 
@@ -718,7 +1426,6 @@ function initAll() {
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initAll);
 } else {
-    // DOM zaten yuklenmis, hemen baslat
     initAll();
 }
 
@@ -731,729 +1438,4 @@ window.addEventListener('load', () => {
     }
 });
 
-console.log('common.js v7.2 yuklendi - Race Condition Fix aktif');
-
-
-
-
-
-// ==========================================
-// DKRUG CHATBOT - API'siz + Supabase Entegre
-// v1.0 - info@dekorist.se | +46763016775
-// ==========================================
-
-(function() {
-    'use strict';
-    
-    // ==========================================
-    // KONFIGURASYON
-    // ==========================================
-    
-    const CONFIG = {
-        email: 'info@dekorist.se',
-        phone: '+46763016775',
-        phoneDisplay: '076-301 67 75',
-        workHours: 'vardagar 9-17',
-        freeShippingThreshold: 500,
-        deliveryDays: '3-7 arbetsdagar',
-        returnDays: 30,
-        maxMessages: 50  // Bellek temizliği için
-    };
-    
-    // ==========================================
-    // SUPABASE BAGLANTISI (Mevcut config.js'den)
-    // ==========================================
-    
-    const SUPABASE_URL = (typeof window.CONFIG !== 'undefined' && window.CONFIG.SUPABASE) 
-        ? window.CONFIG.SUPABASE.URL 
-        : '';
-    const SUPABASE_KEY = (typeof window.CONFIG !== 'undefined' && window.CONFIG.SUPABASE) 
-        ? window.CONFIG.SUPABASE.ANON_KEY 
-        : '';
-    
-    // ==========================================
-    // URUN VERISI CACHE
-    // ==========================================
-    
-    let productsCache = [];
-    let categoriesCache = [];
-    let isProductsLoaded = false;
-    
-    async function loadProducts() {
-        if (!SUPABASE_URL || !SUPABASE_KEY) {
-            console.warn('[Chatbot] Supabase config bulunamadi');
-            return;
-        }
-        
-        try {
-            const res = await fetch(`${SUPABASE_URL}/rest/v1/products?select=*&active=eq.true`, {
-                headers: {
-                    'apikey': SUPABASE_KEY,
-                    'Authorization': `Bearer ${SUPABASE_KEY}`
-                }
-            });
-            
-            if (!res.ok) throw new Error('Supabase hatasi');
-            
-            productsCache = await res.json();
-            categoriesCache = [...new Set(productsCache.map(p => p.category).filter(Boolean))];
-            isProductsLoaded = true;
-            
-            console.log(`[Chatbot] ${productsCache.length} urun yuklendi`);
-            
-        } catch (err) {
-            console.error('[Chatbot] Urun yukleme hatasi:', err);
-        }
-    }
-    
-    // Sayfa yuklenince urunleri cek
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', loadProducts);
-    } else {
-        loadProducts();
-    }
-    
-    // ==========================================
-    // CHATBOT MOTORU
-    // ==========================================
-    
-    const ChatEngine = {
-        // Anahtar kelime -> Niyet eslestirmesi
-        patterns: {
-            // Selamlasma
-            'hej|hallå|tjena|merhaba|hey|hi|hello': 'greeting',
-            
-            // Urun arama
-            'matta|kilim|halı|rug|carpet|vardagsrum|sovrum|kok|persisk|orientalisk|modern': 'product_search',
-            
-            // Fiyat
-            'pris|kostar|hur mycket|fiyat|price|billig|dyr': 'price',
-            
-            // Stok
-            'lager|finns|stock|tilgänglig|slut|var finns': 'stock',
-            
-            // Olcu/Size
-            'storlek|ölçü|size|dimension|cm|meter|bredd|längd|200x300|160x230': 'size',
-            
-            // Malzeme
-            'material|ull|bomull|silke|skötsel|tvätt|rengöring|wool|cotton|silk': 'material',
-            
-            // Kargo/Teslimat
-            'leverans|frakt|kargo|shipping|när kommer|leveranstid|fri frakt': 'shipping',
-            
-            // Iade/Degisim
-            'retur|iade|return|ångra|byta|öppet köp|ångerrätt': 'return',
-            
-            // Odeme
-            'betal|payment|faktura|klarna|swish|kort|visa|mastercard': 'payment',
-            
-            // Iletisim
-            'kontakt|telefon|mail|support|människa|ringa|maila|reach': 'contact',
-            
-            // Magaza/Hakkimizda
-            'butik|magaza|om oss|hakkimizda|företag|dream kilim|dekorist': 'about',
-            
-            // Kampanya/Indirim
-            'rea|rabatt|kampanj|indirim|erbjudande|outlet': 'campaign'
-        },
-        
-        // Kullanici mesajini analiz et
-        analyze(message) {
-            const lower = message.toLowerCase().trim();
-            
-            // Direkt eslesme
-            for (const [pattern, intent] of Object.entries(this.patterns)) {
-                const regex = new RegExp(pattern, 'i');
-                if (regex.test(lower)) return { intent, query: lower };
-            }
-            
-            // Urun ismi mi? (Supabase'den kontrol)
-            if (isProductsLoaded) {
-                const matchedProduct = this.findProduct(lower);
-                if (matchedProduct) {
-                    return { intent: 'product_detail', product: matchedProduct };
-                }
-            }
-            
-            return { intent: 'unknown', query: lower };
-        },
-        
-        // Urun ara
-        findProduct(query) {
-            return productsCache.find(p => {
-                const name = (p.name || '').toLowerCase();
-                const slug = (p.slug || '').toLowerCase();
-                const category = (p.category || '').toLowerCase();
-                const desc = (p.description || '').toLowerCase();
-                
-                return name.includes(query) || 
-                       slug.includes(query) || 
-                       category.includes(query) ||
-                       desc.includes(query);
-            });
-        },
-        
-        // Kategoriye gore urun bul
-        findByCategory(category) {
-            return productsCache.filter(p => {
-                const cat = (p.category || '').toLowerCase();
-                return cat.includes(category.toLowerCase());
-            });
-        },
-        
-        // Fiyat araligina gore urun bul
-        findByPrice(maxPrice) {
-            return productsCache.filter(p => {
-                const price = p.discount_price || p.base_price || 0;
-                return price <= maxPrice;
-            }).sort((a, b) => (a.discount_price || a.base_price) - (b.discount_price || b.base_price));
-        }
-    };
-    
-    // ==========================================
-    // YANIT GENERATORU
-    // ==========================================
-    
-    const ResponseBuilder = {
-        
-        greeting() {
-            return `
-                <strong>Hej! 👋 Välkommen till Dream Kilim!</strong><br><br>
-                Jag kan hjälpa dig med:<br>
-                • 🔍 <em>Hitta mattor</em> (skriv t.ex. "vardagsrum" eller "persisk")<br>
-                • 📏 <em>Storlekar och mått</em><br>
-                • 🚚 <em>Leverans och returer</em><br>
-                • 💰 <em>Priser och betalning</em><br><br>
-                <em style="font-size:12px;opacity:0.7;">Vad letar du efter?</em>
-            `;
-        },
-        
-        product_search(data) {
-            if (!isProductsLoaded) {
-                return 'Ursäkt, produktdatabasen laddar fortfarande. Försök igen om en stund!';
-            }
-            
-            const query = data.query;
-            let results = [];
-            
-            // Kategori ara
-            const categoryMatches = ChatEngine.findByCategory(query);
-            if (categoryMatches.length > 0) results = categoryMatches;
-            
-            // Isim ara
-            if (results.length === 0) {
-                results = productsCache.filter(p => {
-                    const name = (p.name || '').toLowerCase();
-                    return name.includes(query) || query.includes(name);
-                });
-            }
-            
-            if (results.length === 0) {
-                return `
-                    Jag hittade inga mattor som matchar "<em>${query}</em>".<br><br>
-                    Prova med: <em>vardagsrum</em>, <em>sovrum</em>, <em>persisk</em>, <em>modern</em><br>
-                    Eller se alla våra mattor <a href="/category.html" style="color:var(--dk-accent);">här →</a>
-                `;
-            }
-            
-            // En fazla 5 urun goster
-            const display = results.slice(0, 5);
-            const hasMore = results.length > 5;
-            
-            return `
-                <strong>Hittade ${results.length} mattor:</strong><br><br>
-                ${display.map(p => {
-                    const price = (p.discount_price || p.base_price || 0).toLocaleString('sv-SE');
-                    const img = p.images && p.images[0] ? p.images[0] : '';
-                    return `
-                        <div style="display:flex;gap:10px;margin-bottom:10px;align-items:center;">
-                            ${img ? `<img src="${img}" style="width:50px;height:67px;object-fit:cover;border-radius:4px;">` : ''}
-                            <div>
-                                <a href="/matta/${p.slug}" style="color:var(--dk-accent);font-weight:600;">${p.name}</a><br>
-                                <span style="font-size:13px;">${price} SEK</span>
-                                ${p.discount_price && p.base_price ? `<span style="font-size:12px;text-decoration:line-through;opacity:0.6;margin-left:5px;">${p.base_price.toLocaleString('sv-SE')} SEK</span>` : ''}
-                            </div>
-                        </div>
-                    `;
-                }).join('')}
-                ${hasMore ? `<br><em>...och ${results.length - 5} till. <a href="/category.html" style="color:var(--dk-accent);">Se alla →</a></em>` : ''}
-            `;
-        },
-        
-        product_detail(data) {
-            const p = data.product;
-            const price = (p.discount_price || p.base_price || 0).toLocaleString('sv-SE');
-            const oldPrice = p.base_price && p.discount_price ? p.base_price.toLocaleString('sv-SE') : null;
-            const img = p.images && p.images[0] ? p.images[0] : '';
-            const variants = p.variants || [];
-            const sizes = variants.map(v => v.size).join(', ') || 'Standard';
-            const inStock = variants.some(v => v.stock > 0);
-            
-            return `
-                <div style="display:flex;gap:12px;margin-bottom:12px;">
-                    ${img ? `<img src="${img}" style="width:80px;height:107px;object-fit:cover;border-radius:8px;border:1px solid var(--dk-border);">` : ''}
-                    <div>
-                        <strong style="font-size:15px;">${p.name}</strong><br>
-                        <span style="font-size:18px;font-weight:700;color:var(--dk-accent);">${price} SEK</span>
-                        ${oldPrice ? `<span style="font-size:14px;text-decoration:line-through;opacity:0.6;margin-left:8px;">${oldPrice} SEK</span>` : ''}<br>
-                        <span style="font-size:13px;color:var(--dk-text-light);">${p.category || ''}</span>
-                    </div>
-                </div>
-                <div style="background:var(--dk-secondary);padding:10px 14px;border-radius:8px;margin:10px 0;">
-                    <strong>Storlekar:</strong> ${sizes}<br>
-                    <strong>Lagerstatus:</strong> ${inStock ? '✅ I lager' : '❌ Slut i lager'}<br>
-                    <strong>Leverans:</strong> ${CONFIG.deliveryDays}
-                </div>
-                ${p.description ? `<p style="font-size:13px;line-height:1.5;margin:10px 0;">${p.description.substring(0, 150)}${p.description.length > 150 ? '...' : ''}</p>` : ''}
-                <a href="/matta/${p.slug}" style="display:inline-block;background:var(--dk-accent);color:#fff;padding:8px 16px;border-radius:6px;text-decoration:none;font-weight:600;margin-top:5px;">Se produkt →</a>
-            `;
-        },
-        
-        price() {
-            if (!isProductsLoaded || productsCache.length === 0) {
-                return `
-                    Våra mattor varierar beroende på storlek, material och ursprung:<br><br>
-                    • <strong>Små mattor</strong> (80x150 cm): från 1 500 SEK<br>
-                    • <strong>Medel</strong> (160x230 cm): från 3 500 SEK<br>
-                    • <strong>Stora</strong> (200x300 cm): från 5 500 SEK<br>
-                    • <strong>Persiska/Orientaliska</strong>: från 8 000 SEK<br><br>
-                    <em>🎁 Fri frakt vid köp över ${CONFIG.freeShippingThreshold} SEK!</em><br>
-                    <a href="/category.html" style="color:var(--dk-accent);">Se alla priser →</a>
-                `;
-            }
-            
-            // Gercek fiyat araligini goster
-            const prices = productsCache.map(p => p.discount_price || p.base_price || 0).filter(p => p > 0);
-            const minPrice = Math.min(...prices);
-            const maxPrice = Math.max(...prices);
-            const avgPrice = Math.round(prices.reduce((a, b) => a + b, 0) / prices.length);
-            
-            // En ucuz 3 urun
-            const cheapest = [...productsCache]
-                .sort((a, b) => (a.discount_price || a.base_price) - (b.discount_price || b.base_price))
-                .slice(0, 3);
-            
-            return `
-                <strong>Vårt prisspann:</strong><br>
-                <div style="font-size:24px;font-weight:700;color:var(--dk-accent);margin:10px 0;">
-                    ${minPrice.toLocaleString('sv-SE')} – ${maxPrice.toLocaleString('sv-SE')} SEK
-                </div>
-                <em>Genomsnittligt pris: ${avgPrice.toLocaleString('sv-SE')} SEK</em><br><br>
-                
-                <strong>Bästa erbjudanden just nu:</strong><br>
-                ${cheapest.map(p => `
-                    • <a href="/matta/${p.slug}" style="color:var(--dk-accent);">${p.name}</a> — 
-                    <strong>${(p.discount_price || p.base_price).toLocaleString('sv-SE')} SEK</strong>
-                    ${p.discount_price ? `<span style="text-decoration:line-through;opacity:0.6;font-size:12px;">${p.base_price.toLocaleString('sv-SE')}</span>` : ''}
-                `).join('<br>')}<br><br>
-                
-                <em>🎁 Fri frakt över ${CONFIG.freeShippingThreshold} SEK!</em>
-            `;
-        },
-        
-        stock() {
-            if (!isProductsLoaded) {
-                return 'Lagerstatus uppdateras... Försök igen om en stund!';
-            }
-            
-            const inStock = productsCache.filter(p => {
-                const variants = p.variants || [];
-                return variants.some(v => v.stock > 0);
-            });
-            
-            const lowStock = productsCache.filter(p => {
-                const variants = p.variants || [];
-                return variants.some(v => v.stock > 0 && v.stock <= 3);
-            });
-            
-            return `
-                <strong>Lagerstatus:</strong><br>
-                • <strong>${inStock.length}</strong> mattor finns i lager<br>
-                • <strong>${lowStock.length}</strong> produkter är lågt i lager (högst 3 kvar)<br><br>
-                
-                ${lowStock.length > 0 ? `
-                    <strong>⚡ Sista chansen:</strong><br>
-                    ${lowStock.slice(0, 3).map(p => `
-                        • <a href="/matta/${p.slug}" style="color:var(--dk-accent);">${p.name}</a>
-                    `).join('<br>')}
-                    <br><br>
-                ` : ''}
-                
-                <em>Vill du se en specifik matta? Skriv namnet!</em>
-            `;
-        },
-        
-        size() {
-            return `
-                <strong>Vanliga mattstorlekar:</strong><br><br>
-                
-                <div style="background:var(--dk-secondary);padding:12px;border-radius:8px;margin:8px 0;">
-                    <strong>🛋️ Vardagsrum</strong><br>
-                    • 200×300 cm (soffgrupp)<br>
-                    • 160×230 cm (mindre rum)<br>
-                    • 300×400 cm (stora rum)
-                </div>
-                
-                <div style="background:var(--dk-secondary);padding:12px;border-radius:8px;margin:8px 0;">
-                    <strong>🛏️ Sovrum</strong><br>
-                    • 80×150 cm (sängkant)<br>
-                    • 120×170 cm (under sängen)
-                </div>
-                
-                <div style="background:var(--dk-secondary);padding:12px;border-radius:8px;margin:8px 0;">
-                    <strong>🍽️ Kök/Matplats</strong><br>
-                    • 80×200 cm (löpare)<br>
-                    • 140×200 cm (matbord)
-                </div>
-                
-                <br><em>💡 Tips: Mät ditt rum och lägg till 20 cm på varje sida om möjligt!</em><br>
-                <em>Vill du ha hjälp att välja storlek? Beskriv ditt rum!</em>
-            `;
-        },
-        
-        material() {
-            return `
-                <strong>Våra material:</strong><br><br>
-                
-                <strong>🐑 Ull</strong><br>
-                • Varmt, hållbart, naturligt smutsavvisande<br>
-                • Idealiskt för: Vardagsrum, sovrum<br><br>
-                
-                <strong>🌿 Bomull</strong><br>
-                • Mjukt, lättskött, maskintvättbart<br>
-                • Idealiskt för: Kök, barnrum<br><br>
-                
-                <strong>✨ Silke/Bambu</strong><br>
-                • Lyxigt skimmer, svalt, allergivänligt<br>
-                • Idealiskt för: Sovrum, gästrum<br><br>
-                
-                <strong>🧵 Syntet</strong><br>
-                • Budgetvänligt, färgstarkt, lättskött<br>
-                • Idealiskt för: Uterum, hemmakontor<br><br>
-                
-                <em>🧼 Skötselråd: Dammsug regelbundet, tvätta vid fläckar, undvik direkt solljus.</em>
-            `;
-        },
-        
-        shipping() {
-            return `
-                <strong>🚚 Leveransinformation:</strong><br><br>
-                
-                <div style="background:var(--dk-secondary);padding:14px;border-radius:8px;">
-                    <strong>Fri frakt</strong> vid köp över <strong>${CONFIG.freeShippingThreshold} SEK</strong> 🎁<br>
-                    Under ${CONFIG.freeShippingThreshold} SEK: 79 SEK i frakt
-                </div><br>
-                
-                <strong>Leveranstid:</strong> ${CONFIG.deliveryDays}<br>
-                <strong>Leveransalternativ:</strong><br>
-                • Hemleverans till dörren<br>
-                • Ombud (närmaste utlämningsställe)<br><br>
-                
-                <strong>Spåra din beställning:</strong><br>
-                Du får ett spårningsnummer via e-post när din matta skickas.<br><br>
-                
-                <em>📦 Alla mattor rullas professionellt för att undvika veck.</em>
-            `;
-        },
-        
-        return() {
-            return `
-                <strong>🔄 Retur & Byte:</strong><br><br>
-                
-                <div style="background:#e8f5e9;padding:14px;border-radius:8px;border-left:4px solid #4caf50;">
-                    <strong>${CONFIG.returnDays} dagars öppet köp</strong> ✅<br>
-                    Helt nöjd eller pengarna tillbaka!
-                </div><br>
-                
-                <strong>Så här returnerar du:</strong><br>
-                1. Kontakta oss på <a href="mailto:${CONFIG.email}" style="color:var(--dk-accent);">${CONFIG.email}</a><br>
-                2. Vi skickar en retursedel<br>
-                3. Packa mattan i originalförpackning<br>
-                4. Lämna på närmaste ombud<br><br>
-                
-                <strong>Observera:</strong><br>
-                • Mattan måste vara oanvänd och i originalskick<br>
-                • Specialbeställningar (måttanpassade) kan ej returneras<br>
-                • Returfrakt betalas av köparen (om inte felexpedierat)<br><br>
-                
-                <em>Har du frågor? Vi hjälper dig gärna! 😊</em>
-            `;
-        },
-        
-        payment() {
-            return `
-                <strong>💳 Betalningsalternativ:</strong><br><br>
-                
-                <div style="display:flex;flex-direction:column;gap:10px;">
-                    <div style="display:flex;align-items:center;gap:10px;">
-                        <span style="font-size:24px;">💸</span>
-                        <div><strong>Swish</strong> — Direktbetalning, snabbast</div>
-                    </div>
-                    <div style="display:flex;align-items:center;gap:10px;">
-                        <span style="font-size:24px;">💳</span>
-                        <div><strong>Kortbetalning</strong> — Visa, Mastercard, Maestro</div>
-                    </div>
-                    <div style="display:flex;align-items:center;gap:10px;">
-                        <span style="font-size:24px;">📋</span>
-                        <div><strong>Faktura</strong> — Via Klarna (14 eller 30 dagar)</div>
-                    </div>
-                    <div style="display:flex;align-items:center;gap:10px;">
-                        <span style="font-size:24px;">📅</span>
-                        <div><strong>Delbetalning</strong> — Klarna, 3-36 månader</div>
-                    </div>
-                </div><br>
-                
-                <em>🔒 Alla betalningar är säkra och krypterade med SSL.</em>
-            `;
-        },
-        
-        contact() {
-            return `
-                <strong>📞 Kontakta oss:</strong><br><br>
-                
-                <div style="background:var(--dk-secondary);padding:16px;border-radius:8px;">
-                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-                        <span style="font-size:20px;">📧</span>
-                        <div>
-                            <strong>E-post</strong><br>
-                            <a href="mailto:${CONFIG.email}" style="color:var(--dk-accent);font-size:15px;">${CONFIG.email}</a>
-                        </div>
-                    </div>
-                    
-                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-                        <span style="font-size:20px;">📱</span>
-                        <div>
-                            <strong>Telefon/SMS</strong><br>
-                            <a href="tel:${CONFIG.phone}" style="color:var(--dk-accent);font-size:15px;">${CONFIG.phoneDisplay}</a>
-                        </div>
-                    </div>
-                    
-                    <div style="display:flex;align-items:center;gap:10px;">
-                        <span style="font-size:20px;">🕐</span>
-                        <div>
-                            <strong>Öppettider</strong><br>
-                            ${CONFIG.workHours}
-                        </div>
-                    </div>
-                </div><br>
-                
-                <em>Vi svarar vanligtvis inom 2 timmar under öppettider!</em><br>
-                <em>För brådskande ärenden, ring oss gärna.</em>
-            `;
-        },
-        
-        about() {
-            return `
-                <strong>🏛️ Om Dream Kilim (Dekorist)</strong><br><br>
-                
-                Vi är en svensk familjeägd mattbutik med rötter i Anatolien. Sedan 2015 förmedlar vi handknutna och vävda mattor direkt från producenterna till ditt hem.<br><br>
-                
-                <strong>Vår filosofi:</strong><br>
-                • Äkta hantverk till rimliga priser<br>
-                • Rättvis handel med vävare<br>
-                • Hållbart sortiment<br>
-                • Personlig service<br><br>
-                
-                <strong>Vårt lager:</strong> Stockholm<br>
-                <strong>Frakt:</em> Hela Sverige<br><br>
-                
-                <em>"Varje matta har en historia. Vi hjälper dig hitta din."</em> 🧡
-            `;
-        },
-        
-        campaign() {
-            // Aktif kampanyalari Supabase'den cek
-            const onSale = productsCache.filter(p => p.discount_price && p.base_price && p.discount_price < p.base_price);
-            
-            if (onSale.length === 0) {
-                return `
-                    <strong>Just nu har vi inga aktiva kampanjer.</strong><br><br>
-                    Men missa inte våra <a href="/category.html" style="color:var(--dk-accent);">bästsäljare</a>!<br><br>
-                    <em>🎁 Tips: Anmäl dig till vårt nyhetsbrev för exklusiva erbjudanden.</em>
-                `;
-            }
-            
-            const bestDeals = onSale
-                .sort((a, b) => ((b.base_price - b.discount_price) / b.base_price) - ((a.base_price - a.discount_price) / a.base_price))
-                .slice(0, 3);
-            
-            return `
-                <strong>🔥 Aktuella erbjudanden:</strong><br><br>
-                ${bestDeals.map(p => {
-                    const discount = Math.round(((p.base_price - p.discount_price) / p.base_price) * 100);
-                    return `
-                        <div style="background:#fff3e0;padding:12px;border-radius:8px;margin-bottom:10px;border-left:4px solid #ff9800;">
-                            <a href="/matta/${p.slug}" style="color:var(--dk-accent);font-weight:600;">${p.name}</a><br>
-                            <span style="font-size:20px;font-weight:700;">${p.discount_price.toLocaleString('sv-SE')} SEK</span>
-                            <span style="text-decoration:line-through;opacity:0.6;margin-left:8px;">${p.base_price.toLocaleString('sv-SE')} SEK</span>
-                            <span style="background:#ff9800;color:#fff;padding:2px 8px;border-radius:4px;font-size:12px;margin-left:8px;">-${discount}%</span>
-                        </div>
-                    `;
-                }).join('')}<br>
-                
-                <a href="/category.html" style="color:var(--dk-accent);">Se alla reamattor →</a>
-            `;
-        },
-        
-        unknown() {
-            return `
-                <em>Ursäkt, jag förstod inte riktigt. 😅</em><br><br>
-                
-                Jag kan hjälpa dig med:<br>
-                • 🏠 <em>Hitta mattor</em> — skriv t.ex. "vardagsrum" eller "persisk"<br>
-                • 📏 <em>Storleksguide</em><br>
-                • 🚚 <em>Leveransinfo</em><br>
-                • 💰 <em>Priser</em><br>
-                • 📞 <em>Kontakta oss</em><br><br>
-                
-                <strong>Eller nå oss direkt:</strong><br>
-                📧 <a href="mailto:${CONFIG.email}" style="color:var(--dk-accent);">${CONFIG.email}</a><br>
-                📱 <a href="tel:${CONFIG.phone}" style="color:var(--dk-accent);">${CONFIG.phoneDisplay}</a>
-            `;
-        }
-    };
-    
-    // ==========================================
-    // CHAT Arayuzu
-    // ==========================================
-    
-    const ChatUI = {
-        trigger: null,
-        window: null,
-        messages: null,
-        input: null,
-        typing: null,
-        isOpen: false,
-        messageCount: 0,
-        
-        init() {
-            this.trigger = document.getElementById('chat-trigger');
-            this.window = document.getElementById('chat-window');
-            this.messages = document.getElementById('chat-messages');
-            this.input = document.getElementById('chat-input');
-            this.typing = document.getElementById('chat-typing');
-            
-            if (!this.trigger || !this.window) {
-                console.warn('[Chatbot] HTML elementleri bulunamadi');
-                return;
-            }
-            
-            // Event listeners
-            this.trigger.addEventListener('click', () => this.toggle());
-            document.getElementById('close-chat')?.addEventListener('click', () => this.close());
-            document.getElementById('send-chat')?.addEventListener('click', () => this.send());
-            this.input?.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') this.send();
-            });
-            
-            // ESC ile kapat
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape' && this.isOpen) this.close();
-            });
-            
-            console.log('[Chatbot] Hazir!');
-        },
-        
-        toggle() {
-            this.isOpen = !this.isOpen;
-            this.window.classList.toggle('active', this.isOpen);
-            this.trigger.classList.toggle('hidden', this.isOpen);
-            if (this.isOpen) {
-                this.input?.focus();
-                // İlk acilista mesaj yoksa selam ver
-                if (this.messageCount === 0) {
-                    this.addBotMessage(ResponseBuilder.greeting());
-                }
-            }
-        },
-        
-        close() {
-            this.isOpen = false;
-            this.window.classList.remove('active');
-            this.trigger.classList.remove('hidden');
-        },
-        
-        async send() {
-            const text = this.input?.value.trim();
-            if (!text) return;
-            
-            // Kullanici mesaji
-            this.addUserMessage(text);
-            this.input.value = '';
-            
-            // Bellek temizligi
-            this.messageCount++;
-            if (this.messageCount > CONFIG.maxMessages) {
-                this.clearOldMessages();
-            }
-            
-            // AI "yaziyor" animasyonu
-            this.showTyping(true);
-            
-            // Yanit olustur (kucuk gecikme ile dogal his)
-            await new Promise(r => setTimeout(r, 600 + Math.random() * 800));
-            
-            const analysis = ChatEngine.analyze(text);
-            let response;
-            
-            if (analysis.intent === 'product_detail' && analysis.product) {
-                response = ResponseBuilder.product_detail(analysis);
-            } else if (ResponseBuilder[analysis.intent]) {
-                response = ResponseBuilder[analysis.intent](analysis);
-            } else {
-                response = ResponseBuilder.unknown();
-            }
-            
-            this.showTyping(false);
-            this.addBotMessage(response);
-        },
-        
-        addUserMessage(text) {
-            const div = document.createElement('div');
-            div.className = 'user-msg';
-            div.textContent = text;
-            this.messages.appendChild(div);
-            this.scrollToBottom();
-        },
-        
-        addBotMessage(html) {
-            const div = document.createElement('div');
-            div.className = 'bot-msg';
-            div.innerHTML = html;
-            this.messages.appendChild(div);
-            this.scrollToBottom();
-        },
-        
-        showTyping(show) {
-            if (this.typing) {
-                this.typing.style.display = show ? 'flex' : 'none';
-                if (show) this.scrollToBottom();
-            }
-        },
-        
-        scrollToBottom() {
-            if (this.messages) {
-                this.messages.scrollTop = this.messages.scrollHeight;
-            }
-        },
-        
-        clearOldMessages() {
-            // Son 20 mesaji tut
-            const allMsgs = this.messages.querySelectorAll('.bot-msg, .user-msg');
-            if (allMsgs.length > 20) {
-                for (let i = 0; i < allMsgs.length - 20; i++) {
-                    allMsgs[i].remove();
-                }
-            }
-            this.messageCount = 20;
-        }
-    };
-    
-    // Baslat
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => ChatUI.init());
-    } else {
-        ChatUI.init();
-    }
-    
-})();
+console.log('common.js v8.0 yuklendi - Hybrid AI Chat + Supabase Entegrasyonu aktif');
