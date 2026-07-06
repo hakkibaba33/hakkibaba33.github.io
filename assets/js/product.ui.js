@@ -158,8 +158,16 @@ if (window.__productPageInitialized) {
             // Varyasyonlar
             currentVariants = f.Variants;
             if (currentVariants.length > 0) {
+                // Fiyata gore sirala (en dusuk fiyat once)
+                currentVariants.sort(function(a, b) {
+                    var priceA = a.discount_price || a.price || 999999;
+                    var priceB = b.discount_price || b.price || 999999;
+                    return priceA - priceB;
+                });
                 setupVariantAccordion();
                 renderVariantDrawer();
+                // Baslangicta en kucuk fiyatli varyanti otomatik sec
+                selectVariant(0);
             } else {
                 const el = document.getElementById('variant-accordion-wrapper');
                 if (el) el.style.display = 'none';
@@ -667,22 +675,25 @@ if (window.__productPageInitialized) {
     // ==========================================
 
     function setupSizeTooltip(sizeTooltip, variants) {
-        const tooltipContainer = document.getElementById('tooltip-container');
-        const tooltipBody = document.getElementById('tooltip-body');
+        var tooltipContainer = document.getElementById('tooltip-container');
+        var tooltipBody = document.getElementById('tooltip-body');
 
         if (!tooltipContainer || !tooltipBody) return;
 
-        let tooltipContent = '';
+        var tooltipContent = '';
 
         if (sizeTooltip && sizeTooltip.trim()) {
+            // Admin'den girilmis icerik
             tooltipContent = sizeTooltip.split('\n').join('<br>');
+        } else if (variants && variants.length > 0) {
+            // Varyant olculerini listele
             tooltipContent = '<strong>Tillgängliga storlekar:</strong><br><br>';
-            variants.forEach(v => {
-                const stockText = v.stock > 0 ? `(${v.stock} st i lager)` : '(Slut i lager)';
-                const priceText = v.discount_price && v.discount_price < v.price 
-                    ? `<span style="text-decoration:line-through;color:#999;">${v.price} SEK</span> <span style="color:#e54d42;">${v.discount_price} SEK</span>`
-                    : `${v.price} SEK`;
-                tooltipContent += `• <strong>${v.size}</strong> — ${priceText} ${stockText}<br>`;
+            variants.forEach(function(v) {
+                var stockText = v.stock > 0 ? '(' + v.stock + ' st i lager)' : '(Slut i lager)';
+                var priceText = v.discount_price && v.discount_price < v.price 
+                    ? '<span style="text-decoration:line-through;color:#999;">' + v.price + ' SEK</span> <span style="color:#e54d42;">' + v.discount_price + ' SEK</span>'
+                    : v.price + ' SEK';
+                tooltipContent += '• <strong>' + v.size + '</strong> — ' + priceText + ' ' + stockText + '<br>';
             });
         } else {
             tooltipContent = 'Storleksinformation kommer snart.';
@@ -691,29 +702,34 @@ if (window.__productPageInitialized) {
         tooltipBody.innerHTML = tooltipContent;
         tooltipContainer.style.display = 'inline-block';
 
-        const toggleSpan = tooltipContainer.querySelector('.tooltip-toggle-span');
-        const popup = tooltipContainer.querySelector('.tooltip-popup-box');
-        const closeBtn = tooltipContainer.querySelector('.tooltip-close-btn');
+        var toggleSpan = tooltipContainer.querySelector('.tooltip-toggle-span');
+        var popup = tooltipContainer.querySelector('.tooltip-popup-box');
+        var closeBtn = tooltipContainer.querySelector('.tooltip-close-btn');
 
         if (toggleSpan && popup) {
-            toggleSpan.addEventListener('click', (e) => {
+            // Onceki event listener'lari temizlemek icin klonla
+            var newToggleSpan = toggleSpan.cloneNode(true);
+            toggleSpan.parentNode.replaceChild(newToggleSpan, toggleSpan);
+
+            newToggleSpan.addEventListener('click', function(e) {
+                e.preventDefault();
                 e.stopPropagation();
-                popup.classList.toggle('active');
+                var isVisible = popup.style.display === 'block';
+                popup.style.display = isVisible ? 'none' : 'block';
+                popup.classList.toggle('active', !isVisible);
             });
         }
 
         if (closeBtn && popup) {
-            closeBtn.addEventListener('click', (e) => {
+            var newCloseBtn = closeBtn.cloneNode(true);
+            closeBtn.parentNode.replaceChild(newCloseBtn, closeBtn);
+            newCloseBtn.addEventListener('click', function(e) {
+                e.preventDefault();
                 e.stopPropagation();
+                popup.style.display = 'none';
                 popup.classList.remove('active');
             });
         }
-
-        document.addEventListener('click', (e) => {
-            if (popup && !tooltipContainer.contains(e.target)) {
-                popup.classList.remove('active');
-            }
-        });
     }
 
     // ==========================================
