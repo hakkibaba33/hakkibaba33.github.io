@@ -672,7 +672,10 @@ function initEventListeners() {
     });
 
     // --- Init search ---
+    document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM hazir, search init ediliyor...');
     initSearch();
+});
 
     console.log('Tum event listenerlar basariyla baglandi!');
 }
