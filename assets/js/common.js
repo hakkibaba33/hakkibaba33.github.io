@@ -731,4 +731,8 @@ window.addEventListener('load', () => {
     }
 });
 
+<<<<<<< HEAD
 console.log('common.js v7.2 yuklendi - Race Condition Fix aktif');
+=======
+console.log('common.js v7.2 yuklendi - Race Condition Fix aktif');
+>>>>>>> a9d3bbbdf3d0e5560a2e395df84bf193e832e1ce
