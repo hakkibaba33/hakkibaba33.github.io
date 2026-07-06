@@ -78,6 +78,8 @@
     --dk-border: #e8e4df;
     --dk-radius: 12px;
     --dk-radius-sm: 8px;
+    --header-top-height: 40px; 
+    --header-main-height: 80px;
     --dk-shadow: 0 4px 24px rgba(0,0,0,0.08);
     --dk-shadow-lg: 0 12px 48px rgba(0,0,0,0.12);
     --dk-transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
