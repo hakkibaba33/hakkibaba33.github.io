@@ -1065,6 +1065,7 @@ button:not(:disabled),
 }
 .add-to-cart-btn:hover {
     background-color: var(--dk-accent);
+    color: var(--dk-primary);
     transform: translateY(-1px);
     box-shadow: var(--dk-shadow-lg);
 }
