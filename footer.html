@@ -120,7 +120,6 @@
         </div>
     </div>
 
-    <!-- Chat Balonu -->
 <div class="chat-trigger" id="chat-trigger">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
@@ -130,15 +129,35 @@
 <!-- Chat Penceresi -->
 <div class="chat-window" id="chat-window">
     <div class="chat-header">
-        <span>DKRug Destek AI</span>
-        <button id="close-chat">✕</button>
+        <div class="chat-header-info">
+            <span class="chat-status-dot"></span>
+            <span>DKRug Destek</span>
+        </div>
+        <button id="close-chat" aria-label="Kapat">✕</button>
     </div>
     <div class="chat-messages" id="chat-messages">
-        <p class="bot-msg">Hej! Hur kan jag hjälpa dig med våra mattor idag?</p>
+        <div class="bot-msg">
+            <strong>Hej! 👋</strong><br>
+            Jag är din AI-assistent. Jag kan hjälpa dig med:
+            <ul style="margin:8px 0;padding-left:16px;">
+                <li>Produktfrågor</li>
+                <li>Storleksguide</li>
+                <li>Leveransinfo</li>
+            </ul>
+            <em style="font-size:12px;opacity:0.7;">För komplexa ärenden kopplas du till en människa.</em>
+        </div>
+    </div>
+    <div class="chat-typing" id="chat-typing" style="display:none;">
+        <span></span><span></span><span></span>
     </div>
     <div class="chat-input">
-        <input type="text" id="chat-input" placeholder="Skriv ett meddelande...">
-        <button id="send-chat">Skicka</button>
+        <input type="text" id="chat-input" placeholder="Skriv ett meddelande..." maxlength="500">
+        <button id="send-chat" aria-label="Skicka">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
+        </button>
     </div>
 </div>
 
