@@ -966,66 +966,46 @@ body:has(.custom-lightbox-overlay.active) {
     text-transform: uppercase;    /* Hepsini büyük harf yap */
 }
 
-/* 1. KAPSAYICIYI FLEX YAP (Bu şart) */
+
+
+
+/* Fiyat kapsayıcı genel ayarı */
 #product-price {
-    display: flex !important;
-    flex-direction: row !important;
-    align-items: baseline !important;
-    gap: 5px !important;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    transition: opacity 0.3s ease;
 }
 
-/* 2. İNDİRİMLİ FİYAT (Kırmızı ve En Başta) */
-#product-price .sale-price {
-    order: 1 !important; /* En küçük numara = En baş */
-    font-size: 1.4rem !important;
-    font-weight: 700 !important;
-    color: var(--dk-accent) !important;
+/* Tüm fiyat etiketleri için ortak özellikler */
+.price-tag {
+    font-size: 1.4rem;
+    font-weight: 600;
+    letter-spacing: -0.5px;
 }
 
-/* 3. İNDİRİM OLMAYAN NORMAL FİYAT (Siyah ve En Başta) */
-#product-price .regular-price {
-    font-size: 1.4rem !important;
-    font-weight: 700 !important;
-    color: var(--dk-primary) !important;
+/* İndirimli fiyat */
+.sale-price {
+    color: var(--dk-accent);
 }
 
-/* 4. ESKİ FİYAT (Gri ve İndirimli Fiyatın Sağında) */
-#product-price .old-price {
-    order: 2 !important; /* 1'den büyük olduğu için sağa geçer */
-    font-size: 1.4rem !important;
-    color: var(--dk-text-light) !important;
-    font-weight: 600 !important;
-    text-decoration: line-through !important;
-    margin-left: 5px !important; /* Hafif bir boşluk */
+/* Normal fiyat */
+.regular-price {
+    color: var(--dk-primary);
 }
 
-#product-price .sale-price, 
-#product-price .regular-price {
-    /* Font weight 600, sistem fontlarında 'Semi-Bold' durur, tam kıvamındadır */
-    font-weight: 600 !important;
-    /* Harfleri çok hafif yaklaştırarak (sıkıştırarak) o premium havayı veriyoruz */
-    letter-spacing: -0.8px !important;
+/* Eski fiyat */
+.old-price {
+    color: var(--dk-text-light);
+    text-decoration: line-through;
+    font-size: 1.2rem;
+    font-weight: 500;
 }
 
-/* Sayfa açıldığında fiyat alanı tamamen gizli kalsın */
-#product-price.not-loaded {
-    opacity: 0 !important;
-    visibility: hidden !important;
-}
+/* Yükleme durumu */
+.hidden { opacity: 0; visibility: hidden; }
 
-/* JS hazır olduğunda yumuşak bir geçişle görünsün */
-#product-price.loaded {
-    opacity: 1 !important;
-    visibility: visible !important;
-    transition: opacity 0.3s ease-in-out;
-}
 
-.product-price-display {
-    display: flex !important;
-    flex-direction: column !important; /* Üst üste binmelerini sağlar */
-    align-items: flex-start !important; /* Sola yaslar */
-    min-height: 50px; /* Zıplamayı önlemek için alan rezerve et */
-}
 
 /* INKL. MOMS YAZISI */
 .tax-info-static {
@@ -1085,7 +1065,7 @@ body:has(.custom-lightbox-overlay.active) {
     padding: 15px 30px;
     font-size: 1.1rem;
     font-weight: 600;
-    border-radius: 4px;
+    border-radius: 2px;
     transition: background-color 0.2s;
 }
 .add-to-cart-btn:hover {
