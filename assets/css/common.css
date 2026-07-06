@@ -1,3 +1,66 @@
+/* Chat Balonu */
+.chat-trigger {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 60px;
+    height: 60px;
+    background-color: var(--dk-accent);
+    color: var(--dk-primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: var(--dk-shadow-lg);
+    z-index: 1000;
+    transition: var(--dk-transition);
+}
+
+/* Chat Penceresi */
+.chat-window {
+    position: fixed;
+    bottom: 100px;
+    right: 20px;
+    width: 350px;
+    height: 500px;
+    background: var(--dk-white);
+    border: 1px solid var(--dk-border);
+    border-radius: var(--dk-radius);
+    box-shadow: var(--dk-shadow-lg);
+    display: none; /* Başlangıçta gizli */
+    flex-direction: column;
+    z-index: 1000;
+}
+
+.chat-header {
+    padding: 15px;
+    background: var(--dk-primary);
+    color: var(--dk-accent);
+    border-radius: var(--dk-radius) var(--dk-radius) 0 0;
+    display: flex;
+    justify-content: space-between;
+    font-weight: bold;
+}
+
+.chat-messages { flex: 1; padding: 15px; overflow-y: auto; }
+.bot-msg { background: var(--dk-secondary); padding: 10px; border-radius: var(--dk-radius-sm); margin-bottom: 10px; }
+
+.chat-input { padding: 10px; display: flex; border-top: 1px solid var(--dk-border); }
+.chat-input input { flex: 1; padding: 8px; border: 1px solid var(--dk-border); border-radius: 4px; }
+.chat-input button { background: var(--dk-accent); border: none; padding: 8px 15px; border-radius: 4px; margin-left: 5px; cursor: pointer; }
+
+
+
+
+
+
+
+
+
+
+
+
 /* ============================================
    DKRUG MODERN COMMON STYLES
    Tertemiz, düzenli ve çalışan versiyon
