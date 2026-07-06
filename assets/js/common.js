@@ -378,26 +378,41 @@ let searchDebounceTimer = null;
 let allProductsCache = [];
 
 function initSearch() {
-    const input = document.getElementById('live-search-input');
+    const searchInput = document.getElementById('live-search-input');
     const resultsDisplay = document.getElementById('search-results-display');
 
-    if (!input) {
+    if (!searchInput) {
         console.warn('Search input bulunamadi!');
         return;
     }
 
-    input.addEventListener('input', (e) => {
-        const query = e.target.value.trim();
-        clearTimeout(searchDebounceTimer);
+    // 1. Yazarken arama (Real-time filter)
+    let debounceTimer;
+    searchInput.addEventListener('input', function() {
+        const query = this.value.trim();
+        clearTimeout(debounceTimer);
 
         if (query.length < 2) {
             if (resultsDisplay) resultsDisplay.style.display = 'none';
             return;
         }
 
-        searchDebounceTimer = setTimeout(() => {
-            performSearch(query);
+        debounceTimer = setTimeout(() => {
+            // Burası senin SUPABASE tabanlı arama fonksiyonun
+            performSearch(query); 
         }, 300);
+    });
+
+    // 2. Enter tuşuna basınca yönlendirme
+    searchInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const query = searchInput.value.trim();
+            if (query) {
+                // Eğer ürün bulunamadıysa veya ana sayfaya gitmek istersen:
+                window.location.href = '/category.html?search=' + encodeURIComponent(query);
+            }
+        }
     });
 }
 
