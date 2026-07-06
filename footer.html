@@ -120,103 +120,36 @@
         </div>
     </div>
 
-<div id="dk-chat-widget-container" style="position: fixed; bottom: 24px; right: 24px; z-index: 9999; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-
-  <!-- Chat Trigger Button -->
-  <button id="dk-chat-trigger" aria-label="Oppna chatt" style="width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 32px rgba(0,0,0,0.3); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden;">
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+<!-- Chat Balonu -->
+<div class="chat-trigger" id="chat-trigger">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
     </svg>
-    <span id="dk-chat-unread" style="position: absolute; top: -2px; right: -2px; width: 18px; height: 18px; background: #e63946; color: white; border-radius: 50%; font-size: 11px; font-weight: 700; display: none; align-items: center; justify-content: center; border: 2px solid white;">1</span>
-  </button>
+</div>
 
-  <!-- Chat Window -->
-  <div id="dk-chat-window" style="position: absolute; bottom: 80px; right: 0; width: 420px; max-width: calc(100vw - 32px); height: 580px; max-height: calc(100vh - 120px); background: #ffffff; border-radius: 20px; box-shadow: 0 25px 80px rgba(0,0,0,0.2); display: none; flex-direction: column; overflow: hidden; border: 1px solid rgba(0,0,0,0.08); transform-origin: bottom right; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;">
-
-    <!-- Header -->
-    <div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 20px 24px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;">
-      <div style="display: flex; align-items: center; gap: 12px;">
-        <div style="width: 40px; height: 40px; background: rgba(255,255,255,0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; position: relative;">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-          </svg>
-          <span style="position: absolute; bottom: 2px; right: 2px; width: 10px; height: 10px; background: #4ade80; border-radius: 50%; border: 2px solid #1a1a2e;"></span>
+<!-- Chat Penceresi -->
+<div class="chat-window" id="chat-window">
+    <div class="chat-header">
+        <div class="chat-header-info">
+            <span class="chat-status-dot"></span>
+            <span>Dream Kilim Destek</span>
         </div>
-        <div>
-          <h3 style="color: white; margin: 0; font-size: 16px; font-weight: 600;">Dream Kilim Support</h3>
-          <p class="chat-header-info" style="color: rgba(255,255,255,0.7); margin: 2px 0 0; font-size: 12px; display: flex; align-items: center; gap: 4px;">
-            <span class="chat-status-dot" style="width: 6px; height: 6px; background: #4ade80; border-radius: 50%; display: inline-block;"></span>
-            <span>Online nu</span>
-          </p>
-        </div>
-      </div>
-      <div style="display: flex; gap: 8px; align-items: center;">
-        <button id="dk-chat-lang-toggle" style="background: rgba(255,255,255,0.1); border: none; color: rgba(255,255,255,0.8); padding: 6px 10px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 500; transition: all 0.2s;">SV</button>
-        <button id="dk-chat-close" aria-label="Stang chatt" style="background: rgba(255,255,255,0.1); border: none; color: white; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
-        </button>
-      </div>
+        <button id="close-chat" aria-label="Kapat">✕</button>
     </div>
-
-    <!-- Messages Area -->
-    <div id="dk-chat-messages" style="flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 16px; background: #f8f9fa; scroll-behavior: smooth;">
-      <!-- Welcome Message -->
-      <div class="dk-message dk-message-bot" style="display: flex; gap: 10px; max-width: 85%; align-self: flex-start;">
-        <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #1a1a2e, #16213e); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 4px;">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-        </div>
-        <div style="background: white; padding: 14px 18px; border-radius: 18px 18px 18px 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border: 1px solid rgba(0,0,0,0.06);">
-          <p style="margin: 0; color: #1a1a2e; font-size: 14px; line-height: 1.6;">Hej! 👋 Valkommen till Dream Kilim. Jag ar din AI-assistent och kan hjalpa dig med fragor om vara mattor, gardiner, leveranser och bestallningar.</p>
-        </div>
-      </div>
-
-      <!-- Quick Actions -->
-      <div id="dk-quick-actions" style="display: flex; flex-wrap: wrap; gap: 8px; margin-left: 42px;">
-        <button class="dk-quick-btn" data-action="products" style="background: white; border: 1px solid #e2e8f0; padding: 10px 16px; border-radius: 20px; font-size: 13px; color: #1a1a2e; cursor: pointer; transition: all 0.2s; font-weight: 500; display: flex; align-items: center; gap: 6px;">
-          <span>🛍️</span> Visa produkter
-        </button>
-        <button class="dk-quick-btn" data-action="order" style="background: white; border: 1px solid #e2e8f0; padding: 10px 16px; border-radius: 20px; font-size: 13px; color: #1a1a2e; cursor: pointer; transition: all 0.2s; font-weight: 500; display: flex; align-items: center; gap: 6px;">
-          <span>📦</span> Spåra bestallning
-        </button>
-        <button class="dk-quick-btn" data-action="contact" style="background: white; border: 1px solid #e2e8f0; padding: 10px 16px; border-radius: 20px; font-size: 13px; color: #1a1a2e; cursor: pointer; transition: all 0.2s; font-weight: 500; display: flex; align-items: center; gap: 6px;">
-          <span>💬</span> Prata med manniska
-        </button>
-        <button class="dk-quick-btn" data-action="faq" style="background: white; border: 1px solid #e2e8f0; padding: 10px 16px; border-radius: 20px; font-size: 13px; color: #1a1a2e; cursor: pointer; transition: all 0.2s; font-weight: 500; display: flex; align-items: center; gap: 6px;">
-          <span>❓</span> Vanliga fragor
-        </button>
-      </div>
+    <div class="chat-messages" id="chat-messages"></div>
+    <div class="chat-typing" id="chat-typing" style="display:none;">
+        <span></span><span></span><span></span>
     </div>
-
-    <!-- Typing Indicator -->
-    <div id="dk-chat-typing" style="display: none; padding: 0 20px 12px; background: #f8f9fa;">
-      <div style="display: flex; gap: 10px; align-items: center;">
-        <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #1a1a2e, #16213e); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-        </div>
-        <div style="background: white; padding: 12px 18px; border-radius: 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); display: flex; gap: 4px; align-items: center;">
-          <span style="width: 8px; height: 8px; background: #cbd5e1; border-radius: 50%; animation: dk-bounce 1.4s infinite ease-in-out both;"></span>
-          <span style="width: 8px; height: 8px; background: #cbd5e1; border-radius: 50%; animation: dk-bounce 1.4s infinite ease-in-out both; animation-delay: 0.16s;"></span>
-          <span style="width: 8px; height: 8px; background: #cbd5e1; border-radius: 50%; animation: dk-bounce 1.4s infinite ease-in-out both; animation-delay: 0.32s;"></span>
-        </div>
-      </div>
+    <div class="chat-input">
+        <input type="text" id="chat-input" placeholder="Skriv ett meddelande..." maxlength="500">
+        <button id="send-chat" aria-label="Skicka">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
+        </button>
     </div>
-
-    <!-- Input Area -->
-    <div style="padding: 16px 20px; background: white; border-top: 1px solid #e2e8f0; display: flex; gap: 10px; align-items: center; flex-shrink: 0;">
-      <input id="dk-chat-input" type="text" placeholder="Skriv ett meddelande..." maxlength="500" style="flex: 1; border: 1px solid #e2e8f0; border-radius: 24px; padding: 12px 18px; font-size: 14px; outline: none; transition: all 0.2s; background: #f8f9fa;">
-      <button id="dk-chat-send" aria-label="Skicka" style="width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, #1a1a2e, #16213e); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; flex-shrink: 0;">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="22" y1="2" x2="11" y2="13"></line>
-          <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-        </svg>
-      </button>
-    </div>
-
-    <!-- Footer Note -->
-    <div style="padding: 10px 20px; background: white; text-align: center; border-top: 1px solid #f1f5f9; flex-shrink: 0;">
-      <p style="margin: 0; font-size: 11px; color: #94a3b8;">🤖 AI-driven assistent • For bradskande arenden, kontakta oss direkt</p>
-    </div>
-  </div>
+</div>
 
 
 
