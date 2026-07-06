@@ -322,6 +322,26 @@ body:has(.custom-lightbox-overlay.active) {
     z-index: 100;
 }
 
+/* ESKİ */
+.lightbox-image-wrapper.zoomed {
+    cursor: grab;
+    transform: scale(2);
+}
+
+/* YENİ - transform JS kontrol edecek */
+.lightbox-image-wrapper.zoomed {
+    cursor: grab;
+    /* transform: scale(2); KALDIRILDI - JS kontrol ediyor */
+    will-change: transform;
+}
+
+.lightbox-image-wrapper {
+    transition: transform 0.3s ease;
+    transform-origin: center center;
+    will-change: transform;
+}
+
+
 @keyframes hintFade {
     0% { opacity: 0; transform: translateX(-50%) translateY(10px); }
     20% { opacity: 1; transform: translateX(-50%) translateY(0); }
