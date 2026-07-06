@@ -91,21 +91,32 @@ button:not(:disabled),
     left: 0;
     width: 100%;
     height: 100%;
-    background: var(--dk-white)fff;
+    background: var(--dk-white);
     z-index: 999999;
     display: none;
     align-items: center;
     justify-content: center;
+    /* 🔥 YENİ: Kendi stacking context'i oluştur */
+    isolation: isolate;
+    /* 🔥 YENİ: Transform ile stacking context güçlendir */
+    transform: translateZ(0);
 }
 
 .custom-lightbox-overlay.active {
     display: flex;
 }
 
+/* 🔥 YENİ: Lightbox açıkken body scroll engelle */
+body:has(.custom-lightbox-overlay.active) {
+    overflow: hidden;
+}
+
 .lightbox-desktop-layout {
     display: flex;
     width: 100%;
     height: 100%;
+    position: relative;
+    z-index: 1;
 }
 
 .lightbox-thumbnail-sidebar {
@@ -118,6 +129,8 @@ button:not(:disabled),
     padding: 20px 10px;
     overflow-y: auto;
     overflow-x: hidden;
+    position: relative;
+    z-index: 2;
 }
 
 .lightbox-thumbnail-sidebar::-webkit-scrollbar {
@@ -176,6 +189,7 @@ button:not(:disabled),
     align-items: center;
     justify-content: center;
     overflow: hidden;
+    z-index: 2;
 }
 
 .lightbox-close-btn {
@@ -193,9 +207,11 @@ button:not(:disabled),
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 10;
+    z-index: 100;
     transition: var(--dk-transition);
     box-shadow: var(--dk-shadow);
+    /* 🔥 YENİ: Tıklanabilirliği garantile */
+    pointer-events: auto;
 }
 
 .lightbox-close-btn:hover {
@@ -214,6 +230,7 @@ button:not(:disabled),
     overflow: hidden;
     cursor: zoom-in;
     position: relative;
+    z-index: 1;
 }
 
 .lightbox-image-wrapper {
@@ -249,7 +266,9 @@ button:not(:disabled),
     display: flex;
     align-items: center;
     gap: 20px;
-    z-index: 10;
+    z-index: 100;
+    /* 🔥 YENİ: Tıklanabilirliği garantile */
+    pointer-events: auto;
 }
 
 .lightbox-nav-btn {
@@ -300,7 +319,7 @@ button:not(:disabled),
     pointer-events: none;
     opacity: 0;
     animation: hintFade 3s ease forwards;
-    z-index: 5;
+    z-index: 100;
 }
 
 @keyframes hintFade {
@@ -319,6 +338,7 @@ button:not(:disabled),
     width: 100%;
     overflow: hidden;
     display: none; /* Masaüstünde gizli */
+    /* z-index kaldırıldı */
 }
 
 .mobile-gallery-track {
@@ -389,7 +409,7 @@ button:not(:disabled),
     margin-top: 25px;
     border: 1px solid var(--dk-border);
     border-radius: var(--dk-radius-sm);
-    background: var(--dk-white)fff;
+    background: var(--dk-white);
     overflow: hidden;
 }
 
@@ -439,7 +459,7 @@ button:not(:disabled),
     max-height: 0;
     overflow: hidden;
     transition: max-height 0.4s cubic-bezier(0, 1, 0, 1);
-    background: var(--dk-white)fff;
+    background: var(--dk-white);
 }
 
 .product-accordion-item.active .product-accordion-content {
@@ -904,8 +924,7 @@ button:not(:disabled),
     height: fit-content !important;
     align-self: flex-start !important; 
     
-    /* Eğer bir z-index çakışması varsa diye */
-    z-index: 10;
+    /* z-index kaldırıldı - stacking context sorunu yaratıyordu */
 }
 
 /* 1. ÜRÜN İSMİ */
@@ -937,7 +956,7 @@ button:not(:disabled),
 #product-price .regular-price {
     font-size: 1.4rem !important;
     font-weight: 700 !important;
-    color: var(--dk-primary)000 !important;
+    color: var(--dk-primary) !important;
 }
 
 /* 4. ESKİ FİYAT (Gri ve İndirimli Fiyatın Sağında) */
@@ -1084,7 +1103,7 @@ button:not(:disabled),
 }
 
 .variant-accordion-header:active {
-    background: var(--dk-border)eee;
+    background: var(--dk-border);
 }
 
 .variant-accordion-header .accordion-left {
@@ -1502,7 +1521,7 @@ body.drawer-open {
 
 .product-page .add-to-cart-btn {
     background-color: var(--dk-primary) !important;
-    color: var(--dk-white)fff !important;
+    color: var(--dk-white) !important;
     border: none !important;
 }
 
@@ -1560,7 +1579,7 @@ body.drawer-open {
 }
 
 /* Akordiyonun içindeki küçük resim */
-var(--dk-border)ordion-variant-thumb {
+#accordion-variant-thumb {
     width: 30px;         /* Genişlik */
     height: 42px;        /* Yükseklik (Halı formatı için ideal) */
     object-fit: cover;
@@ -1585,12 +1604,12 @@ var(--dk-border)ordion-variant-thumb {
     width: 100%;
     border: 1px solid var(--dk-primary) !important;
     padding: 5px 20px;
-    background-color: var(--dk-white)fff !important;
+    background-color: var(--dk-white) !important;
     transition: all 0.2s ease !important;
 }
 
 .variant-selector:hover {
-    box-shadow: 0 0 0 1px var(--dk-primary)000 !important;
+    box-shadow: 0 0 0 1px var(--dk-primary) !important;
 }
 
 /* ==================================================== */
@@ -1649,7 +1668,7 @@ var(--dk-border)ordion-variant-thumb {
         padding: 20px !important; 
         width: 100%;
         max-width: 100%;
-        background-color: var(--dk-white)fff;
+        background-color: var(--dk-white);
         
         /* 🔥 MOBİLDE STICKY'Yİ İPTAL ETMEK VE SIFIRLAMAK KRİTİK 🔥 */
         position: static; 
@@ -1775,7 +1794,7 @@ var(--dk-border)ordion-variant-thumb {
     justify-content: center !important; 
     align-items: center !important; 
     
-    background-color: var(--dk-white)fff !important;
+    background-color: var(--dk-white) !important;
     border: 1px solid var(--dk-primary) !important; /* Varsayılan siyah ince çerçeve */
     border-radius: 1px !important; /* Hafif kavis istersen arttırabilirsin */
     cursor: pointer !important;
@@ -1788,10 +1807,10 @@ var(--dk-border)ordion-variant-thumb {
 
 /* Hover Efekti - Zıplama yapmayan çerçeve kalınlaşması */
 .ana-urun-favori-buton:hover {
-    border-color: var(--dk-primary)000 !important;
-    background-color: var(--dk-white)fff !important;
+    border-color: var(--dk-primary) !important;
+    background-color: var(--dk-white) !important;
     /* Çerçeveyi zıplatmadan kalın hissettiren gölge */
-    box-shadow: 0 0 0 1px var(--dk-primary)000 !important; 
+    box-shadow: 0 0 0 1px var(--dk-primary) !important; 
 }
 
 /* Kalp İkonu Ayarı */
