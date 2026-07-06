@@ -1,3 +1,95 @@
+ .custom-tooltip-container {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+        }
+        .tooltip-toggle-span {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            color: #2563eb;
+            font-size: 13px;
+            font-weight: 500;
+            padding: 4px 8px;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+        .tooltip-toggle-span:hover {
+            background: #eff6ff;
+        }
+        .tooltip-toggle-span svg {
+            width: 16px;
+            height: 16px;
+        }
+        .tooltip-popup-box {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-top: 8px;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 16px;
+            min-width: 280px;
+            max-width: 350px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            z-index: 100;
+            font-size: 13px;
+            line-height: 1.6;
+            color: #374151;
+        }
+        .tooltip-popup-box.active {
+            display: block;
+        }
+        .tooltip-popup-box::before {
+            content: '';
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 8px solid transparent;
+            border-bottom-color: white;
+        }
+        .tooltip-close-btn {
+            position: absolute;
+            top: 8px;
+            right: 12px;
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: #9ca3af;
+            cursor: pointer;
+            line-height: 1;
+        }
+        .tooltip-close-btn:hover {
+            color: #374151;
+        }
+        .tooltip-body {
+            padding-right: 20px;
+        }
+        .selected-size-display {
+            font-size: 14px;
+            color: #666;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /* ==========================================
    LIGHTBOX (Sadece Masaüstü)
    ========================================== */
