@@ -1,6 +1,6 @@
 // ==========================================
-// COMMON.JS - SUPABASE UYUMLU (v7.1 - BADGE FIX)
-// Badge'ler her sayfa yüklenişinde init edilecek
+// COMMON.JS - SUPABASE UYUMLU (v7.2 - RACE CONDITION FIX)
+// Badge'ler her zaman çalışacak - MutationObserver + Retry mekanizması
 // ==========================================
 
 // ==========================================
@@ -69,39 +69,125 @@ function getCart() {
 
 function saveCart(cart) {
     localStorage.setItem('siteCartItems', JSON.stringify(cart));
-    updateCartBadge();
+    window.updateCartBadge();
 }
 
-// 🔥 GLOBAL: Her zaman window'a ata, shadow edilmesin!
+// 🔥 GLOBAL: window'a ata, shadow edilmesin!
 window.updateCartBadge = function() {
     const cart = getCart();
-    const badge = document.querySelector('.cart-count-badge');
-    if (badge) {
-        const count = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
+    const badges = document.querySelectorAll('.cart-count-badge');
+
+    if (badges.length === 0) {
+        console.warn('[Badge] .cart-count-badge elementi henuz DOM\'da yok, retry...');
+        return false; // Retry gerekiyor
+    }
+
+    const count = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
+    badges.forEach(badge => {
         badge.textContent = count;
         badge.classList.toggle('visible', count > 0);
-        console.log('Cart badge guncellendi:', count);
-    } else {
-        console.warn('Cart badge elementi bulunamadi (.cart-count-badge)');
-    }
+    });
+
+    console.log('[Badge] Cart badge guncellendi:', count, 'urun');
+    return true;
 };
 
-// 🔥 GLOBAL: Her zaman window'a ata, shadow edilmesin!
+// 🔥 GLOBAL: window'a ata, shadow edilmesin!
 window.updateWishlistBadge = function() {
     try {
         const wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
-        const badge = document.querySelector('.wishlist-count-badge');
-        if (badge) {
+        const badges = document.querySelectorAll('.wishlist-count-badge');
+
+        if (badges.length === 0) {
+            console.warn('[Badge] .wishlist-count-badge elementi henuz DOM\'da yok, retry...');
+            return false; // Retry gerekiyor
+        }
+
+        badges.forEach(badge => {
             badge.textContent = wishlist.length;
             badge.classList.toggle('visible', wishlist.length > 0);
-            console.log('Wishlist badge guncellendi:', wishlist.length);
-        } else {
-            console.warn('Wishlist badge elementi bulunamadi (.wishlist-count-badge)');
-        }
+        });
+
+        console.log('[Badge] Wishlist badge guncellendi:', wishlist.length, 'urun');
+        return true;
     } catch (e) {
-        console.error('Wishlist badge hatasi:', e);
+        console.error('[Badge] Wishlist badge hatasi:', e);
+        return true; // Hata durumunda retry yapma
     }
 };
+
+// ==========================================
+// 🔥 RACE CONDITION FIX: BADGE INIT SISTEMI
+// ==========================================
+
+window.__dkBadgeInitDone = false;
+
+function initBadgesWithRetry(maxRetries = 20, interval = 100) {
+    if (window.__dkBadgeInitDone) {
+        console.log('[Badge] Init zaten tamamlandi, atlaniyor.');
+        return;
+    }
+
+    let attempts = 0;
+
+    function tryInit() {
+        attempts++;
+
+        const cartOk = window.updateCartBadge();
+        const wishOk = window.updateWishlistBadge();
+
+        if (cartOk && wishOk) {
+            window.__dkBadgeInitDone = true;
+            console.log('[Badge] ✅ Init basarili! Deneme:', attempts);
+            return;
+        }
+
+        if (attempts >= maxRetries) {
+            console.warn('[Badge] ⚠️ Max retry asildi (' + maxRetries + '). Badge elementleri bulunamadi.');
+            console.warn('[Badge] HTML\'de .cart-count-badge ve .wishlist-count-badge elementleri var mi kontrol et!');
+            return;
+        }
+
+        console.log('[Badge] Retry ' + attempts + '/' + maxRetries + '...');
+        setTimeout(tryInit, interval);
+    }
+
+    tryInit();
+}
+
+// ==========================================
+// 🔥 MUTATION OBSERVER: DOM degisikliklerini izle
+// ==========================================
+
+function observeBadgeElements() {
+    const observer = new MutationObserver((mutations) => {
+        // Badge elementleri yeni eklendiyse, badge'leri guncelle
+        const hasNewBadges = mutations.some(mutation => {
+            return Array.from(mutation.addedNodes).some(node => {
+                if (node.nodeType !== 1) return false; // Element degilse atla
+                return node.querySelector && (
+                    node.querySelector('.cart-count-badge') ||
+                    node.querySelector('.wishlist-count-badge') ||
+                    node.classList?.contains('cart-count-badge') ||
+                    node.classList?.contains('wishlist-count-badge')
+                );
+            });
+        });
+
+        if (hasNewBadges && !window.__dkBadgeInitDone) {
+            console.log('[Badge] Yeni badge elementleri tespit edildi, init calistiriliyor...');
+            initBadgesWithRetry();
+        }
+    });
+
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
+
+    console.log('[Badge] MutationObserver baslatildi.');
+    return observer;
+}
 
 // ==========================================
 // MINI CART - OPEN / CLOSE / UPDATE
@@ -459,9 +545,8 @@ function initEventListeners() {
     console.log('initEventListeners CAGIRILDI, __commonListenersInitialized:', window.__commonListenersInitialized);
     if (window.__commonListenersInitialized) {
         console.log('Event listenerlar zaten bagli, atlaniyor.');
+        return;
     }
-    // 🔥 FLAG'I BURADA SET ETME! Sadece event listenerlar için kullan.
-    // Badge'ler her zaman init edilmeli.
     window.__commonListenersInitialized = true;
 
     console.log('Event listenerlar baslatiliyor...');
@@ -611,24 +696,39 @@ function initEventListeners() {
 })();
 
 // ==========================================
-// OTOMATIK BASLATMA - BADGE'LER HER ZAMAN INIT
+// OTOMATIK BASLATMA - RACE CONDITION FIX
 // ==========================================
 
-function initBadges() {
-    console.log('Badge init baslatiliyor...');
-    updateCartBadge();
-    updateWishlistBadge();
-    console.log('Badge init tamamlandi.');
-}
+function initAll() {
+    console.log('[Init] common.js initAll baslatiliyor...');
 
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        initEventListeners();
-        initBadges(); // 🔥 HER ZAMAN ÇALIŞACAK
-    });
-} else {
+    // 1. Event listenerlar (cache flag kontrollu)
     initEventListeners();
-    initBadges(); // 🔥 HER ZAMAN ÇALIŞACAK
+
+    // 2. Badge'ler (HER ZAMAN, flag'den bagimsiz)
+    initBadgesWithRetry();
+
+    // 3. MutationObserver (DOM degisikliklerini izle)
+    observeBadgeElements();
+
+    console.log('[Init] common.js initAll tamamlandi.');
 }
 
-console.log('common.js yuklendi ve baslatildi');
+// Sayfa yuklenme durumuna gore baslat
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initAll);
+} else {
+    // DOM zaten yuklenmis, hemen baslat
+    initAll();
+}
+
+// Ek guvenlik: window.load'da da bir kez daha dene
+window.addEventListener('load', () => {
+    console.log('[Init] window.load eventi, badge kontrolu...');
+    if (!window.__dkBadgeInitDone) {
+        console.log('[Init] Badge init yapilmamis, retry baslatiliyor...');
+        initBadgesWithRetry(10, 50);
+    }
+});
+
+console.log('common.js v7.2 yuklendi - Race Condition Fix aktif');
