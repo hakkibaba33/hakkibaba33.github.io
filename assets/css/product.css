@@ -421,56 +421,6 @@
     }
 }
 
-/* ============================================
-   2. INPUT GRID (Ölçü Girişleri)
-   ============================================ */
-
-.input-grid {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 14px;
-}
-
-.input-group {
-    flex: 1;
-    min-width: 0;
-}
-
-.input-group .form-label {
-    font-size: 10px;
-    font-weight: 600;
-    display: block;
-    margin-bottom: 5px;
-    color: #555;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
-}
-
-.premium-input {
-    width: 100%;
-    padding: 8px 10px;
-    border: 1.5px solid #ddd;
-    border-radius: 6px;
-    font-size: 14px;
-    color: #333;
-    background: #fff;
-    transition: border-color 0.2s, box-shadow 0.2s;
-    -webkit-appearance: none;
-    appearance: none;
-    box-sizing: border-box;
-}
-
-.premium-input::placeholder {
-    color: #aaa;
-    font-size: 12px;
-}
-
-.premium-input:focus {
-    border-color: #4CAF50;
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.12);
-}
-
 .delivery-time-box {
     border-left: 3px solid #ddd; /* Sol tarafta gri şerit */
     padding-left: 15px;
@@ -495,21 +445,6 @@
 
 
 
-.swatch-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 10px;
-}
-.color-swatch-link {
-    display: block;
-    border: 2px solid transparent;
-    padding: 2px;
-    border-radius: 50%;
-}
-.color-swatch-link.active-swatch {
-    border-color: #000; /* Seçili olan rengin etrafına siyah halka */
-}
 
 /* Ana Buton Kapsayıcısı */
 .size-option {
@@ -560,33 +495,11 @@
     gap: 15px;           /* Resim ile yazı arasındaki boşluk */
 }
 
-/* Akordiyonun içindeki küçük resim */
-#accordion-variant-thumb {
-    width: 30px;         /* Genişlik */
-    height: 42px;        /* Yükseklik (Halı formatı için ideal) */
-    object-fit: cover;
-    border-radius: 2px;
-    border: 1px solid #eee;
-    flex-shrink: 0;      /* Resmin ezilmesini önler */
-    display: block;
-}
-
 /* Seçili ölçü metni için ek ayar (zaten ortalı ama garantiye alalım) */
 #selected-size-display {
     font-size: 15px;
     font-weight: 500;
     color: #000;
-}
-
-/* --- Related Title Masaüstü Ayarları --- */
-.related-title {
-    font-size: 28px !important; /* Masaüstünde tok bir başlık */
-    font-weight: 700 !important;
-    color: #222 !important;
-    text-align: left; /* Genelde sola yaslı daha şık durur */
-    margin-top: 100px !important;    /* Üstteki içerikten uzaklık */
-    margin-bottom: 15px !important; /* Alttaki slider'a olan yakınlık */
-    letter-spacing: -0.5px !important;
 }
 
 /* --- Mobilde Daha Kibar ve Dar Boşluklu --- */
@@ -606,69 +519,6 @@
     padding: 0;
 }
 
-/* Üst Bilgi Satırı - Sola ve Sağa yaslama */
-.swatch-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-}
-
-.vald-farg-text {
-    margin: 0;
-    font-size: 14px;
-}
-
-.vald-farg-text .label {
-    font-weight: bold;
-    color: #000;
-}
-
-.vald-farg-text .value {
-    color: #666;
-    margin-left: 4px;
-}
-
-.total-count-text {
-    font-size: 13px;
-    color: #888;
-    font-weight: 500;
-}
-
-/* Renk Kutucukları Listesi */
-.swatch-list {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-
-/* Kutucuk Tasarımı - Karemsi yapı */
-/* Kutucuk Tasarımı */
-.color-swatch-link {
-    display: block;
-    width: 50px;
-    height: 50px;
-    border-radius: 4px;
-    position: relative;
-    /* transition: transform ile sadece büyümeyi, border ile renk geçişini yumuşatırız */
-    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), border-color 0.2s ease;
-    border: 1px solid #e5e5e5;
-    overflow: hidden;
-    z-index: 1;
-}
-
-/* Hover Durumu - Kutunun Tamamı Büyür */
-.color-swatch-link:hover {
-    border-color: #333; /* Çerçeve biraz koyulaşır */
-    transform: scale(1.18); /* Kutuyu %18 oranında büyütür */
-    z-index: 10; /* Büyüyen kutu diğerlerinin üstüne çıksın diye */
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1); /* Hafif gölge ile derinlik katar */
-}
-
-/* Aktif Swatch (Seçili Olan) zaten büyük olduğu için hoverda ekstra büyümesin dersen: */
-.color-swatch-link.active-swatch:hover {
-    transform: scale(1.1); /* Zaten scale 1.1 yapmıştık, sabit kalsın */
-}
 
 /* Masaüstü ayarların (Aynı kalabilir, sadece genel kapsayıcıyı kontrol et) */
 .summary.entry-summary { 
