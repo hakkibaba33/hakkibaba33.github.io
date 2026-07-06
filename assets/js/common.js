@@ -1,10 +1,10 @@
 // ==========================================
-// COMMON.JS - SUPABASE UYUMLU (v7.0 - MODERN UI)
-// Tüm event listenerlar tek yerde, çakışma yok
+// COMMON.JS - SUPABASE UYUMLU (v7.1 - BADGE FIX)
+// Badge'ler her sayfa yüklenişinde init edilecek
 // ==========================================
 
 // ==========================================
-// CACHE BUSTING
+// CACHE BUSTING (Sadece event listenerlar için)
 // ==========================================
 window.__commonListenersInitialized = false;
 
@@ -56,7 +56,7 @@ function idsMatch(id1, id2) {
 }
 
 // ==========================================
-// CART & WISHLIST
+// CART & WISHLIST - GLOBAL FONKSIYONLAR
 // ==========================================
 
 function getCart() {
@@ -72,27 +72,36 @@ function saveCart(cart) {
     updateCartBadge();
 }
 
-function updateCartBadge() {
+// 🔥 GLOBAL: Her zaman window'a ata, shadow edilmesin!
+window.updateCartBadge = function() {
     const cart = getCart();
     const badge = document.querySelector('.cart-count-badge');
     if (badge) {
-        badge.textContent = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
-        badge.classList.toggle('visible', cart.length > 0);
+        const count = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
+        badge.textContent = count;
+        badge.classList.toggle('visible', count > 0);
+        console.log('Cart badge guncellendi:', count);
+    } else {
+        console.warn('Cart badge elementi bulunamadi (.cart-count-badge)');
     }
-}
+};
 
-function updateWishlistBadge() {
+// 🔥 GLOBAL: Her zaman window'a ata, shadow edilmesin!
+window.updateWishlistBadge = function() {
     try {
         const wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
         const badge = document.querySelector('.wishlist-count-badge');
         if (badge) {
             badge.textContent = wishlist.length;
             badge.classList.toggle('visible', wishlist.length > 0);
+            console.log('Wishlist badge guncellendi:', wishlist.length);
+        } else {
+            console.warn('Wishlist badge elementi bulunamadi (.wishlist-count-badge)');
         }
     } catch (e) {
         console.error('Wishlist badge hatasi:', e);
     }
-}
+};
 
 // ==========================================
 // MINI CART - OPEN / CLOSE / UPDATE
@@ -450,8 +459,9 @@ function initEventListeners() {
     console.log('initEventListeners CAGIRILDI, __commonListenersInitialized:', window.__commonListenersInitialized);
     if (window.__commonListenersInitialized) {
         console.log('Event listenerlar zaten bagli, atlaniyor.');
-        return;
     }
+    // 🔥 FLAG'I BURADA SET ETME! Sadece event listenerlar için kullan.
+    // Badge'ler her zaman init edilmeli.
     window.__commonListenersInitialized = true;
 
     console.log('Event listenerlar baslatiliyor...');
@@ -553,10 +563,6 @@ function initEventListeners() {
     // --- Init search ---
     initSearch();
 
-    // --- Init badges ---
-    updateCartBadge();
-    updateWishlistBadge();
-
     console.log('Tum event listenerlar basariyla baglandi!');
 }
 
@@ -605,12 +611,24 @@ function initEventListeners() {
 })();
 
 // ==========================================
-// OTOMATIK BASLATMA
+// OTOMATIK BASLATMA - BADGE'LER HER ZAMAN INIT
 // ==========================================
+
+function initBadges() {
+    console.log('Badge init baslatiliyor...');
+    updateCartBadge();
+    updateWishlistBadge();
+    console.log('Badge init tamamlandi.');
+}
+
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initEventListeners);
+    document.addEventListener('DOMContentLoaded', () => {
+        initEventListeners();
+        initBadges(); // 🔥 HER ZAMAN ÇALIŞACAK
+    });
 } else {
     initEventListeners();
+    initBadges(); // 🔥 HER ZAMAN ÇALIŞACAK
 }
 
 console.log('common.js yuklendi ve baslatildi');
