@@ -476,30 +476,36 @@ function performSearch(query) {
     const resultsDisplay = document.getElementById('search-results-display');
     if (!resultsDisplay) return;
 
+    // Eğer cache boşsa veya sorgu çok kısaysa işlem yapma
     if (allProductsCache.length === 0) {
         resultsDisplay.innerHTML = '<div class="no-results-found">Laddar produkter...</div>';
         resultsDisplay.style.display = 'block';
         return;
     }
 
-    const lowerQuery = query.toLowerCase();
-    const filtered = allProductsCache.filter(product =>
-        product.name.toLowerCase().includes(lowerQuery) ||
-        product.category.toLowerCase().includes(lowerQuery)
-    );
+    const lowerQuery = query.toLowerCase().trim(); // .trim() ekledik
+    
+    // Filtreleme: İsim veya kategoride ara
+    const filtered = allProductsCache.filter(product => {
+        const name = (product.name || '').toLowerCase();
+        const category = (product.category || '').toLowerCase();
+        return name.includes(lowerQuery) || category.includes(lowerQuery);
+    });
 
     if (filtered.length === 0) {
         resultsDisplay.innerHTML = '<div class="no-results-found">Inga produkter hittades.</div>';
     } else {
         resultsDisplay.innerHTML = filtered.slice(0, 8).map(product => {
+            // Highlight (Vurgulama) mantığını koruyalım
             let highlightedName = product.name;
             const idx = product.name.toLowerCase().indexOf(lowerQuery);
-            if (idx !== -1) {
+            
+            if (idx !== -1 && lowerQuery.length > 0) {
                 highlightedName = product.name.substring(0, idx) +
                     '<mark style="background:#ffeb3b;color:#000;padding:0 2px;">' +
-                    product.name.substring(idx, idx + query.length) +
+                    product.name.substring(idx, idx + lowerQuery.length) +
                     '</mark>' +
-                    product.name.substring(idx + query.length);
+                    product.name.substring(idx + lowerQuery.length);
             }
 
             return `<a href="${product.url}" class="search-item-row">
@@ -508,7 +514,7 @@ function performSearch(query) {
                 </div>
                 <div class="search-item-info">
                     <h4 class="search-item-title">${highlightedName}</h4>
-                    <span class="search-item-price">${product.price.toLocaleString('sv-SE')} SEK</span>
+                    <span class="search-item-price">${(product.price || 0).toLocaleString('sv-SE')} SEK</span>
                 </div>
             </a>`;
         }).join('');
