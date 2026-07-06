@@ -1,7 +1,7 @@
 // ==========================================
-// COMMON.JS - HYBRID AI CHAT + SUPABASE (v8.1)
+// COMMON.JS - TEMEL FONKSIYONLAR (v8.2)
 // Badge'ler her zaman calisacak - MutationObserver + Retry mekanizmasi
-// Hybrid AI Chat: Rule-based + AI API + Supabase Entegrasyonu
+// Search fix: Fetch retry, hata yonetimi, cache kontrolu
 // ==========================================
 
 // ==========================================
@@ -371,49 +371,84 @@ async function addSupabaseProductToCart(productId, variantSize) {
 
 
 // ==========================================
-// SEARCH POPUP
+// SEARCH POPUP - DUZELTILMIS v8.2
 // ==========================================
 
 let searchDebounceTimer = null;
 let allProductsCache = [];
+let isFetchingProducts = false;
+let searchInputElement = null;
+let searchResultsElement = null;
+
+function getSearchElements() {
+    searchInputElement = document.getElementById('live-search-input');
+    searchResultsElement = document.getElementById('search-results-display');
+    return { input: searchInputElement, results: searchResultsElement };
+}
 
 function initSearch() {
-    const searchInput = document.getElementById('live-search-input');
-    const resultsDisplay = document.getElementById('search-results-display');
+    const { input, results } = getSearchElements();
 
-    if (!searchInput) {
-        console.warn('Search input bulunamadi!');
+    if (!input) {
+        console.warn('[Search] Input bulunamadi, retry...');
+        // Input yoksa 500ms sonra tekrar dene (DOM henuz yuklenmemis olabilir)
+        setTimeout(initSearch, 500);
         return;
     }
 
-    // 1. Yazarken arama (Real-time filter)
-    let debounceTimer;
-    searchInput.addEventListener('input', function() {
-        const query = this.value.trim();
-        clearTimeout(debounceTimer);
+    console.log('[Search] Input bulundu, listener baglaniyor...');
+
+    // Eski listener varsa kaldirmak icin - inputu klonla ve yerine koy
+    const newInput = input.cloneNode(true);
+    input.parentNode.replaceChild(newInput, input);
+    searchInputElement = newInput;
+
+    searchInputElement.addEventListener('input', (e) => {
+        const query = e.target.value.trim();
+        clearTimeout(searchDebounceTimer);
 
         if (query.length < 2) {
-            if (resultsDisplay) resultsDisplay.style.display = 'none';
+            if (searchResultsElement) searchResultsElement.style.display = 'none';
             return;
         }
 
-        debounceTimer = setTimeout(() => {
-            // Burası senin SUPABASE tabanlı arama fonksiyonun
-            performSearch(query); 
+        // Cache bossa once fetch et, sonra ara
+        if (allProductsCache.length === 0 && !isFetchingProducts) {
+            console.log('[Search] Cache bossa, once urunleri cekiyorum...');
+            if (searchResultsElement) {
+                searchResultsElement.innerHTML = '<div class="no-results-found">Laddar produkter...</div>';
+                searchResultsElement.style.display = 'block';
+            }
+            fetchAllProductsForSearch().then(() => {
+                performSearch(query);
+            });
+            return;
+        }
+
+        // Zaten fetch ediliyorsa bekle
+        if (isFetchingProducts) {
+            console.log('[Search] Urunler hala yukleniyor, bekleniyor...');
+            if (searchResultsElement) {
+                searchResultsElement.innerHTML = '<div class="no-results-found">Laddar produkter...</div>';
+                searchResultsElement.style.display = 'block';
+            }
+            return;
+        }
+
+        searchDebounceTimer = setTimeout(() => {
+            performSearch(query);
         }, 300);
     });
 
-    // 2. Enter tuşuna basınca yönlendirme
-    searchInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            const query = searchInput.value.trim();
-            if (query) {
-                // Eğer ürün bulunamadıysa veya ana sayfaya gitmek istersen:
-                window.location.href = '/category.html?search=' + encodeURIComponent(query);
-            }
+    // Input focus oldugunda da cache kontrolu yap
+    searchInputElement.addEventListener('focus', () => {
+        if (allProductsCache.length === 0 && !isFetchingProducts) {
+            console.log('[Search] Focus - urunleri onceden cekiyorum...');
+            fetchAllProductsForSearch();
         }
     });
+
+    console.log('[Search] Listener basariyla baglandi!');
 }
 
 function openSearchPopup() {
@@ -422,7 +457,7 @@ function openSearchPopup() {
     const resultsDisplay = document.getElementById('search-results-display');
 
     if (!popup) {
-        console.error('Search popup bulunamadi!');
+        console.error('[Search] Popup bulunamadi!');
         return;
     }
 
@@ -433,11 +468,15 @@ function openSearchPopup() {
     popup.classList.add('active');
     if (resultsDisplay) resultsDisplay.style.display = 'none';
 
-    setTimeout(() => { if (input) input.focus(); }, 100);
-
-    if (allProductsCache.length === 0) {
-        fetchAllProductsForSearch();
-    }
+    setTimeout(() => {
+        if (input) {
+            input.focus();
+            // Popup acildiginda cache bossa fetch et
+            if (allProductsCache.length === 0 && !isFetchingProducts) {
+                fetchAllProductsForSearch();
+            }
+        }
+    }, 300);
 }
 
 function closeSearchPopup() {
@@ -461,15 +500,31 @@ function closeSearchPopup() {
 
 async function fetchAllProductsForSearch() {
     if (!SUPABASE_URL || !SUPABASE_KEY) {
-        console.error('Supabase config eksik!');
+        console.error('[Search] Supabase config eksik! URL:', SUPABASE_URL, 'KEY var mi:', !!SUPABASE_KEY);
         return;
     }
+
+    if (isFetchingProducts) {
+        console.log('[Search] Zaten fetch ediliyor, atlaniyor...');
+        return;
+    }
+
+    isFetchingProducts = true;
+    console.log('[Search] Urunler Supabase\'den cekiliyor...');
 
     try {
         const data = await supabaseGet('products', {
             select: '*',
             active: 'eq.true'
         });
+
+        console.log('[Search] Ham veri:', data);
+
+        if (!data || !Array.isArray(data)) {
+            console.error('[Search] Beklenmeyen veri formati:', data);
+            allProductsCache = [];
+            return;
+        }
 
         allProductsCache = data.map(product => ({
             id: product.id,
@@ -480,62 +535,84 @@ async function fetchAllProductsForSearch() {
             url: '/matta/' + (product.slug || product.id)
         }));
 
-        console.log(allProductsCache.length + ' urun cachelendi');
+        console.log('[Search] ' + allProductsCache.length + ' urun basariyla cachelendi');
 
     } catch (error) {
-        console.error('Urun cache hatasi:', error);
+        console.error('[Search] Urun cache hatasi:', error);
+        allProductsCache = [];
+    } finally {
+        isFetchingProducts = false;
     }
 }
 
 function performSearch(query) {
     const resultsDisplay = document.getElementById('search-results-display');
-    if (!resultsDisplay) return;
-
-    // Eğer cache boşsa veya sorgu çok kısaysa işlem yapma
-    if (allProductsCache.length === 0) {
-        resultsDisplay.innerHTML = '<div class="no-results-found">Laddar produkter...</div>';
-        resultsDisplay.style.display = 'block';
+    if (!resultsDisplay) {
+        console.error('[Search] Results display elementi bulunamadi!');
         return;
     }
 
-    const lowerQuery = query.toLowerCase().trim(); // .trim() ekledik
-    
-    // Filtreleme: İsim veya kategoride ara
+    console.log('[Search] Arama yapiliyor:', query, 'Cache uzunlugu:', allProductsCache.length);
+
+    if (allProductsCache.length === 0) {
+        resultsDisplay.innerHTML = '<div class="no-results-found">Inga produkter tillgangliga. Forsok igen om en stund.</div>';
+        resultsDisplay.style.display = 'block';
+        // Tekrar fetch dene
+        if (!isFetchingProducts) {
+            fetchAllProductsForSearch();
+        }
+        return;
+    }
+
+    const lowerQuery = query.toLowerCase().trim();
+    if (!lowerQuery) {
+        resultsDisplay.style.display = 'none';
+        return;
+    }
+
     const filtered = allProductsCache.filter(product => {
-        const name = (product.name || '').toLowerCase();
-        const category = (product.category || '').toLowerCase();
-        return name.includes(lowerQuery) || category.includes(lowerQuery);
+        const nameMatch = product.name.toLowerCase().includes(lowerQuery);
+        const catMatch = product.category.toLowerCase().includes(lowerQuery);
+        return nameMatch || catMatch;
     });
 
+    console.log('[Search] Filtrelenen:', filtered.length, 'urun');
+
     if (filtered.length === 0) {
-        resultsDisplay.innerHTML = '<div class="no-results-found">Inga produkter hittades.</div>';
+        resultsDisplay.innerHTML = '<div class="no-results-found">Inga produkter hittades for "' + escapeHtml(query) + '".</div>';
     } else {
         resultsDisplay.innerHTML = filtered.slice(0, 8).map(product => {
-            // Highlight (Vurgulama) mantığını koruyalım
-            let highlightedName = product.name;
+            let highlightedName = escapeHtml(product.name);
             const idx = product.name.toLowerCase().indexOf(lowerQuery);
-            
-            if (idx !== -1 && lowerQuery.length > 0) {
-                highlightedName = product.name.substring(0, idx) +
+            if (idx !== -1) {
+                highlightedName = escapeHtml(product.name.substring(0, idx)) +
                     '<mark style="background:#ffeb3b;color:#000;padding:0 2px;">' +
-                    product.name.substring(idx, idx + lowerQuery.length) +
+                    escapeHtml(product.name.substring(idx, idx + query.length)) +
                     '</mark>' +
-                    product.name.substring(idx + lowerQuery.length);
+                    escapeHtml(product.name.substring(idx + query.length));
             }
 
-            return `<a href="${product.url}" class="search-item-row">
+            return `<a href="${escapeHtml(product.url)}" class="search-item-row">
                 <div class="search-item-image">
-                    <img src="${product.image}" alt="${product.name}" onerror="this.src='https://via.placeholder.com/50'">
+                    <img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.name)}" onerror="this.src='https://via.placeholder.com/50'">
                 </div>
                 <div class="search-item-info">
                     <h4 class="search-item-title">${highlightedName}</h4>
-                    <span class="search-item-price">${(product.price || 0).toLocaleString('sv-SE')} SEK</span>
+                    <span class="search-item-price">${product.price.toLocaleString('sv-SE')} SEK</span>
                 </div>
             </a>`;
         }).join('');
     }
 
     resultsDisplay.style.display = 'block';
+}
+
+// XSS korumasi icin basit escape
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
 // ==========================================
@@ -687,10 +764,7 @@ function initEventListeners() {
     });
 
     // --- Init search ---
-    document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM hazir, search init ediliyor...');
     initSearch();
-});
 
     console.log('Tum event listenerlar basariyla baglandi!');
 }
@@ -745,8 +819,6 @@ function initEventListeners() {
 // ==========================================
 
 function initAll() {
-    fetchAllProductsForSearch(); // Bu satır mutlaka olsun!
-    initSearch();
     console.log('[Init] common.js initAll baslatiliyor...');
 
     // 1. Event listenerlar (cache flag kontrollu)
@@ -775,6 +847,12 @@ window.addEventListener('load', () => {
         console.log('[Init] Badge init yapilmamis, retry baslatiliyor...');
         initBadgesWithRetry(10, 50);
     }
+    // Search init kontrolu
+    const input = document.getElementById('live-search-input');
+    if (input && !input._searchInitialized) {
+        console.log('[Init] Search init yapilmamis, retry baslatiliyor...');
+        initSearch();
+    }
 });
 
-console.log('common.js v8.1 yuklendi - Temel fonksiyonlar aktif');
+console.log('common.js v8.2 yuklendi - Search fix aktif');
