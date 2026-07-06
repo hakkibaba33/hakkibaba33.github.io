@@ -168,6 +168,8 @@ if (window.__productPageInitialized) {
                 renderVariantDrawer();
                 // Baslangicta en kucuk fiyatli varyanti otomatik sec
                 selectVariant(0);
+                // Baslangicta en kucuk varyasyonun olcusunu urun isminin altinda goster
+                updateProductSubtitle(currentVariants[0]);
             } else {
                 const el = document.getElementById('variant-accordion-wrapper');
                 if (el) el.style.display = 'none';
@@ -644,7 +646,7 @@ if (window.__productPageInitialized) {
             }
         }
 
-        // Dinamik olcu gostergesini guncelle (urun isminin alti)
+        // Dinamik olcu gostergesini guncelle (urun isminin alti) - KRITIK FIX
         updateProductSubtitle(selectedVariant);
 
         setTimeout(closeVariantDrawer, 300);
@@ -700,36 +702,46 @@ if (window.__productPageInitialized) {
         }
 
         tooltipBody.innerHTML = tooltipContent;
-        tooltipContainer.style.display = 'inline-block';
+        tooltipContainer.style.display = 'inline-flex';
 
         var toggleSpan = tooltipContainer.querySelector('.tooltip-toggle-span');
         var popup = tooltipContainer.querySelector('.tooltip-popup-box');
         var closeBtn = tooltipContainer.querySelector('.tooltip-close-btn');
 
         if (toggleSpan && popup) {
-            // Onceki event listener'lari temizlemek icin klonla
-            var newToggleSpan = toggleSpan.cloneNode(true);
-            toggleSpan.parentNode.replaceChild(newToggleSpan, toggleSpan);
-
-            newToggleSpan.addEventListener('click', function(e) {
+            // Event delegation kullan - klonlama sorununu cozer
+            toggleSpan.addEventListener('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
                 var isVisible = popup.style.display === 'block';
-                popup.style.display = isVisible ? 'none' : 'block';
-                popup.classList.toggle('active', !isVisible);
+                if (isVisible) {
+                    popup.style.display = 'none';
+                    popup.classList.remove('active');
+                } else {
+                    popup.style.display = 'block';
+                    popup.classList.add('active');
+                    // Animasyon class'ı ekle
+                    popup.style.animation = 'slideUpFade 0.3s ease forwards';
+                }
             });
         }
 
         if (closeBtn && popup) {
-            var newCloseBtn = closeBtn.cloneNode(true);
-            closeBtn.parentNode.replaceChild(newCloseBtn, closeBtn);
-            newCloseBtn.addEventListener('click', function(e) {
+            closeBtn.addEventListener('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
                 popup.style.display = 'none';
                 popup.classList.remove('active');
             });
         }
+
+        // Popup dışına tıklayınca kapat
+        document.addEventListener('click', function(e) {
+            if (popup && popup.style.display === 'block' && !tooltipContainer.contains(e.target)) {
+                popup.style.display = 'none';
+                popup.classList.remove('active');
+            }
+        });
     }
 
     // ==========================================
