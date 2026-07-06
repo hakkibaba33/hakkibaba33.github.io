@@ -1,17 +1,3 @@
-.brand-label-top {
-    font-size: 11px;              /* Küçük ve zarif bir yazı boyutu */
-    font-weight: 700;             /* Kalın harfler */
-    letter-spacing: 2px;          /* Harf aralıklarını açarak premium hava verme */
-    color: var(--dk-text-light);  /* Genelde gri tonlarında bir renk */
-    text-transform: uppercase;    /* Hepsini büyük harf yap */
-    margin-bottom: 8px;           /* Altındaki ürün ismiyle arasındaki boşluk */
-}
-
-
-
-
-
-
 /* ==========================================
    🌐 GLOBAL TEMEL STILLER
    ========================================== */
@@ -967,9 +953,18 @@ body:has(.custom-lightbox-overlay.active) {
 #product-main-name-desktop {
     font-size: 1.4rem;
     font-weight: 700;
-    margin-top: 25px; /* Tekrar silindi */
+    margin-top: 10px; /* Tekrar silindi */
     margin-bottom: 2px;
     line-height: 1.2;
+}
+
+.brand-label-top {
+    font-size: 11px;              /* Küçük ve zarif bir yazı boyutu */
+    font-weight: 700;             /* Kalın harfler */
+    letter-spacing: 2px;          /* Harf aralıklarını açarak premium hava verme */
+    color: var(--dk-text-light);  /* Genelde gri tonlarında bir renk */
+    text-transform: uppercase;    /* Hepsini büyük harf yap */
+    margin-bottom: 8px;           /* Altındaki ürün ismiyle arasındaki boşluk */
 }
 
 /* 1. KAPSAYICIYI FLEX YAP (Bu şart) */
