@@ -1,5 +1,5 @@
 // ==========================================
-// COMMON.JS - HYBRID AI CHAT + SUPABASE (v8.0)
+// COMMON.JS - HYBRID AI CHAT + SUPABASE (v8.1)
 // Badge'ler her zaman calisacak - MutationObserver + Retry mekanizmasi
 // Hybrid AI Chat: Rule-based + AI API + Supabase Entegrasyonu
 // ==========================================
@@ -98,7 +98,7 @@ window.updateCartBadge = function() {
     const badges = document.querySelectorAll('.cart-count-badge');
 
     if (badges.length === 0) {
-        console.warn('[Badge] .cart-count-badge elementi henuz DOM'da yok, retry...');
+        console.warn('[Badge] .cart-count-badge elementi henuz DOM\'da yok, retry...');
         return false;
     }
 
@@ -119,7 +119,7 @@ window.updateWishlistBadge = function() {
         const badges = document.querySelectorAll('.wishlist-count-badge');
 
         if (badges.length === 0) {
-            console.warn('[Badge] .wishlist-count-badge elementi henuz DOM'da yok, retry...');
+            console.warn('[Badge] .wishlist-count-badge elementi henuz DOM\'da yok, retry...');
             return false;
         }
 
@@ -576,8 +576,8 @@ function initEventListeners() {
 
     // --- Document-level click delegation ---
     document.addEventListener('click', (e) => {
-        // Mini cart open
-        if (e.target.closest('#open-mini-cart-btn, .cart-icon-wrapper, .fa-shopping-bag')) {
+        // Mini cart open - GENISLETILMIS SECICILER
+        if (e.target.closest('#open-mini-cart-btn, .cart-icon-wrapper, .fa-shopping-bag, .cart-trigger, [data-action="open-cart"], .header-cart-icon')) {
             e.preventDefault();
             openMiniCart();
             return;
@@ -590,7 +590,7 @@ function initEventListeners() {
         }
 
         // Mobile menu open
-        if (e.target.closest('#open-mobile-menu-btn')) {
+        if (e.target.closest('#open-mobile-menu-btn, .mobile-menu-trigger, [data-action="open-menu"], .hamburger-btn')) {
             e.preventDefault();
             openMobileMenu();
             return;
@@ -602,8 +602,8 @@ function initEventListeners() {
             return;
         }
 
-        // Search open
-        if (e.target.closest('#search-open-btn')) {
+        // Search open - GENISLETILMIS SECICILER
+        if (e.target.closest('#search-open-btn, .search-trigger, [data-action="open-search"], .header-search-icon, .fa-magnifying-glass, .fa-search')) {
             e.preventDefault();
             openSearchPopup();
             return;
@@ -1438,4 +1438,4 @@ window.addEventListener('load', () => {
     }
 });
 
-console.log('common.js v8.0 yuklendi - Hybrid AI Chat + Supabase Entegrasyonu aktif');
+console.log('common.js v8.1 yuklendi - Hybrid AI Chat + Supabase Entegrasyonu aktif');
