@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="/assets/css/common.css">
     <link rel="stylesheet" href="/assets/css/category.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<base target="_blank">
 </head>
 <body>
 
@@ -29,17 +30,17 @@
                 <!-- Chips -->
                 <div class="category-chips-wrapper">
                     <div class="category-chips-scroll" id="category-chips-list">
-                        <a href="/gardiner/" class="category-chip active">Alla</a>
-                        <a href="/gardiner/?kategori=gardinlängder" class="category-chip">Gardinlängder</a>
-                        <a href="/gardiner/?kategori=panelgardiner" class="category-chip">Panelgardiner</a>
-                        <a href="/gardiner/?kategori=hissgardiner" class="category-chip">Hissgardiner</a>
-                        <a href="/gardiner/?kategori=öljettgardiner" class="category-chip">Öljettgardiner</a>
-                        <a href="/gardiner/?kategori=multibandslängder" class="category-chip">Multibandslängder</a>
-                        <a href="/gardiner/?kategori=kappor-swags" class="category-chip">Kappor & Swags</a>
-                        <a href="/gardiner/?kategori=rullgardiner" class="category-chip">Rullgardiner</a>
-                        <a href="/gardiner/?kategori=plisségardiner" class="category-chip">Plisségardiner</a>
-                        <a href="/gardiner/?kategori=lamellgardiner" class="category-chip">Lamellgardiner</a>
-                        <a href="/gardiner/?kategori=mörkläggningsgardiner" class="category-chip">Mörkläggning</a>
+                        <a href="/gardiner/" class="category-chip active" data-chip="alla">Alla</a>
+                        <a href="/gardiner/?kategori=gardinlängder" class="category-chip" data-chip="gardinlängder">Gardinlängder</a>
+                        <a href="/gardiner/?kategori=panelgardiner" class="category-chip" data-chip="panelgardiner">Panelgardiner</a>
+                        <a href="/gardiner/?kategori=hissgardiner" class="category-chip" data-chip="hissgardiner">Hissgardiner</a>
+                        <a href="/gardiner/?kategori=öljettgardiner" class="category-chip" data-chip="öljettgardiner">Öljettgardiner</a>
+                        <a href="/gardiner/?kategori=multibandslängder" class="category-chip" data-chip="multibandslängder">Multibandslängder</a>
+                        <a href="/gardiner/?kategori=kappor-swags" class="category-chip" data-chip="kappor-swags">Kappor & Swags</a>
+                        <a href="/gardiner/?kategori=rullgardiner" class="category-chip" data-chip="rullgardiner">Rullgardiner</a>
+                        <a href="/gardiner/?kategori=plisségardiner" class="category-chip" data-chip="plisségardiner">Plisségardiner</a>
+                        <a href="/gardiner/?kategori=lamellgardiner" class="category-chip" data-chip="lamellgardiner">Lamellgardiner</a>
+                        <a href="/gardiner/?kategori=mörkläggningsgardiner" class="category-chip" data-chip="mörkläggningsgardiner">Mörkläggning</a>
                     </div>
                 </div>
 
@@ -49,6 +50,10 @@
                         <i class="fa-solid fa-sliders"></i> 
                         <span>Filtrera</span>
                         <span class="filter-badge" style="display:none;">0</span>
+                    </button>
+                    <button class="filter-clear-btn" id="clear-all-filters" style="display:none;">
+                        <i class="fa-solid fa-rotate-left"></i>
+                        <span>Rensa</span>
                     </button>
                     <div class="sort-dropdown">
                         <button class="sort-trigger" id="sort-menu-btn">
@@ -121,6 +126,9 @@
             </div>
         </div>
         <div class="sticky-filter-footer">
+            <button class="clear-filters-btn" id="drawer-clear-filters">
+                <i class="fa-solid fa-rotate-left"></i> RENSA ALLA
+            </button>
             <button class="apply-btn" onclick="window.closeAll()">VISA PRODUKTER</button>
         </div>
     </div>
