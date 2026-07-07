@@ -287,11 +287,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const currentCategory = getCurrentCategory();
             const subCategory = getCurrentSubCategory();
 
-            // Kategori verisini bul
-            const currentCategoryData = categories.find(c => c.slug === currentCategory);
 
-            // Sayfa basligini guncelle
-            updatePageTitle(currentCategory, currentCategoryData);
 
             // Kategorileri ve alt kategorileri cek (paralel)
             const [categories, subCategories] = await Promise.all([
