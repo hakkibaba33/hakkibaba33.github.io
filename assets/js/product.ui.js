@@ -70,10 +70,12 @@ if (window.__productPageInitialized) {
 
         // Eger id yoksa, slug var mi kontrol et (eski yapı desteği)
         if (!productId && !slug) {
-            // URL path'inden son parçayı al (örn: /matta/abstrac-modern-matta)
+            // URL path'inden son parçayı al
             const parts = window.location.pathname.split('/').filter(p => p);
             const lastPart = parts[parts.length - 1];
-            if (lastPart && lastPart !== 'produkt' && lastPart !== 'matta') {
+            // Klasör adlarını ve boş değerleri filtrele
+            const reservedNames = ['produkt', 'matta', 'gardiner', 'mobler', 'belysning', 'dekoration', 'rea', 'favoriter', 'kassa', 'kontakt', 'assets', 'api'];
+            if (lastPart && !reservedNames.includes(lastPart.toLowerCase())) {
                 slug = lastPart;
             }
         }
