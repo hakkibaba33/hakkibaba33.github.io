@@ -158,8 +158,8 @@
     <script>
         async function loadComponents() {
             const [headerRes, footerRes] = await Promise.all([
-                fetch('header.html'),
-                fetch('footer.html')
+                fetch('/header.html'),
+                fetch('/footer.html')
             ]);
             document.getElementById('header-placeholder').innerHTML = await headerRes.text();
             document.getElementById('footer-placeholder').innerHTML = await footerRes.text();
