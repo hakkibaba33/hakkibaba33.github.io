@@ -27,20 +27,36 @@ function isReaPage() {
     return window.location.pathname.includes('/rea/');
 }
 
-function updatePageTitle(category) {
-    const titleMap = {
-        'mattor': 'Mattor',
-        'gardiner': 'Gardiner',
-        'rea': 'REA - Kampanjer',
-        'kontakt': 'Kontakt'
-    };
+function updatePageTitle(category, categoryData) {
+    // Supabase'den gelen kategori adını kullan, yoksa fallback
+    let title = 'Produkter';
+    if (categoryData && categoryData.name_sv) {
+        title = categoryData.name_sv;
+    } else {
+        // Fallback map
+        const titleMap = {
+            'mattor': 'Mattor',
+            'gardiner': 'Gardiner',
+            'mobler': 'Möbler',
+            'belysning': 'Belysning',
+            'dekoration': 'Dekoration',
+            'rea': 'REA',
+            'kontakt': 'Kontakt'
+        };
+        title = titleMap[category] || 'Produkter';
+    }
 
-    const title = titleMap[category] || 'Produkter';
-    document.title = title + ' | Dekorist';
+    document.title = 'Alla ' + title + ' | DKRUG';
 
     const pageTitle = document.getElementById('category-main-title');
     if (pageTitle) {
-        pageTitle.textContent = title;
+        pageTitle.textContent = 'Alla ' + title;
+    }
+
+    // Breadcrumb güncelle
+    const breadcrumbCurrent = document.getElementById('breadcrumb-current');
+    if (breadcrumbCurrent) {
+        breadcrumbCurrent.textContent = title;
     }
 }
 
@@ -271,8 +287,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             const currentCategory = getCurrentCategory();
             const subCategory = getCurrentSubCategory();
 
+            // Kategori verisini bul
+            const currentCategoryData = categories.find(c => c.slug === currentCategory);
+
             // Sayfa basligini guncelle
-            updatePageTitle(currentCategory);
+            updatePageTitle(currentCategory, currentCategoryData);
 
             // Kategorileri ve alt kategorileri cek (paralel)
             const [categories, subCategories] = await Promise.all([
