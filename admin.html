@@ -165,6 +165,8 @@
 <base target="_blank">
 <base target="_blank">
 <base target="_blank">
+<base target="_blank">
+<base target="_blank">
 </head>
 <body class="bg-gray-100 min-h-screen p-5">
 
@@ -242,6 +244,19 @@
             <div class="mb-6">
                 <label class="block text-sm font-medium text-gray-700 mb-1">Aciklama</label>
                 <textarea id="description" rows="3" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none" placeholder="Urun aciklamasi..."></textarea>
+            </div>
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Urun Bilgisi (Produktinformation)</label>
+                <textarea id="product_info" rows="3" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none" placeholder="Material, skotselrad, bakim talimati vb..."></textarea>
+            </div>
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Teslimat & Iade (Leverans & Retur)</label>
+                <textarea id="delivery_return" rows="3" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none" placeholder="Teslimat suresi, iade politikasi, kargo bilgisi..."></textarea>
+            </div>
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 mb-1">📌 Urun Bilgi Notu (Tooltip)</label>
+                <textarea id="size_tooltip" rows="3" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none" placeholder="Orn: Tum olculer el yapimi uretilmistir. %2-3 sapma payi normaldir. Veya: Yikanabilir, dokuma teknigi hakkinda bilgi..."></textarea>
+                <p class="text-xs text-gray-400 mt-1">Urun isminin yanindaki (i) ikonuna tiklayinca acilan bilgi kutusunun icerigi. Bos birakirsan otomatik olarak varyant olcu ve stok listesi gelir.</p>
             </div>
             <div class="mb-6">
                 <label class="block text-sm font-medium text-gray-700 mb-1">Renkler</label>
@@ -589,7 +604,9 @@
             document.getElementById('name').value = ''; document.getElementById('category').value = '';
             document.getElementById('brand').value = ''; document.getElementById('base_price').value = '';
             document.getElementById('discount_price').value = ''; document.getElementById('delivery_time').value = '3-7 arbetsdagar';
-            document.getElementById('description').value = ''; document.getElementById('colors').value = '';
+            document.getElementById('description').value = ''; document.getElementById('product_info').value = '';
+            document.getElementById('delivery_return').value = ''; document.getElementById('size_tooltip').value = '';
+            document.getElementById('colors').value = '';
             document.getElementById('slug-preview').classList.add('hidden'); document.getElementById('color-tags').innerHTML = '';
             varyantlar = []; uploadedImages = []; renderVariants(); renderImagePreviews();
         }
@@ -743,6 +760,9 @@
                     name: name, category: category,
                     brand: document.getElementById('brand').value.trim() || null,
                     description: document.getElementById('description').value.trim() || null,
+                    product_info: document.getElementById('product_info').value.trim() || null,
+                    delivery_return: document.getElementById('delivery_return').value.trim() || null,
+                    size_tooltip: document.getElementById('size_tooltip').value.trim() || null,
                     base_price: basePrice ? parseFloat(basePrice) : null,
                     discount_price: discountPrice ? parseFloat(discountPrice) : null,
                     delivery_time: deliveryTime || '3-7 arbetsdagar',
@@ -883,6 +903,9 @@
             document.getElementById('discount_price').value = product.discount_price || '';
             document.getElementById('delivery_time').value = product.delivery_time || '3-7 arbetsdagar';
             document.getElementById('description').value = product.description || '';
+            document.getElementById('product_info').value = product.product_info || '';
+            document.getElementById('delivery_return').value = product.delivery_return || '';
+            document.getElementById('size_tooltip').value = product.size_tooltip || '';
             document.getElementById('colors').value = (product.colors || []).join(', ');
             updateSlugPreview(); updateColorTags();
             varyantlar = (product.product_variants || []).map(function(v) {
@@ -913,6 +936,9 @@
                     name: name, category: category,
                     brand: document.getElementById('brand').value.trim() || null,
                     description: document.getElementById('description').value.trim() || null,
+                    product_info: document.getElementById('product_info').value.trim() || null,
+                    delivery_return: document.getElementById('delivery_return').value.trim() || null,
+                    size_tooltip: document.getElementById('size_tooltip').value.trim() || null,
                     base_price: basePrice ? parseFloat(basePrice) : null,
                     discount_price: document.getElementById('discount_price').value ? parseFloat(document.getElementById('discount_price').value) : null,
                     delivery_time: document.getElementById('delivery_time').value.trim() || '3-7 arbetsdagar',
