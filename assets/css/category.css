@@ -1388,3 +1388,89 @@ body.modal-open {
     color: var(--dk-accent);
 }
 
+/* ============================================================
+   RENSA ALLA BUTONU - DRAWER FOOTER
+   ============================================================ */
+.clear-filters-btn {
+    width: 100%;
+    padding: 14px;
+    margin-bottom: 12px;
+    background-color: transparent;
+    color: var(--dk-text);
+    border: 1px solid var(--dk-border);
+    border-radius: var(--dk-radius-sm);
+    font-size: 14px;
+    font-weight: 600;
+    font-family: var(--dk-font-body);
+    cursor: pointer;
+    transition: var(--dk-transition);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.clear-filters-btn:hover {
+    background-color: var(--dk-secondary);
+    border-color: var(--dk-accent);
+    color: var(--dk-primary);
+}
+
+.clear-filters-btn i {
+    font-size: 12px;
+}
+
+/* Sticky footer düzenleme - iki buton */
+.sticky-filter-footer {
+    padding: 20px 25px;
+    border-top: 1px solid var(--dk-border);
+    background: var(--dk-white);
+    direction: ltr;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ============================================================
+   FILTER CONTROLS WRAPPER - RENSA butonu yerlesimi
+   ============================================================ */
+.filter-controls-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    overflow-x: auto;
+    white-space: nowrap;
+    padding-bottom: 5px;
+}
+
+.filter-controls-wrapper .sort-dropdown {
+    margin-left: auto;
+}
+
+/* Mobil düzenleme */
+@media (max-width: 768px) {
+    .filter-controls-wrapper {
+        display: grid !important;
+        grid-template-columns: 1fr auto auto;
+        gap: 8px !important;
+        padding: 0px !important;
+        justify-content: center !important;
+        align-items: center;
+    }
+
+    .filter-trigger-main {
+        width: 100% !important;
+        justify-content: center !important;
+    }
+
+    .filter-clear-btn {
+        padding: 8px 12px;
+        font-size: 13px;
+    }
+
+    #sort-menu-btn.sort-trigger {
+        margin-left: 0 !important;
+    }
+}
+
