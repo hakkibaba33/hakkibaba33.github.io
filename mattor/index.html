@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <html lang="sv">
 <head>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kategori | DKRUG</title>
+    <title>Mattor | DKRUG</title>
     <link rel="stylesheet" href="/assets/css/reset.css">
     <link rel="stylesheet" href="/assets/css/common.css">
     <link rel="stylesheet" href="/assets/css/category.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<base target="_blank">
 </head>
 <body>
 
@@ -26,14 +28,14 @@
                 </div>
 
                 <!-- Chips -->
-               <div class="category-chips-wrapper">
-                <div class="category-chips-scroll" id="category-chips-list">
-                 <a href="/mattor/" class="category-chip active">Alla</a>
-                 <a href="/mattor/?kategori=vardagsrum" class="category-chip">Vardagsrum</a>
-                 <a href="/mattor/?kategori=sovrum" class="category-chip">Sovrum</a>
-                 <a href="/mattor/?kategori=kok" class="category-chip">Kok</a>
+                <div class="category-chips-wrapper">
+                    <div class="category-chips-scroll" id="category-chips-list">
+                        <a href="/mattor/" class="category-chip active" data-chip="alla">Alla</a>
+                        <a href="/mattor/?kategori=vardagsrum" class="category-chip" data-chip="vardagsrum">Vardagsrum</a>
+                        <a href="/mattor/?kategori=sovrum" class="category-chip" data-chip="sovrum">Sovrum</a>
+                        <a href="/mattor/?kategori=kok" class="category-chip" data-chip="kok">Kok</a>
+                    </div>
                 </div>
-              </div>
 
                 <!-- Filtre ve Siralama -->
                 <div class="filter-controls-wrapper">
@@ -41,6 +43,10 @@
                         <i class="fa-solid fa-sliders"></i> 
                         <span>Filtrera</span>
                         <span class="filter-badge" style="display:none;">0</span>
+                    </button>
+                    <button class="filter-clear-btn" id="clear-all-filters" style="display:none;">
+                        <i class="fa-solid fa-rotate-left"></i>
+                        <span>Rensa</span>
                     </button>
                     <div class="sort-dropdown">
                         <button class="sort-trigger" id="sort-menu-btn">
@@ -112,6 +118,9 @@
             </div>
         </div>
         <div class="sticky-filter-footer">
+            <button class="clear-filters-btn" id="drawer-clear-filters">
+                <i class="fa-solid fa-rotate-left"></i> RENSA ALLA
+            </button>
             <button class="apply-btn" onclick="window.closeAll()">VISA PRODUKTER</button>
         </div>
     </div>
@@ -156,28 +165,20 @@
 
     <!-- JS Yukleyici -->
     <script>
-
-         const urlParams = new URLSearchParams(window.location.search);
-const kategori = urlParams.get('kategori');
-
-// Kategoriye göre filtrele
-if (kategori) {
-    console.log('Kategori:', kategori);
-    // Burada ürünleri filtrele
-    filterProducts(kategori);
-}
-
-        
         async function loadComponents() {
-            const [headerRes, footerRes] = await Promise.all([
-                fetch('/header.html'),
-                fetch('/footer.html')
-            ]);
-            document.getElementById('header-placeholder').innerHTML = await headerRes.text();
-            document.getElementById('footer-placeholder').innerHTML = await footerRes.text();
-            
-            if (typeof initEventListeners === 'function') {
-                initEventListeners();
+            try {
+                const [headerRes, footerRes] = await Promise.all([
+                    fetch('/header.html'),
+                    fetch('/footer.html')
+                ]);
+                document.getElementById('header-placeholder').innerHTML = await headerRes.text();
+                document.getElementById('footer-placeholder').innerHTML = await footerRes.text();
+
+                if (typeof initEventListeners === 'function') {
+                    initEventListeners();
+                }
+            } catch (err) {
+                console.error('Header/footer yüklenemedi:', err);
             }
         }
         loadComponents();
