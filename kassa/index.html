@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kassa | DKRUG</title>
+
+    <!-- 1. ÖNCE Stripe.js -->
+    <script src="https://js.stripe.com/v3/"></script>
+
+    <!-- 2. SONRA config.js -->
+    <script src="/assets/js/config.js"></script>
+
+    <!-- Stil Dosyaları -->
+    <link rel="stylesheet" href="/assets/css/checkout.css">
+    <link rel="stylesheet" href="/assets/css/common.css">
+    <link rel="stylesheet" href="/assets/css/reset.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <!-- Güvenlik Barı -->
+    <div class="checkout-top-bar">
+        <div class="top-bar-content">
+            <i class="fa-solid fa-lock"></i>
+            <span>Säker utcheckning med SSL-kryptering</span>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="custom-minimal-header">
+        <div class="header-left">
+            <a href="/mattor" class="nav-link dk-back-btn">
+                <img src="assets/images/left-arrow.svg" alt="arrow" width="24">
+                <span>Fortsätt handla</span>
+            </a>
+        </div>
+
+        <div class="header-center">
+            <a href="/" class="logo-text">DKRUG</a>
+        </div>
+
+        <div class="header-right">
+            <a href="/kontakt" class="nav-link dk-contact-btn">
+                <span>Kontakta oss</span>
+                <img src="/assets/images/support.svg" alt="support" width="24">
+            </a>
+        </div>
+    </header>
+
+    <main class="container" id="checkout-main-container" style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
+
+        <div id="checkout-header-area" class="checkout-modern-header">
+            <div class="header-left-aligned">
+                <h1>Kassa</h1>
+                <div class="full-width-form-border"></div>
+            </div>
+        </div>
+
+        <div id="checkout-content-root" class="checkout-grid-modern" style="display: none;">
+
+            <section class="checkout-form-column">
+                <!-- ADRES FORMU -->
+                <div class="checkout-section-card">
+                    <h2 class="section-title"><span class="step-number">1</span> Leveransadress</h2>
+                    <form id="address-form" class="form-grid woocommerce-checkout">
+                        <div class="form-row-split">
+                            <div class="form-group">
+                                <label for="billing_first_name">Förnamn</label>
+                                <input type="text" id="billing_first_name" name="billing_first_name" placeholder="Johan" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="billing_last_name">Efternamn</label>
+                                <input type="text" id="billing_last_name" name="billing_last_name" placeholder="Svensson" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group mb-15">
+                            <label for="billing_email">E-postadress</label>
+                            <input type="email" id="billing_email" name="billing_email" placeholder="johan@example.com" required>
+                        </div>
+
+                        <div class="form-group mb-15">
+                            <label for="billing_phone">Telefonnummer</label>
+                            <input type="tel" id="billing_phone" name="billing_phone" placeholder="070 123 45 67" required>
+                        </div>
+
+                        <div class="form-group mb-15">
+                            <label for="billing_address_1">Adress</label>
+                            <input type="text" id="billing_address_1" name="billing_address_1" placeholder="Gatan 12, Lgh 1001" required>
+                        </div>
+
+                        <div class="form-row-split mb-15">
+                            <div class="form-group">
+                                <label for="billing_postcode">Postnummer</label>
+                                <input type="text" id="billing_postcode" name="billing_postcode" placeholder="123 45" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="billing_city">Ort</label>
+                                <input type="text" id="billing_city" name="billing_city" placeholder="Stockholm" required>
+                            </div>
+                        </div>
+
+                        <div class="terms-acceptance">
+                            <label class="custom-checkbox">
+                                <input type="checkbox" id="accept-terms" required>
+                                <span class="terms-text">Jag godkänner <a href="/kopvillkor" target="_blank">köpvillkoren</a>.</span>
+                            </label>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- ÖDEME FORMU - Her zaman görünür -->
+                <div class="checkout-section-card mt-20" id="payment-section">
+                    <h2 class="section-title"><span class="step-number">2</span> Betalningsmetod</h2>
+                    <p class="payment-desc">Välj ditt önskade betalningssätt nedan. Du kan betala med kort eller Klarna.</p>
+                    <div id="payment-element">
+                        <!-- Stripe Payment Element buraya mount edilecek -->
+                        <p style="color:#999; padding:40px; text-align:center;">Laddar betalningsalternativ...</p>
+                    </div>
+                    <div id="card-errors" role="alert"></div>
+                </div>
+
+                <div id="checkout-validation-error" style="color: #e54d42; font-size: 14px; font-weight: 500; margin-bottom: 10px; display: none; text-align: center;">
+                    ⚠️ Vänligen fyll i alla obligatoriska fält korrekt.
+                </div>
+
+                <button id="confirm-payment-btn" class="main-checkout-btn btn-disabled" disabled>
+                    Fyll i leveransadressen först
+                </button>
+            </section>
+
+            <aside class="order-summary-column">
+                <div class="order-summary-box">
+                    <h2 class="summary-title">Din kundvagn</h2>
+                    <div class="summary-product-list"></div>
+                    <div class="totals-area">
+                        <div class="total-line">
+                            <span>Produkter:</span>
+                            <span id="subtotal-display">0 SEK</span>
+                        </div>
+                        <div class="total-line total-line-frakt">
+                            <span>Frakt:</span>
+                            <span class="static-shipping-text">Fri frakt</span>
+                        </div>
+                        <div class="total-line" style="color: #27ae60; display: none;">
+                            <span>Besparning:</span>
+                            <span id="savings-display">0 kr</span>
+                        </div>
+                        <div class="total-line grand-total">
+                            <strong>Total:</strong>
+                            <div class="total-price-wrapper" style="text-align: right; display: flex; flex-direction: column;">
+                                <strong id="grand-total-display">0 SEK</strong>
+                                <span class="moms-mini-text">inkl. moms</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="summary-trust-badges"></div>
+                </div>
+            </aside>
+        </div>
+
+        <div id="empty-cart-message-box" style="display: none; text-align:center; padding: 100px 0;">
+            <h2>Varukorgen är tom</h2>
+            <p>Det finns inga produkter i din kundvagn.</p>
+            <a href="/mattor" class="main-checkout-btn" style="text-decoration: none; display: inline-block; width: auto; padding: 15px 30px;">
+                Tillbaka till butiken
+            </a>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer id="checkout-minimal-footer" class="custom-checkout-footer">
+        <div class="checkout-container">
+
+            <div class="checkout-info-grid">
+                <div class="info-item">
+                    <i class="fa-solid fa-truck-fast"></i>
+                    <span class="info-title">Gratis och snabb Frakt</span>
+                    <span class="info-desc">Leveranstid i Sverige 1-5 Arbetsdagar</span>
+                </div>
+                <div class="info-item">
+                    <i class="fa-solid fa-arrow-rotate-left"></i>
+                    <span class="info-title">Öppet Köp</span>
+                    <span class="info-desc">30 Dagars Returrätt</span>
+                </div>
+                <div class="info-item">
+                    <i class="fa-solid fa-shield-check"></i>
+                    <span class="info-title">Säker Betalning</span>
+                    <span class="info-desc">SSL-Krypterad</span>
+                </div>
+            </div>
+
+            <hr class="footer-divider">
+
+            <div class="footer-help-section">
+                <p class="help-text">Frågor?</p>
+                <div class="footer-btn-group">
+                    <a href="/faq" class="footer-outline-btn">Vanliga frågor (FAQ)</a>
+                    <a href="/kontakt" class="footer-outline-btn">Kontakta oss</a>
+                </div>
+            </div>
+
+            <div class="footer-bottom-brand">
+                <div class="footer-text-logo">DKRUG</div>
+
+                <p class="copyright">
+                    © 2021 - 2026 DKRUG Sweden. Alla rättigheter förbehållna.
+                </p>
+                <p class="experience-text">Levererat inredning och mattor sedan 2021</p>
+            </div>
+
+        </div>
+    </footer>
+
+    <!-- JS -->
+    <script src="/assets/js/common.js"></script>
+    <script src="/assets/js/checkout.js"></script>
+</body>
+</html>
