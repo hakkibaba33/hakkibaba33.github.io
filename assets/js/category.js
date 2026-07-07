@@ -1,10 +1,53 @@
 // ==========================================
-// CATEGORY.JS - SUPABASE UYUMLU (v3.1 - ID FIX)
+// CATEGORY.JS - SUPABASE UYUMLU (v4.0 - DYNAMIC CATEGORY)
 // Eski Airtable yapısını koru, sadece API Supabase'e çevrildi
+// URL'den kategori okur, her kategori sayfasında çalışır
 // ==========================================
 
 console.log('category.js yukleniyor...');
 console.log('CONFIG durumu:', typeof CONFIG !== 'undefined' ? 'Yuklu' : 'YUKLU DEGIL!');
+
+// ==========================================
+// KATEGORI OKUMA - URL'DEN
+// ==========================================
+
+function getCurrentCategory() {
+    const path = window.location.pathname;
+
+    // "/mattor/" → "mattor"
+    // "/gardiner/" → "gardiner"
+    // "/rea/" → "rea"
+    // "/" veya "" → null (anasayfa)
+
+    const category = path.replace(/^\/|\/$/g, '');
+
+    console.log('URL path:', path);
+    console.log('Kategori:', category);
+
+    return category || null;
+}
+
+function isReaPage() {
+    return window.location.pathname.includes('/rea/');
+}
+
+function updatePageTitle(category) {
+    const titleMap = {
+        'mattor': 'Mattor',
+        'gardiner': 'Gardiner',
+        'rea': 'REA - Kampanjer',
+        'kontakt': 'Kontakt'
+    };
+
+    const title = titleMap[category] || 'Produkter';
+    document.title = title + ' | Dekorist';
+
+    // Sayfa başlığını güncelle
+    const pageTitle = document.getElementById('category-main-title');
+    if (pageTitle) {
+        pageTitle.textContent = title;
+    }
+}
 
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -51,11 +94,31 @@ document.addEventListener('DOMContentLoaded', async () => {
     // --- 3. SUPABASE'DEN URUN CEK ---
     async function fetchProducts() {
         try {
-            // Duz cekme (embed olmadan - daha guvenli)
-            const products = await supabaseGet('products', {
+            const currentCategory = getCurrentCategory();
+
+            // Sayfa başlığını güncelle
+            updatePageTitle(currentCategory);
+
+            // Supabase sorgu parametreleri
+            const queryParams = {
                 select: '*',
                 active: 'eq.true'
-            });
+            };
+
+            // REA sayfası mı?
+            if (isReaPage()) {
+                // İndirimli ürünler
+                queryParams.discount_price = 'not.is.null';
+                console.log('REA sayfası: İndirimli ürünler çekiliyor');
+            } 
+            // Kategori sayfası mı?
+            else if (currentCategory) {
+                queryParams.category = 'eq.' + currentCategory;
+                console.log(currentCategory + ' kategorisi: Ürünler çekiliyor');
+            }
+
+            // Duz cekme (embed olmadan - daha guvenli)
+            const products = await supabaseGet('products', queryParams);
 
             // Varyantlari ayri cek
             const variants = await supabaseGet('product_variants', {
@@ -157,7 +220,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             ? product.variants.length + ' storlekar' 
             : (product.variants[0]?.size || 'Standard');
 
-        // URL: /matta/slug seklinde (vercel.json rewrite ile product.html?slug=slug'e yonlenecek)
+        // URL: /matta/slug seklinde
         const productUrl = product.slug ? '/matta/' + product.slug : '/matta/' + product.id;
 
         return `
