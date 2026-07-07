@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mina Favoriter | DKRUG</title>
+    <link rel="stylesheet" href="/assets/css/reset.css">
+    <link rel="stylesheet" href="/assets/css/common.css">
+    <link rel="stylesheet" href="/assets/css/category.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Wishlist Ozel Stiller */
+        .wishlist-page-container {
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 140px 20px 60px;
+            min-height: 60vh;
+        }
+
+        .wishlist-header {
+            padding: 30px 0 20px;
+            margin-bottom: 30px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .wishlist-header h1 {
+            font-size: 2.2rem;
+            letter-spacing: -1px;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        #wishlist-count-text {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #888;
+            font-weight: 500;
+        }
+
+        .wishlist-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        @media (min-width: 768px) {
+            .wishlist-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (min-width: 1200px) {
+            .wishlist-grid {
+                grid-template-columns: repeat(5, 1fr);
+            }
+        }
+
+        .wishlist-empty-state {
+            text-align: center;
+            padding: 100px 20px;
+            display: none;
+        }
+
+        .wishlist-empty-state h3 {
+            font-size: 1.5rem;
+            color: #666;
+            margin-bottom: 25px;
+        }
+
+        .btn-explore {
+            display: inline-block;
+            background: #1a1a1a;
+            color: #fff;
+            padding: 15px 45px;
+            border-radius: 5px;
+            text-decoration: none;
+            text-transform: uppercase;
+            font-weight: 700;
+            font-size: 13px;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-explore:hover {
+            background: #333;
+            transform: translateY(-2px);
+        }
+
+        .product-removed {
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.4s ease;
+            pointer-events: none;
+        }
+
+        /* Wishlist'te kalp her zaman kirmizi */
+        .wishlist-btn.active i {
+            color: #D30000 !important;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <div id="header-placeholder"></div>
+
+    <main class="wishlist-page-container">
+        <div class="wishlist-header">
+            <h1>Mina Favoriter</h1>
+            <p id="wishlist-count-text"></p>
+        </div>
+
+        <div id="wishlist-grid" class="wishlist-grid"></div>
+
+        <div id="wishlist-empty" class="wishlist-empty-state">
+            <h3>Din onskelista ar tom</h3>
+            <a href="category.html" class="btn-explore">Utforska produkter</a>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <div id="footer-placeholder"></div>
+
+    <!-- JS Yukleyici -->
+    <script>
+        async function loadComponents() {
+            const [headerRes, footerRes] = await Promise.all([
+                fetch('header.html'),
+                fetch('footer.html')
+            ]);
+            document.getElementById('header-placeholder').innerHTML = await headerRes.text();
+            document.getElementById('footer-placeholder').innerHTML = await footerRes.text();
+            
+            // 🔥 Event listenerları başlat (search popup, mini cart, mobile menu)
+            if (typeof initEventListeners === 'function') {
+                initEventListeners();
+            }
+        }
+        loadComponents();
+    </script>
+
+    <!-- JS Dosyalari -->
+    <script src="/assets/js/config.js"></script>
+    <script src="/assets/js/common.js"></script>
+    <script src="/assets/js/wishlist.js"></script>
+</body>
+</html>
