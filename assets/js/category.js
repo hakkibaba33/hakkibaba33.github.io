@@ -425,7 +425,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             ? product.variants.length + ' storlekar' 
             : (product.variants[0]?.size || 'Standard');
 
-        const productUrl = '/produkt/?id=' + product.id;
+        const productUrl = product.slug ? '/produkt/?slug=' + product.slug : '/produkt/?id=' + product.id;
 
         return `
             <div class="product-card" data-id="${String(product.id)}">
