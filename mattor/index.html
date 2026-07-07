@@ -156,6 +156,18 @@
 
     <!-- JS Yukleyici -->
     <script>
+
+         const urlParams = new URLSearchParams(window.location.search);
+const kategori = urlParams.get('kategori');
+
+// Kategoriye göre filtrele
+if (kategori) {
+    console.log('Kategori:', kategori);
+    // Burada ürünleri filtrele
+    filterProducts(kategori);
+}
+
+        
         async function loadComponents() {
             const [headerRes, footerRes] = await Promise.all([
                 fetch('/header.html'),
