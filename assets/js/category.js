@@ -101,37 +101,60 @@ function initChipsRouting() {
 // ==========================================
 
 function initClearFilters() {
+    console.log('>>> initClearFilters CAGIRILDI');
+
     // Drawer icindeki RENSA ALLA butonu
     const drawerClearBtn = document.getElementById('drawer-clear-filters');
     if (drawerClearBtn) {
-        drawerClearBtn.addEventListener('click', clearAllFilters);
+        // Once eski listener'lari temizle (varsa)
+        const newDrawerBtn = drawerClearBtn.cloneNode(true);
+        drawerClearBtn.parentNode.replaceChild(newDrawerBtn, drawerClearBtn);
+        newDrawerBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('>>> Drawer RENSA butonuna tiklandi');
+            clearAllFilters();
+        });
     }
 
     // Ana bar'daki Rensa butonu
     const mainClearBtn = document.getElementById('clear-all-filters');
     if (mainClearBtn) {
-        mainClearBtn.addEventListener('click', clearAllFilters);
+        const newMainBtn = mainClearBtn.cloneNode(true);
+        mainClearBtn.parentNode.replaceChild(newMainBtn, mainClearBtn);
+        newMainBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('>>> Ana bar RENSA butonuna tiklandi');
+            clearAllFilters();
+        });
     }
 }
 
 function clearAllFilters() {
+    console.log('>>> clearAllFilters CAGIRILDI');
+
     // Tum checkbox'lari kaldir
     document.querySelectorAll('.filter-input:checked').forEach(input => {
         input.checked = false;
     });
-
-    // Filtreleri uygula (hepsi bos = tum urunler)
-    applyFilters();
 
     // Sort'u default'a cevir
     document.querySelectorAll('input[name="orderby"]').forEach(radio => {
         radio.checked = radio.value === 'default';
     });
 
+    // Filtreleri direkt uygula - tum urunleri goster
+    filteredProducts = [...allProducts];
+    currentPage = 0;
+    renderProducts();
+    updateProgress();
+    updateFilterBadge(0);
+
     // Rensa butonunu gizle
     updateClearButtonVisibility();
 
-    console.log('Tum filtreler temizlendi');
+    console.log('Tum filtreler temizlendi, urun sayisi:', filteredProducts.length);
 }
 
 function updateClearButtonVisibility() {
@@ -184,6 +207,64 @@ document.addEventListener('DOMContentLoaded', async () => {
         return product.discount_price || product.base_price || 0;
     }
 
+
+    // --- DINAMIK KATEGORI VE CHIPS ---
+    async function fetchCategories() {
+        try {
+            const categories = await supabaseGet('categories', {
+                select: '*',
+                active: 'eq.true',
+                order: 'sort_order.asc'
+            });
+            return categories || [];
+        } catch (error) {
+            console.error('Kategori cekme hatasi:', error);
+            return [];
+        }
+    }
+
+    async function fetchSubCategories() {
+        try {
+            const subCategories = await supabaseGet('sub_categories', {
+                select: '*',
+                active: 'eq.true',
+                order: 'sort_order.asc'
+            });
+            return subCategories || [];
+        } catch (error) {
+            console.error('Alt kategori cekme hatasi:', error);
+            return [];
+        }
+    }
+
+    function renderChips(categories, subCategories) {
+        const chipsContainer = document.getElementById('category-chips-list');
+        if (!chipsContainer) return;
+
+        const currentCategory = getCurrentCategory();
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentSubCategory = urlParams.get('kategori');
+
+        let chipsHTML = '';
+
+        // "Alla" chip'i - her zaman var
+        const isAllaActive = !currentSubCategory;
+        chipsHTML += `<a href="/${currentCategory}/" class="category-chip ${isAllaActive ? 'active' : ''}" data-chip="alla">Alla</a>`;
+
+        // Alt kategorileri chips olarak ekle
+        const category = categories.find(c => c.slug === currentCategory);
+        if (category) {
+            const categorySubs = subCategories.filter(s => s.category_id === category.id);
+            categorySubs.forEach(sub => {
+                const isActive = currentSubCategory === sub.slug;
+                chipsHTML += `<a href="/${currentCategory}/?kategori=${sub.slug}" class="category-chip ${isActive ? 'active' : ''}" data-chip="${sub.slug}">${sub.name}</a>`;
+            });
+        }
+
+        chipsContainer.innerHTML = chipsHTML;
+        initChipsRouting();
+    }
+
     // --- 3. SUPABASE'DEN URUN CEK ---
     async function fetchProducts() {
         try {
@@ -192,6 +273,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             // Sayfa basligini guncelle
             updatePageTitle(currentCategory);
+
+            // Kategorileri ve alt kategorileri cek (paralel)
+            const [categories, subCategories] = await Promise.all([
+                fetchCategories(),
+                fetchSubCategories()
+            ]);
+
+            // Chips'leri dinamik render et
+            renderChips(categories, subCategories);
 
             // Supabase sorgu parametreleri
             const queryParams = {
@@ -206,18 +296,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             } 
             // Kategori sayfasi mi?
             else if (currentCategory) {
-                queryParams.categories = 'cs.{' + currentCategory + '}';
+                // Kategori slug'ini categories array'inde ara
+                queryParams.categories = 'cs.{"' + currentCategory + '"}';
                 console.log(currentCategory + ' kategorisi: Urunler cekiliyor');
             }
 
             // Alt kategori filtresi (chips'ten gelen)
-            // Supabase PostgREST: cs = contains (array contains value)
-            // Format: categories=cs.{"value"} veya sub_category=eq.value
             if (subCategory) {
-                // Eger urunlerin 'sub_category' kolonu varsa:
                 queryParams.sub_category = 'eq.' + subCategory;
-                // Veya categories array'inde ara:
-                // queryParams.categories = 'ov.{' + subCategory + '}';
                 console.log('Alt kategori filtresi:', subCategory);
             }
 
