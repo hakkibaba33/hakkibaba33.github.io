@@ -63,47 +63,27 @@ if (window.__productPageInitialized) {
     async function initProductPage() {
         console.log("Urun sayfasi init basliyor...");
 
-        // URL'den id veya slug parametresini oku
-        const urlParams = new URLSearchParams(window.location.search);
-        let productId = urlParams.get('id');
-        let slug = urlParams.get('slug');
-
-        // Eger id yoksa, slug var mi kontrol et (eski yapı desteği)
-        if (!productId && !slug) {
-            // URL path'inden son parçayı al
+        let slug = new URLSearchParams(window.location.search).get('slug');
+        if (!slug) {
             const parts = window.location.pathname.split('/').filter(p => p);
-            const lastPart = parts[parts.length - 1];
-            // Klasör adlarını ve boş değerleri filtrele
-            const reservedNames = ['produkt', 'matta', 'gardiner', 'mobler', 'belysning', 'dekoration', 'rea', 'favoriter', 'kassa', 'kontakt', 'assets', 'api'];
-            if (lastPart && !reservedNames.includes(lastPart.toLowerCase())) {
-                slug = lastPart;
-            }
+            slug = parts[parts.length - 1];
         }
 
-        if (!productId && !slug) {
-            console.error("Urun ID veya Slug bulunamadi! URL:", window.location.href);
+        // DUZELTME: Eski kodda bu kontrol YOKTU
+        // Ama eger slug hala yoksa veya bos ise, hata ver
+        if (!slug) {
+            console.error("Slug bulunamadi!");
             return;
         }
 
-        console.log("Urun ID:", productId, "Slug:", slug);
+        console.log("Slug:", slug);
 
         try {
-            let products = [];
-
-            // ID ile sorgula (yeni yapı)
-            if (productId) {
-                products = await supabaseGet('products', {
-                    id: 'eq.' + productId,
-                    select: '*'
-                });
-            } 
-            // Slug ile sorgula (eski yapı desteği)
-            else if (slug) {
-                products = await supabaseGet('products', {
-                    slug: 'eq.' + slug,
-                    select: '*'
-                });
-            }
+            // Duz cekme (embed olmadan)
+            const products = await supabaseGet('products', {
+                slug: 'eq.' + slug,
+                select: '*'
+            });
 
             if (products.length === 0) {
                 console.error("Urun bulunamadi! Slug:", slug);
@@ -1167,7 +1147,7 @@ class ProductCarousel {
         this.track.querySelectorAll('.product-card').forEach(card => {
             card.addEventListener('click', () => {
                 const id = card.dataset.id;
-                if (id) window.location.href = `/produkt/?id=${id}`;
+                if (id) window.location.href = `product.html?id=${id}`;
             });
         });
 
