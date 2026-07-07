@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>REA | DKRUG</title>
+    <title>Gardiner | DKRUG</title>
     <link rel="stylesheet" href="/assets/css/reset.css">
     <link rel="stylesheet" href="/assets/css/common.css">
     <link rel="stylesheet" href="/assets/css/category.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<base target="_blank">
 </head>
 <body>
 
@@ -23,15 +24,23 @@
 
                 <!-- Header -->
                 <div class="category-header-bar">
-                    <h1 class="product-title" id="category-main-title">REA - Kampanjer</h1>
+                    <h1 class="product-title" id="category-main-title">Alla Gardiner</h1>
                 </div>
 
                 <!-- Chips -->
                 <div class="category-chips-wrapper">
                     <div class="category-chips-scroll" id="category-chips-list">
-                        <a href="/rea/" class="category-chip active">Alla REA</a>
-                        <a href="/mattor/" class="category-chip">Mattor</a>
-                        <a href="/gardiner/" class="category-chip">Gardiner</a>
+                        <a href="/gardiner/" class="category-chip active">Alla</a>
+                        <a href="/gardiner/?kategori=gardinlängder" class="category-chip">Gardinlängder</a>
+                        <a href="/gardiner/?kategori=panelgardiner" class="category-chip">Panelgardiner</a>
+                        <a href="/gardiner/?kategori=hissgardiner" class="category-chip">Hissgardiner</a>
+                        <a href="/gardiner/?kategori=öljettgardiner" class="category-chip">Öljettgardiner</a>
+                        <a href="/gardiner/?kategori=multibandslängder" class="category-chip">Multibandslängder</a>
+                        <a href="/gardiner/?kategori=kappor-swags" class="category-chip">Kappor & Swags</a>
+                        <a href="/gardiner/?kategori=rullgardiner" class="category-chip">Rullgardiner</a>
+                        <a href="/gardiner/?kategori=plisségardiner" class="category-chip">Plisségardiner</a>
+                        <a href="/gardiner/?kategori=lamellgardiner" class="category-chip">Lamellgardiner</a>
+                        <a href="/gardiner/?kategori=mörkläggningsgardiner" class="category-chip">Mörkläggning</a>
                     </div>
                 </div>
 
@@ -73,9 +82,13 @@
         <div class="category-seo-section">
             <div class="custom-container">
                 <div class="seo-content-wrapper">
-                    <h2 class="seo-auto-title">REA Kampanjer</h2>
+                    <h2 class="seo-auto-title">Våra Gardiner</h2>
                     <div class="seo-text-body">
-                        <p>Passa på! Upp till 50% rabatt på utvalda produkter.</p>
+                        <p>Upptäck vår exklusiva kollektion av gardiner för varje rum och stil. 
+                        Från eleganta gardinlängder och praktiska rullgardiner till stilrena panelgardiner och mörkläggningsgardiner för sovrummet. 
+                        Vi erbjuder högkvalitativa textilier i olika material, färger och mönster som passar både moderna och klassiska hem. 
+                        Våra gardiner kombinerar funktionalitet med estetik – oavsett om du söker ljusdämpning, insynsskydd eller en dekorativ inredningsdetalj. 
+                        Komplettera med kappor, swags och tillbehör för en fulländad fönsterdekoration.</p>
                     </div>
                 </div>
             </div>
@@ -85,8 +98,12 @@
     <!-- Footer -->
     <div id="footer-placeholder"></div>
 
-    <!-- Filtre & Sort Drawerlar -->
+    <!-- ========== FILTRE & SORT DRAWERLAR ========== -->
+
+    <!-- Filtre Overlay -->
     <div id="filter-overlay" class="modal-overlay"></div>
+
+    <!-- Filtre Drawer -->
     <div id="filter-sidebar" class="filter-drawer">
         <div class="drawer-header">
             <h3>FILTRERA</h3>
@@ -109,7 +126,10 @@
         </div>
     </div>
 
+    <!-- Sort Overlay -->
     <div id="sort-overlay" class="modal-overlay"></div>
+
+    <!-- Sort Drawer -->
     <div id="sort-drawer" class="sort-drawer">
         <div class="drawer-header">
             <h3>SORTERA</h3>
@@ -154,7 +174,7 @@
                 ]);
                 document.getElementById('header-placeholder').innerHTML = await headerRes.text();
                 document.getElementById('footer-placeholder').innerHTML = await footerRes.text();
-                
+
                 if (typeof initEventListeners === 'function') {
                     initEventListeners();
                 }
