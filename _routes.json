@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "include": ["/*"],
+  "exclude": [],
+  "routes": [
+    { "src": "/mattor/", "dest": "/category.html" },
+    { "src": "/gardiner/", "dest": "/category.html" },
+    { "src": "/rea/", "dest": "/category.html" }
+  ]
+}
