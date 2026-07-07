@@ -113,7 +113,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             } 
             // Kategori sayfası mı?
             else if (currentCategory) {
-                queryParams.category = 'eq.' + currentCategory;
+                queryParams.categories = 'cs.{' + currentCategory + '}'
                 console.log(currentCategory + ' kategorisi: Ürünler çekiliyor');
             }
 
