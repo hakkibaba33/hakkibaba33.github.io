@@ -1341,3 +1341,50 @@ body.modal-open {
 .product-card:hover .image-box {
     box-shadow: var(--dk-shadow-lg);
 }
+
+
+
+
+
+
+
+
+
+
+
+
+/* ============================================================
+   RENSA (TEMIZLE) BUTONU - ANA BAR
+   ============================================================ */
+.filter-clear-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 16px;
+    background-color: transparent;
+    color: var(--dk-text);
+    border: 1px solid var(--dk-border);
+    border-radius: var(--dk-radius-sm);
+    font-size: 14px;
+    font-weight: 500;
+    font-family: var(--dk-font-body);
+    cursor: pointer;
+    transition: var(--dk-transition);
+    margin-right: auto;
+}
+
+.filter-clear-btn:hover {
+    background-color: var(--dk-secondary);
+    border-color: var(--dk-accent);
+    color: var(--dk-primary);
+}
+
+.filter-clear-btn i {
+    font-size: 12px;
+    color: var(--dk-text-light);
+}
+
+.filter-clear-btn:hover i {
+    color: var(--dk-accent);
+}
+
