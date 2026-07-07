@@ -3,27 +3,144 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kontakt | Dekorist</title>
-    <link rel="stylesheet" href="/assets/css/style.css">
+    <title>Kontakt - Dekorist</title>
+    <link rel="stylesheet" href="/assets/css/checkout.css">
     <link rel="stylesheet" href="/assets/css/common.css">
+    <link rel="stylesheet" href="/assets/css/reset.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <div id="header-placeholder"></div>
-    
-    <main class="main-content">
-        <div class="container">
-            <h1>Kontakt</h1>
-            <p>Bize ulaşmak için:</p>
-            <ul>
-                <li>Email: info@dekorist.se</li>
-                <li>Telefon: +46 70 123 45 67</li>
-            </ul>
+
+    <div class="checkout-top-bar">
+        <div class="top-bar-content">
+            <i class="fas fa-truck"></i> FRI FRAKT OCH SNABB LEVERANS I HELA SVERIGE
         </div>
+    </div>
+
+    <header class="custom-minimal-header">
+        <a href="/" class="logo-text">DEKORIST</a>
+        <nav>
+            <a href="/" class="nav-link">Hem</a>
+        </nav>
+    </header>
+
+    <main id="checkout-main-container">
+        <div class="checkout-modern-header">
+            <h1>Kontakta Oss</h1>
+            <div class="full-width-form-border"></div>
+        </div>
+
+        <section class="checkout-grid-modern">
+            
+            <div class="checkout-form-column">
+                <div class="checkout-section-card">
+                    <h2 class="section-title">
+                        <span class="step-number">01</span> Skicka ett meddelande
+                    </h2>
+                    
+                    <form id="contact-form">
+                        <div class="form-row-split">
+                            <div class="form-group">
+                                <label>Namn</label>
+                                <input type="text" placeholder="För- och efternamn" required>
+                            </div>
+                            <div class="form-group">
+                                <label>E-post</label>
+                                <input type="email" placeholder="din-email@adress.se" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Ämne</label>
+                            <input type="text" placeholder="Hur kan vi hjälpa dig?">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Meddelande</label>
+                            <textarea style="width: 100%; padding: 12px; border: 1px solid var(--dk-border); border-radius: var(--dk-radius-sm); font-family: var(--dk-font-body); min-height: 150px; resize: vertical;" placeholder="Skriv din förfrågan här..."></textarea>
+                        </div>
+
+                        <button type="submit" class="main-checkout-btn">Skicka meddelande</button>
+                    </form>
+                </div>
+
+                <div class="checkout-section-card" style="margin-top: 20px;">
+                    <h2 class="section-title">Vår plats</h2>
+                    <div class="map-container" style="width: 100%; height: 300px; border-radius: var(--dk-radius-sm); overflow: hidden;">
+                        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2255.4523366368943!2d13.044079176587974!3d55.57868849767675!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x4653a1656f7e8a93%3A0x6762391051515089!2sAgnesfridsv%C3%A4gen%203%2C%20212%2037%20Malm%C3%B6%2C%20Sverige!5e0!3m2!1str!2str!4v1715000000000!5m2!1str!2str" 
+                        width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+                    </div>
+                </div>
+            </div>
+
+            <aside class="order-summary-column">
+                <div class="order-summary-box">
+                    <div class="summary-title">Kontaktinformation</div>
+                    <div class="totals-area">
+                        <div class="total-line" style="margin-bottom: 15px;">
+                            <span style="display: block;">Adress:</span>
+                            <strong style="text-align: right;">Agnesfridsvägen 3<br>212 37 Malmö<br>SWEDEN</strong>
+                        </div>
+                        <div class="total-line">
+                            <span>E-post:</span>
+                            <strong>info@dekorist.se</strong>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+        </section>
     </main>
-    
-    <div id="footer-placeholder"></div>
-    
-    <script src="/assets/js/config.js"></script>
+
+<footer id="checkout-minimal-footer" class="custom-checkout-footer">
+        <div class="checkout-container">
+
+            <div class="checkout-info-grid">
+                <div class="info-item">
+                    <i class="fa-solid fa-truck-fast"></i>
+                    <span class="info-title">Gratis och snabb Frakt</span>
+                    <span class="info-desc">Leveranstid i Sverige 1-5 Arbetsdagar</span>
+                </div>
+                <div class="info-item">
+                    <i class="fa-solid fa-arrow-rotate-left"></i>
+                    <span class="info-title">Öppet Köp</span>
+                    <span class="info-desc">30 Dagars Returrätt</span>
+                </div>
+                <div class="info-item">
+                    <i class="fa-solid fa-shield-check"></i>
+                    <span class="info-title">Säker Betalning</span>
+                    <span class="info-desc">SSL-Krypterad</span>
+                </div>
+            </div>
+
+            <hr class="footer-divider">
+
+            <div class="footer-help-section">
+                <p class="help-text">Frågor?</p>
+                <div class="footer-btn-group">
+                    <a href="/faq" class="footer-outline-btn">Vanliga frågor (FAQ)</a>
+                    <a href="/kontakt" class="footer-outline-btn">Kontakta oss</a>
+                </div>
+            </div>
+
+            <div class="footer-bottom-brand">
+                <div class="footer-text-logo">DKRUG</div>
+
+                <p class="copyright">
+                    © 2021 - 2026 DKRUG Sweden. Alla rättigheter förbehållna.
+                </p>
+                <p class="experience-text">Levererat inredning och mattor sedan 2021</p>
+            </div>
+
+        </div>
+    </footer>
+
+    <!-- JS -->
     <script src="/assets/js/common.js"></script>
+    <script src="/assets/js/checkout.js"></script>
+</body>
+</html>
+
 </body>
 </html>
