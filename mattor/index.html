@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="/assets/css/category.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <base target="_blank">
+<base target="_blank">
 </head>
 <body>
 
@@ -17,7 +18,9 @@
 
     <main class="main-content">
         <!-- Breadcrumb (JS ile dinamik) -->
-        <nav class="breadcrumb-nav" id="breadcrumb-nav" aria-label="Breadcrumb"></nav>
+        <nav class="breadcrumb-nav" id="breadcrumb-nav" aria-label="Breadcrumb">
+            <a href="/">Hem</a> <span class="sep">/</span> <span id="breadcrumb-current">Produkter</span>
+        </nav>
 
         <div class="category-page-wrapper">
             <div class="custom-container">
@@ -30,10 +33,8 @@
                 <!-- Chips -->
                 <div class="category-chips-wrapper">
                     <div class="category-chips-scroll" id="category-chips-list">
-                        <a href="/mattor/" class="category-chip active" data-chip="alla">Alla</a>
-                        <a href="/mattor/?kategori=vardagsrum" class="category-chip" data-chip="vardagsrum">Vardagsrum</a>
-                        <a href="/mattor/?kategori=sovrum" class="category-chip" data-chip="sovrum">Sovrum</a>
-                        <a href="/mattor/?kategori=kok" class="category-chip" data-chip="kok">Kok</a>
+                        <!-- Dinamik olarak JS ile doldurulacak -->
+                        <span class="category-chip active" data-chip="alla">Alla</span>
                     </div>
                 </div>
 
