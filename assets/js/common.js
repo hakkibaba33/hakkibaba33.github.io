@@ -848,163 +848,122 @@ function initEventListeners() {
 
 
 // ==========================================
-// DYNAMIC HEADER MENU - Tüm sayfalarda çalışır
+// DYNAMIC HEADER MENU
 // ==========================================
 
+window.__dkMenuInitDone = false;
+
 async function fetchCategoriesForMenu() {
-    const SUPABASE_URL = (typeof CONFIG !== 'undefined' && CONFIG.SUPABASE) ? CONFIG.SUPABASE.URL : '';
-    const SUPABASE_KEY = (typeof CONFIG !== 'undefined' && CONFIG.SUPABASE) ? CONFIG.SUPABASE.ANON_KEY : '';
-    
-    if (!SUPABASE_URL || !SUPABASE_KEY) {
-        console.warn('[Menu] Supabase config bulunamadi');
-        return [];
-    }
-    
-    try {
-        const res = await fetch(SUPABASE_URL + '/rest/v1/categories?select=*&active=eq.true&order=sort_order.asc', {
-            headers: {
-                'apikey': SUPABASE_KEY,
-                'Authorization': 'Bearer ' + SUPABASE_KEY
-            }
-        });
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        return await res.json();
-    } catch (err) {
-        console.error('[Menu] Kategori çekme hatası:', err);
-        return [];
-    }
+  const SUPABASE_URL = (typeof CONFIG !== 'undefined' && CONFIG.SUPABASE) ? CONFIG.SUPABASE.URL : '';
+  const SUPABASE_KEY = (typeof CONFIG !== 'undefined' && CONFIG.SUPABASE) ? CONFIG.SUPABASE.ANON_KEY : '';
+  if (!SUPABASE_URL || !SUPABASE_KEY) { console.warn('[Menu] Config yok'); return []; }
+  try {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/categories?select=*&active=eq.true&order=sort_order.asc', {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return await res.json();
+  } catch (err) { console.error('[Menu] Hata:', err); return []; }
 }
 
 function renderHeaderMenu(categories) {
-    // Desktop nav
-    const desktopNavList = document.querySelector('.desktop-nav .nav-list');
-    if (desktopNavList) {
-        desktopNavList.innerHTML = '';
-        
-        categories.forEach(cat => {
-            const li = document.createElement('li');
-            const a = document.createElement('a');
-            a.href = '/' + cat.slug + '/';
-            a.textContent = cat.name_sv || cat.name_tr || cat.slug;
-            li.appendChild(a);
-            desktopNavList.appendChild(li);
-        });
-        
-        // Statik öğeler
-        const staticItems = [
-            { href: '/rea/', text: 'REA', class: 'nav-sale' },
-            { href: '/kontakt/', text: 'Kontakt' }
-        ];
-        staticItems.forEach(item => {
-            const li = document.createElement('li');
-            const a = document.createElement('a');
-            a.href = item.href;
-            a.textContent = item.text;
-            if (item.class) a.className = item.class;
-            li.appendChild(a);
-            desktopNavList.appendChild(li);
-        });
-        
-        console.log('[Header] Desktop menü render edildi:', categories.length, 'kategori');
-    }
+  const desktopNav = document.querySelector('.desktop-nav .nav-list');
+  const mobileNav = document.querySelector('.mobile-nav-list');
+  
+  if (!desktopNav) { console.warn('[Menu] Desktop nav yok'); return; }
+  
+  // ÖNCE TEMİZLE — çiftlenmeyi engelle
+  desktopNav.innerHTML = '';
+  if (mobileNav) mobileNav.innerHTML = '';
+  
+  // Sadece dinamik kategoriler
+  categories.forEach(cat => {
+    if (!cat.slug) return;
+    const slug = cat.slug.toString().trim().replace(/^\/+|\/+$/g, '');
     
-    // Mobile nav
-    const mobileNavList = document.querySelector('.mobile-nav-list');
-    if (mobileNavList) {
-        mobileNavList.innerHTML = '';
-        
-        const startLi = document.createElement('li');
-        const startA = document.createElement('a');
-        startA.href = '/';
-        startA.textContent = 'Start';
-        startLi.appendChild(startA);
-        mobileNavList.appendChild(startLi);
-        
-        categories.forEach(cat => {
-            const li = document.createElement('li');
-            const a = document.createElement('a');
-            a.href = '/' + cat.slug + '/';
-            a.textContent = cat.name_sv || cat.name_tr || cat.slug;
-            li.appendChild(a);
-            mobileNavList.appendChild(li);
-        });
-        
-        const staticItems = [
-            { href: '/rea/', text: 'REA', class: 'mobile-sale' },
-            { href: '/kontakt/', text: 'Kontakt' }
-        ];
-        staticItems.forEach(item => {
-            const li = document.createElement('li');
-            const a = document.createElement('a');
-            a.href = item.href;
-            a.textContent = item.text;
-            if (item.class) a.className = item.class;
-            li.appendChild(a);
-            mobileNavList.appendChild(li);
-        });
-        
-        console.log('[Header] Mobil menü render edildi:', categories.length, 'kategori');
+    const li = document.createElement('li');
+    const a = document.createElement('a');
+    a.href = '/' + slug + '/';
+    a.textContent = cat.name_sv || cat.name_tr || slug;
+    li.appendChild(a);
+    desktopNav.appendChild(li);
+    
+    if (mobileNav) {
+      const mli = document.createElement('li');
+      const ma = document.createElement('a');
+      ma.href = '/' + slug + '/';
+      ma.textContent = cat.name_sv || cat.name_tr || slug;
+      mli.appendChild(ma);
+      mobileNav.appendChild(mli);
     }
+  });
+  
+  // Statik öğeler (SADECE BİR KEZ)
+  const staticItems = [
+    { href: '/rea/', text: 'REA', cls: 'nav-sale' },
+    { href: '/kontakt/', text: 'Kontakt' }
+  ];
+  staticItems.forEach(item => {
+    const li = document.createElement('li');
+    const a = document.createElement('a');
+    a.href = item.href;
+    a.textContent = item.text;
+    if (item.cls) a.className = item.cls;
+    li.appendChild(a);
+    desktopNav.appendChild(li);
+    
+    if (mobileNav) {
+      const mli = document.createElement('li');
+      const ma = document.createElement('a');
+      ma.href = item.href;
+      ma.textContent = item.text;
+      if (item.cls) ma.className = item.cls.replace('nav-sale', 'mobile-sale');
+      mli.appendChild(ma);
+      mobileNav.appendChild(mli);
+    }
+  });
+  
+  console.log('[Menu] Render tamam:', categories.length, 'kategori');
 }
 
 async function initDynamicMenu() {
-    console.log('[Menu] Dinamik menü init başlıyor...');
-    const categories = await fetchCategoriesForMenu();
-    if (categories.length > 0) {
-        renderHeaderMenu(categories);
-    } else {
-        console.warn('[Menu] Kategori bulunamadı, menü güncellenmedi');
-    }
+  if (window.__dkMenuInitDone) { console.log('[Menu] Zaten init edildi'); return; }
+  window.__dkMenuInitDone = true;
+  
+  const cats = await fetchCategoriesForMenu();
+  if (cats.length > 0) renderHeaderMenu(cats);
+  else console.warn('[Menu] Kategori yok');
 }
 
 // ==========================================
-// OTOMATIK BASLATMA - RACE CONDITION FIX
+// OTOMATIK BASLATMA
 // ==========================================
 
 function initAll() {
-    console.log('[Init] common.js initAll baslatiliyor...');
-
-    // 1. Event listenerlar (cache flag kontrollu)
-    initEventListeners();
-
-    // 2. Badge'ler (HER ZAMAN, flag'den bagimsiz)
-    initBadgesWithRetry();
-
-    // 3. MutationObserver (DOM degisikliklerini izle)
-    observeBadgeElements();
-
-    // 4. ✅ DİNAMİK MENÜ - TÜM SAYFALARDA ÇALIŞIR
-    initDynamicMenu();
-
-    console.log('[Init] common.js initAll tamamlandi.');
+  console.log('[Init] initAll başlıyor...');
+  
+  if (window.__dkInitAllDone) { console.log('[Init] Zaten çalıştı'); return; }
+  window.__dkInitAllDone = true;
+  
+  initEventListeners();
+  initBadgesWithRetry();
+  observeBadgeElements();
+  initDynamicMenu(); // ← Menü burada
+  
+  console.log('[Init] initAll tamam');
 }
 
-// Sayfa yuklenme durumuna gore baslat
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initAll);
+  document.addEventListener('DOMContentLoaded', initAll);
 } else {
-    initAll();
+  initAll();
 }
 
-// Ek guvenlik: window.load'da da bir kez daha dene
+// window.load eventini KALDIR veya kontrollü yap
 window.addEventListener('load', () => {
-    console.log('[Init] window.load eventi, badge kontrolu...');
-    if (!window.__dkBadgeInitDone) {
-        console.log('[Init] Badge init yapilmamis, retry baslatiliyor...');
-        initBadgesWithRetry(10, 50);
-    }
-    // Search init kontrolu
-    const input = document.getElementById('live-search-input');
-    if (input && !input._searchInitialized) {
-        console.log('[Init] Search init yapilmamis, retry baslatiliyor...');
-        initSearch();
-    }
-    // Menu init kontrolu - YENİ
-    const desktopNav = document.querySelector('.desktop-nav .nav-list');
-    if (desktopNav && desktopNav.children.length === 0) {
-        console.log('[Init] Menu init yapilmamis, retry baslatiliyor...');
-        initDynamicMenu();
-    }
+  console.log('[Init] window.load');
+  if (!window.__dkBadgeInitDone) initBadgesWithRetry(10, 50);
+  // initDynamicMenu() BURADA YOK — çiftlenmeyi engelle
 });
 
-console.log('common.js v8.3 yuklendi - Dynamic Menu aktif');
+console.log('common.js v8.4 — Tek kaynak menü aktif');
