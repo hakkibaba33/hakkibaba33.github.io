@@ -361,6 +361,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function createProductCard(product, isWishlisted) {
+    const productUrl = product.slug ? '/produkt/' + product.slug : '/produkt/?id=' + product.id;
+    console.log(">>> Urun URL olusturuldu:", productUrl, "urun:", product.name)
         const hasDiscount = product.discount_price && product.discount_price < product.base_price;
         const priceHTML = hasDiscount 
             ? `<span class="original-price" style="text-decoration:line-through;color:#999;font-size:14px;">${product.base_price.toLocaleString('sv-SE')} SEK</span>
