@@ -35,12 +35,26 @@ document.addEventListener('DOMContentLoaded', () => {
     let elements = null;
     let paymentElement = null;
 
-    if (typeof Stripe !== 'undefined' && CONFIG?.STRIPE?.PUBLISHABLE_KEY) {
+   // Stripe kütüphanesinin tamamen yüklenmesini bekle
+function initStripeWhenReady() {
+    if (typeof Stripe !== 'undefined') {
         stripe = Stripe(CONFIG.STRIPE.PUBLISHABLE_KEY);
         console.log('✅ Stripe baslatildi');
+        
+        // Stripe hazır olduğunda ödeme formunu başlat
+        const cart = getCart();
+        if (cart.length > 0) {
+            paymentSection.style.display = 'block';
+            initPaymentForm();
+        }
     } else {
-        console.error('❌ Stripe.js yuklenemedi veya config eksik!');
+        console.log('⏳ Stripe bekleniyor...');
+        setTimeout(initStripeWhenReady, 100); // 100ms sonra tekrar kontrol et
     }
+}
+
+// Sayfa yüklendiğinde başlatmayı tetikle
+window.addEventListener('load', initStripeWhenReady);
 
     const checkoutContainer = document.getElementById('checkout-content-root');
     const emptyCartMessage = document.getElementById('empty-cart-message-box');
