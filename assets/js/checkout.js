@@ -1,20 +1,11 @@
 // ==========================================
-// CHECKOUT.JS - GUNCELLENMIS
+// CHECKOUT.JS - GUNCELLENMIS v2
 // ==========================================
 
 document.addEventListener('DOMContentLoaded', () => {
 
-    function getCart() {
-        try {
-            return JSON.parse(localStorage.getItem('siteCartItems')) || [];
-        } catch (e) {
-            return [];
-        }
-    }
-
-    function saveCart(cart) {
-        localStorage.setItem('siteCartItems', JSON.stringify(cart));
-    }
+    // NOT: getCart ve saveCart common.js'ten geliyor, tekrar tanımlama!
+    // Eğer common.js yüklendiyse onları kullan, yoksa kendi tanımlamanı kullan
 
     // Musteri bilgilerini localStorage'a kaydet (tack sayfasi icin)
     function saveCustomerToLocalStorage() {
@@ -52,6 +43,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const paymentSection = document.getElementById('payment-section');
     const paymentElementContainer = document.getElementById('payment-element');
     const addressForm = document.getElementById('address-form');
+
+    // getCart common.js'ten gelmeli ama fallback olarak tanımla
+    function getCart() {
+        try {
+            return JSON.parse(localStorage.getItem('siteCartItems')) || [];
+        } catch (e) {
+            return [];
+        }
+    }
+
+    function saveCart(cart) {
+        localStorage.setItem('siteCartItems', JSON.stringify(cart));
+    }
 
     function renderCheckoutItems() {
         const cart = getCart();
