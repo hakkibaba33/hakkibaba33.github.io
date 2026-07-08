@@ -40,13 +40,10 @@
             <a href="/" class="logo">DKRUG</a>
         </div>
         
-        <nav class="desktop-nav">
+          <nav class="desktop-nav">
             <ul class="nav-list">
-                <li><a href="/mattor/">Mattor</a></li>
-                <li><a href="/gardiner/">Gardiner</a></li>
-                <li><a href="/rea/" class="nav-sale">REA</a></li>
-                <li><a href="/kontakt/">Kontakt</a></li>
-            </ul>
+            <!-- Dinamik kategoriler buraya gelecek -->
+           </ul>
         </nav>
 
         <div class="header-right">
@@ -91,13 +88,9 @@
     <div class="mobile-menu-body">
         <nav>
             <ul class="mobile-nav-list">
-                <li><a href="/">Start</a></li>
-                <li><a href="/mattor/">Mattor</a></li>
-                <li><a href="/gardiner/">Gardiner</a></li>
-                <li><a href="/rea/" class="mobile-sale">REA</a></li>
-                <li><a href="/kontakt/">Kontakt</a></li>
-            </ul>
-        </nav>
+               <!-- Dinamik kategoriler buraya gelecek -->
+              </ul>
+           </nav>
     </div>
     <div class="mobile-menu-footer">
         © 2021 - 2026 DKRug
@@ -150,7 +143,6 @@
     var SUPABASE_URL = 'https://mowyhsssmpjrwxzvelax.supabase.co';
     var SUPABASE_ANON_KEY = 'sb_publishable_Fp4Nstc2lpCPNL-5OHPU8w_KD0AC6xf';
     
-    // Supabase'den kategorileri çek
     async function fetchCategories() {
         try {
             var res = await fetch(SUPABASE_URL + '/rest/v1/categories?select=*&active=eq.true&order=sort_order.asc', {
@@ -164,7 +156,6 @@
         }
     }
     
-    // Desktop menüyü render et
     function renderDesktopNav(categories) {
         var navList = document.querySelector('.desktop-nav .nav-list');
         if (!navList) {
@@ -172,8 +163,9 @@
             return;
         }
         
-        navList.innerHTML = '';
+        navList.innerHTML = ''; // Önce temizle!
         
+        // 1. Dinamik kategoriler (admin panelden gelen)
         categories.forEach(function(cat) {
             var li = document.createElement('li');
             var a = document.createElement('a');
@@ -183,7 +175,7 @@
             navList.appendChild(li);
         });
         
-        // Statik menü öğeleri (REA, Kontakt)
+        // 2. Statik menü öğeleri (REA, Kontakt)
         var staticItems = [
             { href: '/rea/', text: 'REA', class: 'nav-sale' },
             { href: '/kontakt/', text: 'Kontakt' }
@@ -201,7 +193,6 @@
         console.log('[Menu] Desktop menü render edildi:', categories.length, 'kategori');
     }
     
-    // Mobil menüyü render et
     function renderMobileNav(categories) {
         var mobileNavList = document.querySelector('.mobile-nav-list');
         if (!mobileNavList) {
@@ -209,9 +200,9 @@
             return;
         }
         
-        mobileNavList.innerHTML = '';
+        mobileNavList.innerHTML = ''; // Önce temizle!
         
-        // Start (Ana sayfa)
+        // Start
         var startLi = document.createElement('li');
         var startA = document.createElement('a');
         startA.href = '/';
@@ -247,14 +238,13 @@
         console.log('[Menu] Mobil menü render edildi:', categories.length, 'kategori');
     }
     
-    // Ana init fonksiyonu
     async function initMenu() {
         console.log('[Menu] Menü init başlatılıyor...');
-        
         var categories = await fetchCategories();
         
         if (categories.length === 0) {
-            console.warn('[Menu] Hiç kategori bulunamadı!');
+            console.warn('[Menu] Hiç kategori bulunamadı, manuel liste kullanılıyor.');
+            // Fallback: Manuel liste (eğer Supabase çalışmazsa)
             return;
         }
         
