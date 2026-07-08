@@ -848,6 +848,116 @@ function initEventListeners() {
 
 
 // ==========================================
+// DYNAMIC HEADER MENU - Tüm sayfalarda çalışır
+// ==========================================
+
+async function fetchCategoriesForMenu() {
+    const SUPABASE_URL = (typeof CONFIG !== 'undefined' && CONFIG.SUPABASE) ? CONFIG.SUPABASE.URL : '';
+    const SUPABASE_KEY = (typeof CONFIG !== 'undefined' && CONFIG.SUPABASE) ? CONFIG.SUPABASE.ANON_KEY : '';
+    
+    if (!SUPABASE_URL || !SUPABASE_KEY) {
+        console.warn('[Menu] Supabase config bulunamadi');
+        return [];
+    }
+    
+    try {
+        const res = await fetch(SUPABASE_URL + '/rest/v1/categories?select=*&active=eq.true&order=sort_order.asc', {
+            headers: {
+                'apikey': SUPABASE_KEY,
+                'Authorization': 'Bearer ' + SUPABASE_KEY
+            }
+        });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return await res.json();
+    } catch (err) {
+        console.error('[Menu] Kategori çekme hatası:', err);
+        return [];
+    }
+}
+
+function renderHeaderMenu(categories) {
+    // Desktop nav
+    const desktopNavList = document.querySelector('.desktop-nav .nav-list');
+    if (desktopNavList) {
+        desktopNavList.innerHTML = '';
+        
+        categories.forEach(cat => {
+            const li = document.createElement('li');
+            const a = document.createElement('a');
+            a.href = '/' + cat.slug + '/';
+            a.textContent = cat.name_sv || cat.name_tr || cat.slug;
+            li.appendChild(a);
+            desktopNavList.appendChild(li);
+        });
+        
+        // Statik öğeler
+        const staticItems = [
+            { href: '/rea/', text: 'REA', class: 'nav-sale' },
+            { href: '/kontakt/', text: 'Kontakt' }
+        ];
+        staticItems.forEach(item => {
+            const li = document.createElement('li');
+            const a = document.createElement('a');
+            a.href = item.href;
+            a.textContent = item.text;
+            if (item.class) a.className = item.class;
+            li.appendChild(a);
+            desktopNavList.appendChild(li);
+        });
+        
+        console.log('[Header] Desktop menü render edildi:', categories.length, 'kategori');
+    }
+    
+    // Mobile nav
+    const mobileNavList = document.querySelector('.mobile-nav-list');
+    if (mobileNavList) {
+        mobileNavList.innerHTML = '';
+        
+        const startLi = document.createElement('li');
+        const startA = document.createElement('a');
+        startA.href = '/';
+        startA.textContent = 'Start';
+        startLi.appendChild(startA);
+        mobileNavList.appendChild(startLi);
+        
+        categories.forEach(cat => {
+            const li = document.createElement('li');
+            const a = document.createElement('a');
+            a.href = '/' + cat.slug + '/';
+            a.textContent = cat.name_sv || cat.name_tr || cat.slug;
+            li.appendChild(a);
+            mobileNavList.appendChild(li);
+        });
+        
+        const staticItems = [
+            { href: '/rea/', text: 'REA', class: 'mobile-sale' },
+            { href: '/kontakt/', text: 'Kontakt' }
+        ];
+        staticItems.forEach(item => {
+            const li = document.createElement('li');
+            const a = document.createElement('a');
+            a.href = item.href;
+            a.textContent = item.text;
+            if (item.class) a.className = item.class;
+            li.appendChild(a);
+            mobileNavList.appendChild(li);
+        });
+        
+        console.log('[Header] Mobil menü render edildi:', categories.length, 'kategori');
+    }
+}
+
+async function initDynamicMenu() {
+    console.log('[Menu] Dinamik menü init başlıyor...');
+    const categories = await fetchCategoriesForMenu();
+    if (categories.length > 0) {
+        renderHeaderMenu(categories);
+    } else {
+        console.warn('[Menu] Kategori bulunamadı, menü güncellenmedi');
+    }
+}
+
+// ==========================================
 // OTOMATIK BASLATMA - RACE CONDITION FIX
 // ==========================================
 
@@ -862,6 +972,9 @@ function initAll() {
 
     // 3. MutationObserver (DOM degisikliklerini izle)
     observeBadgeElements();
+
+    // 4. ✅ DİNAMİK MENÜ - TÜM SAYFALARDA ÇALIŞIR
+    initDynamicMenu();
 
     console.log('[Init] common.js initAll tamamlandi.');
 }
@@ -886,6 +999,12 @@ window.addEventListener('load', () => {
         console.log('[Init] Search init yapilmamis, retry baslatiliyor...');
         initSearch();
     }
+    // Menu init kontrolu - YENİ
+    const desktopNav = document.querySelector('.desktop-nav .nav-list');
+    if (desktopNav && desktopNav.children.length === 0) {
+        console.log('[Init] Menu init yapilmamis, retry baslatiliyor...');
+        initDynamicMenu();
+    }
 });
 
-console.log('common.js v8.3 yuklendi - Search fix aktif');
+console.log('common.js v8.3 yuklendi - Dynamic Menu aktif');
