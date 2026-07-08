@@ -1,8 +1,7 @@
 // ==========================================
-// COMMON.JS - TEMEL FONKSIYONLAR (v8.5)
+// COMMON.JS - TEMEL FONKSIYONLAR (v8.2)
 // Badge'ler her zaman calisacak - MutationObserver + Retry mekanizmasi
 // Search fix: Fetch retry, hata yonetimi, cache kontrolu
-// 🔥 FIX: Urun karti tiklama fix - Query string URL'lerle uyumlu
 // ==========================================
 
 // ==========================================
@@ -392,12 +391,14 @@ function initSearch() {
 
     if (!input) {
         console.warn('[Search] Input bulunamadi, retry...');
+        // Input yoksa 500ms sonra tekrar dene (DOM henuz yuklenmemis olabilir)
         setTimeout(initSearch, 500);
         return;
     }
 
     console.log('[Search] Input bulundu, listener baglaniyor...');
 
+    // Eski listener varsa kaldirmak icin - inputu klonla ve yerine koy
     const newInput = input.cloneNode(true);
     input.parentNode.replaceChild(newInput, input);
     searchInputElement = newInput;
@@ -411,6 +412,7 @@ function initSearch() {
             return;
         }
 
+        // Cache bossa once fetch et, sonra ara
         if (allProductsCache.length === 0 && !isFetchingProducts) {
             console.log('[Search] Cache bossa, once urunleri cekiyorum...');
             if (searchResultsElement) {
@@ -423,6 +425,7 @@ function initSearch() {
             return;
         }
 
+        // Zaten fetch ediliyorsa bekle
         if (isFetchingProducts) {
             console.log('[Search] Urunler hala yukleniyor, bekleniyor...');
             if (searchResultsElement) {
@@ -437,6 +440,7 @@ function initSearch() {
         }, 300);
     });
 
+    // Input focus oldugunda da cache kontrolu yap
     searchInputElement.addEventListener('focus', () => {
         if (allProductsCache.length === 0 && !isFetchingProducts) {
             console.log('[Search] Focus - urunleri onceden cekiyorum...');
@@ -467,6 +471,7 @@ function openSearchPopup() {
     setTimeout(() => {
         if (input) {
             input.focus();
+            // Popup acildiginda cache bossa fetch et
             if (allProductsCache.length === 0 && !isFetchingProducts) {
                 fetchAllProductsForSearch();
             }
@@ -552,6 +557,7 @@ function performSearch(query) {
     if (allProductsCache.length === 0) {
         resultsDisplay.innerHTML = '<div class="no-results-found">Inga produkter tillgangliga. Forsok igen om en stund.</div>';
         resultsDisplay.style.display = 'block';
+        // Tekrar fetch dene
         if (!isFetchingProducts) {
             fetchAllProductsForSearch();
         }
@@ -601,6 +607,7 @@ function performSearch(query) {
     resultsDisplay.style.display = 'block';
 }
 
+// XSS korumasi icin basit escape
 function escapeHtml(text) {
     if (!text) return '';
     const div = document.createElement('div');
@@ -647,96 +654,6 @@ function initHeaderScroll() {
     });
 }
 
-// ==========================================
-// 🔥 FIX: URUN KARTI TIKLAMA FIX
-// Query string URL'lerle uyumlu: /produkt/?slug=... ve /produkt/?id=...
-// ==========================================
-
-function initProductCardClicks() {
-    const grid = document.getElementById('product-grid');
-    if (!grid) return;
-
-    console.log('[ProductClick] Urun karti click fix baslatiliyor...');
-
-    grid.querySelectorAll('.product-card').forEach(card => {
-        const oldListener = card._productClickHandler;
-        if (oldListener) {
-            card.removeEventListener('click', oldListener);
-        }
-
-        const handler = (e) => {
-            // Wishlist butonuna tiklandiysa - hicbir sey yapma
-            if (e.target.closest('.wishlist-btn')) {
-                return;
-            }
-            
-            // Direkt <a> tag'ine tiklandiysa - browser'a birak
-            if (e.target.closest('a[href]')) {
-                return;
-            }
-            
-            // Kartin herhangi bir yerine tiklandiysa - <a> tag'ini bul ve yonlendir
-            const link = card.querySelector('a[href]');
-            if (link && link.href) {
-                console.log('[ProductClick] Kart tiklandi, yonlendiriliyor:', link.href);
-                window.location.href = link.href;
-            }
-        };
-
-        card._productClickHandler = handler;
-        card.addEventListener('click', handler);
-    });
-}
-
-// GLOBAL: category.js ve diger yerlerden cagrilabilir
-window.initProductCardClicks = initProductCardClicks;
-
-// ==========================================
-// 🔥 FIX: PRODUCT GRID MUTATION OBSERVER
-// Yeni urun kartlari eklendiginde otomatik click fix uygula
-// ==========================================
-
-let __productGridObserver = null;
-let __productGridDebounceTimer = null;
-
-function observeProductGrid() {
-    if (__productGridObserver) {
-        __productGridObserver.disconnect();
-    }
-
-    const grid = document.getElementById('product-grid');
-    if (!grid) {
-        console.log('[ProductGrid] Grid henuz yok, observer baslatilamadi.');
-        return;
-    }
-
-    __productGridObserver = new MutationObserver((mutations) => {
-        const hasNewCards = mutations.some(mutation => {
-            return Array.from(mutation.addedNodes).some(node => {
-                if (node.nodeType !== 1) return false;
-                return node.classList?.contains('product-card') ||
-                       node.querySelector?.('.product-card');
-            });
-        });
-
-        if (hasNewCards) {
-            clearTimeout(__productGridDebounceTimer);
-            __productGridDebounceTimer = setTimeout(() => {
-                console.log('[ProductGrid] Yeni kartlar eklendi, click fix uygulaniyor...');
-                initProductCardClicks();
-            }, 100);
-        }
-    });
-
-    __productGridObserver.observe(grid, {
-        childList: true,
-        subtree: false
-    });
-
-    console.log('[ProductGrid] MutationObserver baslatildi.');
-}
-
-window.observeProductGrid = observeProductGrid;
 
 // ==========================================
 // EVENT LISTENERS - TEK BIR YERDE
@@ -752,18 +669,12 @@ function initEventListeners() {
 
     console.log('Event listenerlar baslatiliyor...');
 
+    // --- Header scroll effect ---
     initHeaderScroll();
 
     // --- Document-level click delegation ---
     document.addEventListener('click', (e) => {
-        // 🔥 FIX: /produkt/ ile baslayan tum linklere tiklanirsa hicbir sey yapma
-        // Hem /produkt/?slug=... hem /produkt/?id=... hem /produkt/slug destekler
-        const productLink = e.target.closest('a[href^="/produkt/"]');
-        if (productLink) {
-            return;
-        }
-
-        // Mini cart open
+        // Mini cart open - GENISLETILMIS SECICILER
         if (e.target.closest('#open-mini-cart-btn, .cart-icon-wrapper, .fa-shopping-bag, .cart-trigger, [data-action="open-cart"], .header-cart-icon')) {
             e.preventDefault();
             openMiniCart();
@@ -789,7 +700,7 @@ function initEventListeners() {
             return;
         }
 
-        // Search open
+        // Search open - GENISLETILMIS SECICILER
         if (e.target.closest('#search-open-btn, .search-trigger, [data-action="open-search"], .header-search-icon, .fa-magnifying-glass, .fa-search')) {
             e.preventDefault();
             openSearchPopup();
@@ -855,12 +766,6 @@ function initEventListeners() {
     // --- Init search ---
     initSearch();
 
-    // 🔥 FIX: Urun karti tiklama fix'ini baslat
-    initProductCardClicks();
-
-    // 🔥 FIX: Product grid observer'i baslat
-    observeProductGrid();
-
     console.log('Tum event listenerlar basariyla baglandi!');
 }
 
@@ -916,6 +821,7 @@ function initEventListeners() {
 window.__dkInitAllDone = false;
 
 function initAll() {
+    // Çift çalışmayı engelle
     if (window.__dkInitAllDone) {
         console.log('[Init] initAll zaten calisti, atlaniyor.');
         return;
@@ -924,39 +830,41 @@ function initAll() {
 
     console.log('[Init] common.js initAll baslatiliyor...');
 
+    // 1. Event listenerlar (cache flag kontrollu)
     initEventListeners();
+
+    // 2. Badge'ler (HER ZAMAN, flag'den bagimsiz)
     initBadgesWithRetry();
+
+    // 3. MutationObserver (DOM degisikliklerini izle)
     observeBadgeElements();
 
     console.log('[Init] common.js initAll tamamlandi.');
 }
 
+// Sayfa yuklenme durumuna gore baslat
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initAll);
 } else {
     initAll();
 }
 
+// Ek guvenlik: window.load'da sadece eksik olanlari dene
 window.addEventListener('load', () => {
     console.log('[Init] window.load eventi...');
     
+    // Badge kontrolu
     if (!window.__dkBadgeInitDone) {
         console.log('[Init] Badge init yapilmamis, retry baslatiliyor...');
         initBadgesWithRetry(10, 50);
     }
     
+    // Search init kontrolu
     const input = document.getElementById('live-search-input');
     if (input && !input._searchInitialized) {
         console.log('[Init] Search init yapilmamis, retry baslatiliyor...');
         initSearch();
     }
-
-    // 🔥 FIX: Urun kartlari yuklendikten sonra tekrar dene
-    if (document.getElementById('product-grid')) {
-        console.log('[Init] Product grid tespit edildi, kart click fix tekrar uygulaniyor...');
-        initProductCardClicks();
-        observeProductGrid();
-    }
 });
 
-console.log('common.js v8.5 yuklendi - Query string URL destegi + Product Grid Observer aktif');
+console.log('common.js v8.4 yuklendi - Menu statik, Search fix aktif');
