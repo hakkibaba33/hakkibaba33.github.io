@@ -60,27 +60,44 @@ if (window.__productPageInitialized) {
 
     // DUZELTME: Eski yapıdaki gibi basit slug kontrolü
     // ESKI KOD: "product.html" kontrolu YOK
-    async function initProductPage() {
-        console.log("Urun sayfasi init basliyor...");
+async function initProductPage() {
+    console.log("Urun sayfasi init basliyor...");
+    console.log("Full URL:", window.location.href);
+    console.log("Pathname:", window.location.pathname);
+    console.log("Search:", window.location.search);
+    console.log("Hash:", window.location.hash);
 
-        let slug = new URLSearchParams(window.location.search).get('slug');
-     // Eğer slug yoksa, pathname'den al (örn: /matta/urun-adi)
-       if (!slug) {
-      const parts = window.location.pathname.split('/').filter(p => p);
-      const lastPart = parts[parts.length - 1];
-      // Eğer son parça "product.html" değilse, slug olarak kullan
-      if (lastPart && lastPart !== 'product.html') {
-        slug = lastPart;
-      }
+    let slug = null;
+
+    // 1. Query string'den dene: ?slug=...
+    slug = new URLSearchParams(window.location.search).get('slug');
+    if (slug) console.log("Slug query string'den bulundu:", slug);
+
+    // 2. Pathname'den dene: /produkt/slug
+    if (!slug) {
+        const parts = window.location.pathname.split('/').filter(p => p);
+        const lastPart = parts[parts.length - 1];
+        if (lastPart && lastPart !== 'produkt' && lastPart !== 'produkt.html' && lastPart !== 'index.html') {
+            slug = lastPart;
+            console.log("Slug pathname'den bulundu:", slug);
+        }
     }
 
-        // DUZELTME: Eski kodda bu kontrol YOKTU
-        // Ama eger slug hala yoksa veya bos ise, hata ver
-        if (!slug) {
-        console.error("Slug bulunamadi! URL'de ?slug=... parametresi gerekli.");
+    // 3. Hash'den dene: #/produkt/slug (local development)
+    if (!slug && window.location.hash) {
+        const hashParts = window.location.hash.replace('#', '').split('/').filter(p => p);
+        const hashSlug = hashParts[hashParts.length - 1];
+        if (hashSlug && hashSlug !== 'produkt') {
+            slug = hashSlug;
+            console.log("Slug hash'den bulundu:", slug);
+        }
+    }
+
+    if (!slug) {
+        console.error("Slug bulunamadi! URL:", window.location.href);
         document.querySelector('.product-page').innerHTML = 
-        '<p style="text-align:center;padding:60px;">Produkt hittades inte. <a href="category.html">Tillbaka till kategorier</a></p>';
-       return;
+            '<p style="text-align:center;padding:60px;">Produkt hittades inte. <a href="/">Tillbaka till startsidan</a></p>';
+        return;
     }
 
         console.log("Slug:", slug);
