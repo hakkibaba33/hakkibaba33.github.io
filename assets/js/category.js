@@ -23,22 +23,18 @@ function isReaPage() {
     return window.location.pathname.includes('/rea/');
 }
 
-function updatePageTitle(category, categoryData) {
-    let title = 'Produkter';
-    if (categoryData && categoryData.name_sv) {
-        title = categoryData.name_sv;
-    } else {
-        const titleMap = {
-            'mattor': 'Mattor',
-            'gardiner': 'Gardiner',
-            'mobler': 'Möbler',
-            'belysning': 'Belysning',
-            'dekoration': 'Dekoration',
-            'rea': 'REA',
-            'kontakt': 'Kontakt'
-        };
-        title = titleMap[category] || 'Produkter';
-    }
+function updatePageTitle(category) {
+    const titleMap = {
+        'mattor': 'Mattor',
+        'gardiner': 'Gardiner',
+        'mobler': 'Möbler',
+        'belysning': 'Belysning',
+        'dekoration': 'Dekoration',
+        'rea': 'REA',
+        'kontakt': 'Kontakt'
+    };
+    
+    let title = titleMap[category] || 'Produkter';
 
     document.title = 'Alla ' + title + ' | DKRUG';
 
@@ -245,6 +241,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             ]);
 
             renderChips(categories, subCategories);
+            updatePageTitle(currentCategory);
 
             const queryParams = {
                 select: '*',
