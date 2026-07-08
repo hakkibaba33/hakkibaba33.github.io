@@ -1,5 +1,5 @@
 // ==========================================
-// CATEGORY.JS - SUPABASE UYUMLU (v5.8 - SLUG ROUTING FIX)
+// CATEGORY.JS - SUPABASE UYUMLU (v5.7)
 // Modern Filtre Cekmecesi: Ana panel -> Alt panel slide yapisi
 // ==========================================
 
@@ -37,7 +37,7 @@ function updatePageTitle(category) {
         'rea': 'REA',
         'kontakt': 'Kontakt'
     };
-
+    
     let title = titleMap[category] || 'Produkter';
 
     document.title = 'Alla ' + title + ' | DKRUG';
@@ -360,9 +360,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // ==========================================
-    // YENI: CLEAN URL FORMATI (/produkt/slug)
-    // ==========================================
     function createProductCard(product, isWishlisted) {
         const hasDiscount = product.discount_price && product.discount_price < product.base_price;
         const priceHTML = hasDiscount 
@@ -371,12 +368,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             : `<span class="current-price">${product.price.toLocaleString('sv-SE')} SEK</span>`;
 
         const variantText = getVariantDisplayText(product);
-
-        // ✅ YENI: Clean URL formati - /produkt/slug
         const productUrl = product.slug ? '/produkt/?slug=' + product.slug : '/produkt/?id=' + product.id;
 
         return `
-            <div class="product-card" data-id="${String(product.id)}" data-slug="${product.slug || ''}">
+            <div class="product-card" data-id="${String(product.id)}">
                 <div class="image-box">
                     <a href="${productUrl}">
                         <img src="${product.image}" 
@@ -482,7 +477,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // MODERN FILTRE GENERATOR - v5.7
     // Ana panel (menu) -> Alt panel (grid) slide yapisi
     // ==========================================
-
+    
     let filterState = {
         colors: [],
         sizes: []
@@ -503,7 +498,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // --- ANA PANEL: Filtre kategorileri listesi ---
         let mainHTML = '';
-
+        
         // Farg kategorisi
         if (allColors.length > 0) {
             mainHTML += `
@@ -516,7 +511,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 </div>
             `;
         }
-
+        
         // Storlek kategorisi
         if (allSizes.length > 0) {
             mainHTML += `
@@ -623,7 +618,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     function openSubPanel(type) {
         const mainPanel = document.getElementById('main-panel');
         const subPanel = document.getElementById(type + '-sub-panel');
-
+        
         if (mainPanel) mainPanel.classList.add('slide-out');
         if (subPanel) subPanel.classList.add('slide-in');
     }
@@ -631,7 +626,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     function closeSubPanel() {
         const mainPanel = document.getElementById('main-panel');
         const subPanels = document.querySelectorAll('.sub-panel');
-
+        
         if (mainPanel) mainPanel.classList.remove('slide-out');
         subPanels.forEach(panel => panel.classList.remove('slide-in'));
     }
@@ -670,7 +665,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Sub panel counts
         const colorSubCount = document.getElementById('color-sub-count');
         if (colorSubCount) colorSubCount.textContent = filterState.colors.length + ' valda';
-
+        
         const sizeSubCount = document.getElementById('size-sub-count');
         if (sizeSubCount) sizeSubCount.textContent = filterState.sizes.length + ' valda';
     }
@@ -886,5 +881,5 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.log('>>> DOMContentLoaded sonu, initialCategory:', initialCategory);
     updatePageTitle(initialCategory);
 
-    console.log('Category.js v5.8 baslatildi - Slug routing fix aktif');
+    console.log('Category.js v5.7 baslatildi');
    });
