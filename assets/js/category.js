@@ -349,8 +349,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             const cardHTML = createProductCard(product, isWishlisted);
             grid.insertAdjacentHTML('beforeend', cardHTML);
         });
-
-        attachWishlistEvents();
+        
+         attachWishlistEvents();
 
         // 🔥 FIX: common.js'deki product card click fix'i calistir
         if (typeof window.initProductCardClicks === 'function') {
