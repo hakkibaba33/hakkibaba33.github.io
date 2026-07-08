@@ -190,49 +190,6 @@
 
     <script src="/assets/js/config.js"></script>
     <script src="/assets/js/common.js"></script>
-    <script src="/assets/js/category.js"></script>
-
-<script>
-// EMERGENCY FIX: Ürün kartlarındaki tıklamaları yakala
-document.getElementById('product-grid').addEventListener('click', function(e) {
-    const card = e.target.closest('.product-card');
-    if (!card) return;
-    
-    // Eğer wishlist butonuna tıklandıysa, normal akışa devam et (handleWishlistClick çalışsın)
-    if (e.target.closest('.wishlist-btn')) return;
-    
-    const link = card.querySelector('a');
-    if (!link) return;
-    
-    const href = link.getAttribute('href');
-    if (!href) return;
-    
-    // Hash routing'i engelle
-    if (href.startsWith('#/produkt/')) {
-        e.preventDefault();
-        e.stopPropagation();
-        const slug = href.replace('#/produkt/', '');
-        window.location.href = '/produkt/' + slug;
-        return;
-    }
-    
-    // Eski ?slug= formatını da engelle
-    if (href.includes('/produkt/?slug=')) {
-        e.preventDefault();
-        e.stopPropagation();
-        const url = new URL(href, window.location.origin);
-        const slug = url.searchParams.get('slug');
-        if (slug) {
-            window.location.href = '/produkt/' + slug;
-        }
-        return;
-    }
-    
-    // Normal clean URL - hiçbir şey yapma, <a> kendi çalışsın
-    console.log('Normal link:', href);
-}, true); // capture phase
-</script>
-
-    
+    <script src="/assets/js/category.js?v=999"></script>  
 </body>
 </html>
