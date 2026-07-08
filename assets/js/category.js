@@ -352,6 +352,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         attachWishlistEvents();
 
+        // 🔥 FIX: common.js'deki product card click fix'i calistir
+        if (typeof window.initProductCardClicks === 'function') {
+            window.initProductCardClicks();
+        }
+
         const shown = (currentPage + 1) * ITEMS_PER_PAGE;
         if (shown >= filteredProducts.length) {
             document.getElementById('load-more-container').style.display = 'none';
