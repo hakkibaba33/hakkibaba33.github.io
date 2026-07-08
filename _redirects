@@ -1,3 +1,6 @@
+/header.html /header.html 200
+/footer.html /footer.html 200
+/assets/* /assets/:splat 200
 /mattor/* /mattor/index.html 200
 /metervara/* /metervara/index.html 200
 /gangmattor/* /gangmattor/index.html 200
