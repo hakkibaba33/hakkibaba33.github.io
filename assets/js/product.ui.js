@@ -1174,7 +1174,7 @@ class ProductCarousel {
         this.track.querySelectorAll('.product-card').forEach(card => {
             card.addEventListener('click', () => {
                 const id = card.dataset.id;
-                if (id) window.location.href = `/#/produkt/?id=${id}`;
+                window.location.href = `/produkt/?id=${id}`;
             });
         });
 
