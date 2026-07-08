@@ -1,6 +1,7 @@
 // ==========================================
-// PRODUCT.UI.JS - SUPABASE UYUMLU (v3.1 - ID FIX)
+// PRODUCT.UI.JS - SUPABASE UYUMLU (v3.2 - SLUG ROUTING FIX)
 // Eski Airtable yapısını koru, sadece API Supabase'e çevrildi
+// YENI: Eski URL formatlarını yeni slug-based URL'lere yönlendirme
 // ==========================================
 
 if (window.__productPageInitialized) {
@@ -46,6 +47,29 @@ if (window.__productPageInitialized) {
         return res.json();
     }
 
+    // ==========================================
+    // ESKI ID-BASED URL'LERI YENI SLUG-BASED URL'LERE YONLENDIR
+    // ==========================================
+
+    async function redirectFromIdToSlug(productId) {
+        try {
+            const products = await supabaseGet('products', {
+                id: 'eq.' + productId,
+                select: 'slug'
+            });
+
+            if (products.length > 0 && products[0].slug) {
+                window.location.replace(`/produkt/${products[0].slug}`);
+            } else {
+                console.error("ID ile slug bulunamadi:", productId);
+                window.location.href = '/404.html';
+            }
+        } catch (e) {
+            console.error("ID'den slug bulunurken hata:", e);
+            window.location.href = '/404.html';
+        }
+    }
+
     function getDisplayPrice(product, variant) {
         if (variant && variant.discount_price) return variant.discount_price;
         if (variant && variant.price) return variant.price;
@@ -58,49 +82,63 @@ if (window.__productPageInitialized) {
         return product.base_price || 0;
     }
 
-    // DUZELTME: Eski yapıdaki gibi basit slug kontrolü
-    // ESKI KOD: "product.html" kontrolu YOK
-async function initProductPage() {
-    console.log("Urun sayfasi init basliyor...");
-    console.log("Full URL:", window.location.href);
-    console.log("Pathname:", window.location.pathname);
-    console.log("Search:", window.location.search);
-    console.log("Hash:", window.location.hash);
+    // ==========================================
+    // URUN SAYFASI INIT - SLUG ROUTING
+    // ==========================================
 
-    let slug = null;
+    async function initProductPage() {
+        console.log("Urun sayfasi init basliyor...");
+        console.log("Full URL:", window.location.href);
+        console.log("Pathname:", window.location.pathname);
+        console.log("Search:", window.location.search);
 
-    // 1. Query string'den dene: ?slug=...
-    slug = new URLSearchParams(window.location.search).get('slug');
-    if (slug) console.log("Slug query string'den bulundu:", slug);
+        // ==========================================
+        // ESKI URL FORMATLARINI YENI FORMATA YONLENDIR
+        // ==========================================
 
-    // 2. Pathname'den dene: /produkt/slug
-    if (!slug) {
+        const urlParams = new URLSearchParams(window.location.search);
+
+        // 1. ?slug=xxx → /produkt/xxx
+        const oldSlug = urlParams.get('slug');
+        if (oldSlug && (window.location.pathname === '/produkt/' || window.location.pathname === '/produkt/index.html')) {
+            console.log("Eski ?slug= formati tespit edildi, yonlendiriliyor:", oldSlug);
+            window.location.replace(`/produkt/${oldSlug}`);
+            return;
+        }
+
+        // 2. product.html?id=xxx → /produkt/slug
+        if (window.location.pathname.includes('product.html')) {
+            const id = urlParams.get('id');
+            if (id) {
+                console.log("Eski product.html?id= formati, yonlendiriliyor. ID:", id);
+                await redirectFromIdToSlug(id);
+                return;
+            }
+        }
+
+        // ==========================================
+        // YENI URL FORMATINDAN SLUG AL
+        // ==========================================
+
+        let slug = null;
         const parts = window.location.pathname.split('/').filter(p => p);
-        const lastPart = parts[parts.length - 1];
-        if (lastPart && lastPart !== 'produkt' && lastPart !== 'produkt.html' && lastPart !== 'index.html') {
-            slug = lastPart;
-            console.log("Slug pathname'den bulundu:", slug);
+
+        // /produkt/slug-buraya → slug = "slug-buraya"
+        if (parts.length >= 2 && parts[0] === 'produkt') {
+            slug = parts[1];
+            // Eğer slug "index.html" ise (/_redirects'den gelen durum), atla
+            if (slug === 'index.html') slug = null;
+            else console.log("Slug pathname'den bulundu:", slug);
         }
-    }
 
-    // 3. Hash'den dene: #/produkt/slug (local development)
-    if (!slug && window.location.hash) {
-        const hashParts = window.location.hash.replace('#', '').split('/').filter(p => p);
-        const hashSlug = hashParts[hashParts.length - 1];
-        if (hashSlug && hashSlug !== 'produkt') {
-            slug = hashSlug;
-            console.log("Slug hash'den bulundu:", slug);
+        if (!slug) {
+            console.error("Slug bulunamadi! URL:", window.location.href);
+            document.querySelector('.product-page').innerHTML = 
+                '<p style="text-align:center;padding:60px;">Produkt hittades inte. <a href="/">Tillbaka till startsidan</a></p>';
+            return;
         }
-    }
 
-    if (!slug) {
-        console.error("Slug bulunamadi! URL:", window.location.href);
-        document.querySelector('.product-page').innerHTML = 
-            '<p style="text-align:center;padding:60px;">Produkt hittades inte. <a href="/">Tillbaka till startsidan</a></p>';
-        return;
-    }
-
-        console.log("Slug:", slug);
+        console.log("Final Slug:", slug);
 
         try {
             // Duz cekme (embed olmadan)
@@ -111,6 +149,8 @@ async function initProductPage() {
 
             if (products.length === 0) {
                 console.error("Urun bulunamadi! Slug:", slug);
+                document.querySelector('.product-page').innerHTML = 
+                    '<p style="text-align:center;padding:60px;">Produkt hittades inte. <a href="/">Tillbaka till startsidan</a></p>';
                 return;
             }
 
@@ -448,252 +488,246 @@ async function initProductPage() {
         updateMobileCounter();
     }
 
-   // ==========================================
-// LIGHTBOX (Sadece Masaustu)
-// ==========================================
+    // ==========================================
+    // LIGHTBOX (Sadece Masaustu)
+    // ==========================================
 
-// 🔥 PAN DEGISKENLERI
-let isPanning = false;
-let panStartX = 0;
-let panStartY = 0;
-let panTranslateX = 0;
-let panTranslateY = 0;
+    // PAN DEGISKENLERI
+    let isPanning = false;
+    let panStartX = 0;
+    let panStartY = 0;
+    let panTranslateX = 0;
+    let panTranslateY = 0;
 
-function setupLightbox() {
-    const closeBtn = document.getElementById('lightbox-close');
-    const prevBtn = document.getElementById('lightbox-prev');
-    const nextBtn = document.getElementById('lightbox-next');
-    const imgContainer = document.getElementById('lightbox-img-container');
-    const imgWrapper = document.getElementById('lightbox-img-wrapper');
+    function setupLightbox() {
+        const closeBtn = document.getElementById('lightbox-close');
+        const prevBtn = document.getElementById('lightbox-prev');
+        const nextBtn = document.getElementById('lightbox-next');
+        const imgContainer = document.getElementById('lightbox-img-container');
+        const imgWrapper = document.getElementById('lightbox-img-wrapper');
 
-    if (closeBtn) closeBtn.onclick = closeLightbox;
-    if (prevBtn) prevBtn.onclick = () => navigateLightbox(-1);
-    if (nextBtn) nextBtn.onclick = () => navigateLightbox(1);
+        if (closeBtn) closeBtn.onclick = closeLightbox;
+        if (prevBtn) prevBtn.onclick = () => navigateLightbox(-1);
+        if (nextBtn) nextBtn.onclick = () => navigateLightbox(1);
 
-    // Zoom (cift tiklama)
-    if (imgContainer) {
-        imgContainer.addEventListener('dblclick', toggleZoom);
+        // Zoom (cift tiklama)
+        if (imgContainer) {
+            imgContainer.addEventListener('dblclick', toggleZoom);
+        }
+
+        // PAN OLAYLARINI BASLAT
+        setupPanEvents();
+
+        // Klavye navigasyonu
+        document.addEventListener('keydown', (e) => {
+            const overlay = document.getElementById('custom-lightbox');
+            if (!overlay?.classList.contains('active')) return;
+            if (e.key === 'Escape') closeLightbox();
+            if (e.key === 'ArrowLeft') navigateLightbox(-1);
+            if (e.key === 'ArrowRight') navigateLightbox(1);
+        });
+
+        renderLightboxThumbnails();
     }
 
-    // 🔥 PAN OLAYLARINI BASLAT
-    setupPanEvents();
-
-    // Klavye navigasyonu
-    document.addEventListener('keydown', (e) => {
-        const overlay = document.getElementById('custom-lightbox');
-        if (!overlay?.classList.contains('active')) return;
-        if (e.key === 'Escape') closeLightbox();
-        if (e.key === 'ArrowLeft') navigateLightbox(-1);
-        if (e.key === 'ArrowRight') navigateLightbox(1);
-    });
-
-    renderLightboxThumbnails();
-}
-
-window.openLightbox = function(index) {
-    if (isMobile) return;
-    selectedImageIndex = index;
-    updateLightboxImage();
-    const overlay = document.getElementById('custom-lightbox');
-    if (overlay) {
-        overlay.classList.add('active');
-        document.body.style.overflow = 'hidden';
-    }
-};
-
-function closeLightbox() {
-    const overlay = document.getElementById('custom-lightbox');
-    if (overlay) {
-        overlay.classList.remove('active');
-        document.body.style.overflow = '';
-    }
-    isZoomed = false;
-    resetPan(); // 🔥 Pan pozisyonunu da sifirla
-    const wrapper = document.getElementById('lightbox-img-wrapper');
-    if (wrapper) {
-        wrapper.classList.remove('zoomed');
-        wrapper.style.transform = '';
-    }
-}
-
-function navigateLightbox(direction) {
-    const newIndex = selectedImageIndex + direction;
-    if (newIndex >= 0 && newIndex < currentImages.length) {
-        selectedImageIndex = newIndex;
+    window.openLightbox = function(index) {
+        if (isMobile) return;
+        selectedImageIndex = index;
         updateLightboxImage();
-    }
-}
+        const overlay = document.getElementById('custom-lightbox');
+        if (overlay) {
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+    };
 
-function updateLightboxImage() {
-    const img = document.getElementById('lightbox-main-img');
-    const counter = document.getElementById('lightbox-counter');
-    const prevBtn = document.getElementById('lightbox-prev');
-    const nextBtn = document.getElementById('lightbox-next');
-
-    if (img) img.src = currentImages[selectedImageIndex];
-    if (counter) counter.innerText = `${selectedImageIndex + 1} / ${currentImages.length}`;
-    if (prevBtn) prevBtn.disabled = selectedImageIndex === 0;
-    if (nextBtn) nextBtn.disabled = selectedImageIndex === currentImages.length - 1;
-
-    // Zoom'u ve pan'i resetle
-    isZoomed = false;
-    resetPan();
-    const wrapper = document.getElementById('lightbox-img-wrapper');
-    if (wrapper) {
-        wrapper.classList.remove('zoomed');
-        wrapper.style.transform = '';
-    }
-
-    // Thumbnail'lari guncelle
-    document.querySelectorAll('.lightbox-thumb-item-container').forEach((thumb, i) => {
-        thumb.classList.toggle('selected', i === selectedImageIndex);
-    });
-}
-
-// ==========================================
-// ZOOM & PAN (Surukle-Birak ile Gezinme)
-// ==========================================
-
-function toggleZoom() {
-    if (isMobile) return;
-    isZoomed = !isZoomed;
-    const wrapper = document.getElementById('lightbox-img-wrapper');
-    if (!wrapper) return;
-    
-    wrapper.classList.toggle('zoomed', isZoomed);
-    
-    if (isZoomed) {
-        // Zoom acildi - scale 2
-        wrapper.style.transform = 'scale(2)';
-        wrapper.style.cursor = 'grab';
-    } else {
-        // Zoom kapandi - sifirla
+    function closeLightbox() {
+        const overlay = document.getElementById('custom-lightbox');
+        if (overlay) {
+            overlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+        isZoomed = false;
         resetPan();
-        wrapper.style.transform = '';
-        wrapper.style.cursor = 'zoom-in';
+        const wrapper = document.getElementById('lightbox-img-wrapper');
+        if (wrapper) {
+            wrapper.classList.remove('zoomed');
+            wrapper.style.transform = '';
+        }
     }
-}
 
-function resetPan() {
-    panTranslateX = 0;
-    panTranslateY = 0;
-}
-
-function setupPanEvents() {
-    const container = document.getElementById('lightbox-img-container');
-    if (!container) return;
-
-    // Mouse Events
-    container.addEventListener('mousedown', startPan);
-    window.addEventListener('mousemove', movePan);
-    window.addEventListener('mouseup', endPan);
-    
-    // Touch Events (Mobil destegi)
-    container.addEventListener('touchstart', handleTouchStart, { passive: false });
-    window.addEventListener('touchmove', handleTouchMove, { passive: false });
-    window.addEventListener('touchend', endPan);
-}
-
-function startPan(e) {
-    if (!isZoomed) return;
-    
-    isPanning = true;
-    panStartX = e.clientX - panTranslateX;
-    panStartY = e.clientY - panTranslateY;
-    
-    const wrapper = document.getElementById('lightbox-img-wrapper');
-    if (wrapper) wrapper.style.cursor = 'grabbing';
-    
-    e.preventDefault();
-}
-
-function movePan(e) {
-    if (!isPanning || !isZoomed) return;
-    
-    panTranslateX = e.clientX - panStartX;
-    panTranslateY = e.clientY - panStartY;
-    
-    limitPanBounds();
-    updatePanTransform();
-    
-    e.preventDefault();
-}
-
-function endPan() {
-    isPanning = false;
-    const wrapper = document.getElementById('lightbox-img-wrapper');
-    if (wrapper) wrapper.style.cursor = isZoomed ? 'grab' : 'zoom-in';
-}
-
-function handleTouchStart(e) {
-    if (!isZoomed) return;
-    const touch = e.touches[0];
-    startPan({ 
-        clientX: touch.clientX, 
-        clientY: touch.clientY, 
-        preventDefault: () => e.preventDefault() 
-    });
-}
-
-function handleTouchMove(e) {
-    if (!isPanning || !isZoomed) return;
-    const touch = e.touches[0];
-    movePan({ 
-        clientX: touch.clientX, 
-        clientY: touch.clientY, 
-        preventDefault: () => e.preventDefault() 
-    });
-}
-
-function limitPanBounds() {
-    const wrapper = document.getElementById('lightbox-img-wrapper');
-    const container = document.getElementById('lightbox-img-container');
-    const img = document.getElementById('lightbox-main-img');
-    if (!wrapper || !container || !img) return;
-    
-    const containerRect = container.getBoundingClientRect();
-    const imgRect = img.getBoundingClientRect();
-    
-    // Zoomlu gorselin boyutlari (scale 2)
-    const zoomedWidth = imgRect.width;
-    const zoomedHeight = imgRect.height;
-    
-    // Tasma miktari
-    const overflowX = Math.max(0, (zoomedWidth - containerRect.width) / 2);
-    const overflowY = Math.max(0, (zoomedHeight - containerRect.height) / 2);
-    
-    // Sinirlari uygula
-    panTranslateX = Math.max(-overflowX, Math.min(overflowX, panTranslateX));
-    panTranslateY = Math.max(-overflowY, Math.min(overflowY, panTranslateY));
-}
-
-function updatePanTransform() {
-    const wrapper = document.getElementById('lightbox-img-wrapper');
-    if (wrapper && isZoomed) {
-        wrapper.style.transform = `translate(${panTranslateX}px, ${panTranslateY}px) scale(2)`;
+    function navigateLightbox(direction) {
+        const newIndex = selectedImageIndex + direction;
+        if (newIndex >= 0 && newIndex < currentImages.length) {
+            selectedImageIndex = newIndex;
+            updateLightboxImage();
+        }
     }
-}
 
-function renderLightboxThumbnails() {
-    const list = document.getElementById('lightbox-thumb-list');
-    if (!list) return;
+    function updateLightboxImage() {
+        const img = document.getElementById('lightbox-main-img');
+        const counter = document.getElementById('lightbox-counter');
+        const prevBtn = document.getElementById('lightbox-prev');
+        const nextBtn = document.getElementById('lightbox-next');
 
-    let html = '';
-    currentImages.forEach((img, i) => {
-        html += `
-            <div class="lightbox-thumb-item-container ${i === 0 ? 'selected' : ''}" 
-                 onclick="lightboxSelectThumb(${i})">
-                <img src="${img}" alt="thumb-${i+1}" class="lightbox-thumbnail-item">
-            </div>
-        `;
-    });
-    list.innerHTML = html;
-}
+        if (img) img.src = currentImages[selectedImageIndex];
+        if (counter) counter.innerText = `${selectedImageIndex + 1} / ${currentImages.length}`;
+        if (prevBtn) prevBtn.disabled = selectedImageIndex === 0;
+        if (nextBtn) nextBtn.disabled = selectedImageIndex === currentImages.length - 1;
 
-window.lightboxSelectThumb = function(index) {
-    selectedImageIndex = index;
-    updateLightboxImage();
-};
+        // Zoom'u ve pan'i resetle
+        isZoomed = false;
+        resetPan();
+        const wrapper = document.getElementById('lightbox-img-wrapper');
+        if (wrapper) {
+            wrapper.classList.remove('zoomed');
+            wrapper.style.transform = '';
+        }
+
+        // Thumbnail'lari guncelle
+        document.querySelectorAll('.lightbox-thumb-item-container').forEach((thumb, i) => {
+            thumb.classList.toggle('selected', i === selectedImageIndex);
+        });
+    }
+
+    // ==========================================
+    // ZOOM & PAN (Surukle-Birak ile Gezinme)
+    // ==========================================
+
+    function toggleZoom() {
+        if (isMobile) return;
+        isZoomed = !isZoomed;
+        const wrapper = document.getElementById('lightbox-img-wrapper');
+        if (!wrapper) return;
+
+        wrapper.classList.toggle('zoomed', isZoomed);
+
+        if (isZoomed) {
+            wrapper.style.transform = 'scale(2)';
+            wrapper.style.cursor = 'grab';
+        } else {
+            resetPan();
+            wrapper.style.transform = '';
+            wrapper.style.cursor = 'zoom-in';
+        }
+    }
+
+    function resetPan() {
+        panTranslateX = 0;
+        panTranslateY = 0;
+    }
+
+    function setupPanEvents() {
+        const container = document.getElementById('lightbox-img-container');
+        if (!container) return;
+
+        container.addEventListener('mousedown', startPan);
+        window.addEventListener('mousemove', movePan);
+        window.addEventListener('mouseup', endPan);
+
+        container.addEventListener('touchstart', handleTouchStartPan, { passive: false });
+        window.addEventListener('touchmove', handleTouchMovePan, { passive: false });
+        window.addEventListener('touchend', endPan);
+    }
+
+    function startPan(e) {
+        if (!isZoomed) return;
+
+        isPanning = true;
+        panStartX = e.clientX - panTranslateX;
+        panStartY = e.clientY - panTranslateY;
+
+        const wrapper = document.getElementById('lightbox-img-wrapper');
+        if (wrapper) wrapper.style.cursor = 'grabbing';
+
+        e.preventDefault();
+    }
+
+    function movePan(e) {
+        if (!isPanning || !isZoomed) return;
+
+        panTranslateX = e.clientX - panStartX;
+        panTranslateY = e.clientY - panStartY;
+
+        limitPanBounds();
+        updatePanTransform();
+
+        e.preventDefault();
+    }
+
+    function endPan() {
+        isPanning = false;
+        const wrapper = document.getElementById('lightbox-img-wrapper');
+        if (wrapper) wrapper.style.cursor = isZoomed ? 'grab' : 'zoom-in';
+    }
+
+    function handleTouchStartPan(e) {
+        if (!isZoomed) return;
+        const touch = e.touches[0];
+        startPan({ 
+            clientX: touch.clientX, 
+            clientY: touch.clientY, 
+            preventDefault: () => e.preventDefault() 
+        });
+    }
+
+    function handleTouchMovePan(e) {
+        if (!isPanning || !isZoomed) return;
+        const touch = e.touches[0];
+        movePan({ 
+            clientX: touch.clientX, 
+            clientY: touch.clientY, 
+            preventDefault: () => e.preventDefault() 
+        });
+    }
+
+    function limitPanBounds() {
+        const wrapper = document.getElementById('lightbox-img-wrapper');
+        const container = document.getElementById('lightbox-img-container');
+        const img = document.getElementById('lightbox-main-img');
+        if (!wrapper || !container || !img) return;
+
+        const containerRect = container.getBoundingClientRect();
+        const imgRect = img.getBoundingClientRect();
+
+        const zoomedWidth = imgRect.width;
+        const zoomedHeight = imgRect.height;
+
+        const overflowX = Math.max(0, (zoomedWidth - containerRect.width) / 2);
+        const overflowY = Math.max(0, (zoomedHeight - containerRect.height) / 2);
+
+        panTranslateX = Math.max(-overflowX, Math.min(overflowX, panTranslateX));
+        panTranslateY = Math.max(-overflowY, Math.min(overflowY, panTranslateY));
+    }
+
+    function updatePanTransform() {
+        const wrapper = document.getElementById('lightbox-img-wrapper');
+        if (wrapper && isZoomed) {
+            wrapper.style.transform = `translate(${panTranslateX}px, ${panTranslateY}px) scale(2)`;
+        }
+    }
+
+    function renderLightboxThumbnails() {
+        const list = document.getElementById('lightbox-thumb-list');
+        if (!list) return;
+
+        let html = '';
+        currentImages.forEach((img, i) => {
+            html += `
+                <div class="lightbox-thumb-item-container ${i === 0 ? 'selected' : ''}" 
+                     onclick="lightboxSelectThumb(${i})">
+                    <img src="${img}" alt="thumb-${i+1}" class="lightbox-thumbnail-item">
+                </div>
+            `;
+        });
+        list.innerHTML = html;
+    }
+
+    window.lightboxSelectThumb = function(index) {
+        selectedImageIndex = index;
+        updateLightboxImage();
+    };
+
     // ==========================================
     // VARYASYON (Ayni kaliyor)
     // ==========================================
@@ -867,7 +901,6 @@ window.lightboxSelectThumb = function(index) {
         var closeBtn = tooltipContainer.querySelector('.tooltip-close-btn');
 
         if (toggleSpan && popup) {
-            // Event delegation kullan - klonlama sorununu cozer
             toggleSpan.addEventListener('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
@@ -878,7 +911,6 @@ window.lightboxSelectThumb = function(index) {
                 } else {
                     popup.style.display = 'block';
                     popup.classList.add('active');
-                    // Animasyon class'ı ekle
                     popup.style.animation = 'slideUpFade 0.3s ease forwards';
                 }
             });
@@ -893,7 +925,6 @@ window.lightboxSelectThumb = function(index) {
             });
         }
 
-        // Popup dışına tıklayınca kapat
         document.addEventListener('click', function(e) {
             if (popup && popup.style.display === 'block' && !tooltipContainer.contains(e.target)) {
                 popup.style.display = 'none';
@@ -988,8 +1019,9 @@ window.lightboxSelectThumb = function(index) {
     }
 }
 
-
-
+// ==========================================
+// ILGILI URUNLER KARUSELI (Mock Data)
+// ==========================================
 
 const mockRelatedProducts = Array.from({ length: 25 }, (_, i) => ({
     id: 100 + i,
@@ -1007,14 +1039,17 @@ const mockRelatedProducts = Array.from({ length: 25 }, (_, i) => ({
     badge: Math.random() > 0.7 ? (Math.random() > 0.5 ? 'REA' : 'NYHET') : null
 }));
 
-// Render fonksiyonu
+// ==========================================
+// KARUSEL RENDER - YENI: SLUG-BASED LINKLER
+// ==========================================
+
 function renderCarousel(trackId, products) {
     const track = document.getElementById(trackId);
     if (!track) return;
 
     track.innerHTML = products.map(p => `
         <div class="product-slide">
-            <article class="product-card" data-id="${p.id}">
+            <article class="product-card" data-id="${p.id}" data-slug="${p.slug || ''}">
                 <div class="product-card-image">
                     <img src="${p.image}" alt="${p.name}" loading="lazy">
                     ${p.badge ? `<span class="product-card-badge ${p.badge === 'REA' ? 'sale' : 'new'}">${p.badge}</span>` : ''}
@@ -1039,21 +1074,9 @@ function renderCarousel(trackId, products) {
     `).join('');
 }
 
-// Başlat
-document.addEventListener('DOMContentLoaded', () => {
-    renderCarousel('related-carousel-track', mockRelatedProducts);
-    // Son bakılanlar için aynısı...
-});
-
-
-
-
-
-
-
-// ============================================
-// MODERN SWIPE KARUSEL
-// ============================================
+// ==========================================
+// MODERN SWIPE KARUSEL - YENI: SLUG-BASED NAVIGASYON
+// ==========================================
 
 class ProductCarousel {
     constructor(wrapperId, trackId, options = {}) {
@@ -1083,7 +1106,6 @@ class ProductCarousel {
     }
 
     createNavigation() {
-        // Ok butonları (masaüstü)
         if (this.options.showArrows && window.innerWidth > 768) {
             const prevBtn = document.createElement('button');
             prevBtn.className = 'carousel-nav prev';
@@ -1102,7 +1124,6 @@ class ProductCarousel {
             nextBtn.addEventListener('click', () => this.scrollTo('next'));
         }
 
-        // Dot pagination (mobil)
         if (this.options.showDots) {
             const dotsContainer = document.createElement('div');
             dotsContainer.className = 'carousel-dots';
@@ -1120,14 +1141,12 @@ class ProductCarousel {
             this.dots = dotsContainer.querySelectorAll('.carousel-dot');
         }
 
-        // Scroll hint (mobil)
         if (this.options.showScrollHint && window.innerWidth <= 768) {
             const hint = document.createElement('div');
             hint.className = 'scroll-hint';
             hint.innerHTML = '<i class="fa-solid fa-arrow-left"></i> Svep för att se mer <i class="fa-solid fa-arrow-right"></i>';
             this.wrapper.appendChild(hint);
 
-            // İlk scroll'da gizle
             this.track.addEventListener('scroll', () => {
                 hint.style.opacity = '0';
                 setTimeout(() => hint.remove(), 500);
@@ -1136,14 +1155,12 @@ class ProductCarousel {
     }
 
     bindEvents() {
-        // Scroll event - dot'ları güncelle
         let scrollTimeout;
         this.track.addEventListener('scroll', () => {
             clearTimeout(scrollTimeout);
             scrollTimeout = setTimeout(() => this.updateDots(), 50);
         });
 
-        // Touch swipe momentum
         let startX, scrollLeft;
         this.track.addEventListener('touchstart', (e) => {
             startX = e.touches[0].pageX - this.track.offsetLeft;
@@ -1156,7 +1173,6 @@ class ProductCarousel {
             this.track.scrollLeft = scrollLeft - walk;
         }, { passive: true });
 
-        // Favori butonları
         this.track.querySelectorAll('.product-card-fav').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -1167,26 +1183,37 @@ class ProductCarousel {
             });
         });
 
-        // Kart tıklama
+        // ==========================================
+        // YENI: SLUG-BASED KART TIKLAMA
+        // ==========================================
         this.track.querySelectorAll('.product-card').forEach(card => {
             card.addEventListener('click', () => {
+                const slug = card.dataset.slug;
                 const id = card.dataset.id;
-                if (id) window.location.href = `product.html?id=${id}`;
+
+                if (slug) {
+                    window.location.href = `/produkt/${slug}`;
+                } else if (id) {
+                    // Slug yoksa ID'den bul ve yönlendir
+                    if (typeof redirectFromIdToSlug === 'function') {
+                        redirectFromIdToSlug(id);
+                    } else {
+                        window.location.href = `/produkt/?id=${id}`;
+                    }
+                }
             });
         });
 
-        // Hızlı ekle butonu
         this.track.querySelectorAll('.product-card-quick-add').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                // Sepete ekle fonksiyonu
                 console.log('Hızlı ekle:', btn.dataset.id);
             });
         });
     }
 
     scrollTo(direction) {
-        const slideWidth = this.slides[0].offsetWidth + 16; // gap
+        const slideWidth = this.slides[0].offsetWidth + 16;
         const scrollAmount = direction === 'next' ? slideWidth : -slideWidth;
         this.track.scrollBy({ left: scrollAmount, behavior: 'smooth' });
     }
@@ -1211,22 +1238,22 @@ class ProductCarousel {
     }
 }
 
-// ============================================
-// KARUSELLERİ BAŞLAT
-// ============================================
+// ==========================================
+// KARUSELLERI BASLAT
+// ==========================================
 
 document.addEventListener('DOMContentLoaded', () => {
-    // İlgili Ürünler Karuseli
+    // Ilgili Urunler Karuseli
     new ProductCarousel('related-carousel-wrapper', 'related-carousel-track', {
         showDots: true,
         showArrows: true,
         showScrollHint: true
     });
 
-    // Son Bakılanlar Karuseli
+    // Son Bakilanlar Karuseli
     new ProductCarousel('recent-carousel-wrapper', 'recent-carousel-track', {
         showDots: true,
-        showArrows: false, // Son bakılanlarda ok yok
+        showArrows: false,
         showScrollHint: false
     });
 });
