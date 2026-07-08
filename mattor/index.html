@@ -8,6 +8,43 @@
     <link rel="stylesheet" href="/assets/css/common.css">
     <link rel="stylesheet" href="/assets/css/category.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* YENI: Butonlari sola hizala */
+        .filter-controls-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            /* justify-content: flex-start; zaten default */
+        }
+
+        /* YENI: Sortera butonu da sola gelsin */
+        .sort-dropdown {
+            margin-left: 0 !important;
+        }
+
+        /* Rensa butonu stil */
+        .filter-clear-btn {
+            display: none;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            background: white;
+            color: #374151;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .filter-clear-btn:hover {
+            background: #f3f4f6;
+            border-color: #9ca3af;
+        }
+        .filter-clear-btn.visible {
+            display: inline-flex;
+        }
+    </style>
+<base target="_blank">
 </head>
 <body>
 
@@ -35,23 +72,28 @@
                     </div>
                 </div>
 
-                <!-- Filtre ve Siralama -->
+                <!-- Filtre ve Siralama - SOLA HIZALI -->
                 <div class="filter-controls-wrapper">
+                    <!-- Filtre butonu -->
                     <button class="filter-trigger-main" id="open-filter-sidebar">
                         <i class="fa-solid fa-sliders"></i> 
                         <span>Filtrera</span>
                         <span class="filter-badge" style="display:none;">0</span>
                     </button>
-                    <button class="filter-clear-btn" id="clear-all-filters" style="display:none;">
-                        <i class="fa-solid fa-rotate-left"></i>
-                        <span>Rensa</span>
-                    </button>
+
+                    <!-- Sortera butonu (artik solda) -->
                     <div class="sort-dropdown">
                         <button class="sort-trigger" id="sort-menu-btn">
                             <i class="fa-solid fa-arrow-down-wide-short"></i> 
                             <span>Sortera</span>
                         </button>
                     </div>
+
+                    <!-- Rensa butonu - her iki buton icin de calisir -->
+                    <button class="filter-clear-btn" id="clear-all-filters">
+                        <i class="fa-solid fa-rotate-left"></i>
+                        <span>Rensa</span>
+                    </button>
                 </div>
 
                 <!-- Urunler Grid -->
@@ -159,6 +201,12 @@
                 <span class="radio-custom"></span>
             </label>
         </div>
+        <!-- YENI: Sort drawer icin de Rensa butonu -->
+        <div class="sticky-filter-footer" style="border-top:1px solid #e5e7eb;">
+            <button class="clear-filters-btn" id="sort-drawer-clear-filters">
+                <i class="fa-solid fa-rotate-left"></i> RENSA ALLA
+            </button>
+        </div>
     </div>
 
     <!-- JS Yukleyici -->
@@ -176,7 +224,7 @@
                     initEventListeners();
                 }
             } catch (err) {
-                console.error('Header/footer yüklenemedi:', err);
+                console.error('Header/footer yuklenemedi:', err);
             }
         }
         loadComponents();
