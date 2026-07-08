@@ -1,4 +1,21 @@
 // ==========================================
+// DEBUG: URL PARSE LOGGING
+// ==========================================
+console.log('=== PRODUCT.UI.JS DEBUG ===');
+console.log('window.location.href:', window.location.href);
+console.log('window.location.pathname:', window.location.pathname);
+console.log('window.location.hash:', window.location.hash);
+console.log('window.location.search:', window.location.search);
+console.log('===========================');
+
+
+
+
+
+
+
+
+// ==========================================
 // PRODUCT.UI.JS - SUPABASE UYUMLU (v3.2 - HASH ROUTING FIX)
 // Eski Airtable yapısını koru, sadece API Supabase'e çevrildi
 // ==========================================
