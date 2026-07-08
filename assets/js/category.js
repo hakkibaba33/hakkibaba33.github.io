@@ -1,14 +1,11 @@
 // ==========================================
-// CATEGORY.JS - SUPABASE UYUMLU (v5.1)
+// CATEGORY.JS - SUPABASE UYUMLU (v5.2)
 // Varyant gosterimi: "80x150 cm (+ 5 storlekar)" formati
+// Rensa butonlari fix + drawer otomatik kapatma
 // ==========================================
 
 console.log('category.js yukleniyor...');
 console.log('CONFIG durumu:', typeof CONFIG !== 'undefined' ? 'Yuklu' : 'YUKLU DEGIL!');
-
-// ==========================================
-// KATEGORI OKUMA - URL'DEN
-// ==========================================
 
 function getCurrentCategory() {
     const path = window.location.pathname;
@@ -57,10 +54,6 @@ function updatePageTitle(category, categoryData) {
     }
 }
 
-// ==========================================
-// CHIPS ACTIVE STATE GUNCELLEME
-// ==========================================
-
 function updateChipsActiveState() {
     const urlParams = new URLSearchParams(window.location.search);
     const currentKategori = urlParams.get('kategori');
@@ -76,10 +69,6 @@ function updateChipsActiveState() {
         }
     });
 }
-
-// ==========================================
-// CHIPS SPA ROUTING
-// ==========================================
 
 function initChipsRouting() {
     const chipsContainer = document.getElementById('category-chips-list');
@@ -103,24 +92,13 @@ function initChipsRouting() {
 }
 
 // ==========================================
-// RENSA (TEMIZLE) BUTONU
+// RENSA (TEMIZLE) BUTONU - GUNCELLENMIS v5.2
 // ==========================================
 
 function initClearFilters() {
     console.log('>>> initClearFilters CAGIRILDI');
 
-    const drawerClearBtn = document.getElementById('drawer-clear-filters');
-    if (drawerClearBtn) {
-        const newDrawerBtn = drawerClearBtn.cloneNode(true);
-        drawerClearBtn.parentNode.replaceChild(newDrawerBtn, drawerClearBtn);
-        newDrawerBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            console.log('>>> Drawer RENSA butonuna tiklandi');
-            clearAllFilters();
-        });
-    }
-
+    // 1. ANA BAR - Filtre yanindaki Rensa butonu
     const mainClearBtn = document.getElementById('clear-all-filters');
     if (mainClearBtn) {
         const newMainBtn = mainClearBtn.cloneNode(true);
@@ -132,24 +110,59 @@ function initClearFilters() {
             clearAllFilters();
         });
     }
+
+    // 2. FILTRE DRAWER - RENSA ALLA butonu
+    const drawerClearBtn = document.getElementById('drawer-clear-filters');
+    if (drawerClearBtn) {
+        const newDrawerBtn = drawerClearBtn.cloneNode(true);
+        drawerClearBtn.parentNode.replaceChild(newDrawerBtn, drawerClearBtn);
+        newDrawerBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('>>> Drawer RENSA ALLA butonuna tiklandi');
+            clearAllFilters();
+            // Drawer'i kapat
+            closeAllDrawers();
+        });
+    }
+
+    // 3. SORT DRAWER - RENSA ALLA butonu (YENI)
+    const sortDrawerClearBtn = document.getElementById('sort-drawer-clear-filters');
+    if (sortDrawerClearBtn) {
+        const newSortBtn = sortDrawerClearBtn.cloneNode(true);
+        sortDrawerClearBtn.parentNode.replaceChild(newSortBtn, sortDrawerClearBtn);
+        newSortBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('>>> Sort Drawer RENSA butonuna tiklandi');
+            clearAllFilters();
+            // Sort drawer'i kapat
+            closeAllDrawers();
+        });
+    }
 }
 
 function clearAllFilters() {
     console.log('>>> clearAllFilters CAGIRILDI');
 
+    // Tum checkbox'lari kaldir
     document.querySelectorAll('.filter-input:checked').forEach(input => {
         input.checked = false;
     });
 
+    // Sort'u default'a cevir
     document.querySelectorAll('input[name="orderby"]').forEach(radio => {
         radio.checked = radio.value === 'default';
     });
 
+    // Filtreleri direkt uygula - tum urunleri goster
     filteredProducts = [...allProducts];
     currentPage = 0;
     renderProducts();
     updateProgress();
     updateFilterBadge(0);
+
+    // Rensa butonunu gizle (visible class'ini kaldir)
     updateClearButtonVisibility();
 
     console.log('Tum filtreler temizlendi, urun sayisi:', filteredProducts.length);
@@ -159,7 +172,12 @@ function updateClearButtonVisibility() {
     const checkedCount = document.querySelectorAll('.filter-input:checked').length;
     const clearBtn = document.getElementById('clear-all-filters');
     if (clearBtn) {
-        clearBtn.style.display = checkedCount > 0 ? 'inline-flex' : 'none';
+        // YENI: inline-style yerine class kullan
+        if (checkedCount > 0) {
+            clearBtn.classList.add('visible');
+        } else {
+            clearBtn.classList.remove('visible');
+        }
     }
 }
 
@@ -335,12 +353,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // ==========================================
-    // VARYANT METNI OLUSTURMA - YENI FORMAT
-    // ==========================================
-    // Tek varyant: "80x150 cm"
-    // Cok varyant: "80x150 cm (+ 5 storlekar)"
-    // ==========================================
     function getVariantDisplayText(product) {
         const variants = product.variants || [];
 
@@ -352,16 +364,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             return variants[0].size || 'Standard';
         }
 
-        // Birden fazla varyant varsa
         const firstSize = variants[0].size || '';
         const extraCount = variants.length - 1;
 
-        // Eger ilk varyant zaten "(+ X storlekar)" iceriyorsa (admin panelden oyle yazildiysa)
         if (firstSize.includes('(+') || firstSize.includes('storlekar')) {
             return firstSize;
         }
 
-        // Normal format: "80x150 cm (+ 5 storlekar)"
         return firstSize + ' (+ ' + extraCount + ' storlekar)';
     }
 
@@ -408,7 +417,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                <span class="current-price" style="color:#e54d42;">${product.price.toLocaleString('sv-SE')} SEK</span>`
             : `<span class="current-price">${product.price.toLocaleString('sv-SE')} SEK</span>`;
 
-        // YENI: getVariantDisplayText fonksiyonunu kullan
         const variantText = getVariantDisplayText(product);
 
         const productUrl = product.slug ? '/produkt/?slug=' + product.slug : '/produkt/?id=' + product.id;
@@ -685,9 +693,23 @@ document.addEventListener('DOMContentLoaded', async () => {
         sortOverlay?.addEventListener('click', closeSortFn);
     }
 
+    // ==========================================
+    // DRAWER KAPATMA - GUNCELLENMIS v5.2
+    // ==========================================
     function closeAllDrawers() {
-        document.querySelectorAll('#filter-sidebar, #sort-drawer').forEach(el => el?.classList.remove('active'));
-        document.querySelectorAll('#filter-overlay, #sort-overlay').forEach(el => el?.classList.remove('active'));
+        // Filtre drawer
+        const filterDrawer = document.getElementById('filter-sidebar');
+        const filterOverlay = document.getElementById('filter-overlay');
+        if (filterDrawer) filterDrawer.classList.remove('active');
+        if (filterOverlay) filterOverlay.classList.remove('active');
+
+        // Sort drawer
+        const sortDrawer = document.getElementById('sort-drawer');
+        const sortOverlay = document.getElementById('sort-overlay');
+        if (sortDrawer) sortDrawer.classList.remove('active');
+        if (sortOverlay) sortOverlay.classList.remove('active');
+
+        // Body scroll'u geri ac
         document.body.style.overflow = '';
     }
 
@@ -701,5 +723,5 @@ document.addEventListener('DOMContentLoaded', async () => {
     updateChipsActiveState();
     updateWishlistBadge();
 
-    console.log('Category.js v5.1 baslatildi');
+    console.log('Category.js v5.2 baslatildi');
 });
