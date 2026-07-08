@@ -360,15 +360,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    function createProductCard(product, isWishlisted) {
-        const hasDiscount = product.discount_price && product.discount_price < product.base_price;
-        const priceHTML = hasDiscount 
-            ? `<span class="original-price" style="text-decoration:line-through;color:#999;font-size:14px;">${product.base_price.toLocaleString('sv-SE')} SEK</span>
-               <span class="current-price" style="color:#e54d42;">${product.price.toLocaleString('sv-SE')} SEK</span>`
-            : `<span class="current-price">${product.price.toLocaleString('sv-SE')} SEK</span>`;
+      function createProductCard(product, isWishlisted) {
+    const hasDiscount = product.discount_price && product.discount_price < product.base_price;
+    const priceHTML = hasDiscount 
+        ? `<span class="original-price" style="text-decoration:line-through;color:#999;font-size:14px;">${product.base_price.toLocaleString('sv-SE')} SEK</span>
+           <span class="current-price" style="color:#e54d42;">${product.price.toLocaleString('sv-SE')} SEK</span>`
+        : `<span class="current-price">${product.price.toLocaleString('sv-SE')} SEK</span>`;
 
-        const variantText = getVariantDisplayText(product);
-        const productUrl = product.slug ? '/produkt/?slug=' + product.slug : '/produkt/?id=' + product.id;
+    const variantText = getVariantDisplayText(product);
+    
+    // 🔥 GÜZEL URL: /produkt/slug-buraya
+    const productUrl = product.slug ? '/produkt/' + product.slug : '/produkt/?id=' + product.id;
 
         return `
             <div class="product-card" data-id="${String(product.id)}">
