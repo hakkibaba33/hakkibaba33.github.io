@@ -72,38 +72,6 @@ if (window.__productPageInitialized) {
         productId = urlParams.get('id');
         slug = urlParams.get('slug');
 
-        // 2. Hash routing kontrolü (/#/produkt/modern-matta)
-        const hash = window.location.hash;
-        if (hash && hash.startsWith('#/')) {
-            console.log("Hash routing tespit edildi:", hash);
-            
-            // Hash'i parse et: #/produkt/modern-matta?foo=bar
-            const hashWithoutHash = hash.substring(1); // /produkt/modern-matta?foo=bar
-            const hashQueryIndex = hashWithoutHash.indexOf('?');
-            const hashPath = hashQueryIndex !== -1 ? hashWithoutHash.substring(0, hashQueryIndex) : hashWithoutHash;
-            const hashQueryString = hashQueryIndex !== -1 ? hashWithoutHash.substring(hashQueryIndex + 1) : '';
-            const hashParams = new URLSearchParams(hashQueryString);
-            
-            // Hash path'den slug çıkar: /produkt/modern-matta -> ['produkt', 'modern-matta']
-            const hashParts = hashPath.split('/').filter(p => p);
-            const lastPart = hashParts[hashParts.length - 1];
-            
-            const reservedNames = ['produkt', 'matta', 'gardiner', 'mobler', 'belysning', 'dekoration', 'rea', 'favoriter', 'kassa', 'kontakt', 'assets', 'api'];
-            
-            if (lastPart && !reservedNames.includes(lastPart.toLowerCase())) {
-                slug = lastPart;
-                console.log("Hash'den slug bulundu:", slug);
-            }
-            
-            // Hash query params'larını da kontrol et
-            if (!productId && hashParams.has('id')) {
-                productId = hashParams.get('id');
-            }
-            if (!slug && hashParams.has('slug')) {
-                slug = hashParams.get('slug');
-            }
-        }
-
         // 3. Normal pathname kontrolü (hash yoksa)
         if (!productId && !slug && (!hash || hash === '' || hash === '#')) {
             const parts = window.location.pathname.split('/').filter(p => p);
