@@ -37,27 +37,27 @@
 
                 <!-- Filtre ve Siralama - SOLA HIZALI -->
                 <div class="filter-controls-wrapper">
-    <!-- Filtre butonu -->
-    <button class="filter-trigger-main" id="open-filter-sidebar">
-        <i class="fa-solid fa-sliders"></i> 
-        <span>Filtrera</span>
-        <span class="filter-badge" style="display:none;">0</span>
-    </button>
+                    <!-- Filtre butonu -->
+                    <button class="filter-trigger-main" id="open-filter-sidebar">
+                        <i class="fa-solid fa-sliders"></i> 
+                        <span>Filtrera</span>
+                        <span class="filter-badge" style="display:none;">0</span>
+                    </button>
 
-    <!-- Sortera butonu (artik solda) -->
-    <div class="sort-dropdown">
-        <button class="sort-trigger" id="sort-menu-btn">
-            <i class="fa-solid fa-arrow-down-wide-short"></i> 
-            <span>Sortera</span>
-        </button>
-    </div>
+                    <!-- Sortera butonu (artik solda) -->
+                    <div class="sort-dropdown">
+                        <button class="sort-trigger" id="sort-menu-btn">
+                            <i class="fa-solid fa-arrow-down-wide-short"></i> 
+                            <span>Sortera</span>
+                        </button>
+                    </div>
 
-    <!-- Rensa butonu - sadece burada, filtre/sort drawer icinde YOK -->
-    <button class="filter-clear-all" id="clear-all-filters" style="display:none;">
-        <i class="fa-solid fa-rotate-left"></i>
-        <span>Rensa</span>
-    </button>
-</div>
+                    <!-- Rensa butonu - SADECE BURADA, filtre/sort drawer icinde YOK -->
+                    <button class="filter-clear-all" id="clear-all-filters" style="display:none;">
+                        <i class="fa-solid fa-rotate-left"></i>
+                        <span>Rensa</span>
+                    </button>
+                </div>
 
                 <!-- Urunler Grid -->
                 <div class="product-grid-container" id="product-grid">
@@ -102,7 +102,7 @@
     <!-- Filtre Overlay -->
     <div id="filter-overlay" class="modal-overlay"></div>
 
-    <!-- Filtre Drawer -->
+    <!-- Filtre Drawer - RENSA ALLA butonu KALDIRILDI -->
     <div id="filter-sidebar" class="filter-drawer">
         <div class="drawer-header">
             <h3>FILTRERA</h3>
@@ -121,9 +121,7 @@
             </div>
         </div>
         <div class="sticky-filter-footer">
-            <button class="clear-filters-btn" id="drawer-clear-filters">
-                <i class="fa-solid fa-rotate-left"></i> RENSA ALLA
-            </button>
+            <!-- RENSA ALLA butonu KALDIRILDI - sadece ana barda var -->
             <button class="apply-btn" onclick="window.closeAll()">VISA PRODUKTER</button>
         </div>
     </div>
@@ -131,7 +129,7 @@
     <!-- Sort Overlay -->
     <div id="sort-overlay" class="modal-overlay"></div>
 
-    <!-- Sort Drawer -->
+    <!-- Sort Drawer - RENSA ALLA butonu KALDIRILDI -->
     <div id="sort-drawer" class="sort-drawer">
         <div class="drawer-header">
             <h3>SORTERA</h3>
@@ -164,12 +162,7 @@
                 <span class="radio-custom"></span>
             </label>
         </div>
-        <!-- YENI: Sort drawer icin de Rensa butonu -->
-        <div class="sticky-filter-footer" style="border-top:1px solid #e5e7eb;">
-            <button class="clear-filters-btn" id="sort-drawer-clear-filters">
-                <i class="fa-solid fa-rotate-left"></i> RENSA ALLA
-            </button>
-        </div>
+        <!-- RENSA ALLA butonu KALDIRILDI - sadece ana barda var -->
     </div>
 
     <!-- JS Yukleyici -->
