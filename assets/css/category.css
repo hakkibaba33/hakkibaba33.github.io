@@ -1,5 +1,155 @@
 /* ============================================
-   MODERN RENK FILTRESI (Grid)
+   MODERN FILTRE MENU (Ana Panel)
+   ============================================ */
+.filter-menu-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 25px;
+    border-bottom: 1px solid var(--dk-border);
+    cursor: pointer;
+    transition: var(--dk-transition);
+    color: var(--dk-text);
+}
+
+.filter-menu-item:hover {
+    background: var(--dk-secondary);
+}
+
+.filter-menu-item i {
+    color: var(--dk-text-light);
+    font-size: 14px;
+    transition: var(--dk-transition);
+}
+
+.filter-menu-item:hover i {
+    color: var(--dk-accent);
+}
+
+.filter-menu-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.filter-menu-label {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--dk-primary);
+}
+
+.filter-menu-count {
+    background: var(--dk-accent);
+    color: var(--dk-white);
+    min-width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.filter-menu-preview {
+    display: none;
+    align-items: center;
+    gap: 4px;
+}
+
+.preview-dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 1px solid rgba(0,0,0,0.1);
+}
+
+.preview-more {
+    font-size: 11px;
+    color: var(--dk-text-light);
+    font-weight: 600;
+}
+
+/* ============================================
+   SUB PANEL HEADER
+   ============================================ */
+.sub-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px 25px;
+    border-bottom: 1px solid var(--dk-border);
+    background: var(--dk-secondary);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.back-to-main {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: none;
+    border: none;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--dk-primary);
+    cursor: pointer;
+    transition: var(--dk-transition);
+    padding: 0;
+}
+
+.back-to-main:hover {
+    color: var(--dk-accent);
+}
+
+.back-to-main i {
+    font-size: 14px;
+}
+
+.sub-panel-count {
+    font-size: 13px;
+    color: var(--dk-text-light);
+    font-weight: 500;
+}
+
+/* ============================================
+   PANEL SLIDE ANIMATION
+   ============================================ */
+.drawer-panel {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--dk-white);
+    transition: transform 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+    overflow-y: auto;
+    padding-bottom: 100px;
+}
+
+.main-panel {
+    transform: translateX(0);
+    z-index: 1;
+}
+
+.main-panel.slide-out {
+    transform: translateX(-100%);
+}
+
+.sub-panel {
+    transform: translateX(100%);
+    z-index: 2;
+    display: none;
+}
+
+.sub-panel.slide-in {
+    display: block;
+    transform: translateX(0);
+}
+
+/* ============================================
+   RENK FILTRESI (Grid)
    ============================================ */
 .color-filter-grid {
     display: grid;
@@ -39,10 +189,8 @@
     border: 2px solid transparent;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     transition: all 0.2s ease;
-    position: relative;
 }
 
-/* Secili durum */
 .color-item .filter-input:checked + .color-circle-wrapper .color-circle {
     border-color: var(--dk-accent);
     box-shadow: 0 0 0 3px var(--dk-accent), 0 2px 12px rgba(0,0,0,0.15);
@@ -62,7 +210,7 @@
 }
 
 /* ============================================
-   MODERN STORLEK FILTRESI (Grid Butonlar)
+   STORLEK FILTRESI (Grid)
    ============================================ */
 .size-filter-grid {
     display: grid;
@@ -104,54 +252,15 @@
     text-align: center;
 }
 
-/* Secili durum */
 .size-item .filter-input:checked + .size-box {
     background: var(--dk-accent);
     border-color: var(--dk-accent);
-    color: var(--dk-white);
     box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }
 
 .size-item .filter-input:checked + .size-box .size-text {
     color: var(--dk-white);
     font-weight: 600;
-}
-
-/* ============================================
-   URUN KARTI RENK KUTUCUKLARI (Guncel)
-   ============================================ */
-.product-colors-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 10px;
-}
-
-.product-colors-swatches {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    flex-wrap: wrap;
-}
-
-.swatch-circle {
-    display: block;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    border: 1px solid rgba(0,0,0,0.15);
-    transition: transform 0.2s ease;
-}
-
-.swatch-circle:hover {
-    transform: scale(1.2);
-    box-shadow: 0 0 0 2px var(--dk-accent);
-}
-
-.color-count-text {
-    font-size: 11px;
-    color: var(--dk-text-light);
-    font-weight: 500;
 }
 
 /* ============================================
@@ -182,6 +291,14 @@
     .size-box {
         padding: 12px 8px;
         min-height: 42px;
+    }
+    
+    .filter-menu-item {
+        padding: 18px 20px;
+    }
+    
+    .sub-panel-header {
+        padding: 12px 20px;
     }
 }
 
