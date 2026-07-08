@@ -221,7 +221,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             console.log('Payment Intent istegi gonderiliyor...');
 
-            const response = await fetch('/api/create-payment-intent', {
+            const response = await fetch(CONFIG.API.PAYMENT_INTENT, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
