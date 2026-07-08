@@ -349,13 +349,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             const cardHTML = createProductCard(product, isWishlisted);
             grid.insertAdjacentHTML('beforeend', cardHTML);
         });
-        
-         attachWishlistEvents();
 
-        // 🔥 FIX: common.js'deki product card click fix'i calistir
-        if (typeof window.initProductCardClicks === 'function') {
-            window.initProductCardClicks();
-        }
+        attachWishlistEvents();
 
         const shown = (currentPage + 1) * ITEMS_PER_PAGE;
         if (shown >= filteredProducts.length) {
@@ -373,8 +368,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             : `<span class="current-price">${product.price.toLocaleString('sv-SE')} SEK</span>`;
 
         const variantText = getVariantDisplayText(product);
-         const productUrl = product.slug ? '/produkt/' + product.slug : '/produkt/?id=' + product.id;
-
+        const productUrl = product.slug ? '/produkt/?slug=' + product.slug : '/produkt/?id=' + product.id;
 
         return `
             <div class="product-card" data-id="${String(product.id)}">
