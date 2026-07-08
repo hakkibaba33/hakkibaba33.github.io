@@ -1,7 +1,7 @@
 // ==========================================
-// COMMON.JS - TEMEL FONKSIYONLAR (v8.3)
+// COMMON.JS - TEMEL FONKSIYONLAR (v8.2)
 // Badge'ler her zaman calisacak - MutationObserver + Retry mekanizmasi
-// Search fix: Fetch retry, hata yonetimi, cache kontrolu, max retry limiti
+// Search fix: Fetch retry, hata yonetimi, cache kontrolu
 // ==========================================
 
 // ==========================================
@@ -371,7 +371,7 @@ async function addSupabaseProductToCart(productId, variantSize) {
 
 
 // ==========================================
-// SEARCH POPUP - DUZELTILMIS v8.3
+// SEARCH POPUP - DUZELTILMIS v8.2
 // ==========================================
 
 let searchDebounceTimer = null;
@@ -379,8 +379,6 @@ let allProductsCache = [];
 let isFetchingProducts = false;
 let searchInputElement = null;
 let searchResultsElement = null;
-let searchRetryCount = 0;
-const MAX_SEARCH_RETRIES = 5;
 
 function getSearchElements() {
     searchInputElement = document.getElementById('live-search-input');
@@ -391,34 +389,19 @@ function getSearchElements() {
 function initSearch() {
     const { input, results } = getSearchElements();
 
-    // Search input yoksa bu sayfada search yoktur, sessizce cik
     if (!input) {
-        searchRetryCount++;
-        if (searchRetryCount <= MAX_SEARCH_RETRIES) {
-            console.log('[Search] Input bulunamadi, retry ' + searchRetryCount + '/' + MAX_SEARCH_RETRIES + '...');
-            setTimeout(initSearch, 500);
-            return;
-        }
-        // Max retry asildi, bu sayfada search yok
-        console.log('[Search] Bu sayfada search input yok, atlaniyor.');
+        console.warn('[Search] Input bulunamadi, retry...');
+        // Input yoksa 500ms sonra tekrar dene (DOM henuz yuklenmemis olabilir)
+        setTimeout(initSearch, 500);
         return;
     }
-
-    // Zaten init edilmisse tekrar etme
-    if (input._searchInitialized) {
-        console.log('[Search] Zaten init edilmis, atlaniyor.');
-        return;
-    }
-    input._searchInitialized = true;
 
     console.log('[Search] Input bulundu, listener baglaniyor...');
-    searchRetryCount = 0; // Reset
 
     // Eski listener varsa kaldirmak icin - inputu klonla ve yerine koy
     const newInput = input.cloneNode(true);
     input.parentNode.replaceChild(newInput, input);
     searchInputElement = newInput;
-    searchInputElement._searchInitialized = true;
 
     searchInputElement.addEventListener('input', (e) => {
         const query = e.target.value.trim();
@@ -530,27 +513,11 @@ async function fetchAllProductsForSearch() {
     console.log('[Search] Urunler Supabase\'den cekiliyor...');
 
     try {
-        // Dogrudan fetch kullan - supabaseGet farkli parametre formati kullaniyor olabilir
-        const url = new URL(SUPABASE_URL + '/rest/v1/products');
-        url.searchParams.append('select', '*');
-        url.searchParams.append('active', 'eq.true');
-
-        const res = await fetch(url, {
-            headers: {
-                'apikey': SUPABASE_KEY,
-                'Authorization': 'Bearer ' + SUPABASE_KEY,
-                'Content-Type': 'application/json'
-            }
+        const data = await supabaseGet('products', {
+            select: '*',
+            active: 'eq.true'
         });
 
-        if (!res.ok) {
-            const errText = await res.text();
-            console.error('[Search] Supabase hata:', res.status, errText);
-            allProductsCache = [];
-            return;
-        }
-
-        const data = await res.json();
         console.log('[Search] Ham veri:', data);
 
         if (!data || !Array.isArray(data)) {
@@ -848,122 +815,56 @@ function initEventListeners() {
 
 
 // ==========================================
-// DYNAMIC HEADER MENU
+// OTOMATIK BASLATMA - RACE CONDITION FIX
 // ==========================================
 
-window.__dkMenuInitDone = false;
-
-async function fetchCategoriesForMenu() {
-  const SUPABASE_URL = (typeof CONFIG !== 'undefined' && CONFIG.SUPABASE) ? CONFIG.SUPABASE.URL : '';
-  const SUPABASE_KEY = (typeof CONFIG !== 'undefined' && CONFIG.SUPABASE) ? CONFIG.SUPABASE.ANON_KEY : '';
-  if (!SUPABASE_URL || !SUPABASE_KEY) { console.warn('[Menu] Config yok'); return []; }
-  try {
-    const res = await fetch(SUPABASE_URL + '/rest/v1/categories?select=*&active=eq.true&order=sort_order.asc', {
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
-    });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    return await res.json();
-  } catch (err) { console.error('[Menu] Hata:', err); return []; }
-}
-
-function renderHeaderMenu(categories) {
-  const desktopNav = document.querySelector('.desktop-nav .nav-list');
-  const mobileNav = document.querySelector('.mobile-nav-list');
-  
-  if (!desktopNav) { console.warn('[Menu] Desktop nav yok'); return; }
-  
-  // ÖNCE TEMİZLE — çiftlenmeyi engelle
-  desktopNav.innerHTML = '';
-  if (mobileNav) mobileNav.innerHTML = '';
-  
-  // Sadece dinamik kategoriler
-  categories.forEach(cat => {
-    if (!cat.slug) return;
-    const slug = cat.slug.toString().trim().replace(/^\/+|\/+$/g, '');
-    
-    const li = document.createElement('li');
-    const a = document.createElement('a');
-    a.href = '/' + slug + '/';
-    a.textContent = cat.name_sv || cat.name_tr || slug;
-    li.appendChild(a);
-    desktopNav.appendChild(li);
-    
-    if (mobileNav) {
-      const mli = document.createElement('li');
-      const ma = document.createElement('a');
-      ma.href = '/' + slug + '/';
-      ma.textContent = cat.name_sv || cat.name_tr || slug;
-      mli.appendChild(ma);
-      mobileNav.appendChild(mli);
-    }
-  });
-  
-  // Statik öğeler (SADECE BİR KEZ)
-  const staticItems = [
-    { href: '/rea/', text: 'REA', cls: 'nav-sale' },
-    { href: '/kontakt/', text: 'Kontakt' }
-  ];
-  staticItems.forEach(item => {
-    const li = document.createElement('li');
-    const a = document.createElement('a');
-    a.href = item.href;
-    a.textContent = item.text;
-    if (item.cls) a.className = item.cls;
-    li.appendChild(a);
-    desktopNav.appendChild(li);
-    
-    if (mobileNav) {
-      const mli = document.createElement('li');
-      const ma = document.createElement('a');
-      ma.href = item.href;
-      ma.textContent = item.text;
-      if (item.cls) ma.className = item.cls.replace('nav-sale', 'mobile-sale');
-      mli.appendChild(ma);
-      mobileNav.appendChild(mli);
-    }
-  });
-  
-  console.log('[Menu] Render tamam:', categories.length, 'kategori');
-}
-
-async function initDynamicMenu() {
-  if (window.__dkMenuInitDone) { console.log('[Menu] Zaten init edildi'); return; }
-  window.__dkMenuInitDone = true;
-  
-  const cats = await fetchCategoriesForMenu();
-  if (cats.length > 0) renderHeaderMenu(cats);
-  else console.warn('[Menu] Kategori yok');
-}
-
-// ==========================================
-// OTOMATIK BASLATMA
-// ==========================================
+window.__dkInitAllDone = false;
 
 function initAll() {
-  console.log('[Init] initAll başlıyor...');
-  
-  if (window.__dkInitAllDone) { console.log('[Init] Zaten çalıştı'); return; }
-  window.__dkInitAllDone = true;
-  
-  initEventListeners();
-  initBadgesWithRetry();
-  observeBadgeElements();
-  initDynamicMenu(); // ← Menü burada
-  
-  console.log('[Init] initAll tamam');
+    // Çift çalışmayı engelle
+    if (window.__dkInitAllDone) {
+        console.log('[Init] initAll zaten calisti, atlaniyor.');
+        return;
+    }
+    window.__dkInitAllDone = true;
+
+    console.log('[Init] common.js initAll baslatiliyor...');
+
+    // 1. Event listenerlar (cache flag kontrollu)
+    initEventListeners();
+
+    // 2. Badge'ler (HER ZAMAN, flag'den bagimsiz)
+    initBadgesWithRetry();
+
+    // 3. MutationObserver (DOM degisikliklerini izle)
+    observeBadgeElements();
+
+    console.log('[Init] common.js initAll tamamlandi.');
 }
 
+// Sayfa yuklenme durumuna gore baslat
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initAll);
+    document.addEventListener('DOMContentLoaded', initAll);
 } else {
-  initAll();
+    initAll();
 }
 
-// window.load eventini KALDIR veya kontrollü yap
+// Ek guvenlik: window.load'da sadece eksik olanlari dene
 window.addEventListener('load', () => {
-  console.log('[Init] window.load');
-  if (!window.__dkBadgeInitDone) initBadgesWithRetry(10, 50);
-  // initDynamicMenu() BURADA YOK — çiftlenmeyi engelle
+    console.log('[Init] window.load eventi...');
+    
+    // Badge kontrolu
+    if (!window.__dkBadgeInitDone) {
+        console.log('[Init] Badge init yapilmamis, retry baslatiliyor...');
+        initBadgesWithRetry(10, 50);
+    }
+    
+    // Search init kontrolu
+    const input = document.getElementById('live-search-input');
+    if (input && !input._searchInitialized) {
+        console.log('[Init] Search init yapilmamis, retry baslatiliyor...');
+        initSearch();
+    }
 });
 
-console.log('common.js v8.4 — Tek kaynak menü aktif');
+console.log('common.js v8.4 yuklendi - Menu statik, Search fix aktif');
