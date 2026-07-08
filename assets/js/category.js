@@ -1,6 +1,6 @@
 // ==========================================
-// CATEGORY.JS - SUPABASE UYUMLU (v5.0)
-// Chips SPA routing + Rensa butonu + Active state
+// CATEGORY.JS - SUPABASE UYUMLU (v5.1)
+// Varyant gosterimi: "80x150 cm (+ 5 storlekar)" formati
 // ==========================================
 
 console.log('category.js yukleniyor...');
@@ -28,12 +28,10 @@ function isReaPage() {
 }
 
 function updatePageTitle(category, categoryData) {
-    // Supabase'den gelen kategori adını kullan, yoksa fallback
     let title = 'Produkter';
     if (categoryData && categoryData.name_sv) {
         title = categoryData.name_sv;
     } else {
-        // Fallback map
         const titleMap = {
             'mattor': 'Mattor',
             'gardiner': 'Gardiner',
@@ -53,7 +51,6 @@ function updatePageTitle(category, categoryData) {
         pageTitle.textContent = 'Alla ' + title;
     }
 
-    // Breadcrumb güncelle
     const breadcrumbCurrent = document.getElementById('breadcrumb-current');
     if (breadcrumbCurrent) {
         breadcrumbCurrent.textContent = title;
@@ -81,7 +78,7 @@ function updateChipsActiveState() {
 }
 
 // ==========================================
-// CHIPS SPA ROUTING (Header/Footer Kaybolma Fix)
+// CHIPS SPA ROUTING
 // ==========================================
 
 function initChipsRouting() {
@@ -98,16 +95,9 @@ function initChipsRouting() {
         const href = chip.getAttribute('href');
         if (!href) return;
 
-        // URL'i guncelle (sayfa yenilenmeden)
         window.history.pushState({}, '', href);
-
-        // Active state'i guncelle
         updateChipsActiveState();
-
-        // Urunleri yeniden cek ve render et
         fetchProducts();
-
-        // Sayfa basina scroll
         window.scrollTo({ top: 0, behavior: 'smooth' });
     });
 }
@@ -119,10 +109,8 @@ function initChipsRouting() {
 function initClearFilters() {
     console.log('>>> initClearFilters CAGIRILDI');
 
-    // Drawer icindeki RENSA ALLA butonu
     const drawerClearBtn = document.getElementById('drawer-clear-filters');
     if (drawerClearBtn) {
-        // Once eski listener'lari temizle (varsa)
         const newDrawerBtn = drawerClearBtn.cloneNode(true);
         drawerClearBtn.parentNode.replaceChild(newDrawerBtn, drawerClearBtn);
         newDrawerBtn.addEventListener('click', function(e) {
@@ -133,7 +121,6 @@ function initClearFilters() {
         });
     }
 
-    // Ana bar'daki Rensa butonu
     const mainClearBtn = document.getElementById('clear-all-filters');
     if (mainClearBtn) {
         const newMainBtn = mainClearBtn.cloneNode(true);
@@ -150,24 +137,19 @@ function initClearFilters() {
 function clearAllFilters() {
     console.log('>>> clearAllFilters CAGIRILDI');
 
-    // Tum checkbox'lari kaldir
     document.querySelectorAll('.filter-input:checked').forEach(input => {
         input.checked = false;
     });
 
-    // Sort'u default'a cevir
     document.querySelectorAll('input[name="orderby"]').forEach(radio => {
         radio.checked = radio.value === 'default';
     });
 
-    // Filtreleri direkt uygula - tum urunleri goster
     filteredProducts = [...allProducts];
     currentPage = 0;
     renderProducts();
     updateProgress();
     updateFilterBadge(0);
-
-    // Rensa butonunu gizle
     updateClearButtonVisibility();
 
     console.log('Tum filtreler temizlendi, urun sayisi:', filteredProducts.length);
@@ -183,20 +165,17 @@ function updateClearButtonVisibility() {
 
 document.addEventListener('DOMContentLoaded', async () => {
 
-    // --- 1. DEGISKENLER ---
     let allProducts = [];
     let filteredProducts = [];
     let currentPage = 0;
     const ITEMS_PER_PAGE = 12;
 
-    // --- 2. ELEMENTLER ---
     const grid = document.getElementById('product-grid');
     const loadMoreBtn = document.getElementById('load-more-btn');
     const currentCountEl = document.getElementById('current-count');
     const totalCountEl = document.getElementById('total-count');
     const progressBar = document.getElementById('progress-bar-fill');
 
-    // --- SUPABASE CLIENT ---
     const SUPABASE_URL = (typeof CONFIG !== 'undefined' && CONFIG.SUPABASE) ? CONFIG.SUPABASE.URL : '';
     const SUPABASE_KEY = (typeof CONFIG !== 'undefined' && CONFIG.SUPABASE) ? CONFIG.SUPABASE.ANON_KEY : '';
 
@@ -223,8 +202,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         return product.discount_price || product.base_price || 0;
     }
 
-
-    // --- DINAMIK KATEGORI VE CHIPS ---
     async function fetchCategories() {
         try {
             const categories = await supabaseGet('categories', {
@@ -263,11 +240,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         let chipsHTML = '';
 
-        // "Alla" chip'i - her zaman var
         const isAllaActive = !currentSubCategory;
         chipsHTML += `<a href="/${currentCategory}/" class="category-chip ${isAllaActive ? 'active' : ''}" data-chip="alla">Alla</a>`;
 
-        // Alt kategorileri chips olarak ekle
         const category = categories.find(c => c.slug === currentCategory);
         if (category) {
             const categorySubs = subCategories.filter(s => s.category_id === category.id);
@@ -281,56 +256,42 @@ document.addEventListener('DOMContentLoaded', async () => {
         initChipsRouting();
     }
 
-    // --- 3. SUPABASE'DEN URUN CEK ---
     async function fetchProducts() {
         try {
             const currentCategory = getCurrentCategory();
             const subCategory = getCurrentSubCategory();
 
-
-
-            // Kategorileri ve alt kategorileri cek (paralel)
             const [categories, subCategories] = await Promise.all([
                 fetchCategories(),
                 fetchSubCategories()
             ]);
 
-            // Chips'leri dinamik render et
             renderChips(categories, subCategories);
 
-            // Supabase sorgu parametreleri
             const queryParams = {
                 select: '*',
                 active: 'eq.true'
             };
 
-            // REA sayfasi mi?
             if (isReaPage()) {
                 queryParams.discount_price = 'not.is.null';
                 console.log('REA sayfasi: Indirimli urunler cekiliyor');
-            } 
-            // Kategori sayfasi mi?
-            else if (currentCategory) {
-                // Kategori slug'ini categories array'inde ara
+            } else if (currentCategory) {
                 queryParams.categories = 'cs.{"' + currentCategory + '"}';
                 console.log(currentCategory + ' kategorisi: Urunler cekiliyor');
             }
 
-            // Alt kategori filtresi (chips'ten gelen)
             if (subCategory) {
                 queryParams.sub_category = 'eq.' + subCategory;
                 console.log('Alt kategori filtresi:', subCategory);
             }
 
-            // Duz cekme (embed olmadan - daha guvenli)
             const products = await supabaseGet('products', queryParams);
 
-            // Varyantlari ayri cek
             const variants = await supabaseGet('product_variants', {
                 select: '*'
             });
 
-            // Birlestir
             const data = products.map(p => ({
                 ...p,
                 product_variants: variants.filter(v => v.product_id === p.id)
@@ -358,7 +319,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             console.log(allProducts.length + ' urun yuklendi');
 
-            // Ilk render
             renderProducts();
             updateProgress();
             generateFilters();
@@ -375,7 +335,36 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // --- 4. URUN RENDER ---
+    // ==========================================
+    // VARYANT METNI OLUSTURMA - YENI FORMAT
+    // ==========================================
+    // Tek varyant: "80x150 cm"
+    // Cok varyant: "80x150 cm (+ 5 storlekar)"
+    // ==========================================
+    function getVariantDisplayText(product) {
+        const variants = product.variants || [];
+
+        if (variants.length === 0) {
+            return 'Standard';
+        }
+
+        if (variants.length === 1) {
+            return variants[0].size || 'Standard';
+        }
+
+        // Birden fazla varyant varsa
+        const firstSize = variants[0].size || '';
+        const extraCount = variants.length - 1;
+
+        // Eger ilk varyant zaten "(+ X storlekar)" iceriyorsa (admin panelden oyle yazildiysa)
+        if (firstSize.includes('(+') || firstSize.includes('storlekar')) {
+            return firstSize;
+        }
+
+        // Normal format: "80x150 cm (+ 5 storlekar)"
+        return firstSize + ' (+ ' + extraCount + ' storlekar)';
+    }
+
     function renderProducts(append = false) {
         if (!append) {
             grid.innerHTML = '';
@@ -402,10 +391,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             grid.insertAdjacentHTML('beforeend', cardHTML);
         });
 
-        // Wishlist event listenerlarini ekle
         attachWishlistEvents();
 
-        // Load more butonunu kontrol et
         const shown = (currentPage + 1) * ITEMS_PER_PAGE;
         if (shown >= filteredProducts.length) {
             document.getElementById('load-more-container').style.display = 'none';
@@ -421,9 +408,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                <span class="current-price" style="color:#e54d42;">${product.price.toLocaleString('sv-SE')} SEK</span>`
             : `<span class="current-price">${product.price.toLocaleString('sv-SE')} SEK</span>`;
 
-        const variantText = product.variants.length > 1 
-            ? product.variants.length + ' storlekar' 
-            : (product.variants[0]?.size || 'Standard');
+        // YENI: getVariantDisplayText fonksiyonunu kullan
+        const variantText = getVariantDisplayText(product);
 
         const productUrl = product.slug ? '/produkt/?slug=' + product.slug : '/produkt/?id=' + product.id;
 
@@ -469,7 +455,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         `;
     }
 
-    // --- 5. WISHLIST FONKSIYONLARI ---
     function isInWishlist(productId) {
         try {
             const wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
@@ -538,7 +523,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // --- 6. FILTRELER ---
     function generateFilters() {
         const allColors = [...new Set(allProducts.flatMap(p => p.colors))].filter(Boolean).sort();
         const colorContainer = document.getElementById('color-filter-list');
@@ -609,7 +593,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // --- 7. SORT (SIRALAMA) ---
     function initSort() {
         document.querySelectorAll('input[name="orderby"]').forEach(radio => {
             radio.addEventListener('change', (e) => {
@@ -639,7 +622,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    // --- 8. LOAD MORE ---
     if (loadMoreBtn) {
         loadMoreBtn.addEventListener('click', (e) => {
             e.preventDefault();
@@ -661,7 +643,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // --- 9. DRAWER AC/KAPA ---
     function initDrawers() {
         const openFilter = document.getElementById('open-filter-sidebar');
         const closeFilter = document.getElementById('close-filter-sidebar');
@@ -712,7 +693,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     window.closeAll = closeAllDrawers;
 
-    // --- 10. BASLAT ---
     await fetchProducts();
     initSort();
     initDrawers();
@@ -721,5 +701,5 @@ document.addEventListener('DOMContentLoaded', async () => {
     updateChipsActiveState();
     updateWishlistBadge();
 
-    console.log('Category.js baslatildi');
+    console.log('Category.js v5.1 baslatildi');
 });
