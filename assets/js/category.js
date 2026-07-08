@@ -1,159 +1,27 @@
 // ==========================================
-// CATEGORY.JS - SUPABASE UYUMLU (v5.7)
-// Modern Filtre Cekmecesi: Ana panel -> Alt panel slide yapisi
+// CATEGORY.JS - SUPABASE UYUMLU (v3.1 - ID FIX)
+// Eski Airtable yapısını koru, sadece API Supabase'e çevrildi
 // ==========================================
 
 console.log('category.js yukleniyor...');
 console.log('CONFIG durumu:', typeof CONFIG !== 'undefined' ? 'Yuklu' : 'YUKLU DEGIL!');
 
-function getCurrentCategory() {
-    const path = window.location.pathname;
-    // Önce / ile başlayan ve bitenleri temizle
-    const cleanPath = path.replace(/^\/+|\/+$/g, '');
-    // İlk segmenti al (örn: /gardiner/alt-sey => gardiner)
-    const category = cleanPath.split('/')[0] || null;
-    console.log('URL path:', path);
-    console.log('Clean path:', cleanPath);
-    console.log('Kategori:', category);
-    return category;
-}
-
-function getCurrentSubCategory() {
-    const urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get('kategori');
-}
-
-function isReaPage() {
-    return window.location.pathname.includes('/rea/');
-}
-
-function updatePageTitle(category) {
-    const titleMap = {
-        'mattor': 'Mattor',
-        'gardiner': 'Gardiner',
-        'mobler': 'Möbler',
-        'belysning': 'Belysning',
-        'dekoration': 'Dekoration',
-        'rea': 'REA',
-        'kontakt': 'Kontakt'
-    };
-    
-    let title = titleMap[category] || 'Produkter';
-
-    document.title = 'Alla ' + title + ' | DKRUG';
-
-    const pageTitle = document.getElementById('category-main-title');
-    if (pageTitle) {
-        pageTitle.textContent = 'Alla ' + title;
-    }
-
-    const breadcrumbCurrent = document.getElementById('breadcrumb-current');
-    if (breadcrumbCurrent) {
-        breadcrumbCurrent.textContent = title;
-    }
-}
-
-function updateChipsActiveState() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const currentKategori = urlParams.get('kategori');
-
-    document.querySelectorAll('.category-chip').forEach(chip => {
-        chip.classList.remove('active');
-        const chipKategori = chip.dataset.chip;
-
-        if (!currentKategori && chipKategori === 'alla') {
-            chip.classList.add('active');
-        } else if (currentKategori === chipKategori) {
-            chip.classList.add('active');
-        }
-    });
-}
-
-function initChipsRouting() {
-    const chipsContainer = document.getElementById('category-chips-list');
-    if (!chipsContainer) return;
-
-    chipsContainer.addEventListener('click', (e) => {
-        const chip = e.target.closest('.category-chip');
-        if (!chip) return;
-
-        e.preventDefault();
-        e.stopPropagation();
-
-        const href = chip.getAttribute('href');
-        if (!href) return;
-
-        window.history.pushState({}, '', href);
-        updateChipsActiveState();
-        fetchProducts();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    });
-}
-
-// ==========================================
-// RENK ESLESTIRME - Isvecce -> CSS
-// ==========================================
-const COLOR_MAP = {
-    'rod': '#D32F2F', 'röd': '#D32F2F', 'red': '#D32F2F',
-    'bla': '#1976D2', 'blå': '#1976D2', 'blue': '#1976D2',
-    'gron': '#388E3C', 'grön': '#388E3C', 'green': '#388E3C',
-    'gul': '#FBC02D', 'yellow': '#FBC02D',
-    'orange': '#F57C00',
-    'rosa': '#E91E63', 'pink': '#E91E63',
-    'lila': '#7B1FA2', 'purple': '#7B1FA2',
-    'svart': '#212121', 'black': '#212121',
-    'vit': '#FAFAFA', 'white': '#FAFAFA',
-    'grå': '#9E9E9E', 'gra': '#9E9E9E', 'grey': '#9E9E9E', 'gray': '#9E9E9E',
-    'brun': '#5D4037', 'brown': '#5D4037',
-    'beige': '#D7CCC8',
-    'turkos': '#00BCD4', 'turquoise': '#00BCD4',
-    'guld': '#FFD700', 'gold': '#FFD700',
-    'silver': '#C0C0C0',
-    'bronze': '#CD7F32', 'brons': '#CD7F32',
-    'krem': '#FFF8E1', 'cream': '#FFF8E1',
-    'oliv': '#556B2F', 'olive': '#556B2F',
-    'marin': '#1A237E', 'navy': '#1A237E', 'marinblå': '#1A237E',
-    'mint': '#98FF98',
-    'korall': '#FF7F50', 'coral': '#FF7F50',
-    'vinröd': '#722F37', 'bordo': '#722F37', 'burgundy': '#722F37',
-    'taupe': '#483C32',
-    'mullvad': '#8B7355',
-    'flerfargad': 'linear-gradient(135deg, #FF6B6B, #4ECDC4, #45B7D1, #96CEB4)', 
-    'flerfärgad': 'linear-gradient(135deg, #FF6B6B, #4ECDC4, #45B7D1, #96CEB4)',
-    'multicolor': 'linear-gradient(135deg, #FF6B6B, #4ECDC4, #45B7D1, #96CEB4)',
-    'randig': 'repeating-linear-gradient(90deg, #fff 0px, #fff 10px, #333 10px, #333 20px)',
-    'striped': 'repeating-linear-gradient(90deg, #fff 0px, #fff 10px, #333 10px, #333 20px)',
-    'prickig': 'radial-gradient(circle, #333 2px, transparent 2px)', 
-    'dotted': 'radial-gradient(circle, #333 2px, transparent 2px)',
-    'blommig': 'linear-gradient(45deg, #FFB6C1, #FFF0F5)', 
-    'floral': 'linear-gradient(45deg, #FFB6C1, #FFF0F5)',
-    'transparent': 'rgba(200,200,200,0.3)',
-};
-
-function getColorStyle(colorName) {
-    if (!colorName) return '#ccc';
-    const normalized = colorName.toLowerCase().trim();
-    if (COLOR_MAP[normalized]) return COLOR_MAP[normalized];
-    for (const [key, value] of Object.entries(COLOR_MAP)) {
-        if (normalized.includes(key) || key.includes(normalized)) return value;
-    }
-    if (/^#[0-9A-F]{6}$/i.test(normalized)) return normalized;
-    return '#ccc';
-}
-
 document.addEventListener('DOMContentLoaded', async () => {
 
+    // --- 1. DEGISKENLER ---
     let allProducts = [];
     let filteredProducts = [];
     let currentPage = 0;
     const ITEMS_PER_PAGE = 12;
 
+    // --- 2. ELEMENTLER ---
     const grid = document.getElementById('product-grid');
     const loadMoreBtn = document.getElementById('load-more-btn');
     const currentCountEl = document.getElementById('current-count');
     const totalCountEl = document.getElementById('total-count');
     const progressBar = document.getElementById('progress-bar-fill');
 
+    // --- SUPABASE CLIENT ---
     const SUPABASE_URL = (typeof CONFIG !== 'undefined' && CONFIG.SUPABASE) ? CONFIG.SUPABASE.URL : '';
     const SUPABASE_KEY = (typeof CONFIG !== 'undefined' && CONFIG.SUPABASE) ? CONFIG.SUPABASE.ANON_KEY : '';
 
@@ -180,97 +48,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         return product.discount_price || product.base_price || 0;
     }
 
-    async function fetchCategories() {
-        try {
-            const categories = await supabaseGet('categories', {
-                select: '*',
-                active: 'eq.true',
-                order: 'sort_order.asc'
-            });
-            return categories || [];
-        } catch (error) {
-            console.error('Kategori cekme hatasi:', error);
-            return [];
-        }
-    }
-
-    async function fetchSubCategories() {
-        try {
-            const subCategories = await supabaseGet('sub_categories', {
-                select: '*',
-                active: 'eq.true',
-                order: 'sort_order.asc'
-            });
-            return subCategories || [];
-        } catch (error) {
-            console.error('Alt kategori cekme hatasi:', error);
-            return [];
-        }
-    }
-
-    function renderChips(categories, subCategories) {
-        const chipsContainer = document.getElementById('category-chips-list');
-        if (!chipsContainer) return;
-
-        const currentCategory = getCurrentCategory();
-        const urlParams = new URLSearchParams(window.location.search);
-        const currentSubCategory = urlParams.get('kategori');
-
-        let chipsHTML = '';
-
-        const isAllaActive = !currentSubCategory;
-        chipsHTML += `<a href="/${currentCategory}/" class="category-chip ${isAllaActive ? 'active' : ''}" data-chip="alla">Alla</a>`;
-
-        const category = categories.find(c => c.slug === currentCategory);
-        if (category) {
-            const categorySubs = subCategories.filter(s => s.category_id === category.id);
-            categorySubs.forEach(sub => {
-                const isActive = currentSubCategory === sub.slug;
-                chipsHTML += `<a href="/${currentCategory}/?kategori=${sub.slug}" class="category-chip ${isActive ? 'active' : ''}" data-chip="${sub.slug}">${sub.name}</a>`;
-            });
-        }
-
-        chipsContainer.innerHTML = chipsHTML;
-        initChipsRouting();
-    }
-
+    // --- 3. SUPABASE'DEN URUN CEK ---
     async function fetchProducts() {
         try {
-            const currentCategory = getCurrentCategory();
-            const subCategory = getCurrentSubCategory();
-
-            const [categories, subCategories] = await Promise.all([
-                fetchCategories(),
-                fetchSubCategories()
-            ]);
-
-            renderChips(categories, subCategories);
-            updatePageTitle(currentCategory);
-
-            const queryParams = {
+            // Duz cekme (embed olmadan - daha guvenli)
+            const products = await supabaseGet('products', {
                 select: '*',
                 active: 'eq.true'
-            };
+            });
 
-            if (isReaPage()) {
-                queryParams.discount_price = 'not.is.null';
-                console.log('REA sayfasi: Indirimli urunler cekiliyor');
-            } else if (currentCategory) {
-                queryParams.categories = 'cs.{"' + currentCategory + '"}';
-                console.log(currentCategory + ' kategorisi: Urunler cekiliyor');
-            }
-
-            if (subCategory) {
-                queryParams.sub_category = 'eq.' + subCategory;
-                console.log('Alt kategori filtresi:', subCategory);
-            }
-
-            const products = await supabaseGet('products', queryParams);
-
+            // Varyantlari ayri cek
             const variants = await supabaseGet('product_variants', {
                 select: '*'
             });
 
+            // Birlestir
             const data = products.map(p => ({
                 ...p,
                 product_variants: variants.filter(v => v.product_id === p.id)
@@ -298,6 +90,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             console.log(allProducts.length + ' urun yuklendi');
 
+            // Ilk render
             renderProducts();
             updateProgress();
             generateFilters();
@@ -314,16 +107,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    function getVariantDisplayText(product) {
-        const variants = product.variants || [];
-        if (variants.length === 0) return 'Standard';
-        if (variants.length === 1) return variants[0].size || 'Standard';
-        const firstSize = variants[0].size || '';
-        const extraCount = variants.length - 1;
-        if (firstSize.includes('(+') || firstSize.includes('storlekar')) return firstSize;
-        return firstSize + ' (+ ' + extraCount + ' storlekar)';
-    }
-
+    // --- 4. URUN RENDER ---
     function renderProducts(append = false) {
         if (!append) {
             grid.innerHTML = '';
@@ -350,8 +134,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             grid.insertAdjacentHTML('beforeend', cardHTML);
         });
 
+        // Wishlist event listenerlarini ekle - ESKI YAPI
         attachWishlistEvents();
 
+        // Load more butonunu kontrol et
         const shown = (currentPage + 1) * ITEMS_PER_PAGE;
         if (shown >= filteredProducts.length) {
             document.getElementById('load-more-container').style.display = 'none';
@@ -360,62 +146,63 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-function createProductCard(product, isWishlisted) {
-    const productUrl = product.slug ? '/produkt/' + product.slug : '/produkt/?id=' + product.id;
-    console.log(">>> Urun URL olusturuldu:", productUrl, "urun:", product.name);
-    
-    const hasDiscount = product.discount_price && product.discount_price < product.base_price;
-    const priceHTML = hasDiscount 
-        ? `<span class="original-price" style="text-decoration:line-through;color:#999;font-size:14px;">${product.base_price.toLocaleString('sv-SE')} SEK</span>
-           <span class="current-price" style="color:#e54d42;">${product.price.toLocaleString('sv-SE')} SEK</span>`
-        : `<span class="current-price">${product.price.toLocaleString('sv-SE')} SEK</span>`;
+    function createProductCard(product, isWishlisted) {
+        const hasDiscount = product.discount_price && product.discount_price < product.base_price;
+        const priceHTML = hasDiscount 
+            ? `<span class="original-price" style="text-decoration:line-through;color:#999;font-size:14px;">${product.base_price.toLocaleString('sv-SE')} SEK</span>
+               <span class="current-price" style="color:#e54d42;">${product.price.toLocaleString('sv-SE')} SEK</span>`
+            : `<span class="current-price">${product.price.toLocaleString('sv-SE')} SEK</span>`;
 
-    const variantText = getVariantDisplayText(product);
-    
-    // ← İKİNCİ productUrl TANIMLAMASI KALDIRILDI!
+        const variantText = product.variants.length > 1 
+            ? product.variants.length + ' storlekar' 
+            : (product.variants[0]?.size || 'Standard');
 
-    return `
-        <div class="product-card" data-id="${String(product.id)}">
-            <div class="image-box">
-                <a href="${productUrl}">
-                    <img src="${product.image}" 
-                         alt="${product.name}" 
-                         loading="lazy"
-                         onerror="this.style.display='none'"
-                         style="width:100%; height:100%; object-fit:cover;">
-                </a>
-                ${hasDiscount ? '<span class="discount-badge" style="position:absolute;top:8px;left:8px;background:#e54d42;color:#fff;padding:4px 8px;border-radius:4px;font-size:12px;font-weight:bold;">REA</span>' : ''}
-                <button class="wishlist-btn ${isWishlisted ? 'active' : ''}" 
-                        data-product-id="${String(product.id)}"
-                        aria-label="Lagg till favoriter">
-                    <i class="${isWishlisted ? 'fa-solid' : 'fa-regular'} fa-heart"></i>
-                </button>
-            </div>
-            <div class="product-info">
-                <h3 class="product-title">${product.name}</h3>
-                <div class="product-meta-row">
-                    <span class="product-acf-dimension">${variantText}</span>
+        // URL: /matta/slug seklinde (vercel.json rewrite ile product.html?slug=slug'e yonlenecek)
+        const productUrl = product.slug ? 'product.html?slug=' + product.slug : 'product.html?id=' + product.id;
+
+        return `
+            <div class="product-card" data-id="${String(product.id)}">
+                <div class="image-box">
+                    <a href="${productUrl}">
+                        <img src="${product.image}" 
+                             alt="${product.name}" 
+                             loading="lazy"
+                             onerror="this.style.display='none'"
+                             style="width:100%; height:100%; object-fit:cover;">
+                    </a>
+                    ${hasDiscount ? '<span class="discount-badge" style="position:absolute;top:8px;left:8px;background:#e54d42;color:#fff;padding:4px 8px;border-radius:4px;font-size:12px;font-weight:bold;">REA</span>' : ''}
+                    <button class="wishlist-btn ${isWishlisted ? 'active' : ''}" 
+                            data-product-id="${String(product.id)}"
+                            aria-label="Lagg till favoriter">
+                        <i class="${isWishlisted ? 'fa-solid' : 'fa-regular'} fa-heart"></i>
+                    </button>
                 </div>
-                <div class="product-price">
-                    ${priceHTML}
-                </div>
-                ${product.colors.length > 0 ? `
-                    <div class="product-colors-wrapper">
-                        <div class="product-colors-swatches">
-                            ${product.colors.slice(0, 5).map(color => `
-                                <span class="swatch-circle" 
-                                      style="background: ${getColorStyle(color)};"
-                                      title="${color}"></span>
-                            `).join('')}
-                        </div>
-                        ${product.colors.length > 5 ? '<span class="color-count-text">+' + (product.colors.length - 5) + ' farger</span>' : ''}
+                <div class="product-info">
+                    <h3 class="product-title">${product.name}</h3>
+                    <div class="product-meta-row">
+                        <span class="product-acf-dimension">${variantText}</span>
                     </div>
-                ` : ''}
+                    <div class="product-price">
+                        ${priceHTML}
+                    </div>
+                    ${product.colors.length > 0 ? `
+                        <div class="product-colors-wrapper">
+                            <div class="product-colors-swatches">
+                                ${product.colors.slice(0, 5).map(color => `
+                                    <span class="swatch-circle" 
+                                          style="background-color:${color};"
+                                          title="${color}"></span>
+                                `).join('')}
+                            </div>
+                            ${product.colors.length > 5 ? '<span class="color-count-text">+' + (product.colors.length - 5) + ' farger</span>' : ''}
+                        </div>
+                    ` : ''}
+                </div>
             </div>
-        </div>
-    `;
-}
+        `;
+    }
 
+    // --- 5. WISHLIST FONKSIYONLARI - ID FIX ---
     function isInWishlist(productId) {
         try {
             const wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
@@ -426,34 +213,50 @@ function createProductCard(product, isWishlisted) {
     }
 
     function attachWishlistEvents() {
+        // ESKI YAPI: Event delegation kullan
         const grid = document.getElementById('product-grid');
         if (!grid) return;
+
+        // Önceki listener'ı kaldır (varsa)
         grid.removeEventListener('click', handleWishlistClick);
+        // Yeni listener ekle
         grid.addEventListener('click', handleWishlistClick);
     }
 
     function handleWishlistClick(e) {
+        // Kalp butonuna veya içindeki ikona tıklandı mı?
         const btn = e.target.closest('.wishlist-btn');
         if (!btn) return;
+
         e.preventDefault();
         e.stopPropagation();
 
         const productId = btn.dataset.productId;
         if (!productId) return;
+
+        // Ürün bilgilerini bul
         const product = allProducts.find(p => String(p.id) === String(productId));
         if (!product) return;
 
+        // Wishlist'i güncelle
         let wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
         const index = wishlist.findIndex(item => (typeof item === 'string' ? item : String(item.id)) === String(productId));
 
         if (index > -1) {
+            // Kaldır
             wishlist.splice(index, 1);
             btn.classList.remove('active');
             const icon = btn.querySelector('i');
             if (icon) icon.className = 'fa-regular fa-heart';
             console.log('Favorilerden kaldirildi:', product.name);
         } else {
-            wishlist.push({ id: product.id, name: product.name, price: product.price, image: product.image });
+            // Ekle
+            wishlist.push({
+                id: product.id,
+                name: product.name,
+                price: product.price,
+                image: product.image
+            });
             btn.classList.add('active');
             const icon = btn.querySelector('i');
             if (icon) icon.className = 'fa-solid fa-heart';
@@ -461,6 +264,8 @@ function createProductCard(product, isWishlisted) {
         }
 
         localStorage.setItem('wishlistItems', JSON.stringify(wishlist));
+
+        // Header badge'i güncelle
         updateWishlistBadge();
     }
 
@@ -477,206 +282,53 @@ function createProductCard(product, isWishlisted) {
         }
     }
 
-    // ==========================================
-    // MODERN FILTRE GENERATOR - v5.7
-    // Ana panel (menu) -> Alt panel (grid) slide yapisi
-    // ==========================================
-    
-    let filterState = {
-        colors: [],
-        sizes: []
-    };
-
+    // --- 6. FILTRELER ---
     function generateFilters() {
         const allColors = [...new Set(allProducts.flatMap(p => p.colors))].filter(Boolean).sort();
-        const allSizes = [...new Set(allProducts.flatMap(p => p.sizes))].filter(Boolean).sort((a, b) => {
-            const getArea = s => {
-                const nums = s.match(/\d+/g);
-                return nums ? nums.reduce((acc, n) => acc * parseInt(n), 1) : 0;
-            };
-            return getArea(a) - getArea(b);
-        });
-
-        const mainPanel = document.getElementById('main-panel');
-        if (!mainPanel) return;
-
-        // --- ANA PANEL: Filtre kategorileri listesi ---
-        let mainHTML = '';
-        
-        // Farg kategorisi
-        if (allColors.length > 0) {
-            mainHTML += `
-                <div class="filter-menu-item" data-filter-type="color">
-                    <div class="filter-menu-content">
-                        <span class="filter-menu-label">Farg</span>
-                        <div class="filter-menu-preview" id="color-preview"></div>
-                    </div>
-                    <i class="fa-solid fa-chevron-right"></i>
+        const colorContainer = document.getElementById('color-filter-list');
+        if (colorContainer && allColors.length > 0) {
+            colorContainer.innerHTML = allColors.map(color => `
+                <div class="filter-row">
+                    <input type="checkbox" 
+                           class="filter-input" 
+                           id="color-${color.replace(/\s/g, '-')}" 
+                           value="${color}" 
+                           data-type="color">
+                    <label class="filter-row-label" for="color-${color.replace(/\s/g, '-')}">
+                        <span class="color-circle" style="background-color:${color};"></span>
+                        <span>${color}</span>
+                        <i class="fa-solid fa-check check-icon"></i>
+                    </label>
                 </div>
-            `;
-        }
-        
-        // Storlek kategorisi
-        if (allSizes.length > 0) {
-            mainHTML += `
-                <div class="filter-menu-item" data-filter-type="size">
-                    <div class="filter-menu-content">
-                        <span class="filter-menu-label">Storlek</span>
-                        <span class="filter-menu-count" id="size-count" style="display:none;">0</span>
-                    </div>
-                    <i class="fa-solid fa-chevron-right"></i>
-                </div>
-            `;
+            `).join('');
         }
 
-        mainPanel.innerHTML = mainHTML;
-
-        // --- ALT PANEL: Renk grid ---
-        const colorSubPanel = document.getElementById('color-sub-panel');
-        if (colorSubPanel && allColors.length > 0) {
-            colorSubPanel.innerHTML = `
-                <div class="sub-panel-header">
-                    <button class="back-to-main" data-target="color">
-                        <i class="fa-solid fa-arrow-left"></i>
-                        <span>Farg</span>
-                    </button>
-                    <span class="sub-panel-count" id="color-sub-count">0 valda</span>
+        const allSizes = [...new Set(allProducts.flatMap(p => p.sizes))].filter(Boolean).sort();
+        const sizeContainer = document.getElementById('size-filter-list');
+        if (sizeContainer && allSizes.length > 0) {
+            sizeContainer.innerHTML = allSizes.map(size => `
+                <div class="filter-row">
+                    <input type="checkbox" 
+                           class="filter-input" 
+                           id="size-${size.replace(/\s/g, '-')}" 
+                           value="${size}" 
+                           data-type="size">
+                    <label class="filter-row-label" for="size-${size.replace(/\s/g, '-')}">
+                        <span>${size}</span>
+                        <i class="fa-solid fa-check check-icon"></i>
+                    </label>
                 </div>
-                <div class="color-filter-grid">
-                    ${allColors.map(color => `
-                        <div class="color-item">
-                            <input type="checkbox" 
-                                   class="filter-input" 
-                                   id="color-${color.replace(/\s/g, '-')}" 
-                                   value="${color}" 
-                                   data-type="color">
-                            <label class="color-circle-wrapper" for="color-${color.replace(/\s/g, '-')}">
-                                <span class="color-circle" style="background: ${getColorStyle(color)};"></span>
-                                <span class="color-name">${color}</span>
-                            </label>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
+            `).join('');
         }
 
-        // --- ALT PANEL: Storlek grid ---
-        const sizeSubPanel = document.getElementById('size-sub-panel');
-        if (sizeSubPanel && allSizes.length > 0) {
-            sizeSubPanel.innerHTML = `
-                <div class="sub-panel-header">
-                    <button class="back-to-main" data-target="size">
-                        <i class="fa-solid fa-arrow-left"></i>
-                        <span>Storlek</span>
-                    </button>
-                    <span class="sub-panel-count" id="size-sub-count">0 valda</span>
-                </div>
-                <div class="size-filter-grid">
-                    ${allSizes.map(size => `
-                        <div class="size-item">
-                            <input type="checkbox" 
-                                   class="filter-input" 
-                                   id="size-${size.replace(/\s/g, '-')}" 
-                                   value="${size}" 
-                                   data-type="size">
-                            <label class="size-box" for="size-${size.replace(/\s/g, '-')}">
-                                <span class="size-text">${size}</span>
-                            </label>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-        }
-
-        // Event listener'lari ekle
-        setupFilterEvents();
-    }
-
-    function setupFilterEvents() {
-        // Ana paneldeki menu item'lara tiklama
-        document.querySelectorAll('.filter-menu-item').forEach(item => {
-            item.addEventListener('click', () => {
-                const type = item.dataset.filterType;
-                openSubPanel(type);
-            });
-        });
-
-        // Geri butonlari
-        document.querySelectorAll('.back-to-main').forEach(btn => {
-            btn.addEventListener('click', () => {
-                closeSubPanel();
-            });
-        });
-
-        // Checkbox degisiklikleri
         document.querySelectorAll('.filter-input').forEach(input => {
-            input.addEventListener('change', () => {
-                updateFilterState();
-                applyFilters();
-                updateClearButtonVisibility();
-                updateFilterPreview();
-            });
+            input.addEventListener('change', applyFilters);
         });
-    }
-
-    function openSubPanel(type) {
-        const mainPanel = document.getElementById('main-panel');
-        const subPanel = document.getElementById(type + '-sub-panel');
-        
-        if (mainPanel) mainPanel.classList.add('slide-out');
-        if (subPanel) subPanel.classList.add('slide-in');
-    }
-
-    function closeSubPanel() {
-        const mainPanel = document.getElementById('main-panel');
-        const subPanels = document.querySelectorAll('.sub-panel');
-        
-        if (mainPanel) mainPanel.classList.remove('slide-out');
-        subPanels.forEach(panel => panel.classList.remove('slide-in'));
-    }
-
-    function updateFilterState() {
-        filterState.colors = Array.from(document.querySelectorAll('input[data-type="color"]:checked')).map(el => el.value);
-        filterState.sizes = Array.from(document.querySelectorAll('input[data-type="size"]:checked')).map(el => el.value);
-    }
-
-    function updateFilterPreview() {
-        // Color preview dots
-        const colorPreview = document.getElementById('color-preview');
-        if (colorPreview) {
-            if (filterState.colors.length > 0) {
-                colorPreview.innerHTML = filterState.colors.slice(0, 3).map(c => 
-                    `<span class="preview-dot" style="background: ${getColorStyle(c)};"></span>`
-                ).join('') + (filterState.colors.length > 3 ? `<span class="preview-more">+${filterState.colors.length - 3}</span>` : '');
-                colorPreview.style.display = 'flex';
-            } else {
-                colorPreview.innerHTML = '';
-                colorPreview.style.display = 'none';
-            }
-        }
-
-        // Size count badge
-        const sizeCount = document.getElementById('size-count');
-        if (sizeCount) {
-            if (filterState.sizes.length > 0) {
-                sizeCount.textContent = filterState.sizes.length;
-                sizeCount.style.display = 'inline-flex';
-            } else {
-                sizeCount.style.display = 'none';
-            }
-        }
-
-        // Sub panel counts
-        const colorSubCount = document.getElementById('color-sub-count');
-        if (colorSubCount) colorSubCount.textContent = filterState.colors.length + ' valda';
-        
-        const sizeSubCount = document.getElementById('size-sub-count');
-        if (sizeSubCount) sizeSubCount.textContent = filterState.sizes.length + ' valda';
     }
 
     function applyFilters() {
-        const checkedColors = filterState.colors;
-        const checkedSizes = filterState.sizes;
+        const checkedColors = Array.from(document.querySelectorAll('input[data-type="color"]:checked')).map(el => el.value);
+        const checkedSizes = Array.from(document.querySelectorAll('input[data-type="size"]:checked')).map(el => el.value);
 
         filteredProducts = allProducts.filter(product => {
             const colorMatch = checkedColors.length === 0 || product.colors.some(c => checkedColors.includes(c));
@@ -698,99 +350,37 @@ function createProductCard(product, isWishlisted) {
         }
     }
 
-    // ==========================================
-    // RENSA BUTONU
-    // ==========================================
-    function clearAllFilters() {
-        console.log('>>> clearAllFilters CAGIRILDI');
-
-        document.querySelectorAll('.filter-input:checked').forEach(input => {
-            input.checked = false;
-        });
-
-        document.querySelectorAll('input[name="orderby"]').forEach(radio => {
-            radio.checked = radio.value === 'default';
-        });
-
-        filterState = { colors: [], sizes: [] };
-        filteredProducts = [...allProducts];
-        currentPage = 0;
-
-        renderProducts();
-        updateProgress();
-        updateFilterBadge(0);
-        updateFilterPreview();
-
-        const clearBtn = document.getElementById('clear-all-filters');
-        if (clearBtn) {
-            clearBtn.classList.remove('visible');
-            clearBtn.style.display = 'none';
-        }
-
-        setTimeout(() => {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }, 100);
-
-        console.log('Tum filtreler temizlendi, urun sayisi:', filteredProducts.length);
-    }
-
-    function initClearFilters() {
-        console.log('>>> initClearFilters CAGIRILDI');
-        const mainClearBtn = document.getElementById('clear-all-filters');
-        if (mainClearBtn) {
-            mainClearBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('>>> RENSA butonuna tiklandi - TUMUNU SIFIRLA');
-                clearAllFilters();
-            });
-        }
-    }
-
-    function updateClearButtonVisibility() {
-        const checkedFilters = document.querySelectorAll('.filter-input:checked').length;
-        let hasSort = false;
-        document.querySelectorAll('input[name="orderby"]').forEach(radio => {
-            if (radio.checked && radio.value !== 'default') {
-                hasSort = true;
-            }
-        });
-
-        const totalActive = checkedFilters + (hasSort ? 1 : 0);
-
-        const clearBtn = document.getElementById('clear-all-filters');
-        if (clearBtn) {
-            if (totalActive > 0) {
-                clearBtn.classList.add('visible');
-                clearBtn.style.display = 'inline-flex';
-            } else {
-                clearBtn.classList.remove('visible');
-                clearBtn.style.display = 'none';
-            }
-        }
-
-        console.log('Aktif filtre/siralama sayisi:', totalActive);
-    }
-
+    // --- 7. SORT (SIRALAMA) ---
     function initSort() {
         document.querySelectorAll('input[name="orderby"]').forEach(radio => {
             radio.addEventListener('change', (e) => {
                 const sortType = e.target.value;
+
                 switch(sortType) {
-                    case 'price-asc': filteredProducts.sort((a, b) => a.price - b.price); break;
-                    case 'price-desc': filteredProducts.sort((a, b) => b.price - a.price); break;
-                    case 'name-asc': filteredProducts.sort((a, b) => a.name.localeCompare(b.name)); break;
-                    case 'name-desc': filteredProducts.sort((a, b) => b.name.localeCompare(a.name)); break;
-                    default: filteredProducts.sort((a, b) => String(a.id).localeCompare(String(b.id)));
+                    case 'price-asc':
+                        filteredProducts.sort((a, b) => a.price - b.price);
+                        break;
+                    case 'price-desc':
+                        filteredProducts.sort((a, b) => b.price - a.price);
+                        break;
+                    case 'name-asc':
+                        filteredProducts.sort((a, b) => a.name.localeCompare(b.name));
+                        break;
+                    case 'name-desc':
+                        filteredProducts.sort((a, b) => b.name.localeCompare(a.name));
+                        break;
+                    default:
+                        filteredProducts.sort((a, b) => String(a.id).localeCompare(String(b.id)));
                 }
+
                 currentPage = 0;
                 renderProducts();
                 closeAllDrawers();
-                updateClearButtonVisibility();
             });
         });
     }
 
+    // --- 8. LOAD MORE ---
     if (loadMoreBtn) {
         loadMoreBtn.addEventListener('click', (e) => {
             e.preventDefault();
@@ -803,6 +393,7 @@ function createProductCard(product, isWishlisted) {
     function updateProgress() {
         const shown = Math.min((currentPage + 1) * ITEMS_PER_PAGE, filteredProducts.length);
         const total = filteredProducts.length;
+
         if (currentCountEl) currentCountEl.textContent = shown;
         if (totalCountEl) totalCountEl.textContent = total;
         if (progressBar) {
@@ -811,6 +402,7 @@ function createProductCard(product, isWishlisted) {
         }
     }
 
+    // --- 9. DRAWER AC/KAPA ---
     function initDrawers() {
         const openFilter = document.getElementById('open-filter-sidebar');
         const closeFilter = document.getElementById('close-filter-sidebar');
@@ -827,8 +419,6 @@ function createProductCard(product, isWishlisted) {
             filterDrawer?.classList.remove('active');
             filterOverlay?.classList.remove('active');
             document.body.style.overflow = '';
-            // Alt panelleri kapat
-            setTimeout(() => closeSubPanel(), 300);
         };
 
         closeFilter?.addEventListener('click', closeFilterFn);
@@ -856,34 +446,18 @@ function createProductCard(product, isWishlisted) {
     }
 
     function closeAllDrawers() {
-        const filterDrawer = document.getElementById('filter-sidebar');
-        const filterOverlay = document.getElementById('filter-overlay');
-        if (filterDrawer) filterDrawer.classList.remove('active');
-        if (filterOverlay) filterOverlay.classList.remove('active');
-
-        const sortDrawer = document.getElementById('sort-drawer');
-        const sortOverlay = document.getElementById('sort-overlay');
-        if (sortDrawer) sortDrawer.classList.remove('active');
-        if (sortOverlay) sortOverlay.classList.remove('active');
-
+        document.querySelectorAll('#filter-sidebar, #sort-drawer').forEach(el => el?.classList.remove('active'));
+        document.querySelectorAll('#filter-overlay, #sort-overlay').forEach(el => el?.classList.remove('active'));
         document.body.style.overflow = '';
-        setTimeout(() => closeSubPanel(), 300);
     }
 
     window.closeAll = closeAllDrawers;
 
+    // --- 10. BASLAT ---
     await fetchProducts();
     initSort();
     initDrawers();
-    initChipsRouting();
-    initClearFilters();
-    updateChipsActiveState();
     updateWishlistBadge();
 
-    // ✅ BREADCRUMB GUNCELLEME - MUTLAKA BURADA
-    const initialCategory = getCurrentCategory();
-    console.log('>>> DOMContentLoaded sonu, initialCategory:', initialCategory);
-    updatePageTitle(initialCategory);
-
-    console.log('Category.js v5.7 baslatildi');
-   });
+    console.log('Category.js baslatildi');
+});
