@@ -35,23 +35,29 @@ document.addEventListener('DOMContentLoaded', () => {
     let elements = null;
     let paymentElement = null;
 
-   // Stripe kütüphanesinin tamamen yüklenmesini bekle
-function initStripeWhenReady() {
-    if (typeof Stripe !== 'undefined') {
-        stripe = Stripe(CONFIG.STRIPE.PUBLISHABLE_KEY);
-        console.log('✅ Stripe baslatildi');
-        
-        // Stripe hazır olduğunda ödeme formunu başlat
-        const cart = getCart();
-        if (cart.length > 0) {
-            paymentSection.style.display = 'block';
-            initPaymentForm();
-        }
-    } else {
-        console.log('⏳ Stripe bekleniyor...');
-        setTimeout(initStripeWhenReady, 100); // 100ms sonra tekrar kontrol et
-    }
+// Stripe.js yüklendiğinde otomatik olarak başlat
+function initializeCheckout() {
+    console.log('✅ Stripe kütüphanesi hazır!');
+    
+    // Stripe'ı başlat
+    stripe = Stripe(CONFIG.STRIPE.PUBLISHABLE_KEY);
+    
+    // Formu başlat
+    renderCheckoutItems();
+    initPaymentForm();
 }
+
+// Stripe'ın hazır olup olmadığını sürekli kontrol etmeye gerek yok, 
+// Stripe kütüphanesi yüklendiğinde Stripe nesnesi zaten window altında olur.
+// Eğer hala Stripe yok diyorsa, Stripe'ın yüklenme süresini garantilemek için:
+window.addEventListener('load', () => {
+    if (typeof Stripe !== 'undefined') {
+        initializeCheckout();
+    } else {
+        // Eğer hala yoksa, bir kereye mahsus 300ms daha bekle
+        setTimeout(initializeCheckout, 300);
+    }
+});
 
 // Sayfa yüklendiğinde başlatmayı tetikle
 window.addEventListener('load', initStripeWhenReady);
