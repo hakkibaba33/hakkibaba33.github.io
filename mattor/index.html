@@ -102,30 +102,32 @@
     <!-- Filtre Overlay -->
     <div id="filter-overlay" class="modal-overlay"></div>
 
-    <!-- Filtre Drawer - RENSA ALLA butonu KALDIRILDI -->
-    <div id="filter-sidebar" class="filter-drawer">
-        <div class="drawer-header">
-            <h3>FILTRERA</h3>
-            <button id="close-filter-sidebar" class="close-btn"><i class="fa-solid fa-xmark"></i></button>
+     <!-- Filtre Drawer -->
+<div id="filter-sidebar" class="filter-drawer">
+    <div class="drawer-header">
+        <h3>FILTRERA</h3>
+        <button id="close-filter-sidebar" class="close-btn"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="drawer-body">
+        <!-- ANA PANEL: Filtre kategorileri (Farg, Storlek...) -->
+        <div class="drawer-panel main-panel" id="main-panel">
+            <!-- JS ile dolduruluyor -->
         </div>
-        <div class="drawer-body">
-            <div class="drawer-panel main-panel" id="main-panel">
-                <div class="filter-section">
-                    <h4 class="filter-title">Farg</h4>
-                    <div id="color-filter-list" class="filter-vertical-list"></div>
-                </div>
-                <div class="filter-section">
-                    <h4 class="filter-title">Storlek</h4>
-                    <div id="size-filter-list" class="filter-vertical-list"></div>
-                </div>
-            </div>
+        
+        <!-- ALT PANEL: Renk grid -->
+        <div class="drawer-panel sub-panel" id="color-sub-panel">
+            <!-- JS ile dolduruluyor -->
         </div>
-        <div class="sticky-filter-footer">
-            <!-- RENSA ALLA butonu KALDIRILDI - sadece ana barda var -->
-            <button class="apply-btn" onclick="window.closeAll()">VISA PRODUKTER</button>
+        
+        <!-- ALT PANEL: Storlek grid -->
+        <div class="drawer-panel sub-panel" id="size-sub-panel">
+            <!-- JS ile dolduruluyor -->
         </div>
     </div>
-
+    <div class="sticky-filter-footer">
+        <button class="apply-btn" onclick="window.closeAll()">VISA PRODUKTER</button>
+    </div>
+</div>
     <!-- Sort Overlay -->
     <div id="sort-overlay" class="modal-overlay"></div>
 
