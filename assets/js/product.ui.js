@@ -75,43 +75,39 @@ if (window.__productPageInitialized) {
         return product.base_price || 0;
     }
 
-    // ==========================================
-    // HASH ROUTING DESTEĞİ EKLENDİ (v3.2)
-    // ==========================================
-    async function initProductPage() {
-        console.log("Urun sayfasi init basliyor...");
+async function initProductPage() {
+    console.log(">>> initProductPage() BASLADI");
+    
+    let productId = null;
+    let slug = null;
 
-        let productId = null;
-        let slug = null;
+    // 1. Normal URLSearchParams
+    const urlParams = new URLSearchParams(window.location.search);
+    productId = urlParams.get('id');
+    slug = urlParams.get('slug');
+    console.log("Step 1 - Query params:", { productId, slug });
 
-        // 1. Önce normal URLSearchParams'i kontrol et (query string)
-        const urlParams = new URLSearchParams(window.location.search);
-        productId = urlParams.get('id');
-        slug = urlParams.get('slug');
+    // 2. Hash routing kontrolü
+    const hash = window.location.hash;
+    console.log("Step 2 - Hash:", hash);
+    
+    if (hash && hash.startsWith('#/')) {
+        console.log("Hash routing tespit edildi!");
+        // ... hash parsing kodun
+    }
 
-        // 3. Normal pathname kontrolü (hash yoksa)
-        if (!productId && !slug && (!hash || hash === '' || hash === '#')) {
-            const parts = window.location.pathname.split('/').filter(p => p);
-            const lastPart = parts[parts.length - 1];
-            const reservedNames = ['produkt', 'matta', 'gardiner', 'mobler', 'belysning', 'dekoration', 'rea', 'favoriter', 'kassa', 'kontakt', 'assets', 'api'];
-            if (lastPart && !reservedNames.includes(lastPart.toLowerCase())) {
-                slug = lastPart;
-                console.log("Pathname'den slug bulundu:", slug);
-            }
-        }
+    // 3. Pathname kontrolü
+    const parts = window.location.pathname.split('/').filter(p => p);
+    const lastPart = parts[parts.length - 1];
+    console.log("Step 3 - Pathname parts:", parts, "lastPart:", lastPart);
 
-        // 4. Eski ?slug= URL'lerini yeni hash formatına yönlendir
-        if (urlParams.get('slug') && window.location.pathname === '/produkt/') {
-            const newHash = '#/produkt/' + urlParams.get('slug');
-            window.history.replaceState({}, '', '/' + newHash);
-            slug = urlParams.get('slug');
-            productId = null;
-        }
+    console.log("Final - productId:", productId, "slug:", slug);
 
-        if (!productId && !slug) {
-            console.error("Urun ID veya Slug bulunamadi! URL:", window.location.href);
-            return;
-        }
+    if (!productId && !slug) {
+        console.error(">>> HATA: Urun ID veya Slug bulunamadi!");
+        console.error(">>> URL:", window.location.href);
+        return;
+    }
 
         console.log("Urun ID:", productId, "Slug:", slug);
 
