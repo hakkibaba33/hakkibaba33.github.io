@@ -360,59 +360,61 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    function createProductCard(product, isWishlisted) {
+function createProductCard(product, isWishlisted) {
     const productUrl = product.slug ? '/produkt/' + product.slug : '/produkt/?id=' + product.id;
-    console.log(">>> Urun URL olusturuldu:", productUrl, "urun:", product.name)
-        const hasDiscount = product.discount_price && product.discount_price < product.base_price;
-        const priceHTML = hasDiscount 
-            ? `<span class="original-price" style="text-decoration:line-through;color:#999;font-size:14px;">${product.base_price.toLocaleString('sv-SE')} SEK</span>
-               <span class="current-price" style="color:#e54d42;">${product.price.toLocaleString('sv-SE')} SEK</span>`
-            : `<span class="current-price">${product.price.toLocaleString('sv-SE')} SEK</span>`;
+    console.log(">>> Urun URL olusturuldu:", productUrl, "urun:", product.name);
+    
+    const hasDiscount = product.discount_price && product.discount_price < product.base_price;
+    const priceHTML = hasDiscount 
+        ? `<span class="original-price" style="text-decoration:line-through;color:#999;font-size:14px;">${product.base_price.toLocaleString('sv-SE')} SEK</span>
+           <span class="current-price" style="color:#e54d42;">${product.price.toLocaleString('sv-SE')} SEK</span>`
+        : `<span class="current-price">${product.price.toLocaleString('sv-SE')} SEK</span>`;
 
-        const variantText = getVariantDisplayText(product);
-       const productUrl = product.slug ? '/produkt/' + product.slug : '/produkt/?id=' + product.id;
+    const variantText = getVariantDisplayText(product);
+    
+    // ← İKİNCİ productUrl TANIMLAMASI KALDIRILDI!
 
-        return `
-            <div class="product-card" data-id="${String(product.id)}">
-                <div class="image-box">
-                    <a href="${productUrl}">
-                        <img src="${product.image}" 
-                             alt="${product.name}" 
-                             loading="lazy"
-                             onerror="this.style.display='none'"
-                             style="width:100%; height:100%; object-fit:cover;">
-                    </a>
-                    ${hasDiscount ? '<span class="discount-badge" style="position:absolute;top:8px;left:8px;background:#e54d42;color:#fff;padding:4px 8px;border-radius:4px;font-size:12px;font-weight:bold;">REA</span>' : ''}
-                    <button class="wishlist-btn ${isWishlisted ? 'active' : ''}" 
-                            data-product-id="${String(product.id)}"
-                            aria-label="Lagg till favoriter">
-                        <i class="${isWishlisted ? 'fa-solid' : 'fa-regular'} fa-heart"></i>
-                    </button>
-                </div>
-                <div class="product-info">
-                    <h3 class="product-title">${product.name}</h3>
-                    <div class="product-meta-row">
-                        <span class="product-acf-dimension">${variantText}</span>
-                    </div>
-                    <div class="product-price">
-                        ${priceHTML}
-                    </div>
-                    ${product.colors.length > 0 ? `
-                        <div class="product-colors-wrapper">
-                            <div class="product-colors-swatches">
-                                ${product.colors.slice(0, 5).map(color => `
-                                    <span class="swatch-circle" 
-                                          style="background: ${getColorStyle(color)};"
-                                          title="${color}"></span>
-                                `).join('')}
-                            </div>
-                            ${product.colors.length > 5 ? '<span class="color-count-text">+' + (product.colors.length - 5) + ' farger</span>' : ''}
-                        </div>
-                    ` : ''}
-                </div>
+    return `
+        <div class="product-card" data-id="${String(product.id)}">
+            <div class="image-box">
+                <a href="${productUrl}">
+                    <img src="${product.image}" 
+                         alt="${product.name}" 
+                         loading="lazy"
+                         onerror="this.style.display='none'"
+                         style="width:100%; height:100%; object-fit:cover;">
+                </a>
+                ${hasDiscount ? '<span class="discount-badge" style="position:absolute;top:8px;left:8px;background:#e54d42;color:#fff;padding:4px 8px;border-radius:4px;font-size:12px;font-weight:bold;">REA</span>' : ''}
+                <button class="wishlist-btn ${isWishlisted ? 'active' : ''}" 
+                        data-product-id="${String(product.id)}"
+                        aria-label="Lagg till favoriter">
+                    <i class="${isWishlisted ? 'fa-solid' : 'fa-regular'} fa-heart"></i>
+                </button>
             </div>
-        `;
-    }
+            <div class="product-info">
+                <h3 class="product-title">${product.name}</h3>
+                <div class="product-meta-row">
+                    <span class="product-acf-dimension">${variantText}</span>
+                </div>
+                <div class="product-price">
+                    ${priceHTML}
+                </div>
+                ${product.colors.length > 0 ? `
+                    <div class="product-colors-wrapper">
+                        <div class="product-colors-swatches">
+                            ${product.colors.slice(0, 5).map(color => `
+                                <span class="swatch-circle" 
+                                      style="background: ${getColorStyle(color)};"
+                                      title="${color}"></span>
+                            `).join('')}
+                        </div>
+                        ${product.colors.length > 5 ? '<span class="color-count-text">+' + (product.colors.length - 5) + ' farger</span>' : ''}
+                    </div>
+                ` : ''}
+            </div>
+        </div>
+    `;
+}
 
     function isInWishlist(productId) {
         try {
