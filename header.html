@@ -150,85 +150,124 @@
     var SUPABASE_URL = 'https://mowyhsssmpjrwxzvelax.supabase.co';
     var SUPABASE_ANON_KEY = 'sb_publishable_Fp4Nstc2lpCPNL-5OHPU8w_KD0AC6xf';
     
-    async function loadDesktopNav() {
+    // Supabase'den kategorileri çek
+    async function fetchCategories() {
         try {
             var res = await fetch(SUPABASE_URL + '/rest/v1/categories?select=*&active=eq.true&order=sort_order.asc', {
                 headers: { 'apikey': SUPABASE_ANON_KEY }
             });
-            if (!res.ok) throw new Error('Kategoriler alinamadi');
-            var categories = await res.json();
-            
-            var navList = document.querySelector('.desktop-nav .nav-list');
-            if (!navList) return;
-            navList.innerHTML = '';
-            
-            categories.forEach(function(cat) {
-                var li = document.createElement('li');
-                var a = document.createElement('a');
-                a.href = '/' + cat.slug + '/';
-                a.textContent = cat.name_sv;
-                li.appendChild(a);
-                navList.appendChild(li);
-            });
-            
-            var staticItems = [
-                { href: '/rea/', text: 'REA', class: 'nav-sale' },
-                { href: '/kontakt/', text: 'Kontakt' }
-            ];
-            staticItems.forEach(function(item) {
-                var li = document.createElement('li');
-                var a = document.createElement('a');
-                a.href = item.href; a.textContent = item.text;
-                if (item.class) a.className = item.class;
-                li.appendChild(a); navList.appendChild(li);
-            });
+            if (!res.ok) throw new Error('Kategoriler alinamadi: ' + res.status);
+            return await res.json();
         } catch (err) {
-            console.error('Menu yukleme hatasi:', err);
+            console.error('[Menu] Kategori çekme hatası:', err);
+            return [];
         }
     }
     
-    async function loadMobileNav() {
-        try {
-            var res = await fetch(SUPABASE_URL + '/rest/v1/categories?select=*&active=eq.true&order=sort_order.asc', {
-                headers: { 'apikey': SUPABASE_ANON_KEY }
-            });
-            if (!res.ok) throw new Error('Kategoriler alinamadi');
-            var categories = await res.json();
-            
-            var mobileNavList = document.querySelector('.mobile-nav-list');
-            if (!mobileNavList) return;
-            mobileNavList.innerHTML = '';
-            
-            var startLi = document.createElement('li');
-            var startA = document.createElement('a');
-            startA.href = '/'; startA.textContent = 'Start';
-            startLi.appendChild(startA); mobileNavList.appendChild(startLi);
-            
-            categories.forEach(function(cat) {
-                var li = document.createElement('li');
-                var a = document.createElement('a');
-                a.href = '/' + cat.slug + '/'; a.textContent = cat.name_sv;
-                li.appendChild(a); mobileNavList.appendChild(li);
-            });
-            
-            var staticItems = [
-                { href: '/rea/', text: 'REA', class: 'mobile-sale' },
-                { href: '/kontakt/', text: 'Kontakt' }
-            ];
-            staticItems.forEach(function(item) {
-                var li = document.createElement('li');
-                var a = document.createElement('a');
-                a.href = item.href; a.textContent = item.text;
-                if (item.class) a.className = item.class;
-                li.appendChild(a); mobileNavList.appendChild(li);
-            });
-        } catch (err) {
-            console.error('Mobil menu yukleme hatasi:', err);
+    // Desktop menüyü render et
+    function renderDesktopNav(categories) {
+        var navList = document.querySelector('.desktop-nav .nav-list');
+        if (!navList) {
+            console.warn('[Menu] .desktop-nav .nav-list bulunamadi!');
+            return;
         }
+        
+        navList.innerHTML = '';
+        
+        categories.forEach(function(cat) {
+            var li = document.createElement('li');
+            var a = document.createElement('a');
+            a.href = '/' + cat.slug + '/';
+            a.textContent = cat.name_sv;
+            li.appendChild(a);
+            navList.appendChild(li);
+        });
+        
+        // Statik menü öğeleri (REA, Kontakt)
+        var staticItems = [
+            { href: '/rea/', text: 'REA', class: 'nav-sale' },
+            { href: '/kontakt/', text: 'Kontakt' }
+        ];
+        staticItems.forEach(function(item) {
+            var li = document.createElement('li');
+            var a = document.createElement('a');
+            a.href = item.href;
+            a.textContent = item.text;
+            if (item.class) a.className = item.class;
+            li.appendChild(a);
+            navList.appendChild(li);
+        });
+        
+        console.log('[Menu] Desktop menü render edildi:', categories.length, 'kategori');
     }
     
-    loadDesktopNav();
-    loadMobileNav();
+    // Mobil menüyü render et
+    function renderMobileNav(categories) {
+        var mobileNavList = document.querySelector('.mobile-nav-list');
+        if (!mobileNavList) {
+            console.warn('[Menu] .mobile-nav-list bulunamadi!');
+            return;
+        }
+        
+        mobileNavList.innerHTML = '';
+        
+        // Start (Ana sayfa)
+        var startLi = document.createElement('li');
+        var startA = document.createElement('a');
+        startA.href = '/';
+        startA.textContent = 'Start';
+        startLi.appendChild(startA);
+        mobileNavList.appendChild(startLi);
+        
+        // Dinamik kategoriler
+        categories.forEach(function(cat) {
+            var li = document.createElement('li');
+            var a = document.createElement('a');
+            a.href = '/' + cat.slug + '/';
+            a.textContent = cat.name_sv;
+            li.appendChild(a);
+            mobileNavList.appendChild(li);
+        });
+        
+        // Statik öğeler
+        var staticItems = [
+            { href: '/rea/', text: 'REA', class: 'mobile-sale' },
+            { href: '/kontakt/', text: 'Kontakt' }
+        ];
+        staticItems.forEach(function(item) {
+            var li = document.createElement('li');
+            var a = document.createElement('a');
+            a.href = item.href;
+            a.textContent = item.text;
+            if (item.class) a.className = item.class;
+            li.appendChild(a);
+            mobileNavList.appendChild(li);
+        });
+        
+        console.log('[Menu] Mobil menü render edildi:', categories.length, 'kategori');
+    }
+    
+    // Ana init fonksiyonu
+    async function initMenu() {
+        console.log('[Menu] Menü init başlatılıyor...');
+        
+        var categories = await fetchCategories();
+        
+        if (categories.length === 0) {
+            console.warn('[Menu] Hiç kategori bulunamadı!');
+            return;
+        }
+        
+        renderDesktopNav(categories);
+        renderMobileNav(categories);
+    }
+    
+    // DOM hazır olduğunda çalıştır
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initMenu);
+    } else {
+        initMenu();
+    }
 })();
 </script>
 
