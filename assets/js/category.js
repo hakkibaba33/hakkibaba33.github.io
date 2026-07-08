@@ -1,7 +1,7 @@
 // ==========================================
-// CATEGORY.JS - SUPABASE UYUMLU (v5.2)
+// CATEGORY.JS - SUPABASE UYUMLU (v5.4)
 // Varyant gosterimi: "80x150 cm (+ 5 storlekar)" formati
-// Rensa butonlari fix + drawer otomatik kapatma
+// Rensa butonu FIX: Event listener duzgun calisiyor, sayac sifirlaniyor, sayfa basina donuyor
 // ==========================================
 
 console.log('category.js yukleniyor...');
@@ -92,8 +92,8 @@ function initChipsRouting() {
 }
 
 // ==========================================
-// RENSA (TEMIZLE) BUTONU - GUNCELLENMIS v5.3
-// Sadece Sortera yaninda, filtre/sort drawer icinde YOK
+// RENSA (TEMIZLE) BUTONU - GUNCELLENMIS v5.4
+// FIX: Event listener duzgun calisiyor, sayac sifirlaniyor, sayfa basina donuyor
 // ==========================================
 
 function initClearFilters() {
@@ -102,14 +102,19 @@ function initClearFilters() {
     // SADECE: Sortera yanindaki Rensa butonu
     const mainClearBtn = document.getElementById('clear-all-filters');
     if (mainClearBtn) {
-        const newMainBtn = mainClearBtn.cloneNode(true);
-        mainClearBtn.parentNode.replaceChild(newMainBtn, mainClearBtn);
-        newMainBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            console.log('>>> RENSA butonuna tiklandi - TUMUNU SIFIRLA');
-            clearAllFilters();
-        });
+        // ESKI event listener'lari temizle (guvenlik icin)
+        mainClearBtn.replaceWith(mainClearBtn.cloneNode(true));
+        
+        // YENI butonu tekrar sec ve event ekle
+        const newBtn = document.getElementById('clear-all-filters');
+        if (newBtn) {
+            newBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('>>> RENSA butonuna tiklandi - TUMUNU SIFIRLA');
+                clearAllFilters();
+            });
+        }
     }
 
     // FILTRE DRAWER icindeki Rensa butonunu KALDIR (varsa gizle)
@@ -142,14 +147,22 @@ function clearAllFilters() {
     filteredProducts = [...allProducts];
     currentPage = 0;
 
-    // 4. Sayfayi kategori basina dondur (smooth scroll)
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-
-    // 5. Urunleri render et
+    // 4. Urunleri render et (ONCE render et, sonra scroll yap)
     renderProducts();
     updateProgress();
     updateFilterBadge(0);
-    updateClearButtonVisibility();
+
+    // 5. Rensa butonunu gizle
+    const clearBtn = document.getElementById('clear-all-filters');
+    if (clearBtn) {
+        clearBtn.classList.remove('visible');
+        clearBtn.style.display = 'none';
+    }
+
+    // 6. Sayfayi kategori basina dondur (smooth scroll) - EN SON
+    setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 100);
 
     console.log('Tum filtreler temizlendi, urun sayisi:', filteredProducts.length);
 }
@@ -570,13 +583,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             `).join('');
         }
 
-           document.querySelectorAll('.filter-input').forEach(input => {
-        input.addEventListener('change', () => {
-            applyFilters();
-            updateClearButtonVisibility(); // Rensa butonu guncelle
+        document.querySelectorAll('.filter-input').forEach(input => {
+            input.addEventListener('change', () => {
+                applyFilters();
+                updateClearButtonVisibility(); // Rensa butonu guncelle
+            });
         });
-    });
-}
+    }
 
     function applyFilters() {
         const checkedColors = Array.from(document.querySelectorAll('input[data-type="color"]:checked')).map(el => el.value);
@@ -602,38 +615,38 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-function initSort() {
-    document.querySelectorAll('input[name="orderby"]').forEach(radio => {
-        radio.addEventListener('change', (e) => {
-            const sortType = e.target.value;
+    function initSort() {
+        document.querySelectorAll('input[name="orderby"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                const sortType = e.target.value;
 
-            switch(sortType) {
-                case 'price-asc':
-                    filteredProducts.sort((a, b) => a.price - b.price);
-                    break;
-                case 'price-desc':
-                    filteredProducts.sort((a, b) => b.price - a.price);
-                    break;
-                case 'name-asc':
-                    filteredProducts.sort((a, b) => a.name.localeCompare(b.name));
-                    break;
-                case 'name-desc':
-                    filteredProducts.sort((a, b) => b.name.localeCompare(a.name));
-                    break;
-                default:
-                    // Default: orijinal siralama (id'ye gore)
-                    filteredProducts.sort((a, b) => String(a.id).localeCompare(String(b.id)));
-            }
+                switch(sortType) {
+                    case 'price-asc':
+                        filteredProducts.sort((a, b) => a.price - b.price);
+                        break;
+                    case 'price-desc':
+                        filteredProducts.sort((a, b) => b.price - a.price);
+                        break;
+                    case 'name-asc':
+                        filteredProducts.sort((a, b) => a.name.localeCompare(b.name));
+                        break;
+                    case 'name-desc':
+                        filteredProducts.sort((a, b) => b.name.localeCompare(a.name));
+                        break;
+                    default:
+                        // Default: orijinal siralama (id'ye gore)
+                        filteredProducts.sort((a, b) => String(a.id).localeCompare(String(b.id)));
+                }
 
-            currentPage = 0;
-            renderProducts();
-            closeAllDrawers();
-            
-            // Rensa butonu gorunurlugunu guncelle
-            updateClearButtonVisibility();
+                currentPage = 0;
+                renderProducts();
+                closeAllDrawers();
+                
+                // Rensa butonu gorunurlugunu guncelle
+                updateClearButtonVisibility();
+            });
         });
-    });
-}
+    }
 
     if (loadMoreBtn) {
         loadMoreBtn.addEventListener('click', (e) => {
@@ -728,5 +741,5 @@ function initSort() {
     updateChipsActiveState();
     updateWishlistBadge();
 
-    console.log('Category.js v5.2 baslatildi');
+    console.log('Category.js v5.4 baslatildi');
 });
