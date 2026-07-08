@@ -1,6 +1,6 @@
 // ==========================================
-// CATEGORY.JS - SUPABASE UYUMLU (v5.6)
-// Renk eslestirme + Modern filtre yapisi
+// CATEGORY.JS - SUPABASE UYUMLU (v5.7)
+// Modern Filtre Cekmecesi: Ana panel -> Alt panel slide yapisi
 // ==========================================
 
 console.log('category.js yukleniyor...');
@@ -91,10 +91,9 @@ function initChipsRouting() {
 }
 
 // ==========================================
-// RENK ESLESTIRME - Isvecce renk isimleri -> CSS renk kodlari
+// RENK ESLESTIRME - Isvecce -> CSS
 // ==========================================
 const COLOR_MAP = {
-    // Temel Renkler
     'rod': '#D32F2F', 'röd': '#D32F2F', 'red': '#D32F2F',
     'bla': '#1976D2', 'blå': '#1976D2', 'blue': '#1976D2',
     'gron': '#388E3C', 'grön': '#388E3C', 'green': '#388E3C',
@@ -133,33 +132,14 @@ const COLOR_MAP = {
 
 function getColorStyle(colorName) {
     if (!colorName) return '#ccc';
-    
     const normalized = colorName.toLowerCase().trim();
-    
-    // Direkt eslesme
-    if (COLOR_MAP[normalized]) {
-        return COLOR_MAP[normalized];
-    }
-    
-    // Benzerlik kontrolu (fuzzy match)
+    if (COLOR_MAP[normalized]) return COLOR_MAP[normalized];
     for (const [key, value] of Object.entries(COLOR_MAP)) {
-        if (normalized.includes(key) || key.includes(normalized)) {
-            return value;
-        }
+        if (normalized.includes(key) || key.includes(normalized)) return value;
     }
-    
-    // Hex kodu mu kontrol et
-    if (/^#[0-9A-F]{6}$/i.test(normalized)) {
-        return normalized;
-    }
-    
-    // Varsayilan
+    if (/^#[0-9A-F]{6}$/i.test(normalized)) return normalized;
     return '#ccc';
 }
-
-// ==========================================
-// RENSA (TEMIZLE) BUTONU - v5.5
-// ==========================================
 
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -335,22 +315,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function getVariantDisplayText(product) {
         const variants = product.variants || [];
-
-        if (variants.length === 0) {
-            return 'Standard';
-        }
-
-        if (variants.length === 1) {
-            return variants[0].size || 'Standard';
-        }
-
+        if (variants.length === 0) return 'Standard';
+        if (variants.length === 1) return variants[0].size || 'Standard';
         const firstSize = variants[0].size || '';
         const extraCount = variants.length - 1;
-
-        if (firstSize.includes('(+') || firstSize.includes('storlekar')) {
-            return firstSize;
-        }
-
+        if (firstSize.includes('(+') || firstSize.includes('storlekar')) return firstSize;
         return firstSize + ' (+ ' + extraCount + ' storlekar)';
     }
 
@@ -398,7 +367,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             : `<span class="current-price">${product.price.toLocaleString('sv-SE')} SEK</span>`;
 
         const variantText = getVariantDisplayText(product);
-
         const productUrl = product.slug ? '/produkt/?slug=' + product.slug : '/produkt/?id=' + product.id;
 
         return `
@@ -462,13 +430,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     function handleWishlistClick(e) {
         const btn = e.target.closest('.wishlist-btn');
         if (!btn) return;
-
         e.preventDefault();
         e.stopPropagation();
 
         const productId = btn.dataset.productId;
         if (!productId) return;
-
         const product = allProducts.find(p => String(p.id) === String(productId));
         if (!product) return;
 
@@ -482,12 +448,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (icon) icon.className = 'fa-regular fa-heart';
             console.log('Favorilerden kaldirildi:', product.name);
         } else {
-            wishlist.push({
-                id: product.id,
-                name: product.name,
-                price: product.price,
-                image: product.image
-            });
+            wishlist.push({ id: product.id, name: product.name, price: product.price, image: product.image });
             btn.classList.add('active');
             const icon = btn.querySelector('i');
             if (icon) icon.className = 'fa-solid fa-heart';
@@ -512,16 +473,70 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // ==========================================
-    // MODERN FILTRE GENERATOR - v5.6
-    // Renk grid + Storlek grid
+    // MODERN FILTRE GENERATOR - v5.7
+    // Ana panel (menu) -> Alt panel (grid) slide yapisi
     // ==========================================
+    
+    let filterState = {
+        colors: [],
+        sizes: []
+    };
+
     function generateFilters() {
-        // --- RENK FILTRESI (Modern Grid) ---
         const allColors = [...new Set(allProducts.flatMap(p => p.colors))].filter(Boolean).sort();
-        const colorContainer = document.getElementById('color-filter-list');
+        const allSizes = [...new Set(allProducts.flatMap(p => p.sizes))].filter(Boolean).sort((a, b) => {
+            const getArea = s => {
+                const nums = s.match(/\d+/g);
+                return nums ? nums.reduce((acc, n) => acc * parseInt(n), 1) : 0;
+            };
+            return getArea(a) - getArea(b);
+        });
+
+        const mainPanel = document.getElementById('main-panel');
+        if (!mainPanel) return;
+
+        // --- ANA PANEL: Filtre kategorileri listesi ---
+        let mainHTML = '';
         
-        if (colorContainer && allColors.length > 0) {
-            colorContainer.innerHTML = `
+        // Farg kategorisi
+        if (allColors.length > 0) {
+            mainHTML += `
+                <div class="filter-menu-item" data-filter-type="color">
+                    <div class="filter-menu-content">
+                        <span class="filter-menu-label">Farg</span>
+                        <div class="filter-menu-preview" id="color-preview"></div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right"></i>
+                </div>
+            `;
+        }
+        
+        // Storlek kategorisi
+        if (allSizes.length > 0) {
+            mainHTML += `
+                <div class="filter-menu-item" data-filter-type="size">
+                    <div class="filter-menu-content">
+                        <span class="filter-menu-label">Storlek</span>
+                        <span class="filter-menu-count" id="size-count" style="display:none;">0</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right"></i>
+                </div>
+            `;
+        }
+
+        mainPanel.innerHTML = mainHTML;
+
+        // --- ALT PANEL: Renk grid ---
+        const colorSubPanel = document.getElementById('color-sub-panel');
+        if (colorSubPanel && allColors.length > 0) {
+            colorSubPanel.innerHTML = `
+                <div class="sub-panel-header">
+                    <button class="back-to-main" data-target="color">
+                        <i class="fa-solid fa-arrow-left"></i>
+                        <span>Farg</span>
+                    </button>
+                    <span class="sub-panel-count" id="color-sub-count">0 valda</span>
+                </div>
                 <div class="color-filter-grid">
                     ${allColors.map(color => `
                         <div class="color-item">
@@ -540,18 +555,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             `;
         }
 
-        // --- STORLEK FILTRESI (Modern Grid Butonlar) ---
-        const allSizes = [...new Set(allProducts.flatMap(p => p.sizes))].filter(Boolean).sort((a, b) => {
-            const getArea = s => {
-                const nums = s.match(/\d+/g);
-                return nums ? nums.reduce((acc, n) => acc * parseInt(n), 1) : 0;
-            };
-            return getArea(a) - getArea(b);
-        });
-        
-        const sizeContainer = document.getElementById('size-filter-list');
-        if (sizeContainer && allSizes.length > 0) {
-            sizeContainer.innerHTML = `
+        // --- ALT PANEL: Storlek grid ---
+        const sizeSubPanel = document.getElementById('size-sub-panel');
+        if (sizeSubPanel && allSizes.length > 0) {
+            sizeSubPanel.innerHTML = `
+                <div class="sub-panel-header">
+                    <button class="back-to-main" data-target="size">
+                        <i class="fa-solid fa-arrow-left"></i>
+                        <span>Storlek</span>
+                    </button>
+                    <span class="sub-panel-count" id="size-sub-count">0 valda</span>
+                </div>
                 <div class="size-filter-grid">
                     ${allSizes.map(size => `
                         <div class="size-item">
@@ -569,17 +583,95 @@ document.addEventListener('DOMContentLoaded', async () => {
             `;
         }
 
+        // Event listener'lari ekle
+        setupFilterEvents();
+    }
+
+    function setupFilterEvents() {
+        // Ana paneldeki menu item'lara tiklama
+        document.querySelectorAll('.filter-menu-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const type = item.dataset.filterType;
+                openSubPanel(type);
+            });
+        });
+
+        // Geri butonlari
+        document.querySelectorAll('.back-to-main').forEach(btn => {
+            btn.addEventListener('click', () => {
+                closeSubPanel();
+            });
+        });
+
+        // Checkbox degisiklikleri
         document.querySelectorAll('.filter-input').forEach(input => {
             input.addEventListener('change', () => {
+                updateFilterState();
                 applyFilters();
                 updateClearButtonVisibility();
+                updateFilterPreview();
             });
         });
     }
 
+    function openSubPanel(type) {
+        const mainPanel = document.getElementById('main-panel');
+        const subPanel = document.getElementById(type + '-sub-panel');
+        
+        if (mainPanel) mainPanel.classList.add('slide-out');
+        if (subPanel) subPanel.classList.add('slide-in');
+    }
+
+    function closeSubPanel() {
+        const mainPanel = document.getElementById('main-panel');
+        const subPanels = document.querySelectorAll('.sub-panel');
+        
+        if (mainPanel) mainPanel.classList.remove('slide-out');
+        subPanels.forEach(panel => panel.classList.remove('slide-in'));
+    }
+
+    function updateFilterState() {
+        filterState.colors = Array.from(document.querySelectorAll('input[data-type="color"]:checked')).map(el => el.value);
+        filterState.sizes = Array.from(document.querySelectorAll('input[data-type="size"]:checked')).map(el => el.value);
+    }
+
+    function updateFilterPreview() {
+        // Color preview dots
+        const colorPreview = document.getElementById('color-preview');
+        if (colorPreview) {
+            if (filterState.colors.length > 0) {
+                colorPreview.innerHTML = filterState.colors.slice(0, 3).map(c => 
+                    `<span class="preview-dot" style="background: ${getColorStyle(c)};"></span>`
+                ).join('') + (filterState.colors.length > 3 ? `<span class="preview-more">+${filterState.colors.length - 3}</span>` : '');
+                colorPreview.style.display = 'flex';
+            } else {
+                colorPreview.innerHTML = '';
+                colorPreview.style.display = 'none';
+            }
+        }
+
+        // Size count badge
+        const sizeCount = document.getElementById('size-count');
+        if (sizeCount) {
+            if (filterState.sizes.length > 0) {
+                sizeCount.textContent = filterState.sizes.length;
+                sizeCount.style.display = 'inline-flex';
+            } else {
+                sizeCount.style.display = 'none';
+            }
+        }
+
+        // Sub panel counts
+        const colorSubCount = document.getElementById('color-sub-count');
+        if (colorSubCount) colorSubCount.textContent = filterState.colors.length + ' valda';
+        
+        const sizeSubCount = document.getElementById('size-sub-count');
+        if (sizeSubCount) sizeSubCount.textContent = filterState.sizes.length + ' valda';
+    }
+
     function applyFilters() {
-        const checkedColors = Array.from(document.querySelectorAll('input[data-type="color"]:checked')).map(el => el.value);
-        const checkedSizes = Array.from(document.querySelectorAll('input[data-type="size"]:checked')).map(el => el.value);
+        const checkedColors = filterState.colors;
+        const checkedSizes = filterState.sizes;
 
         filteredProducts = allProducts.filter(product => {
             const colorMatch = checkedColors.length === 0 || product.colors.some(c => checkedColors.includes(c));
@@ -615,12 +707,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             radio.checked = radio.value === 'default';
         });
 
+        filterState = { colors: [], sizes: [] };
         filteredProducts = [...allProducts];
         currentPage = 0;
 
         renderProducts();
         updateProgress();
         updateFilterBadge(0);
+        updateFilterPreview();
 
         const clearBtn = document.getElementById('clear-all-filters');
         if (clearBtn) {
@@ -637,7 +731,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function initClearFilters() {
         console.log('>>> initClearFilters CAGIRILDI');
-
         const mainClearBtn = document.getElementById('clear-all-filters');
         if (mainClearBtn) {
             mainClearBtn.addEventListener('click', function(e) {
@@ -678,24 +771,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.querySelectorAll('input[name="orderby"]').forEach(radio => {
             radio.addEventListener('change', (e) => {
                 const sortType = e.target.value;
-
                 switch(sortType) {
-                    case 'price-asc':
-                        filteredProducts.sort((a, b) => a.price - b.price);
-                        break;
-                    case 'price-desc':
-                        filteredProducts.sort((a, b) => b.price - a.price);
-                        break;
-                    case 'name-asc':
-                        filteredProducts.sort((a, b) => a.name.localeCompare(b.name));
-                        break;
-                    case 'name-desc':
-                        filteredProducts.sort((a, b) => b.name.localeCompare(a.name));
-                        break;
-                    default:
-                        filteredProducts.sort((a, b) => String(a.id).localeCompare(String(b.id)));
+                    case 'price-asc': filteredProducts.sort((a, b) => a.price - b.price); break;
+                    case 'price-desc': filteredProducts.sort((a, b) => b.price - a.price); break;
+                    case 'name-asc': filteredProducts.sort((a, b) => a.name.localeCompare(b.name)); break;
+                    case 'name-desc': filteredProducts.sort((a, b) => b.name.localeCompare(a.name)); break;
+                    default: filteredProducts.sort((a, b) => String(a.id).localeCompare(String(b.id)));
                 }
-
                 currentPage = 0;
                 renderProducts();
                 closeAllDrawers();
@@ -716,7 +798,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     function updateProgress() {
         const shown = Math.min((currentPage + 1) * ITEMS_PER_PAGE, filteredProducts.length);
         const total = filteredProducts.length;
-
         if (currentCountEl) currentCountEl.textContent = shown;
         if (totalCountEl) totalCountEl.textContent = total;
         if (progressBar) {
@@ -741,6 +822,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             filterDrawer?.classList.remove('active');
             filterOverlay?.classList.remove('active');
             document.body.style.overflow = '';
+            // Alt panelleri kapat
+            setTimeout(() => closeSubPanel(), 300);
         };
 
         closeFilter?.addEventListener('click', closeFilterFn);
@@ -779,6 +862,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (sortOverlay) sortOverlay.classList.remove('active');
 
         document.body.style.overflow = '';
+        setTimeout(() => closeSubPanel(), 300);
     }
 
     window.closeAll = closeAllDrawers;
@@ -791,5 +875,5 @@ document.addEventListener('DOMContentLoaded', async () => {
     updateChipsActiveState();
     updateWishlistBadge();
 
-    console.log('Category.js v5.6 baslatildi');
+    console.log('Category.js v5.7 baslatildi');
 });
