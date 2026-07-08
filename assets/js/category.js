@@ -373,7 +373,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const variantText = getVariantDisplayText(product);
 
         // ✅ YENI: Clean URL formati - /produkt/slug
-        const productUrl = product.slug ? '/produkt/' + product.slug : '/produkt/?id=' + product.id;
+        const productUrl = product.slug ? '/produkt/?slug=' + product.slug : '/produkt/?id=' + product.id;
 
         return `
             <div class="product-card" data-id="${String(product.id)}" data-slug="${product.slug || ''}">
