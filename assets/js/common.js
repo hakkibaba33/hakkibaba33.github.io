@@ -389,10 +389,9 @@ function getSearchElements() {
 function initSearch() {
     const { input, results } = getSearchElements();
 
-    if (!input) {
-        console.warn('[Search] Input bulunamadi, retry...');
-        // Input yoksa 500ms sonra tekrar dene (DOM henuz yuklenmemis olabilir)
-        setTimeout(initSearch, 500);
+         if (!input) {
+        console.warn('[Search] Input bulunamadi. Header yuklenince otomatik init edilecek.');
+        // Sonsuz retry YOK - sadece bir kez dene
         return;
     }
 
@@ -532,7 +531,7 @@ async function fetchAllProductsForSearch() {
             price: product.discount_price || product.base_price || 0,
             image: product.images && product.images[0] ? product.images[0] : '',
             category: product.category || '',
-            url: '/produkt/' + (product.slug || product.id)
+            url: '/matta/' + (product.slug || product.id)
         }));
 
         console.log('[Search] ' + allProductsCache.length + ' urun basariyla cachelendi');
@@ -818,16 +817,7 @@ function initEventListeners() {
 // OTOMATIK BASLATMA - RACE CONDITION FIX
 // ==========================================
 
-window.__dkInitAllDone = false;
-
 function initAll() {
-    // Çift çalışmayı engelle
-    if (window.__dkInitAllDone) {
-        console.log('[Init] initAll zaten calisti, atlaniyor.');
-        return;
-    }
-    window.__dkInitAllDone = true;
-
     console.log('[Init] common.js initAll baslatiliyor...');
 
     // 1. Event listenerlar (cache flag kontrollu)
@@ -849,16 +839,13 @@ if (document.readyState === 'loading') {
     initAll();
 }
 
-// Ek guvenlik: window.load'da sadece eksik olanlari dene
+// Ek guvenlik: window.load'da da bir kez daha dene
 window.addEventListener('load', () => {
-    console.log('[Init] window.load eventi...');
-    
-    // Badge kontrolu
+    console.log('[Init] window.load eventi, badge kontrolu...');
     if (!window.__dkBadgeInitDone) {
         console.log('[Init] Badge init yapilmamis, retry baslatiliyor...');
         initBadgesWithRetry(10, 50);
     }
-    
     // Search init kontrolu
     const input = document.getElementById('live-search-input');
     if (input && !input._searchInitialized) {
@@ -867,4 +854,4 @@ window.addEventListener('load', () => {
     }
 });
 
-console.log('common.js v8.4 yuklendi - Menu statik, Search fix aktif');
+console.log('common.js v8.2 yuklendi - Search fix aktif');
