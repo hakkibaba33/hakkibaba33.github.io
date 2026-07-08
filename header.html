@@ -142,14 +142,14 @@
 
 
 
+<!-- Sayfa içeriği burada -->
+
 <script>
 // ===== DKRUG DYNAMIC MENU =====
-// Bu kod Supabase'den kategorileri çekip menüyü dinamik oluşturur
 (function() {
     var SUPABASE_URL = 'https://mowyhsssmpjrwxzvelax.supabase.co';
     var SUPABASE_ANON_KEY = 'sb_publishable_Fp4Nstc2lpCPNL-5OHPU8w_KD0AC6xf';
     
-    // Ana menüyü doldur (desktop)
     async function loadDesktopNav() {
         try {
             var res = await fetch(SUPABASE_URL + '/rest/v1/categories?select=*&active=eq.true&order=sort_order.asc', {
@@ -160,11 +160,8 @@
             
             var navList = document.querySelector('.desktop-nav .nav-list');
             if (!navList) return;
-            
-            // Mevcut menü öğelerini temizle (sabit olanları)
             navList.innerHTML = '';
             
-            // Kategorileri ekle
             categories.forEach(function(cat) {
                 var li = document.createElement('li');
                 var a = document.createElement('a');
@@ -174,29 +171,22 @@
                 navList.appendChild(li);
             });
             
-            // Sabit sayfaları ekle (REA, Kontakt vb.)
             var staticItems = [
                 { href: '/rea/', text: 'REA', class: 'nav-sale' },
                 { href: '/kontakt/', text: 'Kontakt' }
             ];
-            
             staticItems.forEach(function(item) {
                 var li = document.createElement('li');
                 var a = document.createElement('a');
-                a.href = item.href;
-                a.textContent = item.text;
+                a.href = item.href; a.textContent = item.text;
                 if (item.class) a.className = item.class;
-                li.appendChild(a);
-                navList.appendChild(li);
+                li.appendChild(a); navList.appendChild(li);
             });
-            
         } catch (err) {
             console.error('Menu yukleme hatasi:', err);
-            // Hata durumunda sabit menü kalır (HTML'deki orijinal)
         }
     }
     
-    // Mobil menüyü doldur
     async function loadMobileNav() {
         try {
             var res = await fetch(SUPABASE_URL + '/rest/v1/categories?select=*&active=eq.true&order=sort_order.asc', {
@@ -207,57 +197,40 @@
             
             var mobileNavList = document.querySelector('.mobile-nav-list');
             if (!mobileNavList) return;
-            
             mobileNavList.innerHTML = '';
             
-            // Start sayfası
             var startLi = document.createElement('li');
             var startA = document.createElement('a');
-            startA.href = '/';
-            startA.textContent = 'Start';
-            startLi.appendChild(startA);
-            mobileNavList.appendChild(startLi);
+            startA.href = '/'; startA.textContent = 'Start';
+            startLi.appendChild(startA); mobileNavList.appendChild(startLi);
             
-            // Kategoriler
             categories.forEach(function(cat) {
                 var li = document.createElement('li');
                 var a = document.createElement('a');
-                a.href = '/' + cat.slug + '/';
-                a.textContent = cat.name_sv;
-                li.appendChild(a);
-                mobileNavList.appendChild(li);
+                a.href = '/' + cat.slug + '/'; a.textContent = cat.name_sv;
+                li.appendChild(a); mobileNavList.appendChild(li);
             });
             
-            // Sabit sayfalar
             var staticItems = [
                 { href: '/rea/', text: 'REA', class: 'mobile-sale' },
                 { href: '/kontakt/', text: 'Kontakt' }
             ];
-            
             staticItems.forEach(function(item) {
                 var li = document.createElement('li');
                 var a = document.createElement('a');
-                a.href = item.href;
-                a.textContent = item.text;
+                a.href = item.href; a.textContent = item.text;
                 if (item.class) a.className = item.class;
-                li.appendChild(a);
-                mobileNavList.appendChild(li);
+                li.appendChild(a); mobileNavList.appendChild(li);
             });
-            
         } catch (err) {
             console.error('Mobil menu yukleme hatasi:', err);
         }
     }
     
-    // Sayfa yuklendiginde calistir
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', function() {
-            loadDesktopNav();
-            loadMobileNav();
-        });
-    } else {
-        loadDesktopNav();
-        loadMobileNav();
-    }
+    loadDesktopNav();
+    loadMobileNav();
 })();
 </script>
+
+</body>
+</html>
