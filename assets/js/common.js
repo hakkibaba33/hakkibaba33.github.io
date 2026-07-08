@@ -1,7 +1,7 @@
 // ==========================================
-// COMMON.JS - TEMEL FONKSIYONLAR (v8.2)
+// COMMON.JS - TEMEL FONKSIYONLAR (v8.3)
 // Badge'ler her zaman calisacak - MutationObserver + Retry mekanizmasi
-// Search fix: Fetch retry, hata yonetimi, cache kontrolu
+// Search fix: Fetch retry, hata yonetimi, cache kontrolu, max retry limiti
 // ==========================================
 
 // ==========================================
@@ -371,7 +371,7 @@ async function addSupabaseProductToCart(productId, variantSize) {
 
 
 // ==========================================
-// SEARCH POPUP - DUZELTILMIS v8.2
+// SEARCH POPUP - DUZELTILMIS v8.3
 // ==========================================
 
 let searchDebounceTimer = null;
@@ -379,6 +379,8 @@ let allProductsCache = [];
 let isFetchingProducts = false;
 let searchInputElement = null;
 let searchResultsElement = null;
+let searchRetryCount = 0;
+const MAX_SEARCH_RETRIES = 5;
 
 function getSearchElements() {
     searchInputElement = document.getElementById('live-search-input');
@@ -389,19 +391,34 @@ function getSearchElements() {
 function initSearch() {
     const { input, results } = getSearchElements();
 
+    // Search input yoksa bu sayfada search yoktur, sessizce cik
     if (!input) {
-        console.warn('[Search] Input bulunamadi, retry...');
-        // Input yoksa 500ms sonra tekrar dene (DOM henuz yuklenmemis olabilir)
-        setTimeout(initSearch, 500);
+        searchRetryCount++;
+        if (searchRetryCount <= MAX_SEARCH_RETRIES) {
+            console.log('[Search] Input bulunamadi, retry ' + searchRetryCount + '/' + MAX_SEARCH_RETRIES + '...');
+            setTimeout(initSearch, 500);
+            return;
+        }
+        // Max retry asildi, bu sayfada search yok
+        console.log('[Search] Bu sayfada search input yok, atlaniyor.');
         return;
     }
 
+    // Zaten init edilmisse tekrar etme
+    if (input._searchInitialized) {
+        console.log('[Search] Zaten init edilmis, atlaniyor.');
+        return;
+    }
+    input._searchInitialized = true;
+
     console.log('[Search] Input bulundu, listener baglaniyor...');
+    searchRetryCount = 0; // Reset
 
     // Eski listener varsa kaldirmak icin - inputu klonla ve yerine koy
     const newInput = input.cloneNode(true);
     input.parentNode.replaceChild(newInput, input);
     searchInputElement = newInput;
+    searchInputElement._searchInitialized = true;
 
     searchInputElement.addEventListener('input', (e) => {
         const query = e.target.value.trim();
@@ -513,11 +530,27 @@ async function fetchAllProductsForSearch() {
     console.log('[Search] Urunler Supabase\'den cekiliyor...');
 
     try {
-        const data = await supabaseGet('products', {
-            select: '*',
-            active: 'eq.true'
+        // Dogrudan fetch kullan - supabaseGet farkli parametre formati kullaniyor olabilir
+        const url = new URL(SUPABASE_URL + '/rest/v1/products');
+        url.searchParams.append('select', '*');
+        url.searchParams.append('active', 'eq.true');
+
+        const res = await fetch(url, {
+            headers: {
+                'apikey': SUPABASE_KEY,
+                'Authorization': 'Bearer ' + SUPABASE_KEY,
+                'Content-Type': 'application/json'
+            }
         });
 
+        if (!res.ok) {
+            const errText = await res.text();
+            console.error('[Search] Supabase hata:', res.status, errText);
+            allProductsCache = [];
+            return;
+        }
+
+        const data = await res.json();
         console.log('[Search] Ham veri:', data);
 
         if (!data || !Array.isArray(data)) {
@@ -855,4 +888,4 @@ window.addEventListener('load', () => {
     }
 });
 
-console.log('common.js v8.2 yuklendi - Search fix aktif');
+console.log('common.js v8.3 yuklendi - Search fix aktif');
