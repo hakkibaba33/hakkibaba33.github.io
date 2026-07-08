@@ -92,13 +92,14 @@ function initChipsRouting() {
 }
 
 // ==========================================
-// RENSA (TEMIZLE) BUTONU - GUNCELLENMIS v5.2
+// RENSA (TEMIZLE) BUTONU - GUNCELLENMIS v5.3
+// Sadece Sortera yaninda, filtre/sort drawer icinde YOK
 // ==========================================
 
 function initClearFilters() {
     console.log('>>> initClearFilters CAGIRILDI');
 
-    // 1. ANA BAR - Filtre yanindaki Rensa butonu
+    // SADECE: Sortera yanindaki Rensa butonu
     const mainClearBtn = document.getElementById('clear-all-filters');
     if (mainClearBtn) {
         const newMainBtn = mainClearBtn.cloneNode(true);
@@ -106,79 +107,79 @@ function initClearFilters() {
         newMainBtn.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
-            console.log('>>> Ana bar RENSA butonuna tiklandi');
+            console.log('>>> RENSA butonuna tiklandi - TUMUNU SIFIRLA');
             clearAllFilters();
         });
     }
 
-    // 2. FILTRE DRAWER - RENSA ALLA butonu
+    // FILTRE DRAWER icindeki Rensa butonunu KALDIR (varsa gizle)
     const drawerClearBtn = document.getElementById('drawer-clear-filters');
     if (drawerClearBtn) {
-        const newDrawerBtn = drawerClearBtn.cloneNode(true);
-        drawerClearBtn.parentNode.replaceChild(newDrawerBtn, drawerClearBtn);
-        newDrawerBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            console.log('>>> Drawer RENSA ALLA butonuna tiklandi');
-            clearAllFilters();
-            // Drawer'i kapat
-            closeAllDrawers();
-        });
+        drawerClearBtn.style.display = 'none';
     }
 
-    // 3. SORT DRAWER - RENSA ALLA butonu (YENI)
+    // SORT DRAWER icindeki Rensa butonunu KALDIR (varsa gizle)
     const sortDrawerClearBtn = document.getElementById('sort-drawer-clear-filters');
     if (sortDrawerClearBtn) {
-        const newSortBtn = sortDrawerClearBtn.cloneNode(true);
-        sortDrawerClearBtn.parentNode.replaceChild(newSortBtn, sortDrawerClearBtn);
-        newSortBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            console.log('>>> Sort Drawer RENSA butonuna tiklandi');
-            clearAllFilters();
-            // Sort drawer'i kapat
-            closeAllDrawers();
-        });
+        sortDrawerClearBtn.style.display = 'none';
     }
 }
 
 function clearAllFilters() {
     console.log('>>> clearAllFilters CAGIRILDI');
 
-    // Tum checkbox'lari kaldir
+    // 1. Tum checkbox'lari kaldir (filtreler)
     document.querySelectorAll('.filter-input:checked').forEach(input => {
         input.checked = false;
     });
 
-    // Sort'u default'a cevir
+    // 2. Sort'u default'a cevir
     document.querySelectorAll('input[name="orderby"]').forEach(radio => {
         radio.checked = radio.value === 'default';
     });
 
-    // Filtreleri direkt uygula - tum urunleri goster
+    // 3. Filtreleri direkt uygula - tum urunleri goster
     filteredProducts = [...allProducts];
     currentPage = 0;
+
+    // 4. Sayfayi kategori basina dondur (smooth scroll)
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // 5. Urunleri render et
     renderProducts();
     updateProgress();
     updateFilterBadge(0);
-
-    // Rensa butonunu gizle (visible class'ini kaldir)
     updateClearButtonVisibility();
 
     console.log('Tum filtreler temizlendi, urun sayisi:', filteredProducts.length);
 }
 
 function updateClearButtonVisibility() {
-    const checkedCount = document.querySelectorAll('.filter-input:checked').length;
+    // Filtre secili mi kontrol et
+    const checkedFilters = document.querySelectorAll('.filter-input:checked').length;
+
+    // Siralama secili mi kontrol et (default disinda)
+    let hasSort = false;
+    document.querySelectorAll('input[name="orderby"]').forEach(radio => {
+        if (radio.checked && radio.value !== 'default') {
+            hasSort = true;
+        }
+    });
+
+    const totalActive = checkedFilters + (hasSort ? 1 : 0);
+
     const clearBtn = document.getElementById('clear-all-filters');
     if (clearBtn) {
-        // YENI: inline-style yerine class kullan
-        if (checkedCount > 0) {
+        if (totalActive > 0) {
             clearBtn.classList.add('visible');
+            clearBtn.style.display = 'inline-flex';
         } else {
             clearBtn.classList.remove('visible');
+            clearBtn.style.display = 'none';
         }
     }
+
+    console.log('Aktif filtre/siralama sayisi:', totalActive);
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -569,13 +570,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             `).join('');
         }
 
-        document.querySelectorAll('.filter-input').forEach(input => {
-            input.addEventListener('change', () => {
-                applyFilters();
-                updateClearButtonVisibility();
-            });
+           document.querySelectorAll('.filter-input').forEach(input => {
+        input.addEventListener('change', () => {
+            applyFilters();
+            updateClearButtonVisibility(); // Rensa butonu guncelle
         });
-    }
+    });
+}
 
     function applyFilters() {
         const checkedColors = Array.from(document.querySelectorAll('input[data-type="color"]:checked')).map(el => el.value);
@@ -601,34 +602,38 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    function initSort() {
-        document.querySelectorAll('input[name="orderby"]').forEach(radio => {
-            radio.addEventListener('change', (e) => {
-                const sortType = e.target.value;
+function initSort() {
+    document.querySelectorAll('input[name="orderby"]').forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            const sortType = e.target.value;
 
-                switch(sortType) {
-                    case 'price-asc':
-                        filteredProducts.sort((a, b) => a.price - b.price);
-                        break;
-                    case 'price-desc':
-                        filteredProducts.sort((a, b) => b.price - a.price);
-                        break;
-                    case 'name-asc':
-                        filteredProducts.sort((a, b) => a.name.localeCompare(b.name));
-                        break;
-                    case 'name-desc':
-                        filteredProducts.sort((a, b) => b.name.localeCompare(a.name));
-                        break;
-                    default:
-                        filteredProducts.sort((a, b) => String(a.id).localeCompare(String(b.id)));
-                }
+            switch(sortType) {
+                case 'price-asc':
+                    filteredProducts.sort((a, b) => a.price - b.price);
+                    break;
+                case 'price-desc':
+                    filteredProducts.sort((a, b) => b.price - a.price);
+                    break;
+                case 'name-asc':
+                    filteredProducts.sort((a, b) => a.name.localeCompare(b.name));
+                    break;
+                case 'name-desc':
+                    filteredProducts.sort((a, b) => b.name.localeCompare(a.name));
+                    break;
+                default:
+                    // Default: orijinal siralama (id'ye gore)
+                    filteredProducts.sort((a, b) => String(a.id).localeCompare(String(b.id)));
+            }
 
-                currentPage = 0;
-                renderProducts();
-                closeAllDrawers();
-            });
+            currentPage = 0;
+            renderProducts();
+            closeAllDrawers();
+            
+            // Rensa butonu gorunurlugunu guncelle
+            updateClearButtonVisibility();
         });
-    }
+    });
+}
 
     if (loadMoreBtn) {
         loadMoreBtn.addEventListener('click', (e) => {
