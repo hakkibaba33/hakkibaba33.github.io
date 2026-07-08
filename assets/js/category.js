@@ -143,10 +143,35 @@ function getColorStyle(colorName) {
 
 document.addEventListener('DOMContentLoaded', async () => {
 
+    // ===============================
+    // ✅ ÇİFT ÇALIŞMA KORUMASI (MINIMAL)
+    // ===============================
+    if (window.__categoryInitDone) {
+        console.log('category.js: init zaten calisti, atlaniyor.');
+        return;
+    }
+    window.__categoryInitDone = true;
+
+    // fetchProducts tek-flight (race condition koruması)
+    let __fetchProductsInFlight = false;
+
+    // ✅ initial render'ı tek seferde çalıştır (tam minimal)
+    async function fetchProductsOnce() {
+        if (__fetchProductsInFlight) return;
+        __fetchProductsInFlight = true;
+        try {
+            await fetchProducts();
+        } finally {
+            __fetchProductsInFlight = false;
+        }
+    }
+
+
     let allProducts = [];
     let filteredProducts = [];
     let currentPage = 0;
     const ITEMS_PER_PAGE = 12;
+
 
     const grid = document.getElementById('product-grid');
     const loadMoreBtn = document.getElementById('load-more-btn');
@@ -360,68 +385,57 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-   function createProductCard(product, isWishlisted) {
-    const hasDiscount = product.discount_price && product.discount_price < product.base_price;
-    const priceHTML = hasDiscount 
-        ? `<span class="original-price" style="text-decoration:line-through;color:#999;font-size:14px;">${product.base_price.toLocaleString('sv-SE')} SEK</span>
-           <span class="current-price" style="color:#e54d42;">${product.price.toLocaleString('sv-SE')} SEK</span>`
-        : `<span class="current-price">${product.price.toLocaleString('sv-SE')} SEK</span>`;
+    function createProductCard(product, isWishlisted) {
+        const hasDiscount = product.discount_price && product.discount_price < product.base_price;
+        const priceHTML = hasDiscount 
+            ? `<span class="original-price" style="text-decoration:line-through;color:#999;font-size:14px;">${product.base_price.toLocaleString('sv-SE')} SEK</span>
+               <span class="current-price" style="color:#e54d42;">${product.price.toLocaleString('sv-SE')} SEK</span>`
+            : `<span class="current-price">${product.price.toLocaleString('sv-SE')} SEK</span>`;
 
-    const variantText = getVariantDisplayText(product);
-    
-    // ✅ FIX: ID'yi her zaman string'e çevir ve slug kontrolü yap
-    const productId = String(product.id);
-    const slug = product.slug ? String(product.slug).trim() : '';
-    
-    // ✅ FIX: Slug varsa slug kullan, yoksa ID ile git
-    // product.ui.js'deki redirectFromIdToSlug fonksiyonu ID'yi slug'e çevirecek
-    const productUrl = slug 
-        ? '/produkt/' + encodeURIComponent(slug) 
-        : '/produkt/?id=' + encodeURIComponent(productId);
+        const variantText = getVariantDisplayText(product);
+        const productUrl = product.slug ? '/produkt/?slug=' + product.slug : '/produkt/?id=' + product.id;
 
-    return `
-        <div class="product-card" data-id="${productId}" data-slug="${encodeURIComponent(slug)}">
-            <div class="image-box">
-                <a href="${productUrl}" class="product-card-link">
-                    <img src="${product.image}" 
-                         alt="${product.name}" 
-                         loading="lazy"
-                         onerror="this.style.display='none'"
-                         style="width:100%; height:100%; object-fit:cover;">
-                </a>
-                ${hasDiscount ? '<span class="discount-badge" style="position:absolute;top:8px;left:8px;background:#e54d42;color:#fff;padding:4px 8px;border-radius:4px;font-size:12px;font-weight:bold;">REA</span>' : ''}
-                <button class="wishlist-btn ${isWishlisted ? 'active' : ''}" 
-                        data-product-id="${productId}"
-                        aria-label="Lagg till favoriter">
-                    <i class="${isWishlisted ? 'fa-solid' : 'fa-regular'} fa-heart"></i>
-                </button>
-            </div>
-            <div class="product-info">
-                <a href="${productUrl}" class="product-title-link" style="text-decoration:none;color:inherit;">
+        return `
+            <div class="product-card" data-id="${String(product.id)}">
+                <div class="image-box">
+                    <a href="${productUrl}">
+                        <img src="${product.image}" 
+                             alt="${product.name}" 
+                             loading="lazy"
+                             onerror="this.style.display='none'"
+                             style="width:100%; height:100%; object-fit:cover;">
+                    </a>
+                    ${hasDiscount ? '<span class="discount-badge" style="position:absolute;top:8px;left:8px;background:#e54d42;color:#fff;padding:4px 8px;border-radius:4px;font-size:12px;font-weight:bold;">REA</span>' : ''}
+                    <button class="wishlist-btn ${isWishlisted ? 'active' : ''}" 
+                            data-product-id="${String(product.id)}"
+                            aria-label="Lagg till favoriter">
+                        <i class="${isWishlisted ? 'fa-solid' : 'fa-regular'} fa-heart"></i>
+                    </button>
+                </div>
+                <div class="product-info">
                     <h3 class="product-title">${product.name}</h3>
-                </a>
-                <div class="product-meta-row">
-                    <span class="product-acf-dimension">${variantText}</span>
-                </div>
-                <div class="product-price">
-                    ${priceHTML}
-                </div>
-                ${product.colors.length > 0 ? `
-                    <div class="product-colors-wrapper">
-                        <div class="product-colors-swatches">
-                            ${product.colors.slice(0, 5).map(color => `
-                                <span class="swatch-circle" 
-                                      style="background: ${getColorStyle(color)};"
-                                      title="${color}"></span>
-                            `).join('')}
-                        </div>
-                        ${product.colors.length > 5 ? '<span class="color-count-text">+' + (product.colors.length - 5) + ' farger</span>' : ''}
+                    <div class="product-meta-row">
+                        <span class="product-acf-dimension">${variantText}</span>
                     </div>
-                ` : ''}
+                    <div class="product-price">
+                        ${priceHTML}
+                    </div>
+                    ${product.colors.length > 0 ? `
+                        <div class="product-colors-wrapper">
+                            <div class="product-colors-swatches">
+                                ${product.colors.slice(0, 5).map(color => `
+                                    <span class="swatch-circle" 
+                                          style="background: ${getColorStyle(color)};"
+                                          title="${color}"></span>
+                                `).join('')}
+                            </div>
+                            ${product.colors.length > 5 ? '<span class="color-count-text">+' + (product.colors.length - 5) + ' farger</span>' : ''}
+                        </div>
+                    ` : ''}
+                </div>
             </div>
-        </div>
-    `;
-}
+        `;
+    }
 
     function isInWishlist(productId) {
         try {
@@ -879,8 +893,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     window.closeAll = closeAllDrawers;
 
-    await fetchProducts();
+    await fetchProductsOnce();
     initSort();
+
     initDrawers();
     initChipsRouting();
     initClearFilters();
