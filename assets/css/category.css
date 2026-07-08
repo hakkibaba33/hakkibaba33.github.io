@@ -663,7 +663,7 @@
 
 /* Rensa (Temizle) Butonu */
 .filter-clear-all {
-    display: inline-flex;
+    display: none !important;
     align-items: center;
     gap: 6px;
     padding: 8px 15px;
@@ -676,6 +676,10 @@
     transition: var(--dk-transition);
     cursor: pointer;
     border: 1px solid var(--dk-border);
+}
+
+.filter-clear-all.visible {
+    display: inline-flex !important;
 }
 
 .filter-clear-all:hover {
