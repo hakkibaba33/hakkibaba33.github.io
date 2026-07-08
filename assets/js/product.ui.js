@@ -47,116 +47,94 @@ if (window.__productPageInitialized) {
         return res.json();
     }
 
-// ==========================================
-// ESKI ID-BASED URL'LERI YENI SLUG-BASED URL'LERE YONLENDIR
-// ==========================================
+    // ==========================================
+    // ESKI ID-BASED URL'LERI YENI SLUG-BASED URL'LERE YONLENDIR
+    // ==========================================
 
-// ✅ FIX: Global scope'a taşı (karuselden de erişilebilir olsun)
-window.redirectFromIdToSlug = async function(productId) {
-    try {
-        // ID'yi string'e çevir ve temizle
-        const cleanId = String(productId).trim();
-        
-        const products = await supabaseGet('products', {
-            id: 'eq.' + cleanId,
-            select: 'slug'
-        });
+    async function redirectFromIdToSlug(productId) {
+        try {
+            const products = await supabaseGet('products', {
+                id: 'eq.' + productId,
+                select: 'slug'
+            });
 
-        if (products.length > 0 && products[0].slug) {
-            window.location.replace('/produkt/' + encodeURIComponent(products[0].slug));
-        } else {
-            console.error("ID ile slug bulunamadi:", cleanId);
+            if (products.length > 0 && products[0].slug) {
+                window.location.replace(`/produkt/${products[0].slug}`);
+            } else {
+                console.error("ID ile slug bulunamadi:", productId);
+                window.location.href = '/404.html';
+            }
+        } catch (e) {
+            console.error("ID'den slug bulunurken hata:", e);
             window.location.href = '/404.html';
         }
-    } catch (e) {
-        console.error("ID'den slug bulunurken hata:", e);
-        window.location.href = '/404.html';
     }
-};
 
-// ==========================================
-// URUN SAYFASI INIT - SLUG ROUTING
-// ==========================================
+    function getDisplayPrice(product, variant) {
+        if (variant && variant.discount_price) return variant.discount_price;
+        if (variant && variant.price) return variant.price;
+        if (product.discount_price) return product.discount_price;
+        return product.base_price || 0;
+    }
 
-async function initProductPage() {
-    console.log("Urun sayfasi init basliyor...");
-    console.log("Full URL:", window.location.href);
-    console.log("Pathname:", window.location.pathname);
-    console.log("Search:", window.location.search);
+    function getOriginalPrice(product, variant) {
+        if (variant && variant.price) return variant.price;
+        return product.base_price || 0;
+    }
 
     // ==========================================
-    // ESKI URL FORMATLARINI YENI FORMATA YONLENDIR
+    // URUN SAYFASI INIT - SLUG ROUTING
     // ==========================================
 
-    const urlParams = new URLSearchParams(window.location.search);
+    async function initProductPage() {
+        console.log("Urun sayfasi init basliyor...");
+        console.log("Full URL:", window.location.href);
+        console.log("Pathname:", window.location.pathname);
+        console.log("Search:", window.location.search);
 
-    // 1. ?slug=xxx → /produkt/xxx
-    const oldSlug = urlParams.get('slug');
-    if (oldSlug && (window.location.pathname === '/produkt/' || window.location.pathname === '/produkt/index.html')) {
-        console.log("Eski ?slug= formati tespit edildi, yonlendiriliyor:", oldSlug);
-        window.location.replace('/produkt/' + encodeURIComponent(oldSlug));
-        return;
-    }
+        // ==========================================
+        // ESKI URL FORMATLARINI YENI FORMATA YONLENDIR
+        // ==========================================
 
-    // 2. /produkt/?id=xxx → /produkt/slug
-    const idParam = urlParams.get('id');
-    if (idParam && (window.location.pathname === '/produkt/' || window.location.pathname === '/produkt/index.html')) {
-        console.log("Eski ?id= formati, yonlendiriliyor. ID:", idParam);
-        await window.redirectFromIdToSlug(idParam);
-        return;
-    }
+        const urlParams = new URLSearchParams(window.location.search);
 
-    // 3. product.html?id=xxx → /produkt/slug
-    if (window.location.pathname.includes('product.html')) {
-        const id = urlParams.get('id');
-        if (id) {
-            console.log("Eski product.html?id= formati, yonlendiriliyor. ID:", id);
-            await window.redirectFromIdToSlug(id);
+        // 1. ?slug=xxx → /produkt/xxx
+        const oldSlug = urlParams.get('slug');
+        if (oldSlug && (window.location.pathname === '/produkt/' || window.location.pathname === '/produkt/index.html')) {
+            console.log("Eski ?slug= formati tespit edildi, yonlendiriliyor:", oldSlug);
+            window.location.replace(`/produkt/${oldSlug}`);
             return;
         }
-    }
 
-    // ==========================================
-    // YENI URL FORMATINDAN SLUG AL
-    // ==========================================
-
-    let slug = null;
-    const parts = window.location.pathname.split('/').filter(p => p);
-
-    // /produkt/slug-buraya → slug = "slug-buraya"
-    if (parts.length >= 2 && parts[0] === 'produkt') {
-        slug = decodeURIComponent(parts[1]);
-        // Eğer slug "index.html" ise (/_redirects'den gelen durum), atla
-        if (slug === 'index.html') slug = null;
-        else console.log("Slug pathname'den bulundu:", slug);
-    }
-
-    if (!slug) {
-        console.error("Slug bulunamadi! URL:", window.location.href);
-        const productPage = document.querySelector('.product-page');
-        if (productPage) {
-            productPage.innerHTML = 
-                '<p style="text-align:center;padding:60px;">Produkt hittades inte. <a href="/">Tillbaka till startsidan</a></p>';
-        }
-        return;
-    }
-
-    console.log("Final Slug:", slug);
-
-    try {
-        // Slug ile ürünü çek
-        const products = await supabaseGet('products', {
-            slug: 'eq.' + slug,
-            select: '*'
-        });
-
-        if (!products || products.length === 0) {
-            console.error("Urun bulunamadi! Slug:", slug);
-            const productPage = document.querySelector('.product-page');
-            if (productPage) {
-                productPage.innerHTML = 
-                    '<p style="text-align:center;padding:60px;">Produkt hittades inte. <a href="/">Tillbaka till startsidan</a></p>';
+        // 2. product.html?id=xxx → /produkt/slug
+        if (window.location.pathname.includes('product.html')) {
+            const id = urlParams.get('id');
+            if (id) {
+                console.log("Eski product.html?id= formati, yonlendiriliyor. ID:", id);
+                await redirectFromIdToSlug(id);
+                return;
             }
+        }
+
+        // ==========================================
+        // YENI URL FORMATINDAN SLUG AL
+        // ==========================================
+
+        let slug = null;
+        const parts = window.location.pathname.split('/').filter(p => p);
+
+        // /produkt/slug-buraya → slug = "slug-buraya"
+        if (parts.length >= 2 && parts[0] === 'produkt') {
+            slug = parts[1];
+            // Eğer slug "index.html" ise (/_redirects'den gelen durum), atla
+            if (slug === 'index.html') slug = null;
+            else console.log("Slug pathname'den bulundu:", slug);
+        }
+
+        if (!slug) {
+            console.error("Slug bulunamadi! URL:", window.location.href);
+            document.querySelector('.product-page').innerHTML = 
+                '<p style="text-align:center;padding:60px;">Produkt hittades inte. <a href="/">Tillbaka till startsidan</a></p>';
             return;
         }
 
@@ -164,6 +142,7 @@ async function initProductPage() {
 
         try {
             // Duz cekme (embed olmadan)
+
             const products = await supabaseGet('products', {
                 slug: 'eq.' + slug,
                 select: '*'
@@ -1205,32 +1184,26 @@ class ProductCarousel {
             });
         });
 
-// ==========================================
-// YENI: SLUG-BASED KART TIKLAMA
-// ==========================================
-this.track.querySelectorAll('.product-card').forEach(card => {
-    card.addEventListener('click', (e) => {
-        // Eğer favori butonuna veya hızlı ekle butonuna tıklandıysa, navigasyon yapma
-        if (e.target.closest('.product-card-fav') || e.target.closest('.product-card-quick-add')) {
-            return;
-        }
-        
-        const slug = card.dataset.slug;
-        const id = card.dataset.id;
+        // ==========================================
+        // YENI: SLUG-BASED KART TIKLAMA
+        // ==========================================
+        this.track.querySelectorAll('.product-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const slug = card.dataset.slug;
+                const id = card.dataset.id;
 
-        if (slug && slug !== 'undefined' && slug !== '') {
-            window.location.href = '/produkt/' + encodeURIComponent(slug);
-        } else if (id) {
-            // Slug yoksa ID'den bul ve yönlendir
-            if (typeof window.redirectFromIdToSlug === 'function') {
-                window.redirectFromIdToSlug(id);
-            } else {
-                // Fallback: direkt ID ile git
-                window.location.href = '/produkt/?id=' + encodeURIComponent(id);
-            }
-        }
-    });
-});
+                if (slug) {
+                    window.location.href = `/produkt/${slug}`;
+                } else if (id) {
+                    // Slug yoksa ID'den bul ve yönlendir
+                    if (typeof redirectFromIdToSlug === 'function') {
+                        redirectFromIdToSlug(id);
+                    } else {
+                        window.location.href = `/produkt/?id=${id}`;
+                    }
+                }
+            });
+        });
 
         this.track.querySelectorAll('.product-card-quick-add').forEach(btn => {
             btn.addEventListener('click', (e) => {
