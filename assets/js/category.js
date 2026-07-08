@@ -876,5 +876,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     updateChipsActiveState();
     updateWishlistBadge();
 
+    // ✅ BREADCRUMB GUNCELLEME - MUTLAKA BURADA
+    const initialCategory = getCurrentCategory();
+    console.log('>>> DOMContentLoaded sonu, initialCategory:', initialCategory);
+    updatePageTitle(initialCategory);
+
     console.log('Category.js v5.7 baslatildi');
-});
