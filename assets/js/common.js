@@ -532,7 +532,7 @@ async function fetchAllProductsForSearch() {
             price: product.discount_price || product.base_price || 0,
             image: product.images && product.images[0] ? product.images[0] : '',
             category: product.category || '',
-            url: '/#/produkt/' + (product.slug || product.id)
+            url: '/produkt/' + (product.slug || product.id)
         }));
 
         console.log('[Search] ' + allProductsCache.length + ' urun basariyla cachelendi');
