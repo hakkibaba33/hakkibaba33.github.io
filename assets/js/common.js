@@ -868,23 +868,3 @@ window.addEventListener('load', () => {
 });
 
 console.log('common.js v8.4 yuklendi - Menu statik, Search fix aktif');
-
-
-
-
-
-
-
-// ==========================================
-// HASH ROUTING FIX - Tüm sayfalarda çalışır
-// ==========================================
-document.addEventListener('click', function(e) {
-    const link = e.target.closest('a[href^="#/produkt/"]');
-    if (link) {
-        e.preventDefault();
-        e.stopPropagation();
-        const slug = link.getAttribute('href').replace('#/produkt/', '');
-        window.location.href = '/produkt/' + slug;
-    }
-});
-
