@@ -1,6 +1,6 @@
 // ==========================================
-// CATEGORY.JS - SUPABASE UYUMLU (v5.5)
-// FIX: clearAllFilters artik DOMContentLoaded icinde, global scope'ta degil
+// CATEGORY.JS - SUPABASE UYUMLU (v5.6)
+// Renk eslestirme + Modern filtre yapisi
 // ==========================================
 
 console.log('category.js yukleniyor...');
@@ -89,6 +89,77 @@ function initChipsRouting() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     });
 }
+
+// ==========================================
+// RENK ESLESTIRME - Isvecce renk isimleri -> CSS renk kodlari
+// ==========================================
+const COLOR_MAP = {
+    // Temel Renkler
+    'rod': '#D32F2F', 'röd': '#D32F2F', 'red': '#D32F2F',
+    'bla': '#1976D2', 'blå': '#1976D2', 'blue': '#1976D2',
+    'gron': '#388E3C', 'grön': '#388E3C', 'green': '#388E3C',
+    'gul': '#FBC02D', 'yellow': '#FBC02D',
+    'orange': '#F57C00',
+    'rosa': '#E91E63', 'pink': '#E91E63',
+    'lila': '#7B1FA2', 'purple': '#7B1FA2',
+    'svart': '#212121', 'black': '#212121',
+    'vit': '#FAFAFA', 'white': '#FAFAFA',
+    'grå': '#9E9E9E', 'gra': '#9E9E9E', 'grey': '#9E9E9E', 'gray': '#9E9E9E',
+    'brun': '#5D4037', 'brown': '#5D4037',
+    'beige': '#D7CCC8',
+    'turkos': '#00BCD4', 'turquoise': '#00BCD4',
+    'guld': '#FFD700', 'gold': '#FFD700',
+    'silver': '#C0C0C0',
+    'bronze': '#CD7F32', 'brons': '#CD7F32',
+    'krem': '#FFF8E1', 'cream': '#FFF8E1',
+    'oliv': '#556B2F', 'olive': '#556B2F',
+    'marin': '#1A237E', 'navy': '#1A237E', 'marinblå': '#1A237E',
+    'mint': '#98FF98',
+    'korall': '#FF7F50', 'coral': '#FF7F50',
+    'vinröd': '#722F37', 'bordo': '#722F37', 'burgundy': '#722F37',
+    'taupe': '#483C32',
+    'mullvad': '#8B7355',
+    'flerfargad': 'linear-gradient(135deg, #FF6B6B, #4ECDC4, #45B7D1, #96CEB4)', 
+    'flerfärgad': 'linear-gradient(135deg, #FF6B6B, #4ECDC4, #45B7D1, #96CEB4)',
+    'multicolor': 'linear-gradient(135deg, #FF6B6B, #4ECDC4, #45B7D1, #96CEB4)',
+    'randig': 'repeating-linear-gradient(90deg, #fff 0px, #fff 10px, #333 10px, #333 20px)',
+    'striped': 'repeating-linear-gradient(90deg, #fff 0px, #fff 10px, #333 10px, #333 20px)',
+    'prickig': 'radial-gradient(circle, #333 2px, transparent 2px)', 
+    'dotted': 'radial-gradient(circle, #333 2px, transparent 2px)',
+    'blommig': 'linear-gradient(45deg, #FFB6C1, #FFF0F5)', 
+    'floral': 'linear-gradient(45deg, #FFB6C1, #FFF0F5)',
+    'transparent': 'rgba(200,200,200,0.3)',
+};
+
+function getColorStyle(colorName) {
+    if (!colorName) return '#ccc';
+    
+    const normalized = colorName.toLowerCase().trim();
+    
+    // Direkt eslesme
+    if (COLOR_MAP[normalized]) {
+        return COLOR_MAP[normalized];
+    }
+    
+    // Benzerlik kontrolu (fuzzy match)
+    for (const [key, value] of Object.entries(COLOR_MAP)) {
+        if (normalized.includes(key) || key.includes(normalized)) {
+            return value;
+        }
+    }
+    
+    // Hex kodu mu kontrol et
+    if (/^#[0-9A-F]{6}$/i.test(normalized)) {
+        return normalized;
+    }
+    
+    // Varsayilan
+    return '#ccc';
+}
+
+// ==========================================
+// RENSA (TEMIZLE) BUTONU - v5.5
+// ==========================================
 
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -262,150 +333,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-
-
-
-               // ==========================================
-// RENK ESLESTIRME - Isvecce -> CSS
-// ==========================================
-const COLOR_MAP = {
-    'rod': '#D32F2F', 'röd': '#D32F2F', 'red': '#D32F2F',
-    'bla': '#1976D2', 'blå': '#1976D2', 'blue': '#1976D2',
-    'gron': '#388E3C', 'grön': '#388E3C', 'green': '#388E3C',
-    'gul': '#FBC02D', 'yellow': '#FBC02D',
-    'orange': '#F57C00',
-    'rosa': '#E91E63', 'pink': '#E91E63',
-    'lila': '#7B1FA2', 'purple': '#7B1FA2',
-    'svart': '#212121', 'black': '#212121',
-    'vit': '#FAFAFA', 'white': '#FAFAFA',
-    'grå': '#9E9E9E', 'gra': '#9E9E9E', 'grey': '#9E9E9E', 'gray': '#9E9E9E',
-    'brun': '#5D4037', 'brown': '#5D4037',
-    'beige': '#D7CCC8',
-    'turkos': '#00BCD4', 'turquoise': '#00BCD4',
-    'guld': '#FFD700', 'gold': '#FFD700',
-    'silver': '#C0C0C0',
-    'bronze': '#CD7F32', 'brons': '#CD7F32',
-    'krem': '#FFF8E1', 'cream': '#FFF8E1',
-    'oliv': '#556B2F', 'olive': '#556B2F',
-    'marin': '#1A237E', 'navy': '#1A237E', 'marinblå': '#1A237E',
-    'mint': '#98FF98',
-    'korall': '#FF7F50', 'coral': '#FF7F50',
-    'vinröd': '#722F37', 'bordo': '#722F37', 'burgundy': '#722F37',
-    'taupe': '#483C32',
-    'mullvad': '#8B7355',
-    'flerfargad': 'linear-gradient(135deg, #FF6B6B, #4ECDC4, #45B7D1, #96CEB4)', 
-    'flerfärgad': 'linear-gradient(135deg, #FF6B6B, #4ECDC4, #45B7D1, #96CEB4)',
-    'multicolor': 'linear-gradient(135deg, #FF6B6B, #4ECDC4, #45B7D1, #96CEB4)',
-    'randig': 'repeating-linear-gradient(90deg, #fff 0px, #fff 10px, #333 10px, #333 20px)',
-    'striped': 'repeating-linear-gradient(90deg, #fff 0px, #fff 10px, #333 10px, #333 20px)',
-    'prickig': 'radial-gradient(circle, #333 2px, transparent 2px)', 
-    'dotted': 'radial-gradient(circle, #333 2px, transparent 2px)',
-    'blommig': 'linear-gradient(45deg, #FFB6C1, #FFF0F5)', 
-    'floral': 'linear-gradient(45deg, #FFB6C1, #FFF0F5)',
-    'transparent': 'rgba(200,200,200,0.3)',
-};
-
-function getColorStyle(colorName) {
-    if (!colorName) return '#ccc';
-    const normalized = colorName.toLowerCase().trim();
-    if (COLOR_MAP[normalized]) return COLOR_MAP[normalized];
-    for (const [key, value] of Object.entries(COLOR_MAP)) {
-        if (normalized.includes(key) || key.includes(normalized)) return value;
-    }
-    if (/^#[0-9A-F]{6}$/i.test(normalized)) return normalized;
-    return '#ccc';
-}
-
-// ==========================================
-// MODERN FILTRE GENERATOR
-// ==========================================
-
-function generateFilters() {
-    // --- RENK FILTRESI (Modern Grid) ---
-    const allColors = [...new Set(allProducts.flatMap(p => p.colors))].filter(Boolean).sort();
-    const colorContainer = document.getElementById('color-filter-list');
-    
-    if (colorContainer && allColors.length > 0) {
-        colorContainer.innerHTML = `
-            <div class="color-filter-grid">
-                ${allColors.map(color => `
-                    <div class="color-item">
-                        <input type="checkbox" 
-                               class="filter-input" 
-                               id="color-${color.replace(/\s/g, '-')}" 
-                               value="${color}" 
-                               data-type="color">
-                        <label class="color-circle-wrapper" for="color-${color.replace(/\s/g, '-')}">
-                            <span class="color-circle" style="background: ${getColorStyle(color)};"></span>
-                            <span class="color-name">${color}</span>
-                        </label>
-                    </div>
-                `).join('')}
-            </div>
-        `;
-    }
-
-    // --- STORLEK FILTRESI (Modern Grid Butonlar) ---
-    const allSizes = [...new Set(allProducts.flatMap(p => p.sizes))].filter(Boolean).sort((a, b) => {
-        // Sayisal degerlere gore sirala (80x150 -> 80*150=12000)
-        const getArea = s => {
-            const nums = s.match(/\d+/g);
-            return nums ? nums.reduce((acc, n) => acc * parseInt(n), 1) : 0;
-        };
-        return getArea(a) - getArea(b);
-    });
-    
-    const sizeContainer = document.getElementById('size-filter-list');
-    if (sizeContainer && allSizes.length > 0) {
-        sizeContainer.innerHTML = `
-            <div class="size-filter-grid">
-                ${allSizes.map(size => `
-                    <div class="size-item">
-                        <input type="checkbox" 
-                               class="filter-input" 
-                               id="size-${size.replace(/\s/g, '-')}" 
-                               value="${size}" 
-                               data-type="size">
-                        <label class="size-box" for="size-${size.replace(/\s/g, '-')}">
-                            <span class="size-text">${size}</span>
-                        </label>
-                    </div>
-                `).join('')}
-            </div>
-        `;
-    }
-
-    // Event listener'lari ekle
-    document.querySelectorAll('.filter-input').forEach(input => {
-        input.addEventListener('change', () => {
-            applyFilters();
-            updateClearButtonVisibility();
-        });
-    });
-} 
-
-
-
-
-
-
-
-    
-
-
-
-    
-
-
-
-
-
-
-
-
-
-    
-
     function getVariantDisplayText(product) {
         const variants = product.variants || [];
 
@@ -504,7 +431,7 @@ function generateFilters() {
                             <div class="product-colors-swatches">
                                 ${product.colors.slice(0, 5).map(color => `
                                     <span class="swatch-circle" 
-                                          style="background-color:${color};"
+                                          style="background: ${getColorStyle(color)};"
                                           title="${color}"></span>
                                 `).join('')}
                             </div>
@@ -585,126 +512,61 @@ function generateFilters() {
     }
 
     // ==========================================
-    // RENSA (TEMIZLE) BUTONU - v5.5 FIX
-    // clearAllFilters artik DOMContentLoaded icinde - allProducts/ filteredProducts erisilebilir
+    // MODERN FILTRE GENERATOR - v5.6
+    // Renk grid + Storlek grid
     // ==========================================
-
-    function clearAllFilters() {
-        console.log('>>> clearAllFilters CAGIRILDI');
-
-        // 1. Tum checkbox'lari kaldir (filtreler)
-        document.querySelectorAll('.filter-input:checked').forEach(input => {
-            input.checked = false;
-        });
-
-        // 2. Sort'u default'a cevir
-        document.querySelectorAll('input[name="orderby"]').forEach(radio => {
-            radio.checked = radio.value === 'default';
-        });
-
-        // 3. Filtreleri direkt uygula - tum urunleri goster
-        filteredProducts = [...allProducts];
-        currentPage = 0;
-
-        // 4. Urunleri render et
-        renderProducts();
-        updateProgress();
-        updateFilterBadge(0);
-
-        // 5. Rensa butonunu gizle
-        const clearBtn = document.getElementById('clear-all-filters');
-        if (clearBtn) {
-            clearBtn.classList.remove('visible');
-            clearBtn.style.display = 'none';
-        }
-
-        // 6. Sayfayi kategori basina dondur (smooth scroll)
-        setTimeout(() => {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }, 100);
-
-        console.log('Tum filtreler temizlendi, urun sayisi:', filteredProducts.length);
-    }
-
-    function initClearFilters() {
-        console.log('>>> initClearFilters CAGIRILDI');
-
-        // SADECE: Sortera yanindaki Rensa butonu
-        const mainClearBtn = document.getElementById('clear-all-filters');
-        if (mainClearBtn) {
-            mainClearBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('>>> RENSA butonuna tiklandi - TUMUNU SIFIRLA');
-                clearAllFilters();
-            });
-        }
-    }
-
-    function updateClearButtonVisibility() {
-        // Filtre secili mi kontrol et
-        const checkedFilters = document.querySelectorAll('.filter-input:checked').length;
-
-        // Siralama secili mi kontrol et (default disinda)
-        let hasSort = false;
-        document.querySelectorAll('input[name="orderby"]').forEach(radio => {
-            if (radio.checked && radio.value !== 'default') {
-                hasSort = true;
-            }
-        });
-
-        const totalActive = checkedFilters + (hasSort ? 1 : 0);
-
-        const clearBtn = document.getElementById('clear-all-filters');
-        if (clearBtn) {
-            if (totalActive > 0) {
-                clearBtn.classList.add('visible');
-                clearBtn.style.display = 'inline-flex';
-            } else {
-                clearBtn.classList.remove('visible');
-                clearBtn.style.display = 'none';
-            }
-        }
-
-        console.log('Aktif filtre/siralama sayisi:', totalActive);
-    }
-
     function generateFilters() {
+        // --- RENK FILTRESI (Modern Grid) ---
         const allColors = [...new Set(allProducts.flatMap(p => p.colors))].filter(Boolean).sort();
         const colorContainer = document.getElementById('color-filter-list');
+        
         if (colorContainer && allColors.length > 0) {
-            colorContainer.innerHTML = allColors.map(color => `
-                <div class="filter-row">
-                    <input type="checkbox" 
-                           class="filter-input" 
-                           id="color-${color.replace(/\s/g, '-')}" 
-                           value="${color}" 
-                           data-type="color">
-                    <label class="filter-row-label" for="color-${color.replace(/\s/g, '-')}">
-                        <span class="color-circle" style="background-color:${color};"></span>
-                        <span>${color}</span>
-                        <i class="fa-solid fa-check check-icon"></i>
-                    </label>
+            colorContainer.innerHTML = `
+                <div class="color-filter-grid">
+                    ${allColors.map(color => `
+                        <div class="color-item">
+                            <input type="checkbox" 
+                                   class="filter-input" 
+                                   id="color-${color.replace(/\s/g, '-')}" 
+                                   value="${color}" 
+                                   data-type="color">
+                            <label class="color-circle-wrapper" for="color-${color.replace(/\s/g, '-')}">
+                                <span class="color-circle" style="background: ${getColorStyle(color)};"></span>
+                                <span class="color-name">${color}</span>
+                            </label>
+                        </div>
+                    `).join('')}
                 </div>
-            `).join('');
+            `;
         }
 
-        const allSizes = [...new Set(allProducts.flatMap(p => p.sizes))].filter(Boolean).sort();
+        // --- STORLEK FILTRESI (Modern Grid Butonlar) ---
+        const allSizes = [...new Set(allProducts.flatMap(p => p.sizes))].filter(Boolean).sort((a, b) => {
+            const getArea = s => {
+                const nums = s.match(/\d+/g);
+                return nums ? nums.reduce((acc, n) => acc * parseInt(n), 1) : 0;
+            };
+            return getArea(a) - getArea(b);
+        });
+        
         const sizeContainer = document.getElementById('size-filter-list');
         if (sizeContainer && allSizes.length > 0) {
-            sizeContainer.innerHTML = allSizes.map(size => `
-                <div class="filter-row">
-                    <input type="checkbox" 
-                           class="filter-input" 
-                           id="size-${size.replace(/\s/g, '-')}" 
-                           value="${size}" 
-                           data-type="size">
-                    <label class="filter-row-label" for="size-${size.replace(/\s/g, '-')}">
-                        <span>${size}</span>
-                        <i class="fa-solid fa-check check-icon"></i>
-                    </label>
+            sizeContainer.innerHTML = `
+                <div class="size-filter-grid">
+                    ${allSizes.map(size => `
+                        <div class="size-item">
+                            <input type="checkbox" 
+                                   class="filter-input" 
+                                   id="size-${size.replace(/\s/g, '-')}" 
+                                   value="${size}" 
+                                   data-type="size">
+                            <label class="size-box" for="size-${size.replace(/\s/g, '-')}">
+                                <span class="size-text">${size}</span>
+                            </label>
+                        </div>
+                    `).join('')}
                 </div>
-            `).join('');
+            `;
         }
 
         document.querySelectorAll('.filter-input').forEach(input => {
@@ -737,6 +599,79 @@ function generateFilters() {
             badge.textContent = count;
             badge.style.display = count > 0 ? 'inline-flex' : 'none';
         }
+    }
+
+    // ==========================================
+    // RENSA BUTONU
+    // ==========================================
+    function clearAllFilters() {
+        console.log('>>> clearAllFilters CAGIRILDI');
+
+        document.querySelectorAll('.filter-input:checked').forEach(input => {
+            input.checked = false;
+        });
+
+        document.querySelectorAll('input[name="orderby"]').forEach(radio => {
+            radio.checked = radio.value === 'default';
+        });
+
+        filteredProducts = [...allProducts];
+        currentPage = 0;
+
+        renderProducts();
+        updateProgress();
+        updateFilterBadge(0);
+
+        const clearBtn = document.getElementById('clear-all-filters');
+        if (clearBtn) {
+            clearBtn.classList.remove('visible');
+            clearBtn.style.display = 'none';
+        }
+
+        setTimeout(() => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }, 100);
+
+        console.log('Tum filtreler temizlendi, urun sayisi:', filteredProducts.length);
+    }
+
+    function initClearFilters() {
+        console.log('>>> initClearFilters CAGIRILDI');
+
+        const mainClearBtn = document.getElementById('clear-all-filters');
+        if (mainClearBtn) {
+            mainClearBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('>>> RENSA butonuna tiklandi - TUMUNU SIFIRLA');
+                clearAllFilters();
+            });
+        }
+    }
+
+    function updateClearButtonVisibility() {
+        const checkedFilters = document.querySelectorAll('.filter-input:checked').length;
+        let hasSort = false;
+        document.querySelectorAll('input[name="orderby"]').forEach(radio => {
+            if (radio.checked && radio.value !== 'default') {
+                hasSort = true;
+            }
+        });
+
+        const totalActive = checkedFilters + (hasSort ? 1 : 0);
+
+        const clearBtn = document.getElementById('clear-all-filters');
+        if (clearBtn) {
+            if (totalActive > 0) {
+                clearBtn.classList.add('visible');
+                clearBtn.style.display = 'inline-flex';
+            } else {
+                clearBtn.classList.remove('visible');
+                clearBtn.style.display = 'none';
+            }
+        }
+
+        console.log('Aktif filtre/siralama sayisi:', totalActive);
     }
 
     function initSort() {
@@ -856,5 +791,5 @@ function generateFilters() {
     updateChipsActiveState();
     updateWishlistBadge();
 
-    console.log('Category.js v5.5 baslatildi');
+    console.log('Category.js v5.6 baslatildi');
 });
