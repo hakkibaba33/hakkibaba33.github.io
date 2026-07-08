@@ -2,7 +2,7 @@
 // COMMON.JS - TEMEL FONKSIYONLAR (v8.5)
 // Badge'ler her zaman calisacak - MutationObserver + Retry mekanizmasi
 // Search fix: Fetch retry, hata yonetimi, cache kontrolu
-// 🔥 FIX: Guzel URL'ler /produkt/slug destegi
+// 🔥 FIX: Guzel URL'ler /produkt/slug destegi + Product grid observer
 // ==========================================
 
 // ==========================================
@@ -687,6 +687,58 @@ function initProductCardClicks() {
     });
 }
 
+// 🔥 GLOBAL: category.js ve diger yerlerden cagrilabilir
+window.initProductCardClicks = initProductCardClicks;
+
+// ==========================================
+// 🔥 FIX: PRODUCT GRID MUTATION OBSERVER
+// Yeni urun kartlari eklendiginde otomatik click fix uygula
+// ==========================================
+
+let __productGridObserver = null;
+let __productGridDebounceTimer = null;
+
+function observeProductGrid() {
+    if (__productGridObserver) {
+        __productGridObserver.disconnect();
+    }
+
+    const grid = document.getElementById('product-grid');
+    if (!grid) {
+        console.log('[ProductGrid] Grid henuz yok, observer baslatilamadi.');
+        return;
+    }
+
+    __productGridObserver = new MutationObserver((mutations) => {
+        const hasNewCards = mutations.some(mutation => {
+            return Array.from(mutation.addedNodes).some(node => {
+                if (node.nodeType !== 1) return false;
+                return node.classList?.contains('product-card') ||
+                       node.querySelector?.('.product-card');
+            });
+        });
+
+        if (hasNewCards) {
+            // Debounce: cok fazla cagri olmasin
+            clearTimeout(__productGridDebounceTimer);
+            __productGridDebounceTimer = setTimeout(() => {
+                console.log('[ProductGrid] Yeni kartlar eklendi, click fix uygulaniyor...');
+                initProductCardClicks();
+            }, 100);
+        }
+    });
+
+    __productGridObserver.observe(grid, {
+        childList: true,
+        subtree: false // Sadece direkt child'lari izle
+    });
+
+    console.log('[ProductGrid] MutationObserver baslatildi.');
+}
+
+// 🔥 GLOBAL: category.js'den cagrilabilir
+window.observeProductGrid = observeProductGrid;
+
 // ==========================================
 // EVENT LISTENERS - TEK BIR YERDE
 // ==========================================
@@ -706,7 +758,6 @@ function initEventListeners() {
     // --- Document-level click delegation ---
     document.addEventListener('click', (e) => {
         // 🔥 FIX: /produkt/ ile baslayan tum linklere tiklanirsa hicbir sey yapma
-        // Browser normal yonlendirme yapsin - hem /produkt/slug hem /produkt/?id=... destekler
         const productLink = e.target.closest('a[href^="/produkt/"]');
         if (productLink) {
             return;
@@ -807,6 +858,9 @@ function initEventListeners() {
     // 🔥 FIX: Urun karti tiklama fix'ini baslat
     initProductCardClicks();
 
+    // 🔥 FIX: Product grid observer'i baslat (yeni kartlar icin)
+    observeProductGrid();
+
     console.log('Tum event listenerlar basariyla baglandi!');
 }
 
@@ -900,8 +954,9 @@ window.addEventListener('load', () => {
     // 🔥 FIX: Urun kartlari yuklendikten sonra tekrar dene
     if (document.getElementById('product-grid')) {
         console.log('[Init] Product grid tespit edildi, kart click fix tekrar uygulaniyor...');
-        setTimeout(initProductCardClicks, 500);
+        initProductCardClicks();
+        observeProductGrid();
     }
 });
 
-console.log('common.js v8.5 yuklendi - Guzel URL destegi aktif');
+console.log('common.js v8.5 yuklendi - Guzel URL destegi + Product Grid Observer aktif');
