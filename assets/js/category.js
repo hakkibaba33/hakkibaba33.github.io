@@ -882,3 +882,4 @@ document.addEventListener('DOMContentLoaded', async () => {
     updatePageTitle(initialCategory);
 
     console.log('Category.js v5.7 baslatildi');
+   });
