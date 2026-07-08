@@ -114,8 +114,15 @@
 }
 
 /* ============================================
-   PANEL SLIDE ANIMATION
+   PANEL SLIDE ANIMATION - YENI DUZELTILMIS
    ============================================ */
+.drawer-body {
+    position: relative;
+    flex: 1;
+    overflow: hidden;
+    direction: ltr;
+}
+
 .drawer-panel {
     position: absolute;
     top: 0;
@@ -128,24 +135,39 @@
     padding-bottom: 100px;
 }
 
+/* ANA PANEL */
 .main-panel {
     transform: translateX(0);
     z-index: 1;
+    visibility: visible;
 }
 
 .main-panel.slide-out {
     transform: translateX(-100%);
+    visibility: hidden;
 }
 
+/* ALT PANEL - BASLANGICTA GIZLI, SAGDA */
 .sub-panel {
     transform: translateX(100%);
     z-index: 2;
-    display: none;
+    visibility: hidden;
+    opacity: 0;
 }
 
+/* ALT PANEL ACIK */
 .sub-panel.slide-in {
-    display: block;
     transform: translateX(0);
+    visibility: visible;
+    opacity: 1;
+}
+
+.drawer-panel::-webkit-scrollbar {
+    width: 4px;
+}
+.drawer-panel::-webkit-scrollbar-thumb {
+    background: var(--dk-border);
+    border-radius: 10px;
 }
 
 /* ============================================
@@ -261,6 +283,43 @@
 .size-item .filter-input:checked + .size-box .size-text {
     color: var(--dk-white);
     font-weight: 600;
+}
+
+/* ============================================
+   URUN KARTI RENK KUTUCUKLARI
+   ============================================ */
+.product-colors-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.product-colors-swatches {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+
+.swatch-circle {
+    display: block;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 1px solid rgba(0,0,0,0.15);
+    transition: transform 0.2s ease;
+}
+
+.swatch-circle:hover {
+    transform: scale(1.2);
+    box-shadow: 0 0 0 2px var(--dk-accent);
+}
+
+.color-count-text {
+    font-size: 11px;
+    color: var(--dk-text-light);
+    font-weight: 500;
 }
 
 /* ============================================
@@ -790,14 +849,6 @@
     box-shadow: var(--dk-shadow);
 }
 
-/* Geri Donus ve Diger Text Butonlar */
-.back-to-main:hover, 
-.close-filter-sidebar:hover {
-    background: transparent !important;
-    color: var(--dk-accent) !important;
-    border: none !important;
-}
-
 /* Alt Panel (Sub-panel) Header */
 .sub-header {
     padding: 15px 20px;
@@ -903,117 +954,6 @@
 
 html {
     scrollbar-gutter: stable;
-}
-
-/* --- Panel Alanlari --- */
-.drawer-body {
-    position: relative;
-    flex: 1;
-    overflow: hidden;
-    direction: ltr;
-}
-
-.drawer-panel {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: var(--dk-white);
-    transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-    overflow-y: auto;
-    padding-bottom: 100px;
-}
-
-.drawer-panel::-webkit-scrollbar {
-    width: 4px;
-}
-.drawer-panel::-webkit-scrollbar-thumb {
-    background: var(--dk-border);
-    border-radius: 10px;
-}
-
-.main-panel { transform: translateX(0); z-index: 1; }
-.main-panel.slide-out { transform: translateX(-100%); }
-.sub-panel { transform: translateX(100%); z-index: 2; }
-.sub-panel.slide-in { transform: translateX(0); }
-
-/* Menu ve Liste Elemanlari */
-.menu-item-link {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px 25px;
-    border-bottom: 1px solid var(--dk-border);
-    cursor: pointer;
-    color: var(--dk-text);
-    transition: var(--dk-transition);
-    font-weight: 500;
-}
-
-.menu-item-link:hover {
-    background: var(--dk-secondary);
-    color: var(--dk-accent);
-}
-
-.back-to-main {
-    background: none; 
-    border: none; 
-    font-weight: 700; 
-    cursor: pointer;
-    display: flex; 
-    align-items: center; 
-    gap: 10px;
-    color: var(--dk-primary);
-    transition: var(--dk-transition);
-}
-
-.back-to-main:hover {
-    color: var(--dk-accent);
-}
-
-/* Olcu Listesi */
-.filter-vertical-list { 
-    display: flex; 
-    flex-direction: column; 
-}
-
-.filter-row { 
-    border-bottom: 1px solid var(--dk-border); 
-}
-
-.filter-row-label {
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center;
-    padding: 18px 25px; 
-    cursor: pointer;
-    transition: var(--dk-transition);
-    color: var(--dk-text);
-}
-
-.filter-row-label:hover {
-    background: var(--dk-secondary);
-}
-
-.filter-input { 
-    display: none; 
-}
-
-.check-icon { 
-    color: var(--dk-accent); 
-    opacity: 0; 
-    transition: 0.2s; 
-}
-
-.filter-input:checked + .filter-row-label { 
-    background: var(--dk-secondary); 
-    font-weight: 600; 
-    color: var(--dk-primary);
-}
-
-.filter-input:checked + .filter-row-label .check-icon { 
-    opacity: 1; 
 }
 
 /* Sabit Alt Buton */
