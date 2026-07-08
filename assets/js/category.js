@@ -8,10 +8,14 @@ console.log('CONFIG durumu:', typeof CONFIG !== 'undefined' ? 'Yuklu' : 'YUKLU D
 
 function getCurrentCategory() {
     const path = window.location.pathname;
-    const category = path.replace(/^\/|\/$/g, '');
+    // Önce / ile başlayan ve bitenleri temizle
+    const cleanPath = path.replace(/^\/+|\/+$/g, '');
+    // İlk segmenti al (örn: /gardiner/alt-sey => gardiner)
+    const category = cleanPath.split('/')[0] || null;
     console.log('URL path:', path);
+    console.log('Clean path:', cleanPath);
     console.log('Kategori:', category);
-    return category || null;
+    return category;
 }
 
 function getCurrentSubCategory() {
