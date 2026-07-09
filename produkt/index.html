@@ -225,21 +225,5 @@
     <script src="/assets/js/config.js"></script>
     <script src="/assets/js/common.js"></script>
     <script src="/assets/js/product.ui.js?v=999"></script>
-    <script>
-// GLOBAL FIX: Tüm /produkt/ linklerini yakala
-document.addEventListener('click', function(e) {
-    const link = e.target.closest('a[href^="/produkt/"]');
-    if (!link) return;
-    
-    const href = link.getAttribute('href');
-    if (!href || href.includes('?slug=')) return;
-    
-    // Normal link, manuel yönlendirme yap
-    e.preventDefault();
-    e.stopPropagation();
-    window.location.href = href;
-}, true);
-</script>
-    
 </body>
 </html>
