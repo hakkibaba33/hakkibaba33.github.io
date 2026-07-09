@@ -121,9 +121,6 @@ async function initProductPage() {
     }
 
     console.log("Final Slug:", slug);
-    
-    // ... gerisi aynı kalıyor
-}
 
         try {
             // Duz cekme (embed olmadan)
