@@ -1,7 +1,8 @@
 // ==========================================
-// COMMON.JS - TEMEL FONKSIYONLAR (v8.2)
+// COMMON.JS - TEMEL FONKSIYONLAR (v8.5)
 // Badge'ler her zaman calisacak - MutationObserver + Retry mekanizmasi
 // Search fix: Fetch retry, hata yonetimi, cache kontrolu
+// Breadcrumb fix: DOM yuklendikten sonra calisir, URL yapisi guncellendi
 // ==========================================
 
 // ==========================================
@@ -98,7 +99,7 @@ window.updateCartBadge = function() {
     const badges = document.querySelectorAll('.cart-count-badge');
 
     if (badges.length === 0) {
-        console.warn('[Badge] .cart-count-badge elementi henuz DOM\'da yok, retry...');
+        console.warn('[Badge] .cart-count-badge elementi henuz DOM'da yok, retry...');
         return false;
     }
 
@@ -119,7 +120,7 @@ window.updateWishlistBadge = function() {
         const badges = document.querySelectorAll('.wishlist-count-badge');
 
         if (badges.length === 0) {
-            console.warn('[Badge] .wishlist-count-badge elementi henuz DOM\'da yok, retry...');
+            console.warn('[Badge] .wishlist-count-badge elementi henuz DOM'da yok, retry...');
             return false;
         }
 
@@ -510,7 +511,7 @@ async function fetchAllProductsForSearch() {
     }
 
     isFetchingProducts = true;
-    console.log('[Search] Urunler Supabase\'den cekiliyor...');
+    console.log('[Search] Urunler Supabase'den cekiliyor...');
 
     try {
         const data = await supabaseGet('products', {
@@ -769,35 +770,48 @@ function initEventListeners() {
 
     console.log('Tum event listenerlar basariyla baglandi!');
 }
+
 // ==========================================
-// BREADCRUMB
+// BREADCRUMB - DOM yuklendikten sonra calisir
 // ==========================================
 
-(function() {
+function initBreadcrumb() {
     if (window.innerWidth <= 768) return;
 
     const nav = document.getElementById('breadcrumb-nav');
-    if (!nav) return;
+    if (!nav) {
+        console.log('[Breadcrumb] Nav elementi bulunamadi, atlaniyor.');
+        return;
+    }
 
     const path = window.location.pathname;
     const urlParams = new URLSearchParams(window.location.search);
     const crumbs = [{ name: 'Hem', url: '/' }];
 
-    if (path.includes('category') || path.includes('kategori') || document.getElementById('category-main-title')) {
-        crumbs.push({ name: 'Alla Mattor', url: '/category.html' });
+    // Kategori sayfalari
+    if (path.includes('category') || path.includes('kategori') || path.includes('mattor') || document.getElementById('category-main-title')) {
+        crumbs.push({ name: 'Alla Mattor', url: '/produkt-kategori/alla-mattor/' });
         const cat = urlParams.get('kategori');
         if (cat) {
             const catNames = {
                 'vardagsrum': 'Vardagsrum',
                 'sovrum': 'Sovrum',
-                'kok': 'Kok'
+                'kok': 'Kok',
+                'moderna': 'Moderna Mattor',
+                'orientaliska': 'Orientaliska Mattor'
             };
             crumbs.push({ name: catNames[cat] || cat, url: '#' });
         }
-    } else if (path.includes('product') || document.getElementById('product-main-name-desktop')) {
-        crumbs.push({ name: 'Alla Mattor', url: '/category.html' });
+    }
+    // Urun detay sayfalari
+    else if (path.includes('product') || path.includes('produkt') || path.includes('matta') || document.getElementById('product-main-name-desktop')) {
+        crumbs.push({ name: 'Alla Mattor', url: '/produkt-kategori/alla-mattor/' });
         const productName = document.getElementById('product-main-name-desktop')?.textContent?.trim();
         crumbs.push({ name: (productName && productName !== '---') ? productName : 'Produkt', url: '#' });
+    }
+    // Wishlist sayfasi
+    else if (path.includes('wishlist') || path.includes('favoriter')) {
+        crumbs.push({ name: 'Mina Favoriter', url: '#' });
     }
 
     let html = '<ol class="breadcrumb-list">';
@@ -810,9 +824,8 @@ function initEventListeners() {
     html += '</ol>';
 
     nav.innerHTML = html;
-    console.log('Breadcrumb olusturuldu:', crumbs.map(c => c.name).join(' > '));
-})();
-
+    console.log('[Breadcrumb] Olusturuldu:', crumbs.map(c => c.name).join(' > '));
+}
 
 // ==========================================
 // OTOMATIK BASLATMA - RACE CONDITION FIX
@@ -821,7 +834,7 @@ function initEventListeners() {
 window.__dkInitAllDone = false;
 
 function initAll() {
-    // Çift çalışmayı engelle
+    // Cift calismayi engelle
     if (window.__dkInitAllDone) {
         console.log('[Init] initAll zaten calisti, atlaniyor.');
         return;
@@ -839,6 +852,9 @@ function initAll() {
     // 3. MutationObserver (DOM degisikliklerini izle)
     observeBadgeElements();
 
+    // 4. Breadcrumb (DOM yuklendikten sonra)
+    initBreadcrumb();
+
     console.log('[Init] common.js initAll tamamlandi.');
 }
 
@@ -852,19 +868,26 @@ if (document.readyState === 'loading') {
 // Ek guvenlik: window.load'da sadece eksik olanlari dene
 window.addEventListener('load', () => {
     console.log('[Init] window.load eventi...');
-    
+
     // Badge kontrolu
     if (!window.__dkBadgeInitDone) {
         console.log('[Init] Badge init yapilmamis, retry baslatiliyor...');
         initBadgesWithRetry(10, 50);
     }
-    
+
     // Search init kontrolu
     const input = document.getElementById('live-search-input');
     if (input && !input._searchInitialized) {
         console.log('[Init] Search init yapilmamis, retry baslatiliyor...');
         initSearch();
     }
+
+    // Breadcrumb kontrolu (header dinamik yuklenirse)
+    const nav = document.getElementById('breadcrumb-nav');
+    if (nav && nav.innerHTML === '') {
+        console.log('[Init] Breadcrumb bos, retry baslatiliyor...');
+        initBreadcrumb();
+    }
 });
 
-console.log('common.js v8.4 yuklendi - Menu statik, Search fix aktif');
+console.log('common.js v8.5 yuklendi - Breadcrumb fix, URL tutarliligi');
