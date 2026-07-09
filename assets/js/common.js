@@ -672,6 +672,8 @@ function initEventListeners() {
     // --- Header scroll effect ---
     initHeaderScroll();
 
+    // --- Document-level click delegation ---
+    document.addEventListener('click', (e) => {
 
         // Mini cart open - GENISLETILMIS SECICILER
         if (e.target.closest('#open-mini-cart-btn, .cart-icon-wrapper, .fa-shopping-bag, .cart-trigger, [data-action="open-cart"], .header-cart-icon')) {
@@ -679,7 +681,6 @@ function initEventListeners() {
             openMiniCart();
             return;
         }
-
 
         // Mini cart close
         if (e.target.closest('#close-mini-cart')) {
@@ -768,7 +769,6 @@ function initEventListeners() {
 
     console.log('Tum event listenerlar basariyla baglandi!');
 }
-
 // ==========================================
 // BREADCRUMB
 // ==========================================
