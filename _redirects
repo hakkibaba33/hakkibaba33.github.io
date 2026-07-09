@@ -1,9 +1,9 @@
-/produkt/*    /produkt/index.html   200
-/mattor/*     /mattor/index.html    200
-/metervara/*  /metervara/index.html 200
+/produkt/* /produkt/index.html 200
+/mattor/* /mattor/index.html 200
+/metervara/* /metervara/index.html 200
 /gangmattor/* /gangmattor/index.html 200
 /runda-mattor/* /runda-mattor/index.html 200
 /badrumsmattor/* /badrumsmattor/index.html 200
-/gardiner/*   /gardiner/index.html  200
-/rea/*        /rea/index.html       200
-/*            /index.html           200
+/gardiner/* /gardiner/index.html 200
+/rea/* /rea/index.html 200
+/* /index.html 200
