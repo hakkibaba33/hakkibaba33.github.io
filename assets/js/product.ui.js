@@ -123,16 +123,16 @@ if (window.__productPageInitialized) {
             }
         }
 
-       // ==========================================
-        // YENI URL FORMATINDAN SLUG AL
+// ==========================================
+        // YENI URL FORMATINDAN SLUG AL (ÇAKIŞMASIZ)
         // ==========================================
 
         let slug = null;
-        const urlParams = new URLSearchParams(window.location.search);
+        const productUrlParams = new URLSearchParams(window.location.search);
         
         // Önce URL parametresindeki (?slug=...) değerini kontrol et
-        if (urlParams.get('slug')) {
-            slug = urlParams.get('slug');
+        if (productUrlParams.get('slug')) {
+            slug = productUrlParams.get('slug');
             console.log("Slug URL parametresinden bulundu:", slug);
         } else {
             // Eğer parametrede yoksa pathname'den (/produkt/slug-adi) bulmaya çalış
@@ -142,7 +142,7 @@ if (window.__productPageInitialized) {
                 if (slug === 'index.html') slug = null;
                 else console.log("Slug pathname'den bulundu:", slug);
             }
-        } // <-- Eksik olan ve hataya sebep olan kapatma parantezi buradaydı
+        }
 
         if (!slug) {
             console.error("Slug bulunamadi! URL:", window.location.href);
