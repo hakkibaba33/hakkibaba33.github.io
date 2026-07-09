@@ -97,7 +97,13 @@
         .wishlist-btn.active i {
             color: #D30000 !important;
         }
+
+        /* Urun ismi link stili */
+        .product-title a:hover {
+            color: #D30000;
+        }
     </style>
+<base target="_blank">
 </head>
 <body>
 
@@ -114,7 +120,8 @@
 
         <div id="wishlist-empty" class="wishlist-empty-state">
             <h3>Din onskelista ar tom</h3>
-            <a href="category.html" class="btn-explore">Utforska produkter</a>
+            <!-- 🔥 URL FIX: Gercek kategori URL'si -->
+            <a href="/produkt-kategori/alla-mattor/" class="btn-explore">Utforska produkter</a>
         </div>
     </main>
 
@@ -130,10 +137,15 @@
             ]);
             document.getElementById('header-placeholder').innerHTML = await headerRes.text();
             document.getElementById('footer-placeholder').innerHTML = await footerRes.text();
-            
-            // 🔥 Event listenerları başlat (search popup, mini cart, mobile menu)
+
+            // Event listenerlari baslat (search popup, mini cart, mobile menu)
             if (typeof initEventListeners === 'function') {
                 initEventListeners();
+            }
+
+            // 🔥 BREADCRUMB FIX: Header yuklendikten sonra breadcrumb'i baslat
+            if (typeof initBreadcrumb === 'function') {
+                initBreadcrumb();
             }
         }
         loadComponents();
