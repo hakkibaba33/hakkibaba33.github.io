@@ -394,8 +394,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const variantText = getVariantDisplayText(product);
           const productUrl = product.slug
-        ? '/produkt/index.html?slug=' + encodeURIComponent(String(product.slug).trim())
-        : '/produkt/index.html?id=' + encodeURIComponent(String(product.id));
+          ? '/produkt/' + encodeURIComponent(String(product.slug).trim())
+          : '/produkt/index.html?id=' + encodeURIComponent(String(product.id));
 
         return `
             <div class="product-card" data-id="${String(product.id)}">
