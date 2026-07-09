@@ -9,6 +9,19 @@
     <link rel="stylesheet" href="/assets/css/common.css">
     <link rel="stylesheet" href="/assets/css/reset.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<script>
+// Hash router'ı kaldır, normal URL'ye yönlendir
+if (window.location.hash && window.location.hash.includes('/produkt/')) {
+    const cleanUrl = window.location.hash.replace('#', '');
+    window.location.replace(cleanUrl);
+}
+</script>
+
+
+
+
+    
 </head>
 <body>
 
