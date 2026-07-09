@@ -1,5 +1,6 @@
 // ==========================================
-// WISHLIST.JS - SUPABASE UYUMLU (v2.0 - ID FIX)
+// WISHLIST.JS - SUPABASE UYUMLU (v2.1 - URL FIX)
+// Urun linkleri: /produkt/{slug} formatinda
 // ==========================================
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -81,8 +82,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 price: product.discount_price || product.base_price || 0,
                 image: product.images && product.images[0] ? product.images[0] : '',
                 slug: product.slug || '',
-                variants: productVariants.length > 0 
-                    ? productVariants.length + ' storlekar' 
+                variants: productVariants.length > 0
+                    ? productVariants.length + ' storlekar'
                     : 'Standard'
             };
         });
@@ -107,25 +108,34 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function renderProducts(products) {
-        grid.innerHTML = products.map(product => `
+        grid.innerHTML = products.map(product => {
+            // 🔥 URL TUTARLILIGI FIX: /produkt/{slug} formati
+            // slug bos veya undefined ise fallback olarak id kullan
+            const productUrl = product.slug
+                ? `/produkt/${product.slug}`
+                : `/produkt/${product.id}`;
+
+            return `
             <div class="product-item-wrapper" data-id="${String(product.id)}">
                 <div class="product-card">
                     <div class="image-box">
-                       <a href="/matta/${product.slug}"> 
-                            <img src="${product.image}" 
-                                 alt="${product.name}" 
+                       <a href="${productUrl}" class="product-image-link">
+                            <img src="${product.image}"
+                                 alt="${product.name}"
                                  loading="lazy"
                                  onerror="this.style.display='none'"
                                  style="width:100%; height:100%; object-fit:cover;">
                         </a>
-                        <button class="wishlist-btn active" 
+                        <button class="wishlist-btn active"
                                 data-product-id="${String(product.id)}"
                                 onclick="removeFromWishlist('${String(product.id)}')">
                             <i class="fa-solid fa-heart"></i>
                         </button>
                     </div>
                     <div class="product-info">
-                        <h3 class="product-title">${product.name}</h3>
+                        <h3 class="product-title">
+                            <a href="${productUrl}" style="text-decoration:none; color:inherit;">${product.name}</a>
+                        </h3>
                         <div class="product-meta-row">
                             <span class="product-acf-dimension">${product.variants}</span>
                         </div>
@@ -135,7 +145,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                     </div>
                 </div>
             </div>
-        `).join('');
+        `;
+        }).join('');
     }
 });
 
@@ -172,7 +183,7 @@ function removeFromWishlist(productId) {
                 document.getElementById('wishlist-count-text').textContent = '';
                 document.getElementById('wishlist-empty').style.display = 'block';
             } else {
-                document.getElementById('wishlist-count-text').textContent = 
+                document.getElementById('wishlist-count-text').textContent =
                     `Du har ${remaining.length} sparade produkter.`;
             }
 
