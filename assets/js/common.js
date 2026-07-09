@@ -1,35 +1,22 @@
 // ==========================================
-// COMMON.JS - TEMEL FONKSIYONLAR (v8.5)
-// Badge'ler her zaman calisacak - MutationObserver + Retry mekanizmasi
-// Search fix: Fetch retry, hata yonetimi, cache kontrolu
-// Breadcrumb fix: DOM yuklendikten sonra calisir, URL yapisi guncellendi
+// COMMON.JS - TEMEL FONKSIYONLAR (v8.6)
+// Breadcrumb fix: Kategori/urun ayirimi duzeltildi
 // ==========================================
 
-// ==========================================
-// CACHE BUSTING
-// ==========================================
 window.__commonListenersInitialized = false;
 
 if (typeof CONFIG === 'undefined') {
     console.error('HATA: config.js yuklenmemis!');
 }
 
-// ==========================================
-// SUPABASE CONFIG
-// ==========================================
 const SUPABASE_URL = (typeof CONFIG !== 'undefined' && CONFIG.SUPABASE) ? CONFIG.SUPABASE.URL : '';
 const SUPABASE_KEY = (typeof CONFIG !== 'undefined' && CONFIG.SUPABASE) ? CONFIG.SUPABASE.ANON_KEY : '';
-
-// ==========================================
-// SUPABASE CLIENT
-// ==========================================
 
 async function supabaseGet(endpoint, params) {
     const url = new URL(SUPABASE_URL + '/rest/v1/' + endpoint);
     if (params) {
         Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
     }
-
     const res = await fetch(url, {
         headers: {
             'apikey': SUPABASE_KEY,
@@ -69,16 +56,9 @@ async function supabasePost(endpoint, data) {
     return res.json();
 }
 
-// ==========================================
-// YARDIMCI: ID karsilastirma (int8/string uyumlu)
-// ==========================================
 function idsMatch(id1, id2) {
     return String(id1) === String(id2);
 }
-
-// ==========================================
-// CART & WISHLIST - GLOBAL FONKSIYONLAR
-// ==========================================
 
 function getCart() {
     try {
@@ -93,42 +73,34 @@ function saveCart(cart) {
     window.updateCartBadge();
 }
 
-// GLOBAL: window'a ata, shadow edilmesin!
 window.updateCartBadge = function() {
     const cart = getCart();
     const badges = document.querySelectorAll('.cart-count-badge');
-
     if (badges.length === 0) {
-        console.warn('[Badge] .cart-count-badge elementi henuz DOM'da yok, retry...');
+        console.warn('[Badge] .cart-count-badge elementi henuz DOM\'da yok, retry...');
         return false;
     }
-
     const count = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
     badges.forEach(badge => {
         badge.textContent = count;
         badge.classList.toggle('visible', count > 0);
     });
-
     console.log('[Badge] Cart badge guncellendi:', count, 'urun');
     return true;
 };
 
-// GLOBAL: window'a ata, shadow edilmesin!
 window.updateWishlistBadge = function() {
     try {
         const wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
         const badges = document.querySelectorAll('.wishlist-count-badge');
-
         if (badges.length === 0) {
-            console.warn('[Badge] .wishlist-count-badge elementi henuz DOM'da yok, retry...');
+            console.warn('[Badge] .wishlist-count-badge elementi henuz DOM\'da yok, retry...');
             return false;
         }
-
         badges.forEach(badge => {
             badge.textContent = wishlist.length;
             badge.classList.toggle('visible', wishlist.length > 0);
         });
-
         console.log('[Badge] Wishlist badge guncellendi:', wishlist.length, 'urun');
         return true;
     } catch (e) {
@@ -137,10 +109,6 @@ window.updateWishlistBadge = function() {
     }
 };
 
-// ==========================================
-// RACE CONDITION FIX: BADGE INIT SISTEMI
-// ==========================================
-
 window.__dkBadgeInitDone = false;
 
 function initBadgesWithRetry(maxRetries = 20, interval = 100) {
@@ -148,36 +116,25 @@ function initBadgesWithRetry(maxRetries = 20, interval = 100) {
         console.log('[Badge] Init zaten tamamlandi, atlaniyor.');
         return;
     }
-
     let attempts = 0;
-
     function tryInit() {
         attempts++;
-
         const cartOk = window.updateCartBadge();
         const wishOk = window.updateWishlistBadge();
-
         if (cartOk && wishOk) {
             window.__dkBadgeInitDone = true;
             console.log('[Badge] Init basarili! Deneme:', attempts);
             return;
         }
-
         if (attempts >= maxRetries) {
-            console.warn('[Badge] Max retry asildi (' + maxRetries + '). Badge elementleri bulunamadi.');
+            console.warn('[Badge] Max retry asildi (' + maxRetries + ').');
             return;
         }
-
         console.log('[Badge] Retry ' + attempts + '/' + maxRetries + '...');
         setTimeout(tryInit, interval);
     }
-
     tryInit();
 }
-
-// ==========================================
-// MUTATION OBSERVER: DOM degisikliklerini izle
-// ==========================================
 
 function observeBadgeElements() {
     const observer = new MutationObserver((mutations) => {
@@ -192,25 +149,15 @@ function observeBadgeElements() {
                 );
             });
         });
-
         if (hasNewBadges && !window.__dkBadgeInitDone) {
             console.log('[Badge] Yeni badge elementleri tespit edildi, init calistiriliyor...');
             initBadgesWithRetry();
         }
     });
-
-    observer.observe(document.body, {
-        childList: true,
-        subtree: true
-    });
-
+    observer.observe(document.body, { childList: true, subtree: true });
     console.log('[Badge] MutationObserver baslatildi.');
     return observer;
 }
-
-// ==========================================
-// MINI CART - OPEN / CLOSE / UPDATE
-// ==========================================
 
 function openMiniCart() {
     const overlay = document.getElementById('mini-cart-overlay');
@@ -238,9 +185,7 @@ function updateMiniCartUI() {
     const emptyState = document.getElementById('cart-empty-state');
     const filledState = document.getElementById('cart-filled-state');
     const footer = document.getElementById('mini-cart-footer');
-
     if (!emptyState || !filledState || !footer) return;
-
     if (cart.length === 0) {
         emptyState.style.display = 'block';
         filledState.style.display = 'none';
@@ -249,9 +194,7 @@ function updateMiniCartUI() {
         emptyState.style.display = 'none';
         filledState.style.display = 'block';
         footer.style.display = 'flex';
-
         let total = 0;
-
         const html = cart.map(item => {
             const qty = item.quantity || 1;
             const itemTotal = item.price * qty;
@@ -274,9 +217,7 @@ function updateMiniCartUI() {
                 </div>
             </div>`;
         }).join('');
-
         filledState.innerHTML = html;
-
         const grandTotal = document.getElementById('cart-grand-total');
         if (grandTotal) grandTotal.textContent = total.toLocaleString('sv-SE') + ' SEK';
     }
@@ -289,7 +230,6 @@ function updateQuantity(productId, change) {
         console.warn('updateQuantity: Urun bulunamadi, ID:', productId);
         return;
     }
-
     item.quantity = (item.quantity || 1) + change;
     if (item.quantity <= 0) {
         cart = cart.filter(i => !idsMatch(i.id, productId));
@@ -307,14 +247,12 @@ function removeFromCart(productId) {
 function addProductToCart(productData) {
     let cart = getCart();
     const existing = cart.find(i => idsMatch(i.id, productData.id) && i.variants === productData.variants);
-
     if (existing) {
         existing.quantity = (existing.quantity || 1) + 1;
     } else {
         const newItem = { ...productData, quantity: 1 };
         cart.push(newItem);
     }
-
     saveCart(cart);
     updateMiniCartUI();
     openMiniCart();
@@ -322,16 +260,9 @@ function addProductToCart(productData) {
 
 async function addSupabaseProductToCart(productId, variantSize) {
     try {
-        const product = await supabaseGetOne('products', {
-            id: 'eq.' + productId
-        });
-
+        const product = await supabaseGetOne('products', { id: 'eq.' + productId });
         if (!product) throw new Error('Urun bulunamadi');
-
-        const variants = await supabaseGet('product_variants', {
-            product_id: 'eq.' + productId
-        });
-
+        const variants = await supabaseGet('product_variants', { product_id: 'eq.' + productId });
         let displayPrice = product.discount_price || product.base_price || 0;
         if (variantSize && variants.length > 0) {
             const variant = variants.find(v => v.size === variantSize);
@@ -339,9 +270,7 @@ async function addSupabaseProductToCart(productId, variantSize) {
                 displayPrice = variant.discount_price || variant.price || displayPrice;
             }
         }
-
         const variantLabel = variantSize || 'Standard';
-
         const cartItem = {
             id: product.id,
             name: product.name,
@@ -351,7 +280,6 @@ async function addSupabaseProductToCart(productId, variantSize) {
             delivery: product.delivery_time || '3-7 arbetsdagar',
             quantity: 1
         };
-
         let cart = getCart();
         const existing = cart.find(i => idsMatch(i.id, productId) && i.variants === variantLabel);
         if (existing) {
@@ -359,21 +287,14 @@ async function addSupabaseProductToCart(productId, variantSize) {
         } else {
             cart.push(cartItem);
         }
-
         saveCart(cart);
         updateMiniCartUI();
         openMiniCart();
-
     } catch (error) {
         console.error('Urun ekleme hatasi:', error);
         alert('Urun sepete eklenirken bir hata olustu.');
     }
 }
-
-
-// ==========================================
-// SEARCH POPUP - DUZELTILMIS v8.2
-// ==========================================
 
 let searchDebounceTimer = null;
 let allProductsCache = [];
@@ -389,44 +310,31 @@ function getSearchElements() {
 
 function initSearch() {
     const { input, results } = getSearchElements();
-
     if (!input) {
         console.warn('[Search] Input bulunamadi, retry...');
-        // Input yoksa 500ms sonra tekrar dene (DOM henuz yuklenmemis olabilir)
         setTimeout(initSearch, 500);
         return;
     }
-
     console.log('[Search] Input bulundu, listener baglaniyor...');
-
-    // Eski listener varsa kaldirmak icin - inputu klonla ve yerine koy
     const newInput = input.cloneNode(true);
     input.parentNode.replaceChild(newInput, input);
     searchInputElement = newInput;
-
     searchInputElement.addEventListener('input', (e) => {
         const query = e.target.value.trim();
         clearTimeout(searchDebounceTimer);
-
         if (query.length < 2) {
             if (searchResultsElement) searchResultsElement.style.display = 'none';
             return;
         }
-
-        // Cache bossa once fetch et, sonra ara
         if (allProductsCache.length === 0 && !isFetchingProducts) {
             console.log('[Search] Cache bossa, once urunleri cekiyorum...');
             if (searchResultsElement) {
                 searchResultsElement.innerHTML = '<div class="no-results-found">Laddar produkter...</div>';
                 searchResultsElement.style.display = 'block';
             }
-            fetchAllProductsForSearch().then(() => {
-                performSearch(query);
-            });
+            fetchAllProductsForSearch().then(() => { performSearch(query); });
             return;
         }
-
-        // Zaten fetch ediliyorsa bekle
         if (isFetchingProducts) {
             console.log('[Search] Urunler hala yukleniyor, bekleniyor...');
             if (searchResultsElement) {
@@ -435,20 +343,14 @@ function initSearch() {
             }
             return;
         }
-
-        searchDebounceTimer = setTimeout(() => {
-            performSearch(query);
-        }, 300);
+        searchDebounceTimer = setTimeout(() => { performSearch(query); }, 300);
     });
-
-    // Input focus oldugunda da cache kontrolu yap
     searchInputElement.addEventListener('focus', () => {
         if (allProductsCache.length === 0 && !isFetchingProducts) {
             console.log('[Search] Focus - urunleri onceden cekiyorum...');
             fetchAllProductsForSearch();
         }
     });
-
     console.log('[Search] Listener basariyla baglandi!');
 }
 
@@ -456,23 +358,18 @@ function openSearchPopup() {
     const popup = document.getElementById('search-popup-overlay');
     const input = document.getElementById('live-search-input');
     const resultsDisplay = document.getElementById('search-results-display');
-
     if (!popup) {
         console.error('[Search] Popup bulunamadi!');
         return;
     }
-
     const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
     document.body.style.paddingRight = scrollbarWidth + 'px';
     document.body.classList.add('search-active');
-
     popup.classList.add('active');
     if (resultsDisplay) resultsDisplay.style.display = 'none';
-
     setTimeout(() => {
         if (input) {
             input.focus();
-            // Popup acildiginda cache bossa fetch et
             if (allProductsCache.length === 0 && !isFetchingProducts) {
                 fetchAllProductsForSearch();
             }
@@ -483,50 +380,37 @@ function openSearchPopup() {
 function closeSearchPopup() {
     const popup = document.getElementById('search-popup-overlay');
     const resultsDisplay = document.getElementById('search-results-display');
-
     if (!popup) return;
-
     popup.classList.remove('active');
     document.body.classList.remove('search-active');
     document.body.style.paddingRight = '';
-
     if (resultsDisplay) {
         resultsDisplay.style.display = 'none';
         resultsDisplay.innerHTML = '';
     }
-
     const input = document.getElementById('live-search-input');
     if (input) input.value = '';
 }
 
 async function fetchAllProductsForSearch() {
     if (!SUPABASE_URL || !SUPABASE_KEY) {
-        console.error('[Search] Supabase config eksik! URL:', SUPABASE_URL, 'KEY var mi:', !!SUPABASE_KEY);
+        console.error('[Search] Supabase config eksik!');
         return;
     }
-
     if (isFetchingProducts) {
         console.log('[Search] Zaten fetch ediliyor, atlaniyor...');
         return;
     }
-
     isFetchingProducts = true;
-    console.log('[Search] Urunler Supabase'den cekiliyor...');
-
+    console.log('[Search] Urunler Supabase\'den cekiliyor...');
     try {
-        const data = await supabaseGet('products', {
-            select: '*',
-            active: 'eq.true'
-        });
-
+        const data = await supabaseGet('products', { select: '*', active: 'eq.true' });
         console.log('[Search] Ham veri:', data);
-
         if (!data || !Array.isArray(data)) {
             console.error('[Search] Beklenmeyen veri formati:', data);
             allProductsCache = [];
             return;
         }
-
         allProductsCache = data.map(product => ({
             id: product.id,
             name: product.name || '',
@@ -535,9 +419,7 @@ async function fetchAllProductsForSearch() {
             category: product.category || '',
             url: '/produkt/' + (product.slug || product.id)
         }));
-
         console.log('[Search] ' + allProductsCache.length + ' urun basariyla cachelendi');
-
     } catch (error) {
         console.error('[Search] Urun cache hatasi:', error);
         allProductsCache = [];
@@ -552,33 +434,24 @@ function performSearch(query) {
         console.error('[Search] Results display elementi bulunamadi!');
         return;
     }
-
     console.log('[Search] Arama yapiliyor:', query, 'Cache uzunlugu:', allProductsCache.length);
-
     if (allProductsCache.length === 0) {
         resultsDisplay.innerHTML = '<div class="no-results-found">Inga produkter tillgangliga. Forsok igen om en stund.</div>';
         resultsDisplay.style.display = 'block';
-        // Tekrar fetch dene
-        if (!isFetchingProducts) {
-            fetchAllProductsForSearch();
-        }
+        if (!isFetchingProducts) fetchAllProductsForSearch();
         return;
     }
-
     const lowerQuery = query.toLowerCase().trim();
     if (!lowerQuery) {
         resultsDisplay.style.display = 'none';
         return;
     }
-
     const filtered = allProductsCache.filter(product => {
         const nameMatch = product.name.toLowerCase().includes(lowerQuery);
         const catMatch = product.category.toLowerCase().includes(lowerQuery);
         return nameMatch || catMatch;
     });
-
     console.log('[Search] Filtrelenen:', filtered.length, 'urun');
-
     if (filtered.length === 0) {
         resultsDisplay.innerHTML = '<div class="no-results-found">Inga produkter hittades for "' + escapeHtml(query) + '".</div>';
     } else {
@@ -592,7 +465,6 @@ function performSearch(query) {
                     '</mark>' +
                     escapeHtml(product.name.substring(idx + query.length));
             }
-
             return `<a href="${escapeHtml(product.url)}" class="search-item-row">
                 <div class="search-item-image">
                     <img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.name)}" onerror="this.src='https://via.placeholder.com/50'">
@@ -604,21 +476,15 @@ function performSearch(query) {
             </a>`;
         }).join('');
     }
-
     resultsDisplay.style.display = 'block';
 }
 
-// XSS korumasi icin basit escape
 function escapeHtml(text) {
     if (!text) return '';
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
 }
-
-// ==========================================
-// MOBILE MENU
-// ==========================================
 
 function openMobileMenu() {
     const overlay = document.getElementById('mobile-menu-overlay');
@@ -638,14 +504,9 @@ function closeMobileMenu() {
     document.body.style.overflow = '';
 }
 
-// ==========================================
-// HEADER SCROLL EFFECT
-// ==========================================
-
 function initHeaderScroll() {
     const header = document.getElementById('main-header');
     if (!header) return;
-
     window.addEventListener('scroll', () => {
         if (window.scrollY > 10) {
             header.classList.add('scrolled');
@@ -655,11 +516,6 @@ function initHeaderScroll() {
     });
 }
 
-
-// ==========================================
-// EVENT LISTENERS - TEK BIR YERDE
-// ==========================================
-
 function initEventListeners() {
     console.log('initEventListeners CAGIRILDI, __commonListenersInitialized:', window.__commonListenersInitialized);
     if (window.__commonListenersInitialized) {
@@ -667,57 +523,38 @@ function initEventListeners() {
         return;
     }
     window.__commonListenersInitialized = true;
-
     console.log('Event listenerlar baslatiliyor...');
-
-    // --- Header scroll effect ---
     initHeaderScroll();
-
-    // --- Document-level click delegation ---
     document.addEventListener('click', (e) => {
-
-        // Mini cart open - GENISLETILMIS SECICILER
         if (e.target.closest('#open-mini-cart-btn, .cart-icon-wrapper, .fa-shopping-bag, .cart-trigger, [data-action="open-cart"], .header-cart-icon')) {
             e.preventDefault();
             openMiniCart();
             return;
         }
-
-        // Mini cart close
         if (e.target.closest('#close-mini-cart')) {
             closeMiniCart();
             return;
         }
-
-        // Mobile menu open
         if (e.target.closest('#open-mobile-menu-btn, .mobile-menu-trigger, [data-action="open-menu"], .hamburger-btn')) {
             e.preventDefault();
             openMobileMenu();
             return;
         }
-
-        // Mobile menu close
         if (e.target.closest('#close-mobile-menu')) {
             closeMobileMenu();
             return;
         }
-
-        // Search open - GENISLETILMIS SECICILER
         if (e.target.closest('#search-open-btn, .search-trigger, [data-action="open-search"], .header-search-icon, .fa-magnifying-glass, .fa-search')) {
             e.preventDefault();
             openSearchPopup();
             return;
         }
-
-        // Search close (X button)
         if (e.target.closest('#close-search-popup')) {
             e.preventDefault();
             e.stopPropagation();
             closeSearchPopup();
             return;
         }
-
-        // Overlay clicks
         if (e.target.id === 'mini-cart-overlay') {
             closeMiniCart();
             return;
@@ -731,15 +568,11 @@ function initEventListeners() {
             return;
         }
     });
-
-    // --- Mini cart item actions (delegation) ---
     document.addEventListener('click', (e) => {
         const filledState = document.getElementById('cart-filled-state');
         if (!filledState || !filledState.contains(e.target)) return;
-
         const removeBtn = e.target.closest('.remove-item-btn');
         const qtyBtn = e.target.closest('.quantity-btn');
-
         if (removeBtn) {
             const id = removeBtn.getAttribute('data-id');
             if (id) {
@@ -755,8 +588,6 @@ function initEventListeners() {
             }
         }
     });
-
-    // --- ESC key ---
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             closeMiniCart();
@@ -764,15 +595,12 @@ function initEventListeners() {
             closeSearchPopup();
         }
     });
-
-    // --- Init search ---
     initSearch();
-
     console.log('Tum event listenerlar basariyla baglandi!');
 }
 
 // ==========================================
-// BREADCRUMB - DOM yuklendikten sonra calisir
+// BREADCRUMB - DUZELTILMIS v8.6
 // ==========================================
 
 function initBreadcrumb() {
@@ -784,32 +612,62 @@ function initBreadcrumb() {
         return;
     }
 
+    // Eger nav zaten doluysa (ornek: product.html kendi doldurduysa), dokunma
+    if (nav.innerHTML.trim() !== '' && nav.querySelector('ol')) {
+        console.log('[Breadcrumb] Zaten dolu, atlaniyor.');
+        return;
+    }
+
     const path = window.location.pathname;
     const urlParams = new URLSearchParams(window.location.search);
     const crumbs = [{ name: 'Hem', url: '/' }];
 
-    // Kategori sayfalari
-    if (path.includes('category') || path.includes('kategori') || path.includes('mattor') || document.getElementById('category-main-title')) {
-        crumbs.push({ name: 'Alla Mattor', url: '/produkt-kategori/alla-mattor/' });
-        const cat = urlParams.get('kategori');
-        if (cat) {
-            const catNames = {
-                'vardagsrum': 'Vardagsrum',
-                'sovrum': 'Sovrum',
-                'kok': 'Kok',
-                'moderna': 'Moderna Mattor',
-                'orientaliska': 'Orientaliska Mattor'
-            };
-            crumbs.push({ name: catNames[cat] || cat, url: '#' });
+    // ========== KATEGORI SAYFALARI (Once kontrol et - daha spesifik) ==========
+    const isCategoryPage = document.getElementById('category-main-title') !== null ||
+                           path === '/mattor/' ||
+                           path === '/metervara/' ||
+                           path === '/gangmattor/' ||
+                           path === '/badrumsmattor/' ||
+                           path === '/gardiner/' ||
+                           path === '/rea/' ||
+                           path.includes('kategori');
+
+    if (isCategoryPage) {
+        let catName = 'Produkter';
+        let catUrl = path;
+
+        // Bilinen kategoriler
+        if (path === '/mattor/') catName = 'Mattor';
+        else if (path === '/metervara/') catName = 'Metervara';
+        else if (path === '/gangmattor/') catName = 'Gangmattor';
+        else if (path === '/badrumsmattor/') catName = 'Badrumsmattor';
+        else if (path === '/gardiner/') catName = 'Gardiner';
+        else if (path === '/rea/') catName = 'REA';
+        else if (document.getElementById('category-main-title')) {
+            // Sayfa basligindan al
+            catName = document.getElementById('category-main-title').textContent.trim();
+        } else {
+            // URL son kismindan cikar
+            const pathParts = path.split('/').filter(p => p);
+            if (pathParts.length > 0) {
+                catName = pathParts[pathParts.length - 1]
+                    .replace(/-/g, ' ')
+                    .replace(/\b\w/g, l => l.toUpperCase());
+            }
         }
+
+        crumbs.push({ name: catName, url: '#' });
     }
-    // Urun detay sayfalari
-    else if (path.includes('product') || path.includes('produkt') || path.includes('matta') || document.getElementById('product-main-name-desktop')) {
-        crumbs.push({ name: 'Alla Mattor', url: '/produkt-kategori/alla-mattor/' });
+    // ========== URUN SAYFALARI (Sadece /produkt/ altindaki sayfalar) ==========
+    else if (path.startsWith('/produkt/')) {
+        crumbs.push({ name: 'Alla Mattor', url: '/mattor/' });
         const productName = document.getElementById('product-main-name-desktop')?.textContent?.trim();
-        crumbs.push({ name: (productName && productName !== '---') ? productName : 'Produkt', url: '#' });
+        crumbs.push({
+            name: (productName && productName !== '---') ? productName : 'Produkt',
+            url: '#'
+        });
     }
-    // Wishlist sayfasi
+    // ========== WISHLIST ==========
     else if (path.includes('wishlist') || path.includes('favoriter')) {
         crumbs.push({ name: 'Mina Favoriter', url: '#' });
     }
@@ -828,66 +686,47 @@ function initBreadcrumb() {
 }
 
 // ==========================================
-// OTOMATIK BASLATMA - RACE CONDITION FIX
+// OTOMATIK BASLATMA
 // ==========================================
 
 window.__dkInitAllDone = false;
 
 function initAll() {
-    // Cift calismayi engelle
     if (window.__dkInitAllDone) {
         console.log('[Init] initAll zaten calisti, atlaniyor.');
         return;
     }
     window.__dkInitAllDone = true;
-
     console.log('[Init] common.js initAll baslatiliyor...');
-
-    // 1. Event listenerlar (cache flag kontrollu)
     initEventListeners();
-
-    // 2. Badge'ler (HER ZAMAN, flag'den bagimsiz)
     initBadgesWithRetry();
-
-    // 3. MutationObserver (DOM degisikliklerini izle)
     observeBadgeElements();
-
-    // 4. Breadcrumb (DOM yuklendikten sonra)
     initBreadcrumb();
-
     console.log('[Init] common.js initAll tamamlandi.');
 }
 
-// Sayfa yuklenme durumuna gore baslat
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initAll);
 } else {
     initAll();
 }
 
-// Ek guvenlik: window.load'da sadece eksik olanlari dene
 window.addEventListener('load', () => {
     console.log('[Init] window.load eventi...');
-
-    // Badge kontrolu
     if (!window.__dkBadgeInitDone) {
         console.log('[Init] Badge init yapilmamis, retry baslatiliyor...');
         initBadgesWithRetry(10, 50);
     }
-
-    // Search init kontrolu
     const input = document.getElementById('live-search-input');
     if (input && !input._searchInitialized) {
         console.log('[Init] Search init yapilmamis, retry baslatiliyor...');
         initSearch();
     }
-
-    // Breadcrumb kontrolu (header dinamik yuklenirse)
     const nav = document.getElementById('breadcrumb-nav');
-    if (nav && nav.innerHTML === '') {
+    if (nav && nav.innerHTML.trim() === '') {
         console.log('[Init] Breadcrumb bos, retry baslatiliyor...');
         initBreadcrumb();
     }
 });
 
-console.log('common.js v8.5 yuklendi - Breadcrumb fix, URL tutarliligi');
+console.log('common.js v8.6 yuklendi - Breadcrumb fix v2');
