@@ -95,14 +95,14 @@ async function initProductPage() {
     const path = window.location.pathname;
     const parts = path.split('/').filter(p => p);
 
-    // YENI FORMAT: /produkt/slug-adi
+    // NORMAL ROUTER: /produkt/slug-adi
     if (parts.length >= 2 && parts[0] === 'produkt') {
         slug = parts[1];
         if (slug === 'index.html') slug = null;
         else console.log("Slug pathname'den bulundu:", slug);
     }
 
-    // ESKI FORMAT: ?id=xxx (sadece bu yönlendirme kalsın)
+    // ESKI ?id=xxx FORMATI (sadece bu yönlendirme kalsın)
     if (!slug) {
         const urlParams = new URLSearchParams(window.location.search);
         const idParam = urlParams.get('id');
@@ -121,6 +121,9 @@ async function initProductPage() {
     }
 
     console.log("Final Slug:", slug);
+    
+    // ... gerisi aynı kalıyor
+}
 
         try {
             // Duz cekme (embed olmadan)
