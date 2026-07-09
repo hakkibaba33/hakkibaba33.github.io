@@ -4,20 +4,13 @@
   <meta charset="utf-8">
   <title>Redirecting...</title>
   <script>
-    // Hash router'ı kaldır, normal URL'ye yönlendir
+    // Eski hash router'ı kaldır, normal URL'ye yönlendir
     if (window.location.hash && window.location.hash.startsWith('#/')) {
       var cleanPath = window.location.hash.replace('#', '');
       window.location.replace(cleanPath);
     } else {
-      // Normal URL, /produkt/index.html'e git
-      var path = window.location.pathname;
-      if (path.startsWith('/produkt/')) {
-        window.location.href = '/produkt/index.html?slug=' + encodeURIComponent(path.replace('/produkt/', ''));
-      } else if (path.startsWith('/mattor/')) {
-        window.location.href = '/mattor/index.html';
-      } else {
-        window.location.href = '/index.html';
-      }
+      // Normal 404, ana sayfaya git
+      window.location.href = '/';
     }
   </script>
 </head>
