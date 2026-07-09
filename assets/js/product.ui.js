@@ -90,42 +90,27 @@ async function initProductPage() {
     console.log("Urun sayfasi init basliyor...");
     console.log("Full URL:", window.location.href);
     console.log("Pathname:", window.location.pathname);
-    console.log("Search:", window.location.search);
-
-    const urlParams = new URLSearchParams(window.location.search);
-    const path = window.location.pathname;
-    const isBaseProductRoute = (path === '/produkt/' || path === '/produkt/index.html' || path === '/produkt');
 
     let slug = null;
-
-    // ==========================================
-    // 1) ESKI ?id=xxx FORMATI → /produkt/<slug>
-    // ==========================================
-    const idParam = urlParams.get('id');
-    if (idParam && isBaseProductRoute) {
-        console.log("Eski ?id= formati tespit edildi, yonlendiriliyor. ID:", idParam);
-        await redirectFromIdToSlug(idParam);
-        return;
-    }
-
-    // ==========================================
-    // 2) ESKI ?slug=xxx FORMATI → /produkt/<slug>
-    // ==========================================
-    const slugParam = urlParams.get('slug');
-    if (slugParam && isBaseProductRoute) {
-        console.log("Eski ?slug= formati tespit edildi, yonlendiriliyor:", slugParam);
-        window.location.replace(`/produkt/${encodeURIComponent(slugParam)}`);
-        return;
-    }
-
-    // ==========================================
-    // 3) YENI URL FORMATINDAN SLUG AL (/produkt/slug-adi)
-    // ==========================================
+    const path = window.location.pathname;
     const parts = path.split('/').filter(p => p);
+
+    // YENI FORMAT: /produkt/slug-adi
     if (parts.length >= 2 && parts[0] === 'produkt') {
         slug = parts[1];
         if (slug === 'index.html') slug = null;
         else console.log("Slug pathname'den bulundu:", slug);
+    }
+
+    // ESKI FORMAT: ?id=xxx (sadece bu yönlendirme kalsın)
+    if (!slug) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const idParam = urlParams.get('id');
+        if (idParam) {
+            console.log("Eski ?id= formati, yonlendiriliyor. ID:", idParam);
+            await redirectFromIdToSlug(idParam);
+            return;
+        }
     }
 
     if (!slug) {
