@@ -672,17 +672,6 @@ function initEventListeners() {
     // --- Header scroll effect ---
     initHeaderScroll();
 
-    // --- Document-level click delegation ---
-    document.addEventListener('click', (e) => {
-        // Hash router varsa (/#/produkt gibi) ürün linkleri için tarayici yönlendirmesini bozma.
-        // Bazı elementler yanlışlıkla bu delegation kapsamına girip / ana sayfaya düşebiliyor.
-        if (window.location.hash && window.location.hash.includes('/produkt/')) {
-            // Wishlist butonlari bu kontrolün dışında kalsin (zaten kendi stopPropagation var).
-            // Link tıklamalarını hash router'ın normal akışına bırakıyoruz.
-            if (!e.target.closest('.wishlist-btn')) {
-                return;
-            }
-        }
 
         // Mini cart open - GENISLETILMIS SECICILER
         if (e.target.closest('#open-mini-cart-btn, .cart-icon-wrapper, .fa-shopping-bag, .cart-trigger, [data-action="open-cart"], .header-cart-icon')) {
