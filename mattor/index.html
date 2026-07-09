@@ -8,10 +8,11 @@
     <link rel="stylesheet" href="/assets/css/common.css">
     <link rel="stylesheet" href="/assets/css/category.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<base target="_blank">
 </head>
 <body>
 
-    
+
     <!-- Header -->
     <div id="header-placeholder"></div>
 
@@ -114,12 +115,12 @@
         <div class="drawer-panel main-panel" id="main-panel">
             <!-- JS ile dolduruluyor -->
         </div>
-        
+
         <!-- ALT PANEL: Renk grid -->
         <div class="drawer-panel sub-panel" id="color-sub-panel">
             <!-- JS ile dolduruluyor -->
         </div>
-        
+
         <!-- ALT PANEL: Storlek grid -->
         <div class="drawer-panel sub-panel" id="size-sub-panel">
             <!-- JS ile dolduruluyor -->
@@ -181,6 +182,11 @@
 
                 if (typeof initEventListeners === 'function') {
                     initEventListeners();
+                }
+
+                // BREADCRUMB FIX: Header yuklendikten sonra calistir
+                if (typeof initBreadcrumb === 'function') {
+                    initBreadcrumb();
                 }
             } catch (err) {
                 console.error('Header/footer yuklenemedi:', err);
