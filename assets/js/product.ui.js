@@ -802,6 +802,63 @@ async function initProductPage() {
         }
     };
 
+        // ==========================================
+    // SEPETE EKLE
+    // ==========================================
+
+    function setupAddToCart(fields) {
+        const btn = document.getElementById('add-to-cart-btn');
+        if (!btn) return;
+
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            if (!selectedVariant) {
+                alert('Välj storlek först');
+                return;
+            }
+
+            const cartItem = {
+                id: currentProduct.id,
+                name: fields.Name,
+                price: getDisplayPrice(currentProduct, selectedVariant),
+                image: currentImages.length > 0 ? currentImages[0] : '',
+                variants: selectedVariant.size,
+                delivery: fields.Delivery_time || '3-7 arbetsdagar',
+                quantity: 1
+            };
+
+            let cart = JSON.parse(localStorage.getItem('siteCartItems')) || [];
+            const existing = cart.find(item => 
+                String(item.id) === String(cartItem.id) && item.variants === cartItem.variants
+            );
+
+            if (existing) {
+                existing.quantity = (existing.quantity || 1) + 1;
+            } else {
+                cart.push(cartItem);
+            }
+
+            localStorage.setItem('siteCartItems', JSON.stringify(cart));
+
+            // Badge güncelle
+            if (typeof updateCartBadge === 'function') {
+                updateCartBadge();
+            }
+
+            // Mini cart aç
+            if (typeof openMiniCart === 'function') {
+                openMiniCart();
+            }
+
+            console.log('Sepete eklendi:', fields.Name, selectedVariant.size);
+        });
+    }
+      
+    
+    
+
     // ==========================================
     // BASLAT
     // ==========================================
