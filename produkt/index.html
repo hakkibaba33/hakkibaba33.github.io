@@ -22,6 +22,7 @@ if (window.location.hash && window.location.hash.includes('/produkt/')) {
 
 
     
+<base target="_blank">
 </head>
 <body>
 
@@ -238,5 +239,332 @@ if (window.location.hash && window.location.hash.includes('/produkt/')) {
     <script src="/assets/js/config.js"></script>
     <script src="/assets/js/common.js"></script>
     <script src="/assets/js/product.ui.js?v=999"></script>
+
+
+<!-- ============================================ -->
+<!-- SUPABASE PRODUCT DATA LOADER -->
+<!-- Admin panelden girilen verileri çekip sayfaya yerleştirir -->
+<!-- ============================================ -->
+<script>
+(function() {
+    "use strict";
+
+    // ==================== SUPABASE CONFIG (Admin panel ile aynı) ====================
+    const SUPABASE_URL = 'https://mowyhsssmpjrwxzvelax.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_Fp4Nstc2lpCPNL-5OHPU8w_KD0AC6xf';
+
+    // ==================== MINIMAL SUPABASE CLIENT ====================
+    function SupabaseClient(url, key) {
+        this.url = url.replace(/\/$/, '');
+        this.key = key;
+        this.headers = {
+            'apikey': key,
+            'Authorization': 'Bearer ' + key,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=representation'
+        };
+    }
+
+    SupabaseClient.prototype._request = function(method, path, body, opts) {
+        opts = opts || {};
+        var headers = Object.assign({}, this.headers);
+        if (opts.headers) Object.assign(headers, opts.headers);
+
+        var url = this.url + path;
+        var options = { method: method, headers: headers };
+        if (body !== null && body !== undefined) options.body = JSON.stringify(body);
+
+        return fetch(url, options).then(function(res) {
+            return res.json().then(function(data) {
+                if (!res.ok) {
+                    var err = new Error(data.message || data.error_description || 'Request failed');
+                    err.status = res.status;
+                    err.data = data;
+                    throw err;
+                }
+                return { data: data, error: null };
+            }).catch(function(e) {
+                if (e.status) throw e;
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                return { data: null, error: null };
+            });
+        });
+    };
+
+    function QueryBuilder(client, table) {
+        this.client = client;
+        this.table = table;
+        this.query = [];
+        this._order = '';
+        this._select = '*';
+    }
+
+    QueryBuilder.prototype.select = function(cols) { this._select = cols || '*'; return this; };
+    QueryBuilder.prototype.eq = function(col, val) { this.query.push(col + '=eq.' + encodeURIComponent(val)); return this; };
+    QueryBuilder.prototype.order = function(col, opts) { opts = opts || {}; this._order = col + '.' + (opts.ascending === false ? 'desc' : 'asc'); return this; };
+    QueryBuilder.prototype.limit = function(n) { this._limit = n; return this; };
+    QueryBuilder.prototype.then = function(onResolve, onReject) { return this.execute().then(onResolve, onReject); };
+    QueryBuilder.prototype.execute = function() {
+        var url = '/rest/v1/' + this.table + '?select=' + encodeURIComponent(this._select);
+        if (this.query.length) url += '&' + this.query.join('&');
+        if (this._order) url += '&order=' + this._order;
+        if (this._limit) url += '&limit=' + this._limit;
+        return this.client._request('GET', url, null, { headers: { 'Prefer': 'count=exact' } });
+    };
+
+    SupabaseClient.prototype.from = function(table) { return new QueryBuilder(this, table); };
+
+    function createClient(url, key) { return new SupabaseClient(url, key); }
+
+    // ==================== PRODUCT DATA LOADER ====================
+    async function loadProductData() {
+        try {
+            var sbClient = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+            // URL'den ürün slug'ını al
+            var pathParts = window.location.pathname.split('/');
+            var slug = pathParts[pathParts.length - 1] || pathParts[pathParts.length - 2];
+            if (!slug || slug === 'produkt') slug = new URLSearchParams(window.location.search).get('slug');
+            if (!slug) {
+                console.warn('Ürün slug bulunamadı');
+                return;
+            }
+
+            console.log('Ürün yükleniyor:', slug);
+
+            // Supabase'den ürünü çek
+            var res = await sbClient.from('products')
+                .select('*, product_variants(*)')
+                .eq('slug', slug)
+                .limit(1);
+
+            if (res.error) throw res.error;
+            if (!res.data || res.data.length === 0) {
+                console.warn('Ürün bulunamadı:', slug);
+                return;
+            }
+
+            var product = res.data[0];
+            console.log('Ürün yüklendi:', product.name);
+
+            // ==================== 1. BAŞLIK & MARKA ====================
+            var brandEl = document.querySelector('.brand-label-top');
+            var nameDesktop = document.getElementById('product-main-name-desktop');
+            var nameMobile = document.getElementById('product-main-name-mobile');
+            var pageTitle = document.getElementById('page-title-product-name');
+
+            if (brandEl && product.brand) brandEl.textContent = product.brand;
+            if (nameDesktop) nameDesktop.textContent = product.name || '---';
+            if (nameMobile) nameMobile.textContent = product.name || '---';
+            if (pageTitle) pageTitle.textContent = (product.name || 'Ürün') + ' | DKRUG';
+
+            // ==================== 2. FİYAT ====================
+            var priceEl = document.getElementById('product-price');
+            if (priceEl && product.base_price) {
+                var priceText = product.base_price + ' SEK';
+                if (product.discount_price) {
+                    priceEl.innerHTML = '<span style="text-decoration:line-through;color:#999;font-size:16px;margin-right:8px;">' + product.base_price + ' SEK</span><span style="color:#c9a96e;font-weight:700;">' + product.discount_price + ' SEK</span>';
+                } else {
+                    priceEl.textContent = priceText;
+                }
+            }
+
+            // ==================== 3. TESLİMAT SÜRESİ ====================
+            var deliveryText = document.getElementById('delivery-time-text');
+            var deliveryDisplay = document.getElementById('delivery-time-display');
+            if (deliveryText && product.delivery_time) deliveryText.textContent = 'Leveranstid: ' + product.delivery_time;
+            if (deliveryDisplay && product.delivery_time) deliveryDisplay.textContent = product.delivery_time;
+
+            // ==================== 4. AÇIKLAMA ALANLARI (AKORDİYONLAR) ====================
+            // 4.1 Produktbeskrivning (Ürün Açıklaması)
+            var descEl = document.getElementById('product-description');
+            if (descEl && product.description) {
+                descEl.innerHTML = product.description.replace(/\n/g, '<br>');
+            } else if (descEl) {
+                descEl.innerHTML = '<p style="color:#9ca3af;font-size:13px;">Ingen produktbeskrivning tillgänglig.</p>';
+            }
+
+            // 4.2 Produktinformation (Ürün Bilgisi)
+            var specsEl = document.getElementById('product-specs');
+            if (specsEl && product.product_info) {
+                specsEl.innerHTML = '<div class="specs-content-placeholder">' + product.product_info.replace(/\n/g, '<br>') + '</div>';
+            } else if (specsEl) {
+                specsEl.innerHTML = '<div class="specs-content-placeholder"><p>Material, skötselråd och övrig produktinformation visas här.</p></div>';
+            }
+
+            // 4.3 Leverans & Retur (Teslimat & İade)
+            var deliveryEl = document.getElementById('product-delivery');
+            if (deliveryEl && product.delivery_return) {
+                deliveryEl.innerHTML = '<div class="delivery-content-placeholder">' + product.delivery_return.replace(/\n/g, '<br>') + '</div>';
+            } else if (deliveryEl) {
+                var defaultDelivery = product.delivery_time || '3-7 arbetsdagar';
+                deliveryEl.innerHTML = '<div class="delivery-content-placeholder">' +
+                    '<p><strong>Leveranstid:</strong> ' + defaultDelivery + '</p>' +
+                    '<p><strong>Frakt:</strong> Fri frakt vid köp över 500 SEK</p>' +
+                    '<p><strong>Retur:</strong> 30 dagars öppet köp</p></div>';
+            }
+
+            // ==================== 5. TOOLTIP (Beden Ölçü Tablosu) ====================
+            var tooltipBody = document.getElementById('tooltip-body');
+            if (tooltipBody && product.size_tooltip) {
+                tooltipBody.innerHTML = product.size_tooltip.replace(/\n/g, '<br>');
+            } else if (tooltipBody) {
+                tooltipBody.innerHTML = '<p style="color:#666;font-size:13px;">Storleksinformation inte tillgänglig.</p>';
+            }
+
+            // ==================== 6. GÖRSELLER ====================
+            var allImages = [];
+            if (product.main_image_url) allImages.push(product.main_image_url);
+            if (product.images && Array.isArray(product.images)) allImages = allImages.concat(product.images);
+
+            if (allImages.length > 0) {
+                // Desktop galeri
+                var desktopGallery = document.getElementById('desktop-gallery');
+                if (desktopGallery) {
+                    desktopGallery.innerHTML = allImages.slice(0, 2).map(function(img, i) {
+                        return '<div class="desktop-gallery-item" style="cursor:pointer;" onclick="window.openLightbox(' + i + ')">' +
+                            '<img src="' + img + '" alt="' + (product.name || '') + '" style="width:100%;height:auto;object-fit:cover;border-radius:8px;">' +
+                            '</div>';
+                    }).join('');
+                }
+
+                // Mobile galeri
+                var mobileTrack = document.getElementById('mobile-gallery-track');
+                if (mobileTrack) {
+                    mobileTrack.innerHTML = allImages.map(function(img) {
+                        return '<div class="mobile-gallery-slide" style="flex:0 0 100%;">' +
+                            '<img src="' + img + '" alt="' + (product.name || '') + '" style="width:100%;height:auto;object-fit:cover;">' +
+                            '</div>';
+                    }).join('');
+                }
+
+                // Thumbnail'lar
+                var thumbList = document.getElementById('gallery-thumbnail-list');
+                if (thumbList) {
+                    thumbList.innerHTML = allImages.map(function(img, i) {
+                        return '<div class="gallery-thumb" onclick="window.setMainImage(' + i + ')" style="cursor:pointer;">' +
+                            '<img src="' + img + '" alt="" style="width:60px;height:60px;object-fit:cover;border-radius:6px;">' +
+                            '</div>';
+                    }).join('');
+                }
+
+                // Lightbox thumbnail'ları
+                var lightboxThumbs = document.getElementById('lightbox-thumb-list');
+                if (lightboxThumbs) {
+                    lightboxThumbs.innerHTML = allImages.map(function(img, i) {
+                        return '<div class="lightbox-thumb" onclick="window.setLightboxImage(' + i + ')" style="cursor:pointer;margin-bottom:8px;">' +
+                            '<img src="' + img + '" alt="" style="width:64px;height:64px;object-fit:cover;border-radius:6px;">' +
+                            '</div>';
+                    }).join('');
+                }
+            }
+
+            // ==================== 7. VARYANTLAR ====================
+            var variants = product.product_variants || [];
+            var drawerBody = document.getElementById('variant-drawer-body');
+            var selectedDisplay = document.getElementById('selected-variant-display');
+
+            if (drawerBody && variants.length > 0) {
+                drawerBody.innerHTML = variants.map(function(v, i) {
+                    var price = v.discount_price || v.price;
+                    var originalPrice = v.discount_price ? '<span style="text-decoration:line-through;color:#999;margin-right:6px;">' + v.price + ' SEK</span>' : '';
+                    var stockBadge = v.stock > 0 ? '<span style="color:#22c55e;font-size:11px;">✓ I lager (' + v.stock + ')</span>' : '<span style="color:#ef4444;font-size:11px;">✗ Slut i lager</span>';
+                    return '<div class="variant-option" data-variant-index="' + i + '" style="padding:12px;border:1px solid #e5e7eb;border-radius:8px;margin-bottom:8px;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor='#c9a96e'" onmouseout="this.style.borderColor='#e5e7eb'" onclick="window.selectVariant(' + i + ')">' +
+                        '<div style="display:flex;justify-content:space-between;align-items:center;">' +
+                        '<div><div style="font-weight:600;font-size:14px;">' + v.size + '</div>' + stockBadge + '</div>' +
+                        '<div style="text-align:right;">' + originalPrice + '<span style="font-weight:700;">' + price + ' SEK</span></div>' +
+                        '</div></div>';
+                }).join('');
+            } else if (drawerBody) {
+                drawerBody.innerHTML = '<p style="text-align:center;color:#9ca3af;padding:20px;">Inga storlekar tillgängliga.</p>';
+            }
+
+            // Global varyant seçimi
+            window._productVariants = variants;
+            window._selectedVariant = null;
+
+            // ==================== 8. BREADCRUMB ====================
+            var breadcrumb = document.getElementById('breadcrumb-nav');
+            if (breadcrumb && product.categories && product.categories.length > 0) {
+                var catName = Array.isArray(product.categories) ? product.categories[0] : product.categories;
+                breadcrumb.innerHTML = '<ol style="display:flex;list-style:none;padding:0;margin:0;gap:8px;font-size:13px;color:#666;">' +
+                    '<li><a href="/" style="color:#666;text-decoration:none;">Hem</a></li>' +
+                    '<li style="color:#ccc;">/</li>' +
+                    '<li><a href="/kategori/' + catName.toLowerCase() + '" style="color:#666;text-decoration:none;">' + catName + '</a></li>' +
+                    '<li style="color:#ccc;">/</li>' +
+                    '<li style="color:#333;font-weight:500;">' + (product.name || '') + '</li></ol>';
+            }
+
+            console.log('Ürün sayfası başarıyla yüklendi:', product.name);
+
+        } catch (err) {
+            console.error('Ürün yükleme hatası:', err);
+        }
+    }
+
+    // ==================== GLOBAL FONKSİYONLAR ====================
+    window.selectVariant = function(index) {
+        var variants = window._productVariants || [];
+        if (!variants[index]) return;
+        window._selectedVariant = variants[index];
+
+        var display = document.getElementById('selected-variant-display');
+        var status = document.getElementById('variant-status');
+        var sizeDisplay = document.querySelector('.selected-size-display');
+
+        if (display) display.textContent = variants[index].size;
+        if (status) status.style.display = 'inline-block';
+        if (sizeDisplay) sizeDisplay.textContent = variants[index].size;
+
+        // Drawer'ı kapat
+        var drawer = document.getElementById('variant-drawer');
+        var overlay = document.getElementById('variant-drawer-overlay');
+        if (drawer) drawer.style.transform = 'translateY(100%)';
+        if (overlay) overlay.style.opacity = '0';
+        setTimeout(function() { if (overlay) overlay.style.display = 'none'; }, 300);
+    };
+
+    window.setMainImage = function(index) {
+        var img = document.querySelectorAll('.desktop-gallery-item img')[index];
+        if (img) {
+            var mainImg = document.querySelector('.desktop-gallery-item:first-child img');
+            if (mainImg) mainImg.src = img.src;
+        }
+    };
+
+    window.setLightboxImage = function(index) {
+        var lightboxImg = document.getElementById('lightbox-main-img');
+        var allImages = [];
+        var product = window._currentProduct;
+        if (product) {
+            if (product.main_image_url) allImages.push(product.main_image_url);
+            if (product.images) allImages = allImages.concat(product.images);
+        }
+        if (lightboxImg && allImages[index]) {
+            lightboxImg.src = allImages[index];
+            window._currentLightboxIndex = index;
+            var counter = document.getElementById('lightbox-counter');
+            if (counter) counter.textContent = (index + 1) + ' / ' + allImages.length;
+        }
+    };
+
+    window.openLightbox = function(index) {
+        var lightbox = document.getElementById('custom-lightbox');
+        if (lightbox) {
+            lightbox.style.display = 'flex';
+            window.setLightboxImage(index);
+        }
+    };
+
+    // Sayfa yüklendiğinde ürün verisini çek
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', loadProductData);
+    } else {
+        loadProductData();
+    }
+
+})();
+</script>
+
 </body>
 </html>
