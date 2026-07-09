@@ -142,7 +142,7 @@ if (window.__productPageInitialized) {
             if (slug === 'index.html') slug = null;
             else console.log("Slug pathname'den bulundu:", slug);
         }
-    }
+    
 
 
         if (!slug) {
