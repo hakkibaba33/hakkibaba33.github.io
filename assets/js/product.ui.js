@@ -794,7 +794,7 @@ async function initProductPage() {
         if (overlay) overlay.onclick = (e) => { if (e.target === overlay) closeVariantDrawer(); };
     }
 
-    window.selectVariant = function(index) {
+      window.selectVariant = function(index) {
         selectedVariant = currentVariants[index];
         document.querySelectorAll('.variant-drawer-item').forEach((item, i) => {
             item.classList.toggle('selected', i === index);
@@ -808,3 +808,14 @@ async function initProductPage() {
         }
     };
 
+    // ==========================================
+    // BASLAT
+    // ==========================================
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initProductPage);
+    } else {
+        initProductPage();
+    }
+
+}
