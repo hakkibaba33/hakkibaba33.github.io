@@ -128,16 +128,21 @@ if (window.__productPageInitialized) {
         // ==========================================
 
         let slug = null;
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    // Önce URL parametresindeki (?slug=...) değerini kontrol et
+    if (urlParams.get('slug')) {
+        slug = urlParams.get('slug');
+        console.log("Slug URL parametresinden bulundu:", slug);
+    } else {
+        // Eğer parametrede yoksa pathname'den (/produkt/slug-adi) bulmaya çalış
         const parts = window.location.pathname.split('/').filter(p => p);
-
-        // /produkt/<slug>
         if (parts.length >= 2 && parts[0] === 'produkt') {
-            // Bazı durumlarda yanlışlıkla /produkt/slug/xxx gibi gelebilir.
-            // Bu durumda sadece ilk slug segmentini alıyoruz.
             slug = parts[1];
             if (slug === 'index.html') slug = null;
             else console.log("Slug pathname'den bulundu:", slug);
         }
+    }
 
 
         if (!slug) {
