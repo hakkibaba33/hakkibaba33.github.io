@@ -788,19 +788,60 @@ async function initProductPage() {
         if (overlay) overlay.onclick = (e) => { if (e.target === overlay) closeVariantDrawer(); };
     }
 
-      window.selectVariant = function(index) {
-        selectedVariant = currentVariants[index];
-        document.querySelectorAll('.variant-drawer-item').forEach((item, i) => {
-            item.classList.toggle('selected', i === index);
-            const icon = item.querySelector('.variant-check i');
-            if (icon) icon.className = i === index ? 'fa-solid fa-check-circle' : 'fa-regular fa-circle';
-        });
+window.selectVariant = function(index) {
+    selectedVariant = currentVariants[index];
+    
+    // Drawer'ı kapat
+    closeVariantDrawer();
+    
+    // Görsel güncelleme
+    document.querySelectorAll('.variant-drawer-item').forEach((item, i) => {
+        item.classList.toggle('selected', i === index);
+        const icon = item.querySelector('.variant-check i');
+        if (icon) icon.className = i === index ? 'fa-solid fa-check-circle' : 'fa-regular fa-circle';
+    });
 
-        const display = document.getElementById('selected-variant-display');
-        if (display && selectedVariant) {
-            display.textContent = selectedVariant.size;
+    // Seçilen varyantı göster
+    const display = document.getElementById('selected-variant-display');
+    if (display && selectedVariant) {
+        display.textContent = selectedVariant.size;
+    }
+    
+    // Varyant durumunu göster
+    const status = document.getElementById('variant-status');
+    if (status) {
+        status.style.display = 'inline';
+        status.textContent = 'Vald';
+    }
+    
+    // Akordiyon alt başlığını güncelle
+    const accordionSubtitle = document.querySelector('.accordion-subtitle');
+    if (accordionSubtitle && selectedVariant) {
+        accordionSubtitle.textContent = selectedVariant.size;
+    }
+    
+    // Fiyatı güncelle
+    const priceEl = document.getElementById('product-price');
+    if (priceEl && selectedVariant) {
+        const displayPrice = getDisplayPrice(currentProduct, selectedVariant);
+        const originalPrice = getOriginalPrice(currentProduct, selectedVariant);
+        const hasDiscount = selectedVariant.discount_price && selectedVariant.discount_price < selectedVariant.price;
+        
+        if (hasDiscount) {
+            priceEl.innerHTML = '<span style="text-decoration:line-through;color:#999;font-size:18px;margin-right:8px;">' + originalPrice + ' SEK</span>' +
+                               '<span style="color:#e54d42;font-size:24px;font-weight:bold;">' + displayPrice + ' SEK</span>';
+        } else {
+            priceEl.textContent = displayPrice + " SEK";
         }
-    };
+    }
+    
+    // Ürün alt başlığını güncelle (tooltip alanı)
+    if (typeof updateProductSubtitle === 'function' && selectedVariant) {
+        updateProductSubtitle(selectedVariant);
+    }
+    
+    console.log('Varyant seçildi:', selectedVariant.size, 'Fiyat:', getDisplayPrice(currentProduct, selectedVariant));
+};
 
         // ==========================================
     // SEPETE EKLE
