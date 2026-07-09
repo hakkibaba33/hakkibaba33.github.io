@@ -807,7 +807,4 @@ async function initProductPage() {
             display.textContent = selectedVariant.size;
         }
     };
-}
 
-// Dosyanın EN SONUNDA olmalı:
-document.addEventListener('DOMContentLoaded', initProductPage);
