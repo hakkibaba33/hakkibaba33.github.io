@@ -123,27 +123,26 @@ if (window.__productPageInitialized) {
             }
         }
 
-        // ==========================================
+       // ==========================================
         // YENI URL FORMATINDAN SLUG AL
         // ==========================================
 
         let slug = null;
-    const urlParams = new URLSearchParams(window.location.search);
-    
-    // Önce URL parametresindeki (?slug=...) değerini kontrol et
-    if (urlParams.get('slug')) {
-        slug = urlParams.get('slug');
-        console.log("Slug URL parametresinden bulundu:", slug);
-    } else {
-        // Eğer parametrede yoksa pathname'den (/produkt/slug-adi) bulmaya çalış
-        const parts = window.location.pathname.split('/').filter(p => p);
-        if (parts.length >= 2 && parts[0] === 'produkt') {
-            slug = parts[1];
-            if (slug === 'index.html') slug = null;
-            else console.log("Slug pathname'den bulundu:", slug);
-        }
-    
-
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        // Önce URL parametresindeki (?slug=...) değerini kontrol et
+        if (urlParams.get('slug')) {
+            slug = urlParams.get('slug');
+            console.log("Slug URL parametresinden bulundu:", slug);
+        } else {
+            // Eğer parametrede yoksa pathname'den (/produkt/slug-adi) bulmaya çalış
+            const parts = window.location.pathname.split('/').filter(p => p);
+            if (parts.length >= 2 && parts[0] === 'produkt') {
+                slug = parts[1];
+                if (slug === 'index.html') slug = null;
+                else console.log("Slug pathname'den bulundu:", slug);
+            }
+        } // <-- Eksik olan ve hataya sebep olan kapatma parantezi buradaydı
 
         if (!slug) {
             console.error("Slug bulunamadi! URL:", window.location.href);
@@ -280,7 +279,7 @@ if (window.__productPageInitialized) {
         const el = document.getElementById(id);
         if (el) { el.innerHTML = ''; el.innerHTML = html || ''; }
     }
-
+        
     // ==========================================
     // WISHLIST / FAVORI - ID FIX
     // ==========================================
