@@ -1,5 +1,5 @@
 // ==========================================
-// PRODUCT.UI.JS - SUPABASE UYUMLU (v3.2 - SLUG ROUTING FIX)
+// PRODUCT.UI.JS - SUPABASE UYUMLU (v3.3 - FIXED)
 // Eski Airtable yapısını koru, sadece API Supabase'e çevrildi
 // YENI: Eski URL formatlarını yeni slug-based URL'lere yönlendirme
 // ==========================================
@@ -123,14 +123,13 @@ if (window.__productPageInitialized) {
             }
         }
 
-// ==========================================
-        // YENI URL FORMATINDAN SLUG AL
+        // ==========================================
+        // YENI URL FORMATINDAN SLUG AL (ÇAKIŞMASIZ)
         // ==========================================
 
         let slug = null;
-        const urlParams = new URLSearchParams(window.location.search);
         
-        // Önce URL parametresindeki (?slug=...) değerini kontrol et
+        // Üstte zaten urlParams tanımlandığı için direkt onu kullanıyoruz (tekrar const yazmadık)
         if (urlParams.get('slug')) {
             slug = urlParams.get('slug');
             console.log("Slug URL parametresinden bulundu:", slug);
@@ -142,7 +141,7 @@ if (window.__productPageInitialized) {
                 if (slug === 'index.html') slug = null;
                 else console.log("Slug pathname'den bulundu:", slug);
             }
-        } // <-- Eksik olan ve hataya sebep olan kapatma parantezi buradaydı
+        }
 
         if (!slug) {
             console.error("Slug bulunamadi! URL:", window.location.href);
@@ -222,7 +221,7 @@ if (window.__productPageInitialized) {
             setHTML('product-delivery', f.Delivery_return ? '<div class="delivery-content-placeholder">' + f.Delivery_return.split('\n').join('<br>') + '</div>' : '<div class="delivery-content-placeholder"><p><strong>Leveranstid:</strong> <span id="delivery-time-display">' + f.Delivery_time + '</span></p><p><strong>Frakt:</strong> Fri frakt vid köp över 500 SEK</p><p><strong>Retur:</strong> 30 dagars öppet köp</p></div>');
 
             // Tooltip'i baslat
-            setupSizeTooltip(f.Size_tooltip, f.Variants);
+            if (typeof setupSizeTooltip === 'function') setupSizeTooltip(f.Size_tooltip, f.Variants);
 
             // Gorseller
             currentImages = p.images || [];
@@ -247,20 +246,20 @@ if (window.__productPageInitialized) {
                 // Baslangicta en kucuk fiyatli varyanti otomatik sec
                 selectVariant(0);
                 // Baslangicta en kucuk varyasyonun olcusunu urun isminin altinda goster
-                updateProductSubtitle(currentVariants[0]);
+                if (typeof updateProductSubtitle === 'function') updateProductSubtitle(currentVariants[0]);
             } else {
                 const el = document.getElementById('variant-accordion-wrapper');
                 if (el) el.style.display = 'none';
             }
 
             // Lightbox (sadece masaustu)
-            if (!isMobile) setupLightbox();
+            if (!isMobile && typeof setupLightbox === 'function') setupLightbox();
 
             // Akordiyonlar
-            setupAccordions();
+            if (typeof setupAccordions === 'function') setupAccordions();
 
             // Sepete ekle
-            setupAddToCart(f);
+            if (typeof setupAddToCart === 'function') setupAddToCart(f);
             setupWishlistButton(f);
 
             console.log("Urun sayfasi yuklendi:", f.Name);
@@ -506,7 +505,6 @@ if (window.__productPageInitialized) {
     // LIGHTBOX (Sadece Masaustu)
     // ==========================================
 
-    // PAN DEGISKENLERI
     let isPanning = false;
     let panStartX = 0;
     let panStartY = 0;
@@ -518,21 +516,17 @@ if (window.__productPageInitialized) {
         const prevBtn = document.getElementById('lightbox-prev');
         const nextBtn = document.getElementById('lightbox-next');
         const imgContainer = document.getElementById('lightbox-img-container');
-        const imgWrapper = document.getElementById('lightbox-img-wrapper');
 
         if (closeBtn) closeBtn.onclick = closeLightbox;
         if (prevBtn) prevBtn.onclick = () => navigateLightbox(-1);
         if (nextBtn) nextBtn.onclick = () => navigateLightbox(1);
 
-        // Zoom (cift tiklama)
         if (imgContainer) {
             imgContainer.addEventListener('dblclick', toggleZoom);
         }
 
-        // PAN OLAYLARINI BASLAT
         setupPanEvents();
 
-        // Klavye navigasyonu
         document.addEventListener('keydown', (e) => {
             const overlay = document.getElementById('custom-lightbox');
             if (!overlay?.classList.contains('active')) return;
@@ -589,7 +583,6 @@ if (window.__productPageInitialized) {
         if (prevBtn) prevBtn.disabled = selectedImageIndex === 0;
         if (nextBtn) nextBtn.disabled = selectedImageIndex === currentImages.length - 1;
 
-        // Zoom'u ve pan'i resetle
         isZoomed = false;
         resetPan();
         const wrapper = document.getElementById('lightbox-img-wrapper');
@@ -598,15 +591,10 @@ if (window.__productPageInitialized) {
             wrapper.style.transform = '';
         }
 
-        // Thumbnail'lari guncelle
         document.querySelectorAll('.lightbox-thumb-item-container').forEach((thumb, i) => {
             thumb.classList.toggle('selected', i === selectedImageIndex);
         });
     }
-
-    // ==========================================
-    // ZOOM & PAN (Surukle-Birak ile Gezinme)
-    // ==========================================
 
     function toggleZoom() {
         if (isMobile) return;
@@ -696,19 +684,15 @@ if (window.__productPageInitialized) {
     }
 
     function limitPanBounds() {
-        const wrapper = document.getElementById('lightbox-img-wrapper');
         const container = document.getElementById('lightbox-img-container');
         const img = document.getElementById('lightbox-main-img');
-        if (!wrapper || !container || !img) return;
+        if (!container || !img) return;
 
         const containerRect = container.getBoundingClientRect();
         const imgRect = img.getBoundingClientRect();
 
-        const zoomedWidth = imgRect.width;
-        const zoomedHeight = imgRect.height;
-
-        const overflowX = Math.max(0, (zoomedWidth - containerRect.width) / 2);
-        const overflowY = Math.max(0, (zoomedHeight - containerRect.height) / 2);
+        const overflowX = Math.max(0, (imgRect.width - containerRect.width) / 2);
+        const overflowY = Math.max(0, (imgRect.height - containerRect.height) / 2);
 
         panTranslateX = Math.max(-overflowX, Math.min(overflowX, panTranslateX));
         panTranslateY = Math.max(-overflowY, Math.min(overflowY, panTranslateY));
@@ -743,19 +727,21 @@ if (window.__productPageInitialized) {
     };
 
     // ==========================================
-    // VARYASYON (Ayni kaliyor)
+    // VARYASYON
     // ==========================================
 
     function setupVariantAccordion() {
         const btn = document.getElementById('variant-accordion-btn');
         if (!btn) return;
         const newBtn = btn.cloneNode(true);
-        btn.parentNode.replaceChild(newBtn, btn);
-        newBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            openVariantDrawer();
-        });
+        if (btn.parentNode) {
+            btn.parentNode.replaceChild(newBtn, btn);
+            newBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                openVariantDrawer();
+            });
+        }
     }
 
     function openVariantDrawer() {
@@ -832,442 +818,8 @@ if (window.__productPageInitialized) {
         });
 
         const display = document.getElementById('selected-variant-display');
-        const status = document.getElementById('variant-status');
-        const priceDisplay = document.getElementById('product-price');
-
-        if (display) display.innerText = selectedVariant.size;
-        if (status) status.style.display = 'inline-flex';
-
-        // Fiyati guncelle
-        if (priceDisplay) {
-            const displayPrice = getDisplayPrice(currentProduct, selectedVariant);
-            const originalPrice = getOriginalPrice(currentProduct, selectedVariant);
-            const hasDiscount = selectedVariant.discount_price && selectedVariant.discount_price < selectedVariant.price;
-
-            if (hasDiscount) {
-                priceDisplay.innerHTML = '<span style="text-decoration:line-through;color:#999;font-size:18px;margin-right:8px;">' + originalPrice + ' SEK</span>' +
-                                          '<span style="color:#e54d42;font-size:24px;font-weight:bold;">' + displayPrice + ' SEK</span>';
-            } else {
-                priceDisplay.textContent = displayPrice + " SEK";
-            }
+        if (display && selectedVariant) {
+            display.textContent = selectedVariant.size;
         }
-
-        // Dinamik olcu gostergesini guncelle (urun isminin alti) - KRITIK FIX
-        updateProductSubtitle(selectedVariant);
-
-        setTimeout(closeVariantDrawer, 300);
     };
-
-    // ==========================================
-    // AKORDIYONLAR (3 Adet)
-    // ==========================================
-
-    function setupAccordions() {
-        const items = document.querySelectorAll('.product-accordion-item');
-
-        items.forEach(item => {
-            const header = item.querySelector('.product-accordion-header');
-            const content = item.querySelector('.product-accordion-content');
-
-            if (!header || !content) return;
-
-            header.addEventListener('click', () => {
-                const isActive = item.classList.contains('active');
-                item.classList.toggle('active', !isActive);
-            });
-        });
-    }
-
-    // ==========================================
-    // OLcu TOOLTIP
-    // ==========================================
-
-    function setupSizeTooltip(sizeTooltip, variants) {
-        var tooltipContainer = document.getElementById('tooltip-container');
-        var tooltipBody = document.getElementById('tooltip-body');
-
-        if (!tooltipContainer || !tooltipBody) return;
-
-        var tooltipContent = '';
-
-        if (sizeTooltip && sizeTooltip.trim()) {
-            // Admin'den girilmis icerik
-            tooltipContent = sizeTooltip.split('\n').join('<br>');
-        } else if (variants && variants.length > 0) {
-            // Varyant olculerini listele
-            tooltipContent = '<strong>Tillgängliga storlekar:</strong><br><br>';
-            variants.forEach(function(v) {
-                var stockText = v.stock > 0 ? '(' + v.stock + ' st i lager)' : '(Slut i lager)';
-                var priceText = v.discount_price && v.discount_price < v.price 
-                    ? '<span style="text-decoration:line-through;color:#999;">' + v.price + ' SEK</span> <span style="color:#e54d42;">' + v.discount_price + ' SEK</span>'
-                    : v.price + ' SEK';
-                tooltipContent += '• <strong>' + v.size + '</strong> — ' + priceText + ' ' + stockText + '<br>';
-            });
-        } else {
-            tooltipContent = 'Storleksinformation kommer snart.';
-        }
-
-        tooltipBody.innerHTML = tooltipContent;
-        tooltipContainer.style.display = 'inline-flex';
-
-        var toggleSpan = tooltipContainer.querySelector('.tooltip-toggle-span');
-        var popup = tooltipContainer.querySelector('.tooltip-popup-box');
-        var closeBtn = tooltipContainer.querySelector('.tooltip-close-btn');
-
-        if (toggleSpan && popup) {
-            toggleSpan.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                var isVisible = popup.style.display === 'block';
-                if (isVisible) {
-                    popup.style.display = 'none';
-                    popup.classList.remove('active');
-                } else {
-                    popup.style.display = 'block';
-                    popup.classList.add('active');
-                    popup.style.animation = 'slideUpFade 0.3s ease forwards';
-                }
-            });
-        }
-
-        if (closeBtn && popup) {
-            closeBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                popup.style.display = 'none';
-                popup.classList.remove('active');
-            });
-        }
-
-        document.addEventListener('click', function(e) {
-            if (popup && popup.style.display === 'block' && !tooltipContainer.contains(e.target)) {
-                popup.style.display = 'none';
-                popup.classList.remove('active');
-            }
-        });
-    }
-
-    // ==========================================
-    // DINAMIK URUN ALT BASLIK (Secilen olcu)
-    // ==========================================
-
-    function updateProductSubtitle(variant) {
-        const subtitleEl = document.getElementById('dynamic-product-subtitle');
-        if (!subtitleEl) return;
-
-        if (variant && variant.size) {
-            subtitleEl.innerHTML = `<span class="selected-size-display" style="font-size:14px;color:#666;font-weight:500;">${variant.size}</span>`;
-            subtitleEl.style.display = 'inline-block';
-        } else {
-            subtitleEl.innerHTML = '';
-            subtitleEl.style.display = 'none';
-        }
-    }
-
-    // ==========================================
-    // SEPETE EKLE - ID FIX
-    // ==========================================
-
-    function setupAddToCart(fields) {
-        const btn = document.getElementById('add-to-cart-btn');
-        if (!btn) return;
-        const newBtn = btn.cloneNode(true);
-        btn.parentNode.replaceChild(newBtn, btn);
-
-        newBtn.addEventListener('click', () => {
-           const variantInfo = selectedVariant 
-    ? selectedVariant.size 
-    : (Array.isArray(fields.Variants) && fields.Variants.length > 0 
-        ? fields.Variants[0].size 
-        : 'Standard');
-            const displayPrice = getDisplayPrice(currentProduct, selectedVariant);
-
-            if (typeof addProductToCart === 'function') {
-                addProductToCart({
-                    id: currentProduct.id,
-                    name: fields.Name,
-                    price: displayPrice,
-                    image: currentImages.length > 0 ? currentImages[0] : '',
-                    variants: variantInfo,
-                    delivery: fields.Delivery_time || ''
-                });
-            } else {
-                const cartItem = {
-                    id: currentProduct.id, name: fields.Name,
-                    price: displayPrice,
-                    image: currentImages.length > 0 ? currentImages[0] : '',
-                    variants: variantInfo, delivery: fields.Delivery_time || '', quantity: 1
-                };
-                let cart = JSON.parse(localStorage.getItem('siteCartItems')) || [];
-                const existing = cart.find(i => String(i.id) === String(currentProduct.id) && i.variants === variantInfo);
-                if (existing) existing.quantity = (existing.quantity || 1) + 1;
-                else cart.push(cartItem);
-                localStorage.setItem('siteCartItems', JSON.stringify(cart));
-                if (typeof updateMiniCartUI === 'function') updateMiniCartUI();
-                if (typeof updateCartBadge === 'function') updateCartBadge();
-                if (typeof openMiniCart === 'function') openMiniCart();
-            }
-        });
-    }
-
-    // ==========================================
-    // RESPONSIVE KONTROL
-    // ==========================================
-
-    window.addEventListener('resize', () => {
-        const newIsMobile = window.innerWidth <= 768;
-        if (newIsMobile !== isMobile && currentImages.length > 0) {
-            isMobile = newIsMobile;
-            if (isMobile) renderMobileGallery();
-            else renderDesktopGallery();
-        }
-    });
-
-    // ==========================================
-    // BASLAT
-    // ==========================================
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initProductPage);
-    } else {
-        initProductPage();
-    }
 }
-
-// ==========================================
-// ILGILI URUNLER KARUSELI (Mock Data)
-// ==========================================
-
-const mockRelatedProducts = Array.from({ length: 25 }, (_, i) => ({
-    id: 100 + i,
-    name: [
-        "Persisk Handknuten Matta", "Skandinavisk Ullmatta", "Modern Geometrisk",
-        "Vintage Kelim", "Shaggy Hårlig", "Orientalisk Silk", "Boho Bomull",
-        "Industriell Jute", "Lyxviskos", "Barnmatta Djur", "Utomhus PP",
-        "Löpare Korridor", "Rund Mandala", "3D Effekt", "Anti-Slip",
-        "Maskinvävd", "Handtuftad", "Patchwork", "Fårskinn", "Bambu",
-        "Återvunnen", "Vattentät", "Värmematta", "Sisal Natur", "Chenille"
-    ][i],
-    price: `${(Math.random() * 4000 + 1000).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, " ")} kr`,
-    oldPrice: Math.random() > 0.5 ? `${(Math.random() * 5000 + 2000).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, " ")} kr` : null,
-    image: `/assets/images/products/related-${(i % 8) + 1}.jpg`,
-    badge: Math.random() > 0.7 ? (Math.random() > 0.5 ? 'REA' : 'NYHET') : null
-}));
-
-// ==========================================
-// KARUSEL RENDER - YENI: SLUG-BASED LINKLER
-// ==========================================
-
-function renderCarousel(trackId, products) {
-    const track = document.getElementById(trackId);
-    if (!track) return;
-
-    track.innerHTML = products.map(p => `
-        <div class="product-slide">
-            <article class="product-card" data-id="${p.id}" data-slug="${p.slug || ''}">
-                <div class="product-card-image">
-                    <img src="${p.image}" alt="${p.name}" loading="lazy">
-                    ${p.badge ? `<span class="product-card-badge ${p.badge === 'REA' ? 'sale' : 'new'}">${p.badge}</span>` : ''}
-                    <button class="product-card-fav" aria-label="Favorit">
-                        <i class="fa-regular fa-heart"></i>
-                    </button>
-                    <button class="product-card-quick-add" data-id="${p.id}">
-                        Lägg i varukorg
-                    </button>
-                </div>
-                <div class="product-card-info">
-                    <h3 class="product-card-name">${p.name}</h3>
-                    <div class="product-card-meta">
-                        <div class="product-card-price">
-                            <span class="product-card-price-current">${p.price}</span>
-                            ${p.oldPrice ? `<span class="product-card-price-old">${p.oldPrice}</span>` : ''}
-                        </div>
-                    </div>
-                </div>
-            </article>
-        </div>
-    `).join('');
-}
-
-// ==========================================
-// MODERN SWIPE KARUSEL - YENI: SLUG-BASED NAVIGASYON
-// ==========================================
-
-class ProductCarousel {
-    constructor(wrapperId, trackId, options = {}) {
-        this.wrapper = document.getElementById(wrapperId);
-        this.track = document.getElementById(trackId);
-        if (!this.wrapper || !this.track) return;
-
-        this.options = {
-            showDots: true,
-            showArrows: true,
-            showScrollHint: true,
-            ...options
-        };
-
-        this.currentIndex = 0;
-        this.slides = [];
-        this.init();
-    }
-
-    init() {
-        this.slides = this.track.querySelectorAll('.product-slide');
-        if (this.slides.length === 0) return;
-
-        this.createNavigation();
-        this.bindEvents();
-        this.updateDots();
-    }
-
-    createNavigation() {
-        if (this.options.showArrows && window.innerWidth > 768) {
-            const prevBtn = document.createElement('button');
-            prevBtn.className = 'carousel-nav prev';
-            prevBtn.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
-            prevBtn.setAttribute('aria-label', 'Föregående');
-
-            const nextBtn = document.createElement('button');
-            nextBtn.className = 'carousel-nav next';
-            nextBtn.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
-            nextBtn.setAttribute('aria-label', 'Nästa');
-
-            this.wrapper.appendChild(prevBtn);
-            this.wrapper.appendChild(nextBtn);
-
-            prevBtn.addEventListener('click', () => this.scrollTo('prev'));
-            nextBtn.addEventListener('click', () => this.scrollTo('next'));
-        }
-
-        if (this.options.showDots) {
-            const dotsContainer = document.createElement('div');
-            dotsContainer.className = 'carousel-dots';
-
-            this.slides.forEach((_, i) => {
-                const dot = document.createElement('button');
-                dot.className = 'carousel-dot';
-                dot.setAttribute('aria-label', `Gå till produkt ${i + 1}`);
-                if (i === 0) dot.classList.add('active');
-                dot.addEventListener('click', () => this.scrollToIndex(i));
-                dotsContainer.appendChild(dot);
-            });
-
-            this.wrapper.appendChild(dotsContainer);
-            this.dots = dotsContainer.querySelectorAll('.carousel-dot');
-        }
-
-        if (this.options.showScrollHint && window.innerWidth <= 768) {
-            const hint = document.createElement('div');
-            hint.className = 'scroll-hint';
-            hint.innerHTML = '<i class="fa-solid fa-arrow-left"></i> Svep för att se mer <i class="fa-solid fa-arrow-right"></i>';
-            this.wrapper.appendChild(hint);
-
-            this.track.addEventListener('scroll', () => {
-                hint.style.opacity = '0';
-                setTimeout(() => hint.remove(), 500);
-            }, { once: true });
-        }
-    }
-
-    bindEvents() {
-        let scrollTimeout;
-        this.track.addEventListener('scroll', () => {
-            clearTimeout(scrollTimeout);
-            scrollTimeout = setTimeout(() => this.updateDots(), 50);
-        });
-
-        let startX, scrollLeft;
-        this.track.addEventListener('touchstart', (e) => {
-            startX = e.touches[0].pageX - this.track.offsetLeft;
-            scrollLeft = this.track.scrollLeft;
-        }, { passive: true });
-
-        this.track.addEventListener('touchmove', (e) => {
-            const x = e.touches[0].pageX - this.track.offsetLeft;
-            const walk = (x - startX) * 1.5;
-            this.track.scrollLeft = scrollLeft - walk;
-        }, { passive: true });
-
-        this.track.querySelectorAll('.product-card-fav').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                btn.classList.toggle('active');
-                const icon = btn.querySelector('i');
-                icon.classList.toggle('fa-regular');
-                icon.classList.toggle('fa-solid');
-            });
-        });
-
-        // ==========================================
-        // YENI: SLUG-BASED KART TIKLAMA
-        // ==========================================
-        this.track.querySelectorAll('.product-card').forEach(card => {
-            card.addEventListener('click', () => {
-                const slug = card.dataset.slug;
-                const id = card.dataset.id;
-
-                if (slug) {
-                    window.location.href = `/produkt/${slug}`;
-                } else if (id) {
-                    // Slug yoksa ID'den bul ve yönlendir
-                    if (typeof redirectFromIdToSlug === 'function') {
-                        redirectFromIdToSlug(id);
-                    } else {
-                        window.location.href = `/produkt/?id=${id}`;
-                    }
-                }
-            });
-        });
-
-        this.track.querySelectorAll('.product-card-quick-add').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                console.log('Hızlı ekle:', btn.dataset.id);
-            });
-        });
-    }
-
-    scrollTo(direction) {
-        const slideWidth = this.slides[0].offsetWidth + 16;
-        const scrollAmount = direction === 'next' ? slideWidth : -slideWidth;
-        this.track.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-    }
-
-    scrollToIndex(index) {
-        const slide = this.slides[index];
-        if (slide) {
-            slide.scrollIntoView({ behavior: 'smooth', inline: 'start' });
-        }
-    }
-
-    updateDots() {
-        if (!this.dots) return;
-
-        const scrollLeft = this.track.scrollLeft;
-        const slideWidth = this.slides[0].offsetWidth + 16;
-        const newIndex = Math.round(scrollLeft / slideWidth);
-
-        this.dots.forEach((dot, i) => {
-            dot.classList.toggle('active', i === newIndex);
-        });
-    }
-}
-
-// ==========================================
-// KARUSELLERI BASLAT
-// ==========================================
-
-document.addEventListener('DOMContentLoaded', () => {
-    // Ilgili Urunler Karuseli
-    new ProductCarousel('related-carousel-wrapper', 'related-carousel-track', {
-        showDots: true,
-        showArrows: true,
-        showScrollHint: true
-    });
-
-    // Son Bakilanlar Karuseli
-    new ProductCarousel('recent-carousel-wrapper', 'recent-carousel-track', {
-        showDots: true,
-        showArrows: false,
-        showScrollHint: false
-    });
-});
