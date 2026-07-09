@@ -2,19 +2,10 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Redirecting...</title>
-  <script>
-    // Eski hash router'ı kaldır, normal URL'ye yönlendir
-    if (window.location.hash && window.location.hash.startsWith('#/')) {
-      var cleanPath = window.location.hash.replace('#', '');
-      window.location.replace(cleanPath);
-    } else {
-      // Normal 404, ana sayfaya git
-      window.location.href = '/';
-    }
-  </script>
+  <title>Sidan hittades inte</title>
 </head>
 <body>
-  <p>Yönlendiriliyor...</p>
+  <h1>404 - Sidan hittades inte</h1>
+  <p><a href="/">Tillbaka till startsidan</a></p>
 </body>
 </html>
