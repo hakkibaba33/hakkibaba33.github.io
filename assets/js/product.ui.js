@@ -808,3 +808,6 @@ async function initProductPage() {
         }
     };
 }
+
+// Dosyanın EN SONUNDA olmalı:
+document.addEventListener('DOMContentLoaded', initProductPage);
