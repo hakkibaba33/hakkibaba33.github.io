@@ -82,75 +82,60 @@ if (window.__productPageInitialized) {
         return product.base_price || 0;
     }
 
+// ==========================================
+// URUN SAYFASI INIT - SLUG ROUTING (DÜZELTİLMİŞ)
+// ==========================================
+
+async function initProductPage() {
+    console.log("Urun sayfasi init basliyor...");
+    console.log("Full URL:", window.location.href);
+    console.log("Pathname:", window.location.pathname);
+    console.log("Search:", window.location.search);
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const path = window.location.pathname;
+    const isBaseProductRoute = (path === '/produkt/' || path === '/produkt/index.html' || path === '/produkt');
+
+    let slug = null;
+
     // ==========================================
-    // URUN SAYFASI INIT - SLUG ROUTING
+    // 1) ESKI ?id=xxx FORMATI → /produkt/<slug>
     // ==========================================
+    const idParam = urlParams.get('id');
+    if (idParam && isBaseProductRoute) {
+        console.log("Eski ?id= formati tespit edildi, yonlendiriliyor. ID:", idParam);
+        await redirectFromIdToSlug(idParam);
+        return;
+    }
 
-    async function initProductPage() {
-        console.log("Urun sayfasi init basliyor...");
-        console.log("Full URL:", window.location.href);
-        console.log("Pathname:", window.location.pathname);
-        console.log("Search:", window.location.search);
+    // ==========================================
+    // 2) ESKI ?slug=xxx FORMATI → /produkt/<slug>
+    // ==========================================
+    const slugParam = urlParams.get('slug');
+    if (slugParam && isBaseProductRoute) {
+        console.log("Eski ?slug= formati tespit edildi, yonlendiriliyor:", slugParam);
+        window.location.replace(`/produkt/${encodeURIComponent(slugParam)}`);
+        return;
+    }
 
-        // ==========================================
-        // ESKI URL FORMATLARINI YENI SLUG FORMATA YONLENDIR
-        // (Amaç: her durumda /produkt/<slug> )
-        // ==========================================
+    // ==========================================
+    // 3) YENI URL FORMATINDAN SLUG AL (/produkt/slug-adi)
+    // ==========================================
+    const parts = path.split('/').filter(p => p);
+    if (parts.length >= 2 && parts[0] === 'produkt') {
+        slug = parts[1];
+        if (slug === 'index.html') slug = null;
+        else console.log("Slug pathname'den bulundu:", slug);
+    }
 
-        const urlParams = new URLSearchParams(window.location.search);
+    if (!slug) {
+        console.error("Slug bulunamadi! URL:", window.location.href);
+        document.querySelector('.product-page').innerHTML = 
+            '<p style="text-align:center;padding:60px;">Produkt hittades inte. <a href="/">Tillbaka till startsidan</a></p>';
+        return;
+    }
 
-        // 1) ?slug=xxx (kategori kartından gelen eski format) → /produkt/xxx
-        const oldSlug = urlParams.get('slug');
-        if (oldSlug) {
-            const path = window.location.pathname;
-            const isBaseProductRoute = (path === '/produkt/' || path === '/produkt/index.html' || path === '/produkt');
-            if (isBaseProductRoute) {
-                console.log("Eski ?slug= formati tespit edildi, yonlendiriliyor:", oldSlug);
-                window.location.replace(`/produkt/${encodeURIComponent(oldSlug)}`);
-                return;
-            }
-        }
-
-        // 2) ?id=xxx → /produkt/<slug>
-        const idParam = urlParams.get('id');
-        if (idParam) {
-            const path = window.location.pathname;
-            const isBaseProductRoute = (path === '/produkt/' || path === '/produkt/index.html' || path === '/produkt');
-            if (isBaseProductRoute) {
-                console.log("Eski ?id= formati tespit edildi, yonlendiriliyor. ID:", idParam);
-                await redirectFromIdToSlug(idParam);
-                return;
-            }
-        }
-
-        // ==========================================
-        // YENI URL FORMATINDAN SLUG AL (ÇAKIŞMASIZ)
-        // ==========================================
-
-        let slug = null;
-        
-        // Üstte zaten urlParams tanımlandığı için direkt onu kullanıyoruz (tekrar const yazmadık)
-        if (urlParams.get('slug')) {
-            slug = urlParams.get('slug');
-            console.log("Slug URL parametresinden bulundu:", slug);
-        } else {
-            // Eğer parametrede yoksa pathname'den (/produkt/slug-adi) bulmaya çalış
-            const parts = window.location.pathname.split('/').filter(p => p);
-            if (parts.length >= 2 && parts[0] === 'produkt') {
-                slug = parts[1];
-                if (slug === 'index.html') slug = null;
-                else console.log("Slug pathname'den bulundu:", slug);
-            }
-        }
-
-        if (!slug) {
-            console.error("Slug bulunamadi! URL:", window.location.href);
-            document.querySelector('.product-page').innerHTML = 
-                '<p style="text-align:center;padding:60px;">Produkt hittades inte. <a href="/">Tillbaka till startsidan</a></p>';
-            return;
-        }
-
-        console.log("Final Slug:", slug);
+    console.log("Final Slug:", slug);
 
         try {
             // Duz cekme (embed olmadan)
