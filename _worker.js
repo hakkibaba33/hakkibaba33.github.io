@@ -1,21 +1,59 @@
+// ==========================================
+// CLOUDFLARE PAGES FUNCTIONS - SPA ROUTING
+// /produkt/slug-adi → /produkt/index.html
+// ==========================================
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     const path = url.pathname;
+    
+    // Statik dosyaları (CSS, JS, resim) olduğu gibi serve et
+    if (path.match(/\.(css|js|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot)$/)) {
+      return env.ASSETS.fetch(request);
+    }
     
     // /produkt/slug-adi → /produkt/index.html
     if (path.startsWith('/produkt/') && path !== '/produkt/' && path !== '/produkt/index.html') {
       return env.ASSETS.fetch(new URL('/produkt/index.html', request.url));
     }
     
-    // /mattor/... → /mattor/index.html
+    // /mattor/alt-kategori → /mattor/index.html
     if (path.startsWith('/mattor/') && path !== '/mattor/' && path !== '/mattor/index.html') {
       return env.ASSETS.fetch(new URL('/mattor/index.html', request.url));
     }
     
-    // Diğer kategoriler için aynı mantık...
+    // /metervara/alt-kategori → /metervara/index.html
+    if (path.startsWith('/metervara/') && path !== '/metervara/' && path !== '/metervara/index.html') {
+      return env.ASSETS.fetch(new URL('/metervara/index.html', request.url));
+    }
     
-    // Varsayılan: statik dosyaları serve et
+    // /gangmattor/alt-kategori → /gangmattor/index.html
+    if (path.startsWith('/gangmattor/') && path !== '/gangmattor/' && path !== '/gangmattor/index.html') {
+      return env.ASSETS.fetch(new URL('/gangmattor/index.html', request.url));
+    }
+    
+    // /runda-mattor/alt-kategori → /runda-mattor/index.html
+    if (path.startsWith('/runda-mattor/') && path !== '/runda-mattor/' && path !== '/runda-mattor/index.html') {
+      return env.ASSETS.fetch(new URL('/runda-mattor/index.html', request.url));
+    }
+    
+    // /badrumsmattor/alt-kategori → /badrumsmattor/index.html
+    if (path.startsWith('/badrumsmattor/') && path !== '/badrumsmattor/' && path !== '/badrumsmattor/index.html') {
+      return env.ASSETS.fetch(new URL('/badrumsmattor/index.html', request.url));
+    }
+    
+    // /gardiner/alt-kategori → /gardiner/index.html
+    if (path.startsWith('/gardiner/') && path !== '/gardiner/' && path !== '/gardiner/index.html') {
+      return env.ASSETS.fetch(new URL('/gardiner/index.html', request.url));
+    }
+    
+    // /rea/alt-kategori → /rea/index.html
+    if (path.startsWith('/rea/') && path !== '/rea/' && path !== '/rea/index.html') {
+      return env.ASSETS.fetch(new URL('/rea/index.html', request.url));
+    }
+    
+    // Varsayılan: statik dosyaları serve et (index.html, vs.)
     return env.ASSETS.fetch(request);
   }
 };
