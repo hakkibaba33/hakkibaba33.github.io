@@ -393,9 +393,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             : `<span class="current-price">${product.price.toLocaleString('sv-SE')} SEK</span>`;
 
         const variantText = getVariantDisplayText(product);
-        const productUrl = product.slug
-            ? '/produkt/' + encodeURIComponent(String(product.slug).trim())
-            : '/produkt/?id=' + encodeURIComponent(String(product.id));
+          const productUrl = product.slug
+        ? '/produkt/index.html?slug=' + encodeURIComponent(String(product.slug).trim())
+        : '/produkt/index.html?id=' + encodeURIComponent(String(product.id));
 
         return `
             <div class="product-card" data-id="${String(product.id)}">
