@@ -94,17 +94,26 @@ async function initProductPage() {
     let slug = null;
     const path = window.location.pathname;
     const parts = path.split('/').filter(p => p);
+    const urlParams = new URLSearchParams(window.location.search);
 
-    // NORMAL ROUTER: /produkt/slug-adi
+    // 1) YENI FORMAT: /produkt/slug-adi
     if (parts.length >= 2 && parts[0] === 'produkt') {
         slug = parts[1];
         if (slug === 'index.html') slug = null;
         else console.log("Slug pathname'den bulundu:", slug);
     }
 
-    // ESKI ?id=xxx FORMATI (sadece bu yönlendirme kalsın)
+    // 2) ESKI FORMAT: /produkt/?slug=xxx (kategori sayfasından gelen)
     if (!slug) {
-        const urlParams = new URLSearchParams(window.location.search);
+        const slugParam = urlParams.get('slug');
+        if (slugParam) {
+            slug = slugParam;
+            console.log("Slug parametreden bulundu:", slug);
+        }
+    }
+
+    // 3) ESKI FORMAT: ?id=xxx
+    if (!slug) {
         const idParam = urlParams.get('id');
         if (idParam) {
             console.log("Eski ?id= formati, yonlendiriliyor. ID:", idParam);
