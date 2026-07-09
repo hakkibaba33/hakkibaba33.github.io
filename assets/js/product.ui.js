@@ -113,14 +113,14 @@ async function initProductPage() {
     }
 
     // 3) ESKI FORMAT: ?id=xxx
-    if (!slug) {
-        const idParam = urlParams.get('id');
-        if (idParam) {
-            console.log("Eski ?id= formati, yonlendiriliyor. ID:", idParam);
-            await redirectFromIdToSlug(idParam);
-            return;
-        }
+      if (!slug) {
+    const slugParam = urlParams.get('slug');
+    if (slugParam) {
+        console.log("Eski ?slug= formati, yonlendiriliyor:", slugParam);
+        window.location.replace('/produkt/' + encodeURIComponent(slugParam));
+        return;
     }
+}
 
     if (!slug) {
         console.error("Slug bulunamadi! URL:", window.location.href);
