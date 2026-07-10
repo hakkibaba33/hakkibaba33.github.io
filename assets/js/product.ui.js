@@ -384,12 +384,6 @@ if (window.__productPageInitialized) {
         });
     }
 
-
-
-
-
-
-
         // ==========================================
     // RENK SEÇİMİ
     // ==========================================
@@ -457,28 +451,6 @@ if (window.__productPageInitialized) {
         if (/^#[0-9A-F]{6}$/i.test(normalized)) return normalized;
         return '#ccc';
     }
-
-
-
-
-
-
-
-
-
-
-
-    
-
-
-
-
-
-
-
-
-
-
 
     
 
