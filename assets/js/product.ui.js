@@ -248,6 +248,7 @@ if (window.__productPageInitialized) {
             }
 
             // Varyasyonlar
+             renderColorOptions(p.colors || []);
             currentVariants = variants || [];
             if (currentVariants.length > 0) {
                 currentVariants.sort(function(a, b) {
