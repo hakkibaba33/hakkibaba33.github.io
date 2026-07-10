@@ -269,7 +269,139 @@ async function initProductPage() {
         const el = document.getElementById(id);
         if (el) { el.innerHTML = ''; el.innerHTML = html || ''; }
     }
+
+        // ==========================================
+    // TOOLTIP - Storlek/Måttguide
+    // ==========================================
+
+    function setupSizeTooltip(tooltipText, variants) {
+        const container = document.getElementById('tooltip-container');
+        const body = document.getElementById('tooltip-body');
+        const closeBtn = document.querySelector('.tooltip-close-btn');
+        const toggleSpan = document.querySelector('.tooltip-toggle-span');
+
+        if (!container || !body) return;
+
+        // Tooltip içeriğini oluştur
+        let html = '';
         
+        if (tooltipText && tooltipText.trim()) {
+            // Admin'den girilen custom text
+            html = tooltipText.split('\n').map(line => {
+                if (line.trim()) {
+                    return `<p style="margin-bottom:8px;font-size:13px;color:#333;">${line.trim()}</p>`;
+                }
+                return '';
+            }).join('');
+        } else if (variants && variants.length > 0) {
+            // Varyasyonlardan otomatik oluştur
+            html = '<table style="width:100%;font-size:13px;border-collapse:collapse;">' +
+                   '<thead><tr style="border-bottom:1px solid #ddd;">' +
+                   '<th style="text-align:left;padding:6px;">Storlek</th>' +
+                   '<th style="text-align:left;padding:6px;">Pris</th>' +
+                   '<th style="text-align:left;padding:6px;">Lager</th>' +
+                   '</tr></thead><tbody>';
+            
+            variants.forEach(v => {
+                const price = v.discount_price || v.price || 0;
+                const stockText = v.stock > 0 ? `${v.stock} st` : 'Slut i lager';
+                const stockColor = v.stock > 0 ? '#22c55e' : '#e54d42';
+                html += `<tr style="border-bottom:1px solid #eee;">` +
+                        `<td style="padding:6px;">${v.size || '-'}</td>` +
+                        `<td style="padding:6px;font-weight:600;">${price} SEK</td>` +
+                        `<td style="padding:6px;color:${stockColor};">${stockText}</td>` +
+                        `</tr>`;
+            });
+            
+            html += '</tbody></table>';
+        } else {
+            html = '<p style="font-size:13px;color:#666;">Ingen måttinformation tillgänglig.</p>';
+        }
+
+        body.innerHTML = html;
+
+        // Toggle aç/kapa
+        if (toggleSpan) {
+            toggleSpan.addEventListener('click', (e) => {
+                e.stopPropagation();
+                container.classList.toggle('active');
+            });
+        }
+
+        // Kapat butonu
+        if (closeBtn) {
+            closeBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                container.classList.remove('active');
+            });
+        }
+
+        // Dışarı tıklayınca kapat
+        document.addEventListener('click', (e) => {
+            if (container.classList.contains('active') && !container.contains(e.target)) {
+                container.classList.remove('active');
+            }
+        });
+    }
+
+    // ==========================================
+    // AKORDİYONLAR
+    // ==========================================
+
+    function setupAccordions() {
+        const accordionItems = document.querySelectorAll('.product-accordion-item');
+        
+        accordionItems.forEach(item => {
+            const header = item.querySelector('.product-accordion-header');
+            const content = item.querySelector('.product-accordion-content');
+            
+            if (!header || !content) return;
+            
+            header.addEventListener('click', () => {
+                const isOpen = item.classList.contains('open');
+                
+                // Tümünü kapat (tekli açma - istersen bunu kaldır)
+                // accordionItems.forEach(other => {
+                //     other.classList.remove('open');
+                //     const otherContent = other.querySelector('.product-accordion-content');
+                //     if (otherContent) otherContent.style.maxHeight = null;
+                // });
+                
+                if (isOpen) {
+                    item.classList.remove('open');
+                    content.style.maxHeight = null;
+                    const icon = header.querySelector('i');
+                    if (icon) icon.style.transform = 'rotate(0deg)';
+                } else {
+                    item.classList.add('open');
+                    content.style.maxHeight = content.scrollHeight + 'px';
+                    const icon = header.querySelector('i');
+                    if (icon) icon.style.transform = 'rotate(180deg)';
+                }
+            });
+        });
+    }
+
+    // ==========================================
+    // ÜRÜN ALT BAŞLIK GÜNCELLEME
+    // ==========================================
+
+    function updateProductSubtitle(variant) {
+        const subtitleEl = document.getElementById('dynamic-product-subtitle');
+        if (!subtitleEl || !variant) return;
+        
+        const displayPrice = getDisplayPrice(currentProduct, variant);
+        const sizeText = variant.size || '';
+        
+        subtitleEl.innerHTML = `
+            <span class="selected-size-display" style="font-size:14px;color:#666;font-weight:500;">
+                ${sizeText ? sizeText + ' - ' : ''}${displayPrice} SEK
+            </span>
+        `;
+    }
+
+    
+    
     // ==========================================
     // WISHLIST / FAVORI - ID FIX
     // ==========================================
