@@ -465,32 +465,34 @@ if (window.__productPageInitialized) {
         });
     }
 
-    function getColorStyle(colorName) {
-        const COLOR_MAP = {
-            'rod': '#D32F2F', 'röd': '#D32F2F', 'red': '#D32F2F',
-            'bla': '#1976D2', 'blå': '#1976D2', 'blue': '#1976D2',
-            'gron': '#388E3C', 'grön': '#388E3C', 'green': '#388E3C',
-            'gul': '#FBC02D', 'yellow': '#FBC02D',
-            'orange': '#F57C00',
-            'rosa': '#E91E63', 'pink': '#E91E63',
-            'lila': '#7B1FA2', 'purple': '#7B1FA2',
-            'svart': '#212121', 'black': '#212121',
-            'vit': '#FAFAFA', 'white': '#FAFAFA',
-            'grå': '#9E9E9E', 'gra': '#9E9E9E', 'grey': '#9E9E9E',
-            'brun': '#5D4037', 'brown': '#5D4037',
-            'beige': '#D7CCC8',
-            'turkos': '#00BCD4', 'turquoise': '#00BCD4',
-            'guld': '#FFD700', 'gold': '#FFD700',
-            'silver': '#C0C0C0',
-            'transparent': 'rgba(200,200,200,0.3)'
-        };
-        
-        if (!colorName) return '#ccc';
-        const normalized = colorName.toLowerCase().trim();
-        if (COLOR_MAP[normalized]) return COLOR_MAP[normalized];
-        if (/^#[0-9A-F]{6}$/i.test(normalized)) return normalized;
-        return '#ccc';
-    }
+     function getColorStyle(colorName) {
+    const COLOR_MAP = {
+        'rod': '#D32F2F', 'red': '#D32F2F',
+        'bla': '#1976D2', 'blue': '#1976D2',
+        'gron': '#388E3C', 'green': '#388E3C',
+        'gul': '#FBC02D', 'yellow': '#FBC02D',
+        'orange': '#F57C00',
+        'rosa': '#E91E63', 'pink': '#E91E63',
+        'lila': '#7B1FA2', 'purple': '#7B1FA2',
+        'svart': '#212121', 'black': '#212121',
+        'vit': '#FAFAFA', 'white': '#FAFAFA',
+        'gra': '#9E9E9E', 'grey': '#9E9E9E', 'gray': '#9E9E9E',
+        'brun': '#5D4037', 'brown': '#5D4037',
+        'beige': '#D7CCC8',
+        'turkos': '#00BCD4', 'turquoise': '#00BCD4',
+        'guld': '#FFD700', 'gold': '#FFD700',
+        'silver': '#C0C0C0',
+        'transparent': 'rgba(200,200,200,0.3)'
+    };
+    if (!colorName) return '#ccc';
+    const normalized = colorName.toLowerCase().trim()
+        .replace(/ö/g, 'o')
+        .replace(/ä/g, 'a')
+        .replace(/å/g, 'a');
+    if (COLOR_MAP[normalized]) return COLOR_MAP[normalized];
+    if (/^#[0-9A-F]{6}$/i.test(normalized)) return normalized;
+    return '#ccc';
+}
 
     
 
