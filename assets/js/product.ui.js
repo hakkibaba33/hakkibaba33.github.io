@@ -1,4 +1,28 @@
 // ==========================================
+// DEBUG FONKSIYONU
+// ==========================================
+window.debugProduct = function() {
+    console.log('=== DEBUG ===');
+    console.log('currentProduct:', currentProduct);
+    console.log('discount_price:', currentProduct?.discount_price);
+    console.log('base_price:', currentProduct?.base_price);
+    console.log('colors:', currentProduct?.colors);
+    console.log('typeof discount_price:', typeof currentProduct?.discount_price);
+    console.log('typeof colors:', typeof currentProduct?.colors);
+    console.log('Array.isArray(colors):', Array.isArray(currentProduct?.colors));
+};
+
+
+
+
+
+
+
+
+
+
+
+// ==========================================
 // PRODUCT.UI.JS - SUPABASE UYUMLU (v3.4 - FULL FIX)
 // ==========================================
 
