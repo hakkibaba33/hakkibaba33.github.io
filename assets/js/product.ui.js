@@ -180,19 +180,31 @@ async function initProductPage() {
             setText('product-main-name-desktop', f.Name);
 
             // Fiyat gosterimi
-            const hasDiscount = p.discount_price && p.discount_price < p.base_price;
-            const priceEl = document.getElementById('product-price');
-            if (priceEl) {
-                if (hasDiscount) {
-                    priceEl.innerHTML = '<span style="text-decoration:line-through;color:#999;font-size:18px;margin-right:8px;">' + p.base_price + ' SEK</span>' +
-                                         '<span style="color:#e54d42;font-size:24px;font-weight:bold;">' + p.discount_price + ' SEK</span>';
-                } else {
-                    priceEl.textContent = (f.Price || 0) + " SEK";
-                }
-            }
+             // YENİ KOD: Düzgün indirim kontrolü ve formatlama
+             const basePrice = parseFloat(p.base_price) || 0;
+             const discountPrice = parseFloat(p.discount_price) || 0;
+             const hasDiscount = discountPrice > 0 && discountPrice < basePrice;
+
+             const priceEl = document.getElementById('product-price');
+           if (priceEl) {
+           if (hasDiscount) {
+          priceEl.innerHTML = 
+            '<span style="text-decoration:line-through;color:#999;font-size:18px;margin-right:8px;">' + 
+            basePrice.toLocaleString('sv-SE') + ' SEK</span>' +
+            '<span style="color:#e54d42;font-size:24px;font-weight:bold;">' + 
+            discountPrice.toLocaleString('sv-SE') + ' SEK</span>';
+          } else {
+            priceEl.innerHTML = '<span style="font-size:24px;font-weight:bold;">' + 
+            basePrice.toLocaleString('sv-SE') + " SEK</span>";
+          }
+        }
 
             setHTML('product-description', f.Description || '');
             setText('delivery-time-display', f.Delivery_time);
+            const deliveryTimeText = document.getElementById('delivery-time-text');
+           if (deliveryTimeText) {
+           deliveryTimeText.textContent = 'Leveranstid: ' + (f.Delivery_time || '3-7 arbetsdagar');
+         }
 
             // Yeni alanlari akordiyonlara ata
             setHTML('product-specs', f.Product_info ? '<div class="specs-content-placeholder">' + f.Product_info.split('\n').join('<br>') + '</div>' : '<div class="specs-content-placeholder"><p>Material, skötselråd och övrig produktinformation visas här.</p></div>');
@@ -825,15 +837,20 @@ window.selectVariant = function(index) {
     if (priceEl && selectedVariant) {
         const displayPrice = getDisplayPrice(currentProduct, selectedVariant);
         const originalPrice = getOriginalPrice(currentProduct, selectedVariant);
-        const hasDiscount = selectedVariant.discount_price && selectedVariant.discount_price < selectedVariant.price;
+        const variantBasePrice = parseFloat(selectedVariant.price) || 0;
+const variantDiscountPrice = parseFloat(selectedVariant.discount_price) || 0;
+const hasDiscount = variantDiscountPrice > 0 && variantDiscountPrice < variantBasePrice;
         
-        if (hasDiscount) {
-            priceEl.innerHTML = '<span style="text-decoration:line-through;color:#999;font-size:18px;margin-right:8px;">' + originalPrice + ' SEK</span>' +
-                               '<span style="color:#e54d42;font-size:24px;font-weight:bold;">' + displayPrice + ' SEK</span>';
-        } else {
-            priceEl.textContent = displayPrice + " SEK";
-        }
-    }
+     if (hasDiscount) {
+    priceEl.innerHTML = 
+        '<span style="text-decoration:line-through;color:#999;font-size:18px;margin-right:8px;">' + 
+        variantBasePrice.toLocaleString('sv-SE') + ' SEK</span>' +
+        '<span style="color:#e54d42;font-size:24px;font-weight:bold;">' + 
+        variantDiscountPrice.toLocaleString('sv-SE') + ' SEK</span>';
+} else {
+    priceEl.innerHTML = '<span style="font-size:24px;font-weight:bold;">' + 
+        variantBasePrice.toLocaleString('sv-SE') + " SEK</span>";
+}
     
     // Ürün alt başlığını güncelle (tooltip alanı)
     if (typeof updateProductSubtitle === 'function' && selectedVariant) {
