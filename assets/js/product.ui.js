@@ -850,7 +850,8 @@ const hasDiscount = variantDiscountPrice > 0 && variantDiscountPrice < variantBa
 } else {
     priceEl.innerHTML = '<span style="font-size:24px;font-weight:bold;">' + 
         variantBasePrice.toLocaleString('sv-SE') + " SEK</span>";
-}
+  }
+}        
     
     // Ürün alt başlığını güncelle (tooltip alanı)
     if (typeof updateProductSubtitle === 'function' && selectedVariant) {
