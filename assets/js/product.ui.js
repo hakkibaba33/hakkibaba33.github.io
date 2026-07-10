@@ -1,7 +1,5 @@
 // ==========================================
-// PRODUCT.UI.JS - SUPABASE UYUMLU (v3.3 - FIXED)
-// Eski Airtable yapısını koru, sadece API Supabase'e çevrildi
-// YENI: Eski URL formatlarını yeni slug-based URL'lere yönlendirme
+// PRODUCT.UI.JS - SUPABASE UYUMLU (v3.4 - FULL FIX)
 // ==========================================
 
 if (window.__productPageInitialized) {
@@ -71,69 +69,86 @@ if (window.__productPageInitialized) {
     }
 
     function getDisplayPrice(product, variant) {
-        if (variant && variant.discount_price) return variant.discount_price;
-        if (variant && variant.price) return variant.price;
-        if (product.discount_price) return product.discount_price;
-        return product.base_price || 0;
+        // Önce variant indirimli fiyatı
+        if (variant && variant.discount_price && parseFloat(variant.discount_price) > 0) {
+            return parseFloat(variant.discount_price);
+        }
+        // Sonra variant normal fiyatı
+        if (variant && variant.price && parseFloat(variant.price) > 0) {
+            return parseFloat(variant.price);
+        }
+        // Sonra ürün indirimli fiyatı
+        if (product && product.discount_price && parseFloat(product.discount_price) > 0) {
+            return parseFloat(product.discount_price);
+        }
+        // Son olarak ürün temel fiyatı
+        return parseFloat(product?.base_price) || 0;
     }
 
     function getOriginalPrice(product, variant) {
-        if (variant && variant.price) return variant.price;
-        return product.base_price || 0;
-    }
-
-// ==========================================
-// URUN SAYFASI INIT - SLUG ROUTING (DÜZELTİLMİŞ)
-// ==========================================
-
-async function initProductPage() {
-    console.log("Urun sayfasi init basliyor...");
-    console.log("Full URL:", window.location.href);
-    console.log("Pathname:", window.location.pathname);
-
-    let slug = null;
-    const path = window.location.pathname;
-    const parts = path.split('/').filter(p => p);
-    const urlParams = new URLSearchParams(window.location.search);
-
-    // 1) YENI FORMAT: /produkt/slug-adi
-    if (parts.length >= 2 && parts[0] === 'produkt') {
-        slug = parts[1];
-        if (slug === 'index.html') slug = null;
-        else console.log("Slug pathname'den bulundu:", slug);
-    }
-
-    // 2) ESKI FORMAT: /produkt/?slug=xxx (kategori sayfasından gelen)
-    if (!slug) {
-        const slugParam = urlParams.get('slug');
-        if (slugParam) {
-            slug = slugParam;
-            console.log("Slug parametreden bulundu:", slug);
+        // Orijinal fiyat = indirimsiz fiyat
+        if (variant && variant.price && parseFloat(variant.price) > 0) {
+            return parseFloat(variant.price);
         }
+        return parseFloat(product?.base_price) || 0;
     }
 
-    // 3) ESKI FORMAT: ?id=xxx
-      if (!slug) {
-    const slugParam = urlParams.get('slug');
-    if (slugParam) {
-        console.log("Eski ?slug= formati, yonlendiriliyor:", slugParam);
-        window.location.replace('/produkt/' + encodeURIComponent(slugParam));
-        return;
-    }
-}
-
-    if (!slug) {
-        console.error("Slug bulunamadi! URL:", window.location.href);
-        document.querySelector('.product-page').innerHTML = 
-            '<p style="text-align:center;padding:60px;">Produkt hittades inte. <a href="/">Tillbaka till startsidan</a></p>';
-        return;
+    function hasDiscount(product, variant) {
+        const original = getOriginalPrice(product, variant);
+        const display = getDisplayPrice(product, variant);
+        return original > display && display > 0;
     }
 
-    console.log("Final Slug:", slug);
+    // ==========================================
+    // URUN SAYFASI INIT
+    // ==========================================
+
+    async function initProductPage() {
+        console.log("Urun sayfasi init basliyor...");
+        console.log("Full URL:", window.location.href);
+        console.log("Pathname:", window.location.pathname);
+
+        let slug = null;
+        const path = window.location.pathname;
+        const parts = path.split('/').filter(p => p);
+        const urlParams = new URLSearchParams(window.location.search);
+
+        // 1) YENI FORMAT: /produkt/slug-adi
+        if (parts.length >= 2 && parts[0] === 'produkt') {
+            slug = parts[1];
+            if (slug === 'index.html') slug = null;
+            else console.log("Slug pathname'den bulundu:", slug);
+        }
+
+        // 2) ESKI FORMAT: /produkt/?slug=xxx
+        if (!slug) {
+            const slugParam = urlParams.get('slug');
+            if (slugParam) {
+                slug = slugParam;
+                console.log("Slug parametreden bulundu:", slug);
+            }
+        }
+
+        // 3) ESKI FORMAT: ?id=xxx
+        if (!slug) {
+            const idParam = urlParams.get('id');
+            if (idParam) {
+                console.log("Eski ?id= formati, yonlendiriliyor:", idParam);
+                redirectFromIdToSlug(idParam);
+                return;
+            }
+        }
+
+        if (!slug) {
+            console.error("Slug bulunamadi! URL:", window.location.href);
+            document.querySelector('.product-page').innerHTML = 
+                '<p style="text-align:center;padding:60px;">Produkt hittades inte. <a href="/">Tillbaka till startsidan</a></p>';
+            return;
+        }
+
+        console.log("Final Slug:", slug);
 
         try {
-            // Duz cekme (embed olmadan)
-
             const products = await supabaseGet('products', {
                 slug: 'eq.' + slug,
                 select: '*'
@@ -151,72 +166,81 @@ async function initProductPage() {
                 select: '*'
             });
 
-            const data = [{
-                ...products[0],
-                product_variants: variants
-            }];
+            currentProduct = products[0];
+            currentProduct.product_variants = variants;
 
-            if (!data || data.length === 0) {
-                console.error("Urun bulunamadi!");
-                return;
+            const p = currentProduct;
+            
+            // DEBUG: Fiyat bilgilerini logla
+            console.log('=== URUN VERILERI ===');
+            console.log('base_price:', p.base_price, typeof p.base_price);
+            console.log('discount_price:', p.discount_price, typeof p.discount_price);
+            console.log('variants:', variants.length);
+
+            // Temel bilgiler
+            setText('page-title-product-name', p.name);
+            setText('breadcrumb-product-name', p.name);
+            setText('product-main-name-desktop', p.name);
+
+            // Fiyat gösterimi - YENI: Daha güvenli kontrol
+            const basePrice = parseFloat(p.base_price) || 0;
+            const discountPrice = (p.discount_price !== null && p.discount_price !== undefined && p.discount_price !== '') 
+                ? parseFloat(p.discount_price) 
+                : 0;
+            const productHasDiscount = discountPrice > 0 && discountPrice < basePrice;
+
+            console.log('Hesaplanan:', {basePrice, discountPrice, productHasDiscount});
+
+            const priceEl = document.getElementById('product-price');
+            if (priceEl) {
+                if (productHasDiscount) {
+                    priceEl.innerHTML = 
+                        '<span style="text-decoration:line-through;color:#999;font-size:18px;margin-right:8px;">' + 
+                        basePrice.toLocaleString('sv-SE') + ' SEK</span>' +
+                        '<span style="color:#e54d42;font-size:24px;font-weight:bold;">' + 
+                        discountPrice.toLocaleString('sv-SE') + ' SEK</span>';
+                } else {
+                    priceEl.innerHTML = '<span style="font-size:24px;font-weight:bold;">' + 
+                        basePrice.toLocaleString('sv-SE') + " SEK</span>";
+                }
             }
 
-            currentProduct = data[0];
-            const p = currentProduct;
-            const f = {
-                Name: p.name,
-                Price: p.base_price,
-                Description: p.description,
-                Product_info: p.product_info || '',
-                Delivery_return: p.delivery_return || '',
-                Size_tooltip: p.size_tooltip || '',
-                Delivery_time: p.delivery_time || '3-7 arbetsdagar',
-                Variants: p.product_variants || []
-            };
-
-            // Temel bilgiler - element kontrolu ile
-            setText('page-title-product-name', f.Name);
-            setText('breadcrumb-product-name', f.Name);
-            setText('product-main-name-desktop', f.Name);
-
-            // Fiyat gosterimi
-             // YENİ KOD: Düzgün indirim kontrolü ve formatlama
-             const basePrice = parseFloat(p.base_price) || 0;
-             const discountPrice = parseFloat(p.discount_price) || 0;
-             const hasDiscount = discountPrice > 0 && discountPrice < basePrice;
-
-             const priceEl = document.getElementById('product-price');
-           if (priceEl) {
-           if (hasDiscount) {
-          priceEl.innerHTML = 
-            '<span style="text-decoration:line-through;color:#999;font-size:18px;margin-right:8px;">' + 
-            basePrice.toLocaleString('sv-SE') + ' SEK</span>' +
-            '<span style="color:#e54d42;font-size:24px;font-weight:bold;">' + 
-            discountPrice.toLocaleString('sv-SE') + ' SEK</span>';
-          } else {
-            priceEl.innerHTML = '<span style="font-size:24px;font-weight:bold;">' + 
-            basePrice.toLocaleString('sv-SE') + " SEK</span>";
-          }
-        }
-
-            setHTML('product-description', f.Description || '');
-            setText('delivery-time-display', f.Delivery_time);
+            // Teslimat süresi
+            const deliveryTime = p.delivery_time || '3-7 arbetsdagar';
+            setText('delivery-time-display', deliveryTime);
             const deliveryTimeText = document.getElementById('delivery-time-text');
-           if (deliveryTimeText) {
-           deliveryTimeText.textContent = 'Leveranstid: ' + (f.Delivery_time || '3-7 arbetsdagar');
-         }
+            if (deliveryTimeText) {
+                deliveryTimeText.textContent = 'Leveranstid: ' + deliveryTime;
+            }
 
-            // Yeni alanlari akordiyonlara ata
-            setHTML('product-specs', f.Product_info ? '<div class="specs-content-placeholder">' + f.Product_info.split('\n').join('<br>') + '</div>' : '<div class="specs-content-placeholder"><p>Material, skötselråd och övrig produktinformation visas här.</p></div>');
+            // Açıklama
+            setHTML('product-description', p.description || '');
 
-            setHTML('product-delivery', f.Delivery_return ? '<div class="delivery-content-placeholder">' + f.Delivery_return.split('\n').join('<br>') + '</div>' : '<div class="delivery-content-placeholder"><p><strong>Leveranstid:</strong> <span id="delivery-time-display">' + f.Delivery_time + '</span></p><p><strong>Frakt:</strong> Fri frakt vid köp över 500 SEK</p><p><strong>Retur:</strong> 30 dagars öppet köp</p></div>');
+            // Akordiyon içerikleri
+            if (p.product_info && p.product_info.trim()) {
+                setHTML('product-specs', '<div class="specs-content-placeholder">' + p.product_info.split('\n').join('<br>') + '</div>');
+            } else {
+                setHTML('product-specs', '<div class="specs-content-placeholder"><p>Material, skötselråd och övrig produktinformation visas här.</p></div>');
+            }
 
-            // Tooltip'i baslat
-            if (typeof setupSizeTooltip === 'function') setupSizeTooltip(f.Size_tooltip, f.Variants);
+            if (p.delivery_return && p.delivery_return.trim()) {
+                setHTML('product-delivery', '<div class="delivery-content-placeholder">' + p.delivery_return.split('\n').join('<br>') + '</div>');
+            } else {
+                setHTML('product-delivery', 
+                    '<div class="delivery-content-placeholder">' +
+                    '<p><strong>Leveranstid:</strong> ' + deliveryTime + '</p>' +
+                    '<p><strong>Frakt:</strong> Fri frakt vid köp över 500 SEK</p>' +
+                    '<p><strong>Retur:</strong> 30 dagars öppet köp</p>' +
+                    '</div>'
+                );
+            }
 
-            // Gorseller
+            // Tooltip
+            setupSizeTooltip(p.size_tooltip || '', variants);
+
+            // Görsel galeri
             currentImages = p.images || [];
-            console.log(currentImages.length + ' gorsel');
+            console.log(currentImages.length + ' gorsel bulundu');
 
             if (currentImages.length > 0) {
                 if (isMobile) renderMobileGallery();
@@ -224,36 +248,32 @@ async function initProductPage() {
             }
 
             // Varyasyonlar
-            currentVariants = f.Variants;
+            currentVariants = variants || [];
             if (currentVariants.length > 0) {
-                // Fiyata gore sirala (en dusuk fiyat once)
                 currentVariants.sort(function(a, b) {
-                    var priceA = a.discount_price || a.price || 999999;
-                    var priceB = b.discount_price || b.price || 999999;
+                    const priceA = parseFloat(a.discount_price) > 0 ? parseFloat(a.discount_price) : (parseFloat(a.price) || 999999);
+                    const priceB = parseFloat(b.discount_price) > 0 ? parseFloat(b.discount_price) : (parseFloat(b.price) || 999999);
                     return priceA - priceB;
                 });
                 setupVariantAccordion();
                 renderVariantDrawer();
-                // Baslangicta en kucuk fiyatli varyanti otomatik sec
                 selectVariant(0);
-                // Baslangicta en kucuk varyasyonun olcusunu urun isminin altinda goster
-                if (typeof updateProductSubtitle === 'function') updateProductSubtitle(currentVariants[0]);
             } else {
                 const el = document.getElementById('variant-accordion-wrapper');
                 if (el) el.style.display = 'none';
             }
 
-            // Lightbox (sadece masaustu)
-            if (!isMobile && typeof setupLightbox === 'function') setupLightbox();
+            // Lightbox
+            if (!isMobile) setupLightbox();
 
             // Akordiyonlar
-            if (typeof setupAccordions === 'function') setupAccordions();
+            setupAccordions();
 
-            // Sepete ekle
-            if (typeof setupAddToCart === 'function') setupAddToCart(f);
-            setupWishlistButton(f);
+            // Sepete ekle ve favori
+            setupAddToCart(p);
+            setupWishlistButton(p);
 
-            console.log("Urun sayfasi yuklendi:", f.Name);
+            console.log("Urun sayfasi yuklendi:", p.name);
 
         } catch (e) { 
             console.error("Hata:", e); 
@@ -270,46 +290,47 @@ async function initProductPage() {
         if (el) { el.innerHTML = ''; el.innerHTML = html || ''; }
     }
 
-        // ==========================================
-    // TOOLTIP - Storlek/Måttguide
+    // ==========================================
+    // TOOLTIP
     // ==========================================
 
     function setupSizeTooltip(tooltipText, variants) {
         const container = document.getElementById('tooltip-container');
         const body = document.getElementById('tooltip-body');
-        const closeBtn = document.querySelector('.tooltip-close-btn');
-        const toggleSpan = document.querySelector('.tooltip-toggle-span');
-
-        if (!container || !body) return;
+        
+        if (!container || !body) {
+            console.warn('Tooltip elementleri bulunamadi');
+            return;
+        }
 
         // Tooltip içeriğini oluştur
         let html = '';
         
         if (tooltipText && tooltipText.trim()) {
-            // Admin'den girilen custom text
             html = tooltipText.split('\n').map(line => {
                 if (line.trim()) {
-                    return `<p style="margin-bottom:8px;font-size:13px;color:#333;">${line.trim()}</p>`;
+                    return `<p style="margin-bottom:8px;font-size:13px;color:#333;line-height:1.5;">${line.trim()}</p>`;
                 }
                 return '';
             }).join('');
         } else if (variants && variants.length > 0) {
-            // Varyasyonlardan otomatik oluştur
             html = '<table style="width:100%;font-size:13px;border-collapse:collapse;">' +
-                   '<thead><tr style="border-bottom:1px solid #ddd;">' +
-                   '<th style="text-align:left;padding:6px;">Storlek</th>' +
-                   '<th style="text-align:left;padding:6px;">Pris</th>' +
-                   '<th style="text-align:left;padding:6px;">Lager</th>' +
+                   '<thead><tr style="border-bottom:2px solid #ddd;">' +
+                   '<th style="text-align:left;padding:8px;font-weight:600;">Storlek</th>' +
+                   '<th style="text-align:left;padding:8px;font-weight:600;">Pris</th>' +
+                   '<th style="text-align:left;padding:8px;font-weight:600;">Lager</th>' +
                    '</tr></thead><tbody>';
             
             variants.forEach(v => {
-                const price = v.discount_price || v.price || 0;
+                const price = v.discount_price && parseFloat(v.discount_price) > 0 
+                    ? v.discount_price 
+                    : (v.price || 0);
                 const stockText = v.stock > 0 ? `${v.stock} st` : 'Slut i lager';
                 const stockColor = v.stock > 0 ? '#22c55e' : '#e54d42';
                 html += `<tr style="border-bottom:1px solid #eee;">` +
-                        `<td style="padding:6px;">${v.size || '-'}</td>` +
-                        `<td style="padding:6px;font-weight:600;">${price} SEK</td>` +
-                        `<td style="padding:6px;color:${stockColor};">${stockText}</td>` +
+                        `<td style="padding:8px;">${v.size || '-'}</td>` +
+                        `<td style="padding:8px;font-weight:600;">${parseFloat(price).toLocaleString('sv-SE')} SEK</td>` +
+                        `<td style="padding:8px;color:${stockColor};">${stockText}</td>` +
                         `</tr>`;
             });
             
@@ -320,27 +341,41 @@ async function initProductPage() {
 
         body.innerHTML = html;
 
-        // Toggle aç/kapa
-                  // Toggle aç/kapa
+        // Toggle span'ı bul ve event ekle
+        const toggleSpan = container.querySelector('.tooltip-toggle-span');
+        
         if (toggleSpan) {
-            toggleSpan.addEventListener('click', (e) => {
+            toggleSpan.addEventListener('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
-                container.classList.toggle('active');
-                console.log('Tooltip toggled:', container.classList.contains('active'));
+                
+                const isActive = container.classList.contains('active');
+                
+                // Önce tüm tooltip'leri kapat
+                document.querySelectorAll('.custom-tooltip-container.active').forEach(t => {
+                    t.classList.remove('active');
+                });
+                
+                // Bunu aç veya kapat
+                if (!isActive) {
+                    container.classList.add('active');
+                }
+                
+                console.log('Tooltip durum:', !isActive);
             });
         }
 
         // Kapat butonu
+        const closeBtn = container.querySelector('.tooltip-close-btn');
         if (closeBtn) {
-            closeBtn.addEventListener('click', (e) => {
+            closeBtn.addEventListener('click', function(e) {
                 e.stopPropagation();
                 container.classList.remove('active');
             });
         }
 
         // Dışarı tıklayınca kapat
-        document.addEventListener('click', (e) => {
+        document.addEventListener('click', function(e) {
             if (container.classList.contains('active') && !container.contains(e.target)) {
                 container.classList.remove('active');
             }
@@ -348,11 +383,16 @@ async function initProductPage() {
     }
 
     // ==========================================
-    // AKORDİYONLAR
+    // AKORDIYONLAR
     // ==========================================
 
     function setupAccordions() {
         const accordionItems = document.querySelectorAll('.product-accordion-item');
+        
+        if (accordionItems.length === 0) {
+            console.warn('Akordiyon elementleri bulunamadi');
+            return;
+        }
         
         accordionItems.forEach(item => {
             const header = item.querySelector('.product-accordion-header');
@@ -360,24 +400,30 @@ async function initProductPage() {
             
             if (!header || !content) return;
             
-            header.addEventListener('click', () => {
+            // Başlangıçta kapalı
+            content.style.maxHeight = '0px';
+            content.style.overflow = 'hidden';
+            content.style.transition = 'max-height 0.35s ease, padding 0.35s ease';
+            
+            header.addEventListener('click', function() {
                 const isOpen = item.classList.contains('open');
                 
-                // Tümünü kapat (tekli açma - istersen bunu kaldır)
-                // accordionItems.forEach(other => {
-                //     other.classList.remove('open');
-                //     const otherContent = other.querySelector('.product-accordion-content');
-                //     if (otherContent) otherContent.style.maxHeight = null;
-                // });
+                // Tümünü kapat (tekli açma)
+                accordionItems.forEach(other => {
+                    other.classList.remove('open');
+                    const otherContent = other.querySelector('.product-accordion-content');
+                    if (otherContent) {
+                        otherContent.style.maxHeight = '0px';
+                        otherContent.style.paddingBottom = '0';
+                    }
+                    const otherIcon = other.querySelector('.product-accordion-header i');
+                    if (otherIcon) otherIcon.style.transform = 'rotate(0deg)';
+                });
                 
-                if (isOpen) {
-                    item.classList.remove('open');
-                    content.style.maxHeight = null;
-                    const icon = header.querySelector('i');
-                    if (icon) icon.style.transform = 'rotate(0deg)';
-                } else {
+                if (!isOpen) {
                     item.classList.add('open');
-                    content.style.maxHeight = content.scrollHeight + 'px';
+                    content.style.maxHeight = content.scrollHeight + 50 + 'px';
+                    content.style.paddingBottom = '20px';
                     const icon = header.querySelector('i');
                     if (icon) icon.style.transform = 'rotate(180deg)';
                 }
@@ -386,67 +432,67 @@ async function initProductPage() {
     }
 
     // ==========================================
-    // ÜRÜN ALT BAŞLIK GÜNCELLEME
+    // URUN ALT BASLIK
     // ==========================================
 
-          function updateProductSubtitle(variant) {
+    function updateProductSubtitle(variant) {
         const subtitleEl = document.getElementById('dynamic-product-subtitle');
         if (!subtitleEl || !variant) return;
         
         const sizeText = variant.size || '';
         
-        // Sadece ölçü göster, fiyat zaten yukarıda büyük yazıyor
-        subtitleEl.innerHTML = `
-            <span class="selected-size-display" style="font-size:14px;color:#666;font-weight:500;">
-                ${sizeText ? 'Vald storlek: ' + sizeText : 'Välj storlek'}
-            </span>
-        `;
+        // Sadece ölçü göster, fiyat zaten büyük yazıyor üstte
+        if (sizeText) {
+            subtitleEl.innerHTML = `
+                <span class="selected-size-display" style="font-size:14px;color:#666;font-weight:500;">
+                    Vald storlek: ${sizeText}
+                </span>
+            `;
+        } else {
+            subtitleEl.innerHTML = `
+                <span class="selected-size-display" style="font-size:14px;color:#666;font-weight:500;">
+                    Välj storlek
+                </span>
+            `;
+        }
     }
 
-    
-    
     // ==========================================
-    // WISHLIST / FAVORI - ID FIX
+    // WISHLIST
     // ==========================================
 
-    function setupWishlistButton(fields) {
+    function setupWishlistButton(product) {
         const btn = document.querySelector('.ana-urun-favori-buton');
         if (!btn) return;
 
-        const productId = currentProduct.id;
-
-        // Baslangic durumunu kontrol et
+        const productId = product.id;
         updateWishlistButtonState(btn, productId);
 
-        // Click event
         btn.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
 
             let wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
-            const index = wishlist.findIndex(item => (typeof item === 'string' ? item : String(item.id)) === String(productId));
+            const index = wishlist.findIndex(item => 
+                (typeof item === 'string' ? item : String(item.id)) === String(productId)
+            );
 
             if (index > -1) {
-                // Kaldir
                 wishlist.splice(index, 1);
-                console.log('Favorilerden kaldirildi:', fields.Name);
+                console.log('Favorilerden kaldirildi:', product.name);
             } else {
-                // Ekle
                 wishlist.push({
-                    id: currentProduct.id,
-                    name: fields.Name,
+                    id: product.id,
+                    name: product.name,
                     price: getDisplayPrice(currentProduct, selectedVariant),
                     image: currentImages.length > 0 ? currentImages[0] : ''
                 });
-                console.log('Favorilere eklendi:', fields.Name);
+                console.log('Favorilere eklendi:', product.name);
             }
 
             localStorage.setItem('wishlistItems', JSON.stringify(wishlist));
-
-            // Buton gorunumunu guncelle
             updateWishlistButtonState(btn, productId);
 
-            // Header badge'i guncelle
             if (typeof updateWishlistBadge === 'function') {
                 updateWishlistBadge();
             }
@@ -455,7 +501,9 @@ async function initProductPage() {
 
     function updateWishlistButtonState(btn, productId) {
         const wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
-        const isWishlisted = wishlist.some(item => (typeof item === 'string' ? item : String(item.id)) === String(productId));
+        const isWishlisted = wishlist.some(item => 
+            (typeof item === 'string' ? item : String(item.id)) === String(productId)
+        );
 
         const icon = btn.querySelector('i');
         if (icon) {
@@ -472,7 +520,7 @@ async function initProductPage() {
     }
 
     // ==========================================
-    // MASAUSTU GALERI (2 Resim + Thumbnail'lar)
+    // GALERI
     // ==========================================
 
     function renderDesktopGallery() {
@@ -486,7 +534,6 @@ async function initProductPage() {
 
         if (!container) return;
 
-        // 2 buyuk resim yan yana
         let mainHTML = '';
         const count = Math.min(2, currentImages.length);
 
@@ -502,7 +549,6 @@ async function initProductPage() {
         }
         container.innerHTML = mainHTML;
 
-        // Thumbnail'lar
         if (thumbContainer) {
             let thumbHTML = '';
             currentImages.forEach((img, i) => {
@@ -534,10 +580,6 @@ async function initProductPage() {
             });
         }
     };
-
-    // ==========================================
-    // MOBIL GALERI (Swipe + Sayac + Ilerleme Cubugu)
-    // ==========================================
 
     function renderMobileGallery() {
         const container = document.getElementById('desktop-gallery');
@@ -628,7 +670,7 @@ async function initProductPage() {
     }
 
     // ==========================================
-    // LIGHTBOX (Sadece Masaustu)
+    // LIGHTBOX
     // ==========================================
 
     let isPanning = false;
@@ -760,26 +802,20 @@ async function initProductPage() {
 
     function startPan(e) {
         if (!isZoomed) return;
-
         isPanning = true;
         panStartX = e.clientX - panTranslateX;
         panStartY = e.clientY - panTranslateY;
-
         const wrapper = document.getElementById('lightbox-img-wrapper');
         if (wrapper) wrapper.style.cursor = 'grabbing';
-
         e.preventDefault();
     }
 
     function movePan(e) {
         if (!isPanning || !isZoomed) return;
-
         panTranslateX = e.clientX - panStartX;
         panTranslateY = e.clientY - panStartY;
-
         limitPanBounds();
         updatePanTransform();
-
         e.preventDefault();
     }
 
@@ -792,21 +828,13 @@ async function initProductPage() {
     function handleTouchStartPan(e) {
         if (!isZoomed) return;
         const touch = e.touches[0];
-        startPan({ 
-            clientX: touch.clientX, 
-            clientY: touch.clientY, 
-            preventDefault: () => e.preventDefault() 
-        });
+        startPan({ clientX: touch.clientX, clientY: touch.clientY, preventDefault: () => e.preventDefault() });
     }
 
     function handleTouchMovePan(e) {
         if (!isPanning || !isZoomed) return;
         const touch = e.touches[0];
-        movePan({ 
-            clientX: touch.clientX, 
-            clientY: touch.clientY, 
-            preventDefault: () => e.preventDefault() 
-        });
+        movePan({ clientX: touch.clientX, clientY: touch.clientY, preventDefault: () => e.preventDefault() });
     }
 
     function limitPanBounds() {
@@ -902,7 +930,7 @@ async function initProductPage() {
             const isSelected = selectedVariant && selectedVariant.id === variant.id;
             const displayPrice = getDisplayPrice(currentProduct, variant);
             const originalPrice = getOriginalPrice(currentProduct, variant);
-            const hasDiscount = variant.discount_price && variant.discount_price < variant.price;
+            const variantHasDiscount = hasDiscount(currentProduct, variant);
 
             html += `
                 <div class="variant-drawer-item ${isSelected ? 'selected' : ''}" 
@@ -913,8 +941,8 @@ async function initProductPage() {
                     <div class="variant-drawer-info">
                         <span class="variant-size">${variant.size}</span>
                         <span class="variant-price">
-                            ${hasDiscount ? '<span style="text-decoration:line-through;color:#999;font-size:12px;">' + originalPrice + ' SEK</span> ' : ''}
-                            <span style="${hasDiscount ? 'color:#e54d42;' : ''}">${displayPrice} SEK</span>
+                            ${variantHasDiscount ? '<span style="text-decoration:line-through;color:#999;font-size:12px;margin-right:4px;">' + originalPrice.toLocaleString('sv-SE') + ' SEK</span>' : ''}
+                            <span style="${variantHasDiscount ? 'color:#e54d42;' : ''}">${displayPrice.toLocaleString('sv-SE')} SEK</span>
                         </span>
                         <span class="variant-stock" style="font-size:12px;color:${variant.stock > 0 ? '#22c55e' : '#e54d42'};">
                             ${variant.stock > 0 ? 'I lager (' + variant.stock + ' st)' : 'Slut i lager'}
@@ -935,72 +963,63 @@ async function initProductPage() {
         if (overlay) overlay.onclick = (e) => { if (e.target === overlay) closeVariantDrawer(); };
     }
 
-window.selectVariant = function(index) {
-    selectedVariant = currentVariants[index];
-    
-    // Drawer'ı kapat
-    closeVariantDrawer();
-    
-    // Görsel güncelleme
-    document.querySelectorAll('.variant-drawer-item').forEach((item, i) => {
-        item.classList.toggle('selected', i === index);
-        const icon = item.querySelector('.variant-check i');
-        if (icon) icon.className = i === index ? 'fa-solid fa-check-circle' : 'fa-regular fa-circle';
-    });
-
-    // Seçilen varyantı göster
-    const display = document.getElementById('selected-variant-display');
-    if (display && selectedVariant) {
-        display.textContent = selectedVariant.size;
-    }
-    
-    // Varyant durumunu göster
-    const status = document.getElementById('variant-status');
-    if (status) {
-        status.style.display = 'inline';
-        status.textContent = 'Vald';
-    }
-    
-    // Akordiyon alt başlığını güncelle
-    const accordionSubtitle = document.querySelector('.accordion-subtitle');
-    if (accordionSubtitle && selectedVariant) {
-        accordionSubtitle.textContent = selectedVariant.size;
-    }
-    
-    // Fiyatı güncelle
-    const priceEl = document.getElementById('product-price');
-    if (priceEl && selectedVariant) {
-        const displayPrice = getDisplayPrice(currentProduct, selectedVariant);
-        const originalPrice = getOriginalPrice(currentProduct, selectedVariant);
-        const variantBasePrice = parseFloat(selectedVariant.price) || 0;
-const variantDiscountPrice = parseFloat(selectedVariant.discount_price) || 0;
-const hasDiscount = variantDiscountPrice > 0 && variantDiscountPrice < variantBasePrice;
+    window.selectVariant = function(index) {
+        selectedVariant = currentVariants[index];
         
-     if (hasDiscount) {
-    priceEl.innerHTML = 
-        '<span style="text-decoration:line-through;color:#999;font-size:18px;margin-right:8px;">' + 
-        variantBasePrice.toLocaleString('sv-SE') + ' SEK</span>' +
-        '<span style="color:#e54d42;font-size:24px;font-weight:bold;">' + 
-        variantDiscountPrice.toLocaleString('sv-SE') + ' SEK</span>';
-} else {
-    priceEl.innerHTML = '<span style="font-size:24px;font-weight:bold;">' + 
-        variantBasePrice.toLocaleString('sv-SE') + " SEK</span>";
-  }
-}        
-    
-    // Ürün alt başlığını güncelle (tooltip alanı)
-    if (typeof updateProductSubtitle === 'function' && selectedVariant) {
-        updateProductSubtitle(selectedVariant);
-    }
-    
-    console.log('Varyant seçildi:', selectedVariant.size, 'Fiyat:', getDisplayPrice(currentProduct, selectedVariant));
-};
+        closeVariantDrawer();
+        
+        document.querySelectorAll('.variant-drawer-item').forEach((item, i) => {
+            item.classList.toggle('selected', i === index);
+            const icon = item.querySelector('.variant-check i');
+            if (icon) icon.className = i === index ? 'fa-solid fa-check-circle' : 'fa-regular fa-circle';
+        });
 
-        // ==========================================
+        const display = document.getElementById('selected-variant-display');
+        if (display && selectedVariant) {
+            display.textContent = selectedVariant.size;
+        }
+        
+        const status = document.getElementById('variant-status');
+        if (status) {
+            status.style.display = 'inline';
+            status.textContent = 'Vald';
+        }
+        
+        const accordionSubtitle = document.querySelector('.accordion-subtitle');
+        if (accordionSubtitle && selectedVariant) {
+            accordionSubtitle.textContent = selectedVariant.size;
+        }
+        
+        // Fiyatı güncelle
+        const priceEl = document.getElementById('product-price');
+        if (priceEl && selectedVariant) {
+            const displayPrice = getDisplayPrice(currentProduct, selectedVariant);
+            const originalPrice = getOriginalPrice(currentProduct, selectedVariant);
+            const variantHasDiscount = hasDiscount(currentProduct, selectedVariant);
+            
+            if (variantHasDiscount) {
+                priceEl.innerHTML = 
+                    '<span style="text-decoration:line-through;color:#999;font-size:18px;margin-right:8px;">' + 
+                    originalPrice.toLocaleString('sv-SE') + ' SEK</span>' +
+                    '<span style="color:#e54d42;font-size:24px;font-weight:bold;">' + 
+                    displayPrice.toLocaleString('sv-SE') + ' SEK</span>';
+            } else {
+                priceEl.innerHTML = '<span style="font-size:24px;font-weight:bold;">' + 
+                    displayPrice.toLocaleString('sv-SE') + " SEK</span>";
+            }
+        }
+        
+        // Ürün alt başlığını güncelle
+        updateProductSubtitle(selectedVariant);
+        
+        console.log('Varyant seçildi:', selectedVariant.size, 'Fiyat:', getDisplayPrice(currentProduct, selectedVariant));
+    };
+
+    // ==========================================
     // SEPETE EKLE
     // ==========================================
 
-    function setupAddToCart(fields) {
+    function setupAddToCart(product) {
         const btn = document.getElementById('add-to-cart-btn');
         if (!btn) return;
 
@@ -1015,11 +1034,11 @@ const hasDiscount = variantDiscountPrice > 0 && variantDiscountPrice < variantBa
 
             const cartItem = {
                 id: currentProduct.id,
-                name: fields.Name,
+                name: product.name,
                 price: getDisplayPrice(currentProduct, selectedVariant),
                 image: currentImages.length > 0 ? currentImages[0] : '',
                 variants: selectedVariant.size,
-                delivery: fields.Delivery_time || '3-7 arbetsdagar',
+                delivery: product.delivery_time || '3-7 arbetsdagar',
                 quantity: 1
             };
 
@@ -1036,22 +1055,17 @@ const hasDiscount = variantDiscountPrice > 0 && variantDiscountPrice < variantBa
 
             localStorage.setItem('siteCartItems', JSON.stringify(cart));
 
-            // Badge güncelle
             if (typeof updateCartBadge === 'function') {
                 updateCartBadge();
             }
 
-            // Mini cart aç
             if (typeof openMiniCart === 'function') {
                 openMiniCart();
             }
 
-            console.log('Sepete eklendi:', fields.Name, selectedVariant.size);
+            console.log('Sepete eklendi:', product.name, selectedVariant.size);
         });
     }
-      
-    
-    
 
     // ==========================================
     // BASLAT
