@@ -276,6 +276,7 @@ if (window.__productPageInitialized) {
             console.log('p.colors:', p.colors);
             console.log('typeof p.colors:', typeof p.colors);
             console.log('Array.isArray(p.colors):', Array.isArray(p.colors));
+            renderColorOptions(p.colors || []);
             currentVariants = variants || [];
             if (currentVariants.length > 0) {
                 currentVariants.sort(function(a, b) {
@@ -439,19 +440,20 @@ if (window.__productPageInitialized) {
             `;
         });
         
-        list.innerHTML = html;
-        wrapper.style.display = 'block';
+         list.innerHTML = html;
+           wrapper.style.display = 'block';
 
-        list.querySelectorAll('.color-option').forEach(opt => {
-        opt.addEventListener('click', function() {
-        list.querySelectorAll('.color-option').forEach(o => o.classList.remove('selected'));
-        this.classList.add('selected');
-        console.log('Renk seçildi:', this.dataset.color);
+          // Click event'leri - TEK SEFERLİK
+          list.querySelectorAll('.color-option').forEach(opt => {
+          opt.addEventListener('click', function() {
+          list.querySelectorAll('.color-option').forEach(o => o.classList.remove('selected'));
+          this.classList.add('selected');
+          console.log('Renk seçildi:', this.dataset.color);
         
-        // Seçilen rengi currentProduct'a kaydet (sepete ekleme için)
-        currentProduct.selectedColor = this.dataset.color;
-      });
-   });
+          // Seçilen rengi currentProduct'a kaydet (sepete ekleme için)
+          currentProduct.selectedColor = this.dataset.color;
+        });
+     });
         
         // Click event'leri
         list.querySelectorAll('.color-option').forEach(opt => {
@@ -1172,7 +1174,7 @@ if (window.__productPageInitialized) {
                 return;
             }
 
-             const cartItem = {
+              const cartItem = {
               id: currentProduct.id,
               name: product.name,
               price: getDisplayPrice(currentProduct, selectedVariant),
@@ -1180,7 +1182,7 @@ if (window.__productPageInitialized) {
               variants: selectedVariant.size,
               color: currentProduct.selectedColor || '',  // <-- BUNU EKLE
               delivery: product.delivery_time || '3-7 arbetsdagar',
-              quantity: 1
+             quantity: 1
            };
 
             let cart = JSON.parse(localStorage.getItem('siteCartItems')) || [];
