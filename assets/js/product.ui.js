@@ -296,10 +296,11 @@ if (window.__productPageInitialized) {
 
     function setupSizeTooltip(tooltipText, variants) {
         const container = document.getElementById('tooltip-container');
+        const popupBox = container ? container.querySelector('.tooltip-popup-box') : null;
         const body = document.getElementById('tooltip-body');
         
-        if (!container || !body) {
-            console.warn('Tooltip elementleri bulunamadi');
+        if (!container || !popupBox || !body) {
+            console.warn('Tooltip elementleri bulunamadi:', {container, popupBox, body});
             return;
         }
 
@@ -349,19 +350,19 @@ if (window.__productPageInitialized) {
                 e.preventDefault();
                 e.stopPropagation();
                 
-                const isActive = container.classList.contains('active');
+                const isActive = popupBox.classList.contains('active');
                 
-                // Önce tüm tooltip'leri kapat
-                document.querySelectorAll('.custom-tooltip-container.active').forEach(t => {
-                    t.classList.remove('active');
+                // Önce tüm tooltip popup'ları kapat
+                document.querySelectorAll('.tooltip-popup-box.active').forEach(box => {
+                    box.classList.remove('active');
                 });
                 
                 // Bunu aç veya kapat
                 if (!isActive) {
-                    container.classList.add('active');
+                    popupBox.classList.add('active');
                 }
                 
-                console.log('Tooltip durum:', !isActive);
+                console.log('Tooltip popup durum:', !isActive);
             });
         }
 
@@ -370,14 +371,14 @@ if (window.__productPageInitialized) {
         if (closeBtn) {
             closeBtn.addEventListener('click', function(e) {
                 e.stopPropagation();
-                container.classList.remove('active');
+                popupBox.classList.remove('active');
             });
         }
 
         // Dışarı tıklayınca kapat
         document.addEventListener('click', function(e) {
-            if (container.classList.contains('active') && !container.contains(e.target)) {
-                container.classList.remove('active');
+            if (popupBox.classList.contains('active') && !container.contains(e.target)) {
+                popupBox.classList.remove('active');
             }
         });
     }
