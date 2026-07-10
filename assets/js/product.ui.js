@@ -321,10 +321,13 @@ async function initProductPage() {
         body.innerHTML = html;
 
         // Toggle aç/kapa
+                  // Toggle aç/kapa
         if (toggleSpan) {
             toggleSpan.addEventListener('click', (e) => {
+                e.preventDefault();
                 e.stopPropagation();
                 container.classList.toggle('active');
+                console.log('Tooltip toggled:', container.classList.contains('active'));
             });
         }
 
@@ -386,16 +389,16 @@ async function initProductPage() {
     // ÜRÜN ALT BAŞLIK GÜNCELLEME
     // ==========================================
 
-    function updateProductSubtitle(variant) {
+          function updateProductSubtitle(variant) {
         const subtitleEl = document.getElementById('dynamic-product-subtitle');
         if (!subtitleEl || !variant) return;
         
-        const displayPrice = getDisplayPrice(currentProduct, variant);
         const sizeText = variant.size || '';
         
+        // Sadece ölçü göster, fiyat zaten yukarıda büyük yazıyor
         subtitleEl.innerHTML = `
             <span class="selected-size-display" style="font-size:14px;color:#666;font-weight:500;">
-                ${sizeText ? sizeText + ' - ' : ''}${displayPrice} SEK
+                ${sizeText ? 'Vald storlek: ' + sizeText : 'Välj storlek'}
             </span>
         `;
     }
