@@ -1,3 +1,62 @@
+/* Renk Seçimi */
+.product-colors-row {
+    margin-bottom: 12px;
+}
+
+.colors-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.color-option {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.2s ease;
+    position: relative;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+
+.color-option:hover {
+    transform: scale(1.15);
+}
+
+.color-option.selected {
+    border-color: #1a1a2e;
+    box-shadow: 0 0 0 2px #fff, 0 0 0 4px #1a1a2e;
+}
+
+.color-option .color-name {
+    position: absolute;
+    bottom: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 10px;
+    color: #666;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.2s;
+    pointer-events: none;
+}
+
+.color-option:hover .color-name {
+    opacity: 1;
+}
+
+
+
+
+
+
+
+
+
+
+
+
 /* ==========================================
    🌐 GLOBAL TEMEL STILLER
    ========================================== */
