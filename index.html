@@ -16,53 +16,6 @@
     <link rel="stylesheet" href="assets/css/common.css">
     <link rel="stylesheet" href="assets/css/index.css" data-page-css="true">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <!-- ==========================================
-         HEADER FLICKER FIX + SPA TRANSITION
-         ========================================== -->
-    <style>
-        /* Header yüklenene kadar boşluk görünmesin */
-        #header-placeholder {
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            min-height: 120px;
-        }
-        #header-placeholder.loaded {
-            opacity: 1;
-        }
-
-        /* Sayfa açılırken siyah bar (beyaz flaş önleme) */
-        body::before {
-            content: '';
-            display: block;
-            height: 120px;
-            background: #1a1a1a;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 999;
-            transition: opacity 0.3s ease;
-        }
-        body.header-ready::before {
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        /* SPA sayfa geçiş animasyonu */
-        .main-content {
-            transition: opacity 0.2s ease, transform 0.2s ease;
-        }
-
-        /* Footer placeholder */
-        #footer-placeholder {
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        #footer-placeholder.loaded {
-            opacity: 1;
-        }
-    </style>
 </head>
 <body>
 
