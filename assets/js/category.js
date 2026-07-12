@@ -61,9 +61,7 @@ function updateChipsActiveState() {
         chip.classList.remove('active');
         const chipKategori = chip.dataset.chip;
 
-        if (!currentKategori && chipKategori === 'alla') {
-            chip.classList.add('active');
-        } else if (currentKategori === chipKategori) {
+        if (currentKategori === chipKategori) {
             chip.classList.add('active');
         }
     });
@@ -243,12 +241,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         let chipsHTML = '';
 
-        const isAllaActive = !currentSubCategory;
-        chipsHTML += `<a href="/${currentCategory}/" class="category-chip ${isAllaActive ? 'active' : ''}" data-chip="alla">Alla</a>`;
-
         const category = categories.find(c => c.slug === currentCategory);
-        if (category) {
-            const categorySubs = subCategories.filter(s => s.category_id === category.id);
+        if (category && Array.isArray(subCategories)) {
+            // Sadece mevcut kategoriye ait alt kategorileri göster
+            const catId = parseInt(category.id);
+            const categorySubs = subCategories.filter(s => {
+                return s && parseInt(s.category_id) === catId && s.active !== false;
+            });
+
+            console.log('Chips render - Kategori:', currentCategory, 'ID:', catId, 'Alt kategori sayısı:', categorySubs.length);
+
             categorySubs.forEach(sub => {
                 const isActive = currentSubCategory === sub.slug;
                 chipsHTML += `<a href="/${currentCategory}/?kategori=${sub.slug}" class="category-chip ${isActive ? 'active' : ''}" data-chip="${sub.slug}">${sub.name}</a>`;
