@@ -1955,3 +1955,87 @@ body.no-scroll {
         height: 50px;
     }
 }
+
+
+
+
+
+
+/* ==========================================
+   MINI CART - MOBILE FIX
+   Till kassan butonu sabit kalmalı
+   ========================================== */
+
+@media (max-width: 768px) {
+    #mini-cart-drawer {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        max-height: 100vh;
+    }
+
+    #mini-cart-drawer .drawer-header {
+        flex-shrink: 0;
+    }
+
+    #mini-cart-drawer #cart-filled-state,
+    #mini-cart-drawer #cart-empty-state {
+        flex: 1;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 120px; /* Footer için boşluk */
+    }
+
+    #mini-cart-drawer #mini-cart-footer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: #fff;
+        border-top: 1px solid #e5e7eb;
+        padding: 16px 20px;
+        z-index: 1000;
+        box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+    }
+
+    /* Till kassan butonu */
+    #mini-cart-footer .checkout-btn,
+    #mini-cart-footer a[href*="checkout"],
+    #mini-cart-footer button[data-action="checkout"] {
+        width: 100%;
+        padding: 14px 20px;
+        background: #1a1a1a;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-size: 15px;
+        font-weight: 600;
+        text-align: center;
+        text-decoration: none;
+        display: block;
+        cursor: pointer;
+    }
+}
+
+/* Desktop - normal davranış */
+@media (min-width: 769px) {
+    #mini-cart-drawer {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+    }
+
+    #mini-cart-drawer #cart-filled-state,
+    #mini-cart-drawer #cart-empty-state {
+        flex: 1;
+        overflow-y: auto;
+    }
+
+    #mini-cart-drawer #mini-cart-footer {
+        flex-shrink: 0;
+        padding: 16px 20px;
+        border-top: 1px solid #e5e7eb;
+        background: #fff;
+    }
+}
+
