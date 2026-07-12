@@ -1003,6 +1003,9 @@ function setupWishlistButton(fields) {
         if (display && selectedVariant) {
             display.textContent = selectedVariant.size;
         }
+
+        // Varyasyon seçildiğinde çekmeceyi kapat
+        closeVariantDrawer();
     };
 
         // ==========================================
