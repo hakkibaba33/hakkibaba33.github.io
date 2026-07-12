@@ -244,7 +244,6 @@ async function initProductPage() {
             }
 
             currentProduct = data[0];
-            window.__currentProductId = currentProduct.id;  // Global ID
             const p = currentProduct;
             const f = {
                 Name: p.name,
@@ -994,7 +993,6 @@ function setupWishlistButton(fields) {
 
       window.selectVariant = function(index) {
         selectedVariant = currentVariants[index];
-        window.__selectedProductVariant = selectedVariant ? selectedVariant.size : null;
         document.querySelectorAll('.variant-drawer-item').forEach((item, i) => {
             item.classList.toggle('selected', i === index);
             const icon = item.querySelector('.variant-check i');
