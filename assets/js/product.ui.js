@@ -293,13 +293,15 @@ async function initProductPage() {
         const tooltipContainer = document.getElementById('tooltip-container');
         const closeBtn = tooltipContainer?.querySelector('.tooltip-close-btn');
 
+        const popupBox = tooltipContainer.querySelector('.tooltip-popup-box');
+
         if (tooltipContainer) {
             const toggle = tooltipContainer.querySelector('.tooltip-toggle-span');
             if (toggle) {
                 toggle.addEventListener('click', (e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    tooltipContainer.classList.toggle('active');
+                    if (popupBox) popupBox.classList.toggle('active');
                 });
             }
         }
@@ -308,8 +310,7 @@ async function initProductPage() {
             closeBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                const tooltipContainer = document.getElementById('tooltip-container');
-                if (tooltipContainer) tooltipContainer.classList.remove('active');
+                if (popupBox) popupBox.classList.remove('active');
             });
         }
 
@@ -317,7 +318,7 @@ async function initProductPage() {
         document.addEventListener('click', (e) => {
             const tooltipContainer = document.getElementById('tooltip-container');
             if (tooltipContainer && !tooltipContainer.contains(e.target)) {
-                tooltipContainer.classList.remove('active');
+                if (popupBox) popupBox.classList.remove('active');
             }
         });
     }
