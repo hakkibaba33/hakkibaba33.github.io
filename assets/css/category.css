@@ -1,3 +1,79 @@
+
+/* ==========================================
+   PRODUCT CARD - VARIANT DISPLAY
+   Kategori sayfası ürün kartında varyasyon gösterimi
+   ========================================== */
+
+.product-variants-row {
+    margin-top: 2px;
+}
+
+.product-variants {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+}
+
+/* Ana boyut metni */
+.product-variants .variant-main {
+    color: #333;
+    font-weight: 600;
+    font-size: 13px;
+}
+
+/* +N storlekar badge */
+.product-variants .variant-extra-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 10px;
+    background: #f5f5f5;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #c9a96e;
+    transition: all 0.2s ease;
+}
+
+/* Hover efekti - ürün kartı hover olduğunda */
+.product-card:hover .variant-extra-badge {
+    background: #b8945a;
+    border-color: #e54d42;
+    color: #fff;
+}
+
+/* Tek varyasyon (extra yok) */
+.product-variants .variant-single {
+    color: #666;
+    font-weight: 500;
+    font-size: 13px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .product-variants {
+        gap: 6px;
+        font-size: 12px;
+    }
+
+    .product-variants .variant-main,
+    .product-variants .variant-single {
+        font-size: 12px;
+    }
+
+    .product-variants .variant-extra-badge {
+        font-size: 10px;
+        padding: 1px 8px;
+    }
+}
+
+
+
+
+
+
+
 /* ============================================
    MODERN FILTRE MENU (Ana Panel)
    ============================================ */

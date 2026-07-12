@@ -1,6 +1,6 @@
 /* Renk Seçimi */
 .product-colors-row {
-    margin-bottom: 12px;
+    margin-bottom: 5px;
 }
 
 .colors-list {
@@ -10,8 +10,8 @@
 }
 
 .color-option {
-    width: 32px;
-    height: 32px;
+    width: 25px;
+    height: 25px;
     border-radius: 50%;
     cursor: pointer;
     border: 2px solid transparent;
@@ -49,11 +49,60 @@
 
 
 
+/* Güven Rozetleri Kapsayıcısı */
+.product-trust-badges {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin: 20px 0 25px 0;
+    padding: 16px;
+    background-color: var(--dk-secondary); /* Sitenin şık bej tonu */
+    border-radius: var(--dk-radius); /* Kendi yuvarlatılmış köşe değerin (12px) */
+    border: 1px solid var(--dk-border); /* Uyumlu border rengin */
+}
 
+/* Her bir satır */
+.badge-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--dk-text); /* Koyu gri ana yazı rengin */
+    font-size: 14px;
+    font-weight: 500;
+    font-family: var(--dk-font-body); /* Inter yazı tipi */
+}
 
+/* İkonların Özelleştirilmesi */
+.badge-item i {
+    color: var(--dk-accent); /* Harika Gold/Vurgu rengin */
+    font-size: 16px;
+    width: 24px; /* İkonların dikeyde jilet gibi hizalanması için */
+    text-align: center;
+    transition: var(--dk-transition);
+}
 
+/* Hover durumunda ikonların rengi de senin hover rengine dönsün (kibar bir detay) */
+.product-trust-badges:hover .badge-item i {
+    color: var(--dk-accent-hover);
+}
 
+.badge-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--dk-primary); /* Yazıyı daha net durması için #1a1a1a (en koyu tonuna) çektik */
+    font-size: 14px;
+    font-weight: 600; /* Yazıyı daha dolgun ve okunaklı yapar */
+    line-height: 1.4;
+    letter-spacing: -0.01em; /* Inter fontu için daha premium bir oturuş sağlar */
+    font-family: var(--dk-font-body);
+}
 
+/* HTML'de kalınlaştırdığımız (strong) kelimelerin rengini accent (gold) yaparak tatlı bir kontrast oluşturalım */
+.badge-item span strong {
+    font-weight: 700;
+    color: var(--dk-primary); /* İstersen burayı var(--dk-accent) yaparak gold vurgu da yapabilirsin */
+}
 
 
 
@@ -563,21 +612,7 @@ body:has(.custom-lightbox-overlay.active) {
     margin-bottom: 0;
 }
 
-/* Specs & Delivery placeholder stilleri */
-.specs-content-placeholder,
-.delivery-content-placeholder {
-    padding: 15px 18px;
-}
-
-.delivery-content-placeholder p {
-    margin-bottom: 10px;
-    font-size: 14px;
-    color: var(--dk-text);
-}
-
-.delivery-content-placeholder strong {
-    color: var(--dk-primary);
-    font-weight: 600;
+nt-weight: 600;
 }
 
 /* ==========================================
@@ -623,12 +658,23 @@ body:has(.custom-lightbox-overlay.active) {
     color: var(--dk-text-light);
     letter-spacing: 1px;
     margin-bottom: 2px;
+    font-weight: 500; /* Küçük başlığı da çok hafif belirginleştirdik */
+    font-family: var(--dk-font-body);
 }
 
 .delivery-value {
     font-size: 14px;
-    font-weight: 600;
-    color: var(--dk-text);
+    font-weight: 700; /* 600'den 700'e çekerek tam kalın (Bold) yaptık */
+    color: var(--dk-primary); /* En net ve okunaklı koyu rengine çektik (#1a1a1a) */
+    font-family: var(--dk-font-body);
+}
+
+#delivery-time-text {
+    font-size: 14px;
+    font-weight: 700; /* Yazıyı tam kalın (Bold) yapar */
+    color: var(--dk-primary); /* Sitenin en net koyu rengi (#1a1a1a) */
+    font-family: var(--dk-font-body);
+    line-height: 1.4;
 }
 
 /* Ana Buton Kapsayıcısı */

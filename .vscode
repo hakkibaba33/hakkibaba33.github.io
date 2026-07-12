@@ -1,0 +1,7 @@
+{
+    "liveServer.settings.proxy": {
+        "enable": true,
+        "baseUri": "/produkt",
+        "proxyUri": "http://127.0.0.1:5500/produkt/index.html"
+    }
+}

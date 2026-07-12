@@ -159,6 +159,7 @@
             h1 { font-size: 1.5rem; }
         }
     </style>
+<base target="_blank">
 </head>
 <body>
     <div class="success-box">
@@ -268,11 +269,14 @@
 
             // Siparis verisi olustur
             const orderData = {
-                customer_info: {
-                    name: (customer.firstName + ' ' + customer.lastName).trim() || 'Kund',
-                    email: customer.email || 'kund@example.com',
-                    phone: customer.phone || '',
-                    address: (customer.address + ', ' + customer.postcode + ' ' + customer.city).trim() || 'Sverige'
+                customer_name: (customer.firstName + ' ' + customer.lastName).trim() || 'Kund',
+                customer_email: customer.email || 'kund@example.com',
+                customer_phone: customer.phone || '',
+                shipping_address: {
+                    street: customer.address || '',
+                    postal: customer.postcode || '',
+                    city: customer.city || '',
+                    country: 'Sverige'
                 },
                 items: cart.map(function(item) {
                     return {
@@ -300,10 +304,10 @@
                         })()
                     };
                 }),
-                total_price: total,
+                total_amount: total,
                 status: 'pending',
-                payment_id: paymentIntentId || 'unknown',
-                payment_method: 'stripe'
+                payment_status: 'paid',
+                tracking_number: ''
             };
 
             console.log('>>> Siparis verisi:', JSON.stringify(orderData));
@@ -510,7 +514,7 @@
                     order_items: itemsHtml,
                     total_price: total.toLocaleString('sv-SE') + ' SEK',
                     payment_method: 'Stripe',
-                    customer_address: (customer.address + ', ' + customer.postcode + ' ' + customer.city).trim() || 'Sverige',
+                    customer_address: (customer.address ? (customer.address + ', ' + customer.postcode + ' ' + customer.city).trim() : 'Sverige'),
                     customer_phone: customer.phone || 'N/A',
                     tracking_link: 'https://www.dekorist.se/orders/' + orderId + '\n\n(Du kommer att få ett separat mail med spårningsinformation när din beställning skickas.)'
                 };

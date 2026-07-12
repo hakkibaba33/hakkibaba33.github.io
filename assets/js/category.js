@@ -61,9 +61,7 @@ function updateChipsActiveState() {
         chip.classList.remove('active');
         const chipKategori = chip.dataset.chip;
 
-        if (!currentKategori && chipKategori === 'alla') {
-            chip.classList.add('active');
-        } else if (currentKategori === chipKategori) {
+        if (currentKategori === chipKategori) {
             chip.classList.add('active');
         }
     });
@@ -83,9 +81,12 @@ function initChipsRouting() {
         const href = chip.getAttribute('href');
         if (!href) return;
 
+        // 1. URL'i güncelle
         window.history.pushState({}, '', href);
-        updateChipsActiveState();
-        fetchProducts();
+        
+        // 2. Tarayıcıya URL'in değiştiğini bildiren özel bir event fırlat (En Güvenli Yol)
+        window.dispatchEvent(new Event('popstate')); 
+        
         window.scrollTo({ top: 0, behavior: 'smooth' });
     });
 }
@@ -243,12 +244,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         let chipsHTML = '';
 
-        const isAllaActive = !currentSubCategory;
-        chipsHTML += `<a href="/${currentCategory}/" class="category-chip ${isAllaActive ? 'active' : ''}" data-chip="alla">Alla</a>`;
-
         const category = categories.find(c => c.slug === currentCategory);
-        if (category) {
-            const categorySubs = subCategories.filter(s => s.category_id === category.id);
+        if (category && Array.isArray(subCategories)) {
+            // Sadece mevcut kategoriye ait alt kategorileri göster
+            const catId = parseInt(category.id);
+            const categorySubs = subCategories.filter(s => {
+                return s && parseInt(s.category_id) === catId && s.active !== false;
+            });
+
+            console.log('Chips render - Kategori:', currentCategory, 'ID:', catId, 'Alt kategori sayısı:', categorySubs.length);
+
             categorySubs.forEach(sub => {
                 const isActive = currentSubCategory === sub.slug;
                 chipsHTML += `<a href="/${currentCategory}/?kategori=${sub.slug}" class="category-chip ${isActive ? 'active' : ''}" data-chip="${sub.slug}">${sub.name}</a>`;
@@ -341,12 +346,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function getVariantDisplayText(product) {
         const variants = product.variants || [];
-        if (variants.length === 0) return 'Standard';
-        if (variants.length === 1) return variants[0].size || 'Standard';
+        if (variants.length === 0) return '';
+
         const firstSize = variants[0].size || '';
         const extraCount = variants.length - 1;
-        if (firstSize.includes('(+') || firstSize.includes('storlekar')) return firstSize;
-        return firstSize + ' (+ ' + extraCount + ' storlekar)';
+
+        if (variants.length === 1) {
+            // Tek varyasyon - sadece boyut
+            return `<span class="variant-single">${firstSize}</span>`;
+        }
+
+        // Çoklu varyasyon - boyut + badge
+        return `<span class="variant-main">${firstSize}</span><span class="variant-extra-badge">+${extraCount} storlekar</span>`;
     }
 
     function renderProducts(append = false) {
@@ -416,8 +427,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 </div>
                 <div class="product-info">
                     <h3 class="product-title">${product.name}</h3>
-                    <div class="product-meta-row">
-                        <span class="product-acf-dimension">${variantText}</span>
+                    <div class="product-variants-row">
+                        ${variantText ? `<div class="product-variants">${variantText}</div>` : ''}
                     </div>
                     <div class="product-price">
                         ${priceHTML}
@@ -910,4 +921,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     updatePageTitle(initialCategory);
 
     console.log('Category.js v5.7 baslatildi');
+
+
+
+// Urunleri ilk acilista getir
+    fetchProductsOnce();
+
+    // ✅ YENİ: URL her değiştiğinde (Chips tıklandığında veya geri gidildiğinde) çalışacak dynamic router
+    window.addEventListener('popstate', () => {
+        console.log('URL değişti, ürünler güncelleniyor...');
+        updateChipsActiveState(); // Aktif chip'i değiştir
+        fetchProductsOnce();      // Ürünleri yeniden çek
+    });
+
+
+
+
+
+
+
    });

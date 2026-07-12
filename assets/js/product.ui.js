@@ -47,6 +47,88 @@ if (window.__productPageInitialized) {
         return res.json();
     }
 
+
+    // ==========================================
+    // RENKLER - Ürün Sayfası Renk Kutucukları
+    // ==========================================
+
+    const COLOR_MAP = {
+        'rod': '#D32F2F', 'röd': '#D32F2F', 'red': '#D32F2F',
+        'bla': '#1976D2', 'blå': '#1976D2', 'blue': '#1976D2',
+        'gron': '#388E3C', 'grön': '#388E3C', 'green': '#388E3C',
+        'gul': '#FBC02D', 'yellow': '#FBC02D',
+        'orange': '#F57C00',
+        'rosa': '#E91E63', 'pink': '#E91E63',
+        'lila': '#7B1FA2', 'purple': '#7B1FA2',
+        'svart': '#212121', 'black': '#212121',
+        'vit': '#FAFAFA', 'white': '#FAFAFA',
+        'grå': '#9E9E9E', 'gra': '#9E9E9E', 'grey': '#9E9E9E', 'gray': '#9E9E9E',
+        'brun': '#5D4037', 'brown': '#5D4037',
+        'beige': '#D7CCC8',
+        'turkos': '#00BCD4', 'turquoise': '#00BCD4',
+        'guld': '#FFD700', 'gold': '#FFD700',
+        'silver': '#C0C0C0',
+        'bronze': '#CD7F32', 'brons': '#CD7F32',
+        'krem': '#FFF8E1', 'cream': '#FFF8E1',
+        'oliv': '#556B2F', 'olive': '#556B2F',
+        'marin': '#1A237E', 'navy': '#1A237E', 'marinblå': '#1A237E',
+        'mint': '#98FF98',
+        'korall': '#FF7F50', 'coral': '#FF7F50',
+        'vinröd': '#722F37', 'bordo': '#722F37', 'burgundy': '#722F37',
+        'taupe': '#483C32',
+        'mullvad': '#8B7355',
+        'flerfargad': 'linear-gradient(135deg, #FF6B6B, #4ECDC4, #45B7D1, #96CEB4)', 
+        'flerfärgad': 'linear-gradient(135deg, #FF6B6B, #4ECDC4, #45B7D1, #96CEB4)',
+        'multicolor': 'linear-gradient(135deg, #FF6B6B, #4ECDC4, #45B7D1, #96CEB4)',
+        'randig': 'repeating-linear-gradient(90deg, #fff 0px, #fff 10px, #333 10px, #333 20px)',
+        'striped': 'repeating-linear-gradient(90deg, #fff 0px, #fff 10px, #333 10px, #333 20px)',
+        'prickig': 'radial-gradient(circle, #333 2px, transparent 2px)', 
+        'dotted': 'radial-gradient(circle, #333 2px, transparent 2px)',
+        'blommig': 'linear-gradient(45deg, #FFB6C1, #FFF0F5)', 
+        'floral': 'linear-gradient(45deg, #FFB6C1, #FFF0F5)',
+        'transparent': 'rgba(200,200,200,0.3)',
+    };
+
+    function getColorStyle(colorName) {
+        if (!colorName) return '#ccc';
+        const normalized = colorName.toLowerCase().trim();
+        if (COLOR_MAP[normalized]) return COLOR_MAP[normalized];
+        for (const [key, value] of Object.entries(COLOR_MAP)) {
+            if (normalized.includes(key) || key.includes(normalized)) return value;
+        }
+        if (/^#[0-9A-F]{6}$/i.test(normalized)) return normalized;
+        return '#ccc';
+    }
+
+    function renderProductColors(colors) {
+        const wrapper = document.getElementById('product-colors-wrapper');
+        const list = document.getElementById('product-colors-list');
+        if (!wrapper || !list) return;
+
+        if (!colors || colors.length === 0) {
+            wrapper.style.display = 'none';
+            return;
+        }
+
+        let html = '';
+        colors.forEach((color, index) => {
+            const bgStyle = getColorStyle(color);
+            html += `<button type="button" class="color-option" data-color="${color}" title="${color}" style="background: ${bgStyle};"></button>`;
+        });
+
+        list.innerHTML = html;
+        wrapper.style.display = 'block';
+
+        // Renk seçim event'i
+        list.querySelectorAll('.color-option').forEach(btn => {
+            btn.addEventListener('click', () => {
+                list.querySelectorAll('.color-option').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                console.log('Renk seçildi:', btn.dataset.color);
+            });
+        });
+    }
+
     // ==========================================
     // ESKI ID-BASED URL'LERI YENI SLUG-BASED URL'LERE YONLENDIR
     // ==========================================
@@ -162,6 +244,7 @@ async function initProductPage() {
             }
 
             currentProduct = data[0];
+            window.__currentProductId = currentProduct.id;  // Global ID
             const p = currentProduct;
             const f = {
                 Name: p.name,
@@ -193,6 +276,7 @@ async function initProductPage() {
 
             setHTML('product-description', f.Description || '');
             setText('delivery-time-display', f.Delivery_time);
+            setText('delivery-time-text', 'Leveranstid: ' + f.Delivery_time);
 
             // Yeni alanlari akordiyonlara ata
             setHTML('product-specs', f.Product_info ? '<div class="specs-content-placeholder">' + f.Product_info.split('\n').join('<br>') + '</div>' : '<div class="specs-content-placeholder"><p>Material, skötselråd och övrig produktinformation visas här.</p></div>');
@@ -201,6 +285,11 @@ async function initProductPage() {
 
             // Tooltip'i baslat
             if (typeof setupSizeTooltip === 'function') setupSizeTooltip(f.Size_tooltip, f.Variants);
+
+            // Renkler
+            if (p.colors && p.colors.length > 0) {
+                renderProductColors(p.colors);
+            }
 
             // Gorseller
             currentImages = p.images || [];
@@ -262,7 +351,122 @@ async function initProductPage() {
     // WISHLIST / FAVORI - ID FIX
     // ==========================================
 
-    function setupWishlistButton(fields) {
+    
+
+    // ==========================================
+    // TOOLTIP - Boyut Tablosu
+    // ==========================================
+
+    function setupSizeTooltip(sizeTooltipHtml, variants) {
+        const tooltipBody = document.getElementById('tooltip-body');
+        if (!tooltipBody) return;
+
+        if (sizeTooltipHtml && sizeTooltipHtml.trim()) {
+            tooltipBody.innerHTML = sizeTooltipHtml;
+        } else if (variants && variants.length > 0) {
+            // Varyasyonlardan basit bir tablo oluştur
+            let html = '<table style="width:100%;border-collapse:collapse;font-size:13px;">';
+            html += '<tr style="border-bottom:1px solid #eee;"><th style="text-align:left;padding:6px;">Storlek</th><th style="text-align:right;padding:6px;">Pris</th></tr>';
+            variants.forEach(v => {
+                const price = v.discount_price || v.price || 0;
+                html += `<tr style="border-bottom:1px solid #f5f5f5;"><td style="padding:6px;">${v.size || '-'}</td><td style="text-align:right;padding:6px;">${price} SEK</td></tr>`;
+            });
+            html += '</table>';
+            tooltipBody.innerHTML = html;
+        } else {
+            tooltipBody.innerHTML = '<p>Ingen storleksinformation tillgänglig.</p>';
+        }
+
+        // Tooltip toggle event
+        const tooltipContainer = document.getElementById('tooltip-container');
+        const closeBtn = tooltipContainer?.querySelector('.tooltip-close-btn');
+
+        const popupBox = tooltipContainer.querySelector('.tooltip-popup-box');
+
+        if (tooltipContainer) {
+            const toggle = tooltipContainer.querySelector('.tooltip-toggle-span');
+            if (toggle) {
+                toggle.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (popupBox) popupBox.classList.toggle('active');
+                });
+            }
+        }
+
+        if (closeBtn) {
+            closeBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (popupBox) popupBox.classList.remove('active');
+            });
+        }
+
+        // Dışarı tıklayınca kapat
+        document.addEventListener('click', (e) => {
+            const tooltipContainer = document.getElementById('tooltip-container');
+            if (tooltipContainer && !tooltipContainer.contains(e.target)) {
+                if (popupBox) popupBox.classList.remove('active');
+            }
+        });
+    }
+
+    // ==========================================
+    // AKORDİYONLAR
+    // ==========================================
+
+    function setupAccordions() {
+        document.querySelectorAll('.product-accordion-header').forEach(header => {
+            header.addEventListener('click', () => {
+                const item = header.parentElement;
+                const content = item.querySelector('.product-accordion-content');
+                const icon = header.querySelector('.fa-chevron-down');
+
+                // Diğerlerini kapat (isteğe bağlı - tek açık)
+                // document.querySelectorAll('.product-accordion-item').forEach(other => {
+                //     if (other !== item) {
+                //         other.classList.remove('open');
+                //         other.querySelector('.product-accordion-content').style.display = 'none';
+                //         other.querySelector('.fa-chevron-down').style.transform = 'rotate(0deg)';
+                //     }
+                // });
+
+                const isOpen = item.classList.contains('active');
+
+                if (isOpen) {
+                    item.classList.remove('active');
+                    if (content) content.style.display = 'none';
+                    if (icon) icon.style.transform = 'rotate(0deg)';
+                } else {
+                    item.classList.add('active');
+                    if (content) content.style.display = 'block';
+                    if (icon) icon.style.transform = 'rotate(180deg)';
+                }
+            });
+        });
+
+        // Başlangıçta tüm akordiyonları kapalı tut
+        document.querySelectorAll('.product-accordion-content').forEach(content => {
+            content.style.display = 'none';
+        });
+    }
+
+    // ==========================================
+    // URUN ALT BASLIK GUNCELLEME
+    // ==========================================
+
+    function updateProductSubtitle(variant) {
+        const subtitleEl = document.getElementById('dynamic-product-subtitle');
+        if (!subtitleEl || !variant) return;
+
+        const sizeDisplay = subtitleEl.querySelector('.selected-size-display');
+        if (sizeDisplay) {
+            sizeDisplay.textContent = variant.size || 'Välj storlek';
+            sizeDisplay.style.color = '#333';
+        }
+    }
+
+function setupWishlistButton(fields) {
         const btn = document.querySelector('.ana-urun-favori-buton');
         if (!btn) return;
 
@@ -790,6 +994,7 @@ async function initProductPage() {
 
       window.selectVariant = function(index) {
         selectedVariant = currentVariants[index];
+        window.__selectedProductVariant = selectedVariant ? selectedVariant.size : null;
         document.querySelectorAll('.variant-drawer-item').forEach((item, i) => {
             item.classList.toggle('selected', i === index);
             const icon = item.querySelector('.variant-check i');
