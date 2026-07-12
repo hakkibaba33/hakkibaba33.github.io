@@ -47,6 +47,88 @@ if (window.__productPageInitialized) {
         return res.json();
     }
 
+
+    // ==========================================
+    // RENKLER - Ürün Sayfası Renk Kutucukları
+    // ==========================================
+
+    const COLOR_MAP = {
+        'rod': '#D32F2F', 'röd': '#D32F2F', 'red': '#D32F2F',
+        'bla': '#1976D2', 'blå': '#1976D2', 'blue': '#1976D2',
+        'gron': '#388E3C', 'grön': '#388E3C', 'green': '#388E3C',
+        'gul': '#FBC02D', 'yellow': '#FBC02D',
+        'orange': '#F57C00',
+        'rosa': '#E91E63', 'pink': '#E91E63',
+        'lila': '#7B1FA2', 'purple': '#7B1FA2',
+        'svart': '#212121', 'black': '#212121',
+        'vit': '#FAFAFA', 'white': '#FAFAFA',
+        'grå': '#9E9E9E', 'gra': '#9E9E9E', 'grey': '#9E9E9E', 'gray': '#9E9E9E',
+        'brun': '#5D4037', 'brown': '#5D4037',
+        'beige': '#D7CCC8',
+        'turkos': '#00BCD4', 'turquoise': '#00BCD4',
+        'guld': '#FFD700', 'gold': '#FFD700',
+        'silver': '#C0C0C0',
+        'bronze': '#CD7F32', 'brons': '#CD7F32',
+        'krem': '#FFF8E1', 'cream': '#FFF8E1',
+        'oliv': '#556B2F', 'olive': '#556B2F',
+        'marin': '#1A237E', 'navy': '#1A237E', 'marinblå': '#1A237E',
+        'mint': '#98FF98',
+        'korall': '#FF7F50', 'coral': '#FF7F50',
+        'vinröd': '#722F37', 'bordo': '#722F37', 'burgundy': '#722F37',
+        'taupe': '#483C32',
+        'mullvad': '#8B7355',
+        'flerfargad': 'linear-gradient(135deg, #FF6B6B, #4ECDC4, #45B7D1, #96CEB4)', 
+        'flerfärgad': 'linear-gradient(135deg, #FF6B6B, #4ECDC4, #45B7D1, #96CEB4)',
+        'multicolor': 'linear-gradient(135deg, #FF6B6B, #4ECDC4, #45B7D1, #96CEB4)',
+        'randig': 'repeating-linear-gradient(90deg, #fff 0px, #fff 10px, #333 10px, #333 20px)',
+        'striped': 'repeating-linear-gradient(90deg, #fff 0px, #fff 10px, #333 10px, #333 20px)',
+        'prickig': 'radial-gradient(circle, #333 2px, transparent 2px)', 
+        'dotted': 'radial-gradient(circle, #333 2px, transparent 2px)',
+        'blommig': 'linear-gradient(45deg, #FFB6C1, #FFF0F5)', 
+        'floral': 'linear-gradient(45deg, #FFB6C1, #FFF0F5)',
+        'transparent': 'rgba(200,200,200,0.3)',
+    };
+
+    function getColorStyle(colorName) {
+        if (!colorName) return '#ccc';
+        const normalized = colorName.toLowerCase().trim();
+        if (COLOR_MAP[normalized]) return COLOR_MAP[normalized];
+        for (const [key, value] of Object.entries(COLOR_MAP)) {
+            if (normalized.includes(key) || key.includes(normalized)) return value;
+        }
+        if (/^#[0-9A-F]{6}$/i.test(normalized)) return normalized;
+        return '#ccc';
+    }
+
+    function renderProductColors(colors) {
+        const wrapper = document.getElementById('product-colors-wrapper');
+        const list = document.getElementById('product-colors-list');
+        if (!wrapper || !list) return;
+
+        if (!colors || colors.length === 0) {
+            wrapper.style.display = 'none';
+            return;
+        }
+
+        let html = '';
+        colors.forEach((color, index) => {
+            const bgStyle = getColorStyle(color);
+            html += `<button type="button" class="color-option" data-color="${color}" title="${color}" style="background: ${bgStyle};"></button>`;
+        });
+
+        list.innerHTML = html;
+        wrapper.style.display = 'block';
+
+        // Renk seçim event'i
+        list.querySelectorAll('.color-option').forEach(btn => {
+            btn.addEventListener('click', () => {
+                list.querySelectorAll('.color-option').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                console.log('Renk seçildi:', btn.dataset.color);
+            });
+        });
+    }
+
     // ==========================================
     // ESKI ID-BASED URL'LERI YENI SLUG-BASED URL'LERE YONLENDIR
     // ==========================================
@@ -202,6 +284,11 @@ async function initProductPage() {
 
             // Tooltip'i baslat
             if (typeof setupSizeTooltip === 'function') setupSizeTooltip(f.Size_tooltip, f.Variants);
+
+            // Renkler
+            if (p.colors && p.colors.length > 0) {
+                renderProductColors(p.colors);
+            }
 
             // Gorseller
             currentImages = p.images || [];
