@@ -299,7 +299,7 @@ async function initProductPage() {
                 toggle.addEventListener('click', (e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    tooltipContainer.classList.toggle('open');
+                    tooltipContainer.classList.toggle('active');
                 });
             }
         }
@@ -309,7 +309,7 @@ async function initProductPage() {
                 e.preventDefault();
                 e.stopPropagation();
                 const tooltipContainer = document.getElementById('tooltip-container');
-                if (tooltipContainer) tooltipContainer.classList.remove('open');
+                if (tooltipContainer) tooltipContainer.classList.remove('active');
             });
         }
 
@@ -317,7 +317,7 @@ async function initProductPage() {
         document.addEventListener('click', (e) => {
             const tooltipContainer = document.getElementById('tooltip-container');
             if (tooltipContainer && !tooltipContainer.contains(e.target)) {
-                tooltipContainer.classList.remove('open');
+                tooltipContainer.classList.remove('active');
             }
         });
     }
@@ -342,14 +342,14 @@ async function initProductPage() {
                 //     }
                 // });
 
-                const isOpen = item.classList.contains('open');
+                const isOpen = item.classList.contains('active');
 
                 if (isOpen) {
-                    item.classList.remove('open');
+                    item.classList.remove('active');
                     if (content) content.style.display = 'none';
                     if (icon) icon.style.transform = 'rotate(0deg)';
                 } else {
-                    item.classList.add('open');
+                    item.classList.add('active');
                     if (content) content.style.display = 'block';
                     if (icon) icon.style.transform = 'rotate(180deg)';
                 }
