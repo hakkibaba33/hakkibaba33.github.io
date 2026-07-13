@@ -1,49 +1,144 @@
-/* Renk Seçimi */
-.product-colors-row {
-    margin-bottom: 5px;
-}
-
-.colors-list {
+/* Renk swatch'ları */
+.color-label-row {
     display: flex;
-    flex-wrap: wrap;
+    align-items: center;
     gap: 8px;
+    margin-bottom: 8px;
 }
 
-.color-option {
-    width: 25px;
-    height: 25px;
-    border-radius: 50%;
-    cursor: pointer;
-    border: 2px solid transparent;
-    transition: all 0.2s ease;
-    position: relative;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+.variant-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #333;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
-.color-option:hover {
-    transform: scale(1.15);
-}
-
-.color-option.selected {
-    border-color: #1a1a2e;
-    box-shadow: 0 0 0 2px #fff, 0 0 0 4px #1a1a2e;
-}
-
-.color-option .color-name {
-    position: absolute;
-    bottom: -20px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 10px;
+.selected-color-name {
+    font-size: 13px;
     color: #666;
-    white-space: nowrap;
-    opacity: 0;
-    transition: opacity 0.2s;
-    pointer-events: none;
 }
 
-.color-option:hover .color-name {
-    opacity: 1;
+.color-swatches-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.color-swatch-btn {
+    width: 48px;
+    height: 48px;
+    border: 2px solid #ddd;
+    border-radius: 4px;
+    padding: 2px;
+    cursor: pointer;
+    background: #fff;
+    transition: all 0.2s;
+}
+
+.color-swatch-btn:hover {
+    border-color: #999;
+}
+
+.color-swatch-btn.active {
+    border-color: #333;
+}
+
+.color-swatch-inner {
+    width: 100%;
+    height: 100%;
+    border-radius: 2px;
+    background-size: cover;
+    background-position: center;
+}
+
+/* Ölçü dropdown */
+.size-dropdown-box {
+    margin-bottom: 16px;
+}
+
+.size-dropdown-trigger {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    border: 1.5px solid #ddd;
+    border-radius: 8px;
+    background: #fff;
+    cursor: pointer;
+    font-size: 15px;
+    transition: all 0.2s;
+}
+
+.size-dropdown-trigger:hover {
+    border-color: #999;
+}
+
+.dropdown-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.dropdown-color-preview {
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    background-size: cover;
+    background-position: center;
+    border: 1px solid #eee;
+    display: none; /* Renk seçilince göster */
+}
+
+.dropdown-color-preview.visible {
+    display: block;
+}
+
+.dropdown-size-text {
+    font-weight: 500;
+    color: #333;
+}
+
+.size-dropdown-trigger i {
+    color: #666;
+    transition: transform 0.2s;
+}
+
+.size-dropdown-trigger.open i {
+    transform: rotate(180deg);
+}
+
+/* Stok bilgisi */
+.stock-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    padding: 0 4px;
+}
+
+.stock-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.stock-dot.in-stock {
+    background: #4caf50;
+}
+
+.stock-dot.low {
+    background: #ff9800;
+}
+
+.stock-dot.out {
+    background: #f44336;
+}
+
+.stock-text {
+    font-size: 14px;
+    color: #4caf50;
 }
 
 
