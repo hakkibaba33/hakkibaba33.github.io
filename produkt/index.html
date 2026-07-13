@@ -249,16 +249,46 @@ if (window.location.hash && window.location.hash.includes('/produkt/')) {
                     </div>
 
 
-                     <!-- ✅ YENİ: Varyasyon Seçiciler (Renk + Beden) -->
-                       <div id="color-selector" style="margin-bottom: 12px;"></div>
-                       <div id="size-selector" style="margin-bottom: 12px;"></div>
+                     <!-- FİYAT + GOOGLE TRUST SATIRI -->
+<div class="product-price-trust-row">
+    <div class="product-price-display">
+        <span class="current-price" id="product-price">---</span>
+        <span class="tax-info-static">(Inkl. moms)</span>
+    </div>
+    <div class="google-mini-trust">
+        <div class="g-stars">★★★★☆</div> 
+        <div class="g-text">
+            <span class="g-score">4.3/5</span>
+            <span class="g-brand">Butiksbetyg</span>
+        </div>
+    </div>
+</div>
 
-                       <!-- ESKİ AKORDİYON KALDIRILDI - JS ile yönetilecek -->
+<!-- ✅ RENK SEÇİCİ (YENİ - Akordiyonun ÜSTÜNDE) -->
+<div id="color-selector" style="margin-bottom: 12px;"></div>
 
-                      <div class="action-buttons">
-                      <button class="add-to-cart-btn" id="add-to-cart-btn">Lägg i Varukorg</button>
-                      <button class="ana-urun-favori-buton"><i class="fa-regular fa-heart"></i></button>
-                   </div>
+<!-- ✅ ESKİ VARYASYON AKORDİYONU (Beden/Ölçü için) -->
+<div id="variant-accordion-wrapper" class="variant-accordion-box">
+    <button class="variant-accordion-header" id="variant-accordion-btn">
+        <div class="accordion-left">
+            <i class="fa-solid fa-ruler-combined"></i>
+            <div class="accordion-title-group">
+                <span class="accordion-title">Välj storlek</span>
+                <span class="accordion-subtitle" id="selected-variant-display">Ingen storlek vald</span>
+            </div>
+        </div>
+        <div class="accordion-right">
+            <span class="accordion-status" id="variant-status" style="display:none;">Vald</span>
+            <i class="fa-solid fa-chevron-right accordion-chevron"></i>
+        </div>
+    </button>
+</div>
+
+<!-- SEPETE EKLE + FAVORİ -->
+<div class="action-buttons">
+    <button class="add-to-cart-btn" id="add-to-cart-btn">Lägg i Varukorg</button>
+    <button class="ana-urun-favori-buton"><i class="fa-regular fa-heart"></i></button>
+</div>
 
 
                     
