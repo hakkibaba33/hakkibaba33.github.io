@@ -1,232 +1,630 @@
 /* ==========================================
-   ÜRÜN SAYFASI - RENK & BOYUT SEÇİCİ STİLLERİ
+   RENK SWATCH'LARI - Rugvista Stili (YENI)
    ========================================== */
 
-/* Varyasyon Bölümü */
-.variant-section {
-    margin: 24px 0;
-    padding: 20px 0;
-    border-top: 1px solid #e5e5e5;
-}
-
-.variant-title {
-    font-size: 14px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: #1a1a1a;
+/* Renk seçici container */
+#color-selector {
     margin-bottom: 16px;
+    display: none; /* JS ile aktif edilecek */
 }
 
-.variant-hint {
-    font-size: 13px;
-    color: #999;
-    font-style: italic;
+#color-selector.active {
+    display: block;
 }
 
-/* Renk Seçici */
-.color-options {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-}
-
-.color-btn {
+/* "Välj färg" + seçili renk adı satırı */
+.color-label-row {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 8px 16px;
-    border: 2px solid #e5e5e5;
-    border-radius: 8px;
-    background: #fff;
-    cursor: pointer;
-    transition: all 0.2s ease;
+    margin-bottom: 10px;
 }
 
-.color-btn:hover {
-    border-color: #c9a96e;
-    transform: translateY(-1px);
-}
-
-.color-btn.active {
-    border-color: #1a1a1a;
-    background: #1a1a1a;
-    color: #fff;
-}
-
-.color-swatch {
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    border: 2px solid rgba(0,0,0,0.1);
-    display: inline-block;
-}
-
-/* Renk sınıfları */
-.color-swatch.röd { background: #c41e3a; }
-.color-swatch.blå { background: #1e3a8a; }
-.color-swatch.grön { background: #15803d; }
-.color-swatch.beige { background: #d4c4a8; }
-.color-swatch.grå { background: #6b7280; }
-.color-swatch.svart { background: #1a1a1a; border-color: #333; }
-.color-swatch.vit { background: #f9fafb; border-color: #d1d5db; }
-.color-swatch.brun { background: #7c2d12; }
-.color-swatch.gul { background: #eab308; }
-.color-swatch.orange { background: #f97316; }
-.color-swatch.rosa { background: #ec4899; }
-.color-swatch.lila { background: #9333ea; }
-.color-swatch.turkos { background: #06b6d4; }
-
-.color-label {
+.variant-label {
     font-size: 13px;
+    font-weight: 600;
+    color: var(--dk-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.selected-color-name {
+    font-size: 13px;
+    color: var(--dk-text-light);
     font-weight: 500;
 }
 
-/* Boyut Seçici */
-.size-options {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: 12px;
+/* Renk swatch'ları container */
+.color-swatches-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
 }
 
-.size-btn {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    padding: 12px 16px;
-    border: 2px solid #e5e5e5;
-    border-radius: 8px;
-    background: #fff;
+/* Tek swatch butonu */
+.color-swatch-btn {
+    width: 52px;
+    height: 52px;
+    border: 2px solid var(--dk-border);
+    border-radius: 4px;
+    padding: 3px;
     cursor: pointer;
+    background: var(--dk-white);
     transition: all 0.2s ease;
     position: relative;
 }
 
-.size-btn:hover:not(:disabled) {
-    border-color: #c9a96e;
+.color-swatch-btn:hover {
+    border-color: var(--dk-text-light);
+    transform: scale(1.05);
 }
 
-.size-btn.active {
-    border-color: #1a1a1a;
-    background: #fafafa;
+.color-swatch-btn.active {
+    border-color: var(--dk-primary);
+    box-shadow: 0 0 0 1px var(--dk-primary);
 }
 
-.size-btn:disabled {
-    opacity: 0.5;
+.color-swatch-btn:disabled,
+.color-swatch-btn.out-of-stock {
+    opacity: 0.4;
     cursor: not-allowed;
-    background: #f5f5f5;
 }
 
-.size-btn.out-of-stock {
-    border-color: #fee2e2;
-    background: #fef2f2;
-}
-
-.size-label {
-    font-size: 14px;
-    font-weight: 600;
-    color: #1a1a1a;
-}
-
-.size-price {
-    font-size: 13px;
-    color: #666;
-}
-
-.stock-badge {
+.color-swatch-btn:disabled::after,
+.color-swatch-btn.out-of-stock::after {
+    content: '';
     position: absolute;
-    top: -8px;
-    right: -8px;
-    background: #22c55e;
-    color: #fff;
-    font-size: 10px;
-    font-weight: 600;
-    padding: 2px 8px;
-    border-radius: 12px;
-    text-transform: uppercase;
+    top: 50%;
+    left: 50%;
+    width: 1px;
+    height: 70%;
+    background: #999;
+    transform: translate(-50%, -50%) rotate(45deg);
 }
 
-.stock-badge.low {
-    background: #f59e0b;
-}
-
-/* Fiyat Gösterimi */
-.product-price-section {
-    margin: 24px 0;
-    padding: 20px;
-    background: #fafafa;
-    border-radius: 12px;
-}
-
-.current-price {
-    font-size: 28px;
-    font-weight: 700;
-    color: #1a1a1a;
-}
-
-.old-price {
-    font-size: 18px;
-    color: #999;
-    text-decoration: line-through;
-    margin-right: 12px;
-}
-
-/* Stok Durumu */
-.stock-status {
-    margin: 16px 0;
-    font-size: 14px;
-}
-
-.in-stock {
-    color: #22c55e;
-    font-weight: 500;
-}
-
-.out-stock {
-    color: #ef4444;
-    font-weight: 500;
-}
-
-/* Sepet Butonu */
-.add-to-cart-btn {
+/* Swatch içindeki renk kutusu */
+.color-swatch-inner {
     width: 100%;
-    padding: 16px 24px;
-    background: #1a1a1a;
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    font-size: 16px;
+    height: 100%;
+    border-radius: 2px;
+    background-size: cover;
+    background-position: center;
+}
+
+
+/* ==========================================
+   ÖLÇÜ DROPDOWN - Rugvista Stili (YENI)
+   ========================================== */
+
+#size-dropdown-wrapper {
+    margin-bottom: 16px;
+    display: none; /* JS ile aktif edilecek */
+}
+
+#size-dropdown-wrapper.active {
+    display: block;
+}
+
+/* Dropdown trigger butonu */
+.size-dropdown-trigger {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    border: 1.5px solid var(--dk-border);
+    border-radius: var(--dk-radius-sm);
+    background: var(--dk-white);
+    cursor: pointer;
+    font-size: 15px;
+    transition: all 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.size-dropdown-trigger:hover {
+    border-color: var(--dk-text-light);
+}
+
+.size-dropdown-trigger.open {
+    border-color: var(--dk-primary);
+}
+
+.size-dropdown-trigger.open i {
+    transform: rotate(180deg);
+}
+
+/* Sol taraf: renk preview + ölçü text */
+.dropdown-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Küçük renk preview (dropdown içinde) */
+.dropdown-color-preview {
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    background-size: cover;
+    background-position: center;
+    border: 1px solid var(--dk-border);
+    display: none; /* Renk seçilince JS ile visible */
+    flex-shrink: 0;
+}
+
+.dropdown-color-preview.visible {
+    display: block;
+}
+
+/* Ölçü text */
+.dropdown-size-text {
+    font-weight: 500;
+    color: var(--dk-primary);
+    font-size: 15px;
+}
+
+/* Sağ ok ikonu */
+.size-dropdown-trigger i {
+    color: var(--dk-text-light);
+    font-size: 14px;
+    transition: transform 0.3s ease;
+    flex-shrink: 0;
+}
+
+
+/* ==========================================
+   STOK BİLGİSİ - Rugvista Stili (YENI)
+   ========================================== */
+
+.stock-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 12px 0 16px 0;
+    padding: 0 4px;
+    display: none; /* JS ile aktif edilecek */
+}
+
+.stock-info.active {
+    display: flex;
+}
+
+.stock-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.stock-dot.in-stock {
+    background: #4caf50;
+}
+
+.stock-dot.low {
+    background: #ff9800;
+}
+
+.stock-dot.out {
+    background: #f44336;
+}
+
+.stock-text {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.stock-text.in-stock {
+    color: #4caf50;
+}
+
+.stock-text.low {
+    color: #e65100;
+}
+
+.stock-text.out {
+    color: #c62828;
+}
+
+
+/* ==========================================
+   DRAWER GÜNCELLEMELERİ (YENI)
+   ========================================== */
+
+/* Drawer overlay - z-index düzeltmesi */
+.variant-drawer-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(26, 26, 26, 0.5);
+    z-index: 99999;
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.variant-drawer-overlay.open {
+    display: block;
+    opacity: 1;
+}
+
+/* Drawer */
+.variant-drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 100%;
+    max-width: 420px;
+    height: 100%;
+    background: var(--dk-white);
+    z-index: 100000;
+    transform: translateX(100%);
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--dk-shadow-lg);
+}
+
+.variant-drawer.open {
+    transform: translateX(0);
+}
+
+/* Drawer header */
+.variant-drawer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--dk-border);
+    flex-shrink: 0;
+}
+
+.variant-drawer-header h3 {
+    margin: 0;
+    font-size: 18px;
     font-weight: 600;
+    color: var(--dk-primary);
+}
+
+.close-drawer-btn {
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: var(--dk-secondary);
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: var(--dk-text);
+    transition: background 0.2s;
+}
+
+.close-drawer-btn:hover {
+    background: var(--dk-accent);
+    color: var(--dk-white);
+}
+
+/* Drawer body */
+.variant-drawer-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+}
+
+/* Drawer içindeki varyasyon satırları */
+.variant-drawer-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px;
+    border: 2px solid var(--dk-border);
+    border-radius: var(--dk-radius-sm);
+    margin-bottom: 10px;
     cursor: pointer;
     transition: all 0.2s ease;
-    margin-top: 24px;
+    background: var(--dk-white);
 }
 
-.add-to-cart-btn:hover:not(:disabled) {
-    background: #333;
+.variant-drawer-item:hover:not(.out-of-stock) {
+    border-color: var(--dk-text-light);
+    background: var(--dk-secondary);
 }
 
-.add-to-cart-btn:disabled {
-    background: #ccc;
+.variant-drawer-item.selected {
+    border-color: var(--dk-primary);
+    background: var(--dk-secondary);
+}
+
+.variant-drawer-item.out-of-stock {
+    opacity: 0.5;
     cursor: not-allowed;
 }
 
-/* Responsive */
+/* Drawer içindeki resim */
+.variant-drawer-image {
+    width: 60px;
+    height: 80px;
+    border-radius: 6px;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: var(--dk-secondary);
+}
+
+.variant-drawer-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* Drawer içindeki bilgi */
+.variant-drawer-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.variant-size {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--dk-primary);
+}
+
+.variant-price {
+    font-size: 14px;
+    color: var(--dk-text-light);
+    font-weight: 500;
+}
+
+.variant-stock {
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.variant-stock.in-stock {
+    color: #4caf50;
+}
+
+.variant-stock.low {
+    color: #e65100;
+}
+
+.variant-stock.out {
+    color: #c62828;
+}
+
+/* Check ikonu */
+.variant-check {
+    flex-shrink: 0;
+    font-size: 20px;
+}
+
+.variant-drawer-item.selected .variant-check {
+    color: var(--dk-primary);
+}
+
+.variant-drawer-item:not(.selected) .variant-check {
+    color: var(--dk-border);
+}
+
+
+/* ==========================================
+   ESKI VARYASYON AKORDIYONU (KORUNUYOR)
+   ========================================== */
+
+.variant-accordion-box {
+    border: 1px solid var(--dk-border);
+    border-radius: var(--dk-radius-sm);
+    overflow: hidden;
+    background: var(--dk-secondary);
+    margin: 20px 0;
+}
+
+.variant-accordion-box.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.variant-accordion-box.disabled .accordion-title {
+    color: var(--dk-text-light);
+}
+
+.variant-accordion-header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    background: var(--dk-secondary);
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+}
+
+.variant-accordion-header:hover {
+    background: var(--dk-border);
+}
+
+.variant-accordion-header:active {
+    background: var(--dk-border);
+}
+
+.variant-accordion-header .accordion-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    min-width: 0;
+}
+
+.variant-accordion-header .accordion-left > i {
+    font-size: 18px;
+    color: var(--dk-text-light);
+    width: 22px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.variant-accordion-header .accordion-title-group {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.variant-accordion-header .accordion-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--dk-primary);
+}
+
+.variant-accordion-header .accordion-subtitle {
+    font-size: 12px;
+    color: var(--dk-text-light);
+    font-weight: 400;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.variant-accordion-header .accordion-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+    margin-left: 8px;
+}
+
+.variant-accordion-header .accordion-status {
+    font-size: 11px;
+    color: var(--dk-accent);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+}
+
+.variant-accordion-header .accordion-chevron {
+    font-size: 13px;
+    color: var(--dk-text-light);
+    transition: transform 0.3s ease;
+    flex-shrink: 0;
+}
+
+
+/* ==========================================
+   GUVEN ROZETLERI (KORUNUYOR)
+   ========================================== */
+
+.product-trust-badges {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin: 20px 0 25px 0;
+    padding: 16px;
+    background-color: var(--dk-secondary);
+    border-radius: var(--dk-radius);
+    border: 1px solid var(--dk-border);
+}
+
+.badge-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--dk-primary);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.4;
+    letter-spacing: -0.01em;
+    font-family: var(--dk-font-body);
+}
+
+.badge-item i {
+    color: var(--dk-accent);
+    font-size: 16px;
+    width: 24px;
+    text-align: center;
+    transition: var(--dk-transition);
+}
+
+.product-trust-badges:hover .badge-item i {
+    color: var(--dk-accent-hover);
+}
+
+.badge-item span strong {
+    font-weight: 700;
+    color: var(--dk-primary);
+}
+
+
+/* ==========================================
+   MOBIL RESPONSIVE (YENI + KORUNAN)
+   ========================================== */
+
 @media (max-width: 768px) {
-    .color-options {
-        gap: 8px;
+    /* Renk swatch'ları mobil */
+    .color-swatch-btn {
+        width: 44px;
+        height: 44px;
     }
 
-    .color-btn {
-        padding: 6px 12px;
+    /* Dropdown mobil */
+    .size-dropdown-trigger {
+        padding: 12px 14px;
     }
 
-    .size-options {
-        grid-template-columns: repeat(2, 1fr);
+    .dropdown-color-preview {
+        width: 28px;
+        height: 28px;
     }
 
-    .current-price {
-        font-size: 24px;
+    /* Drawer mobil */
+    .variant-drawer {
+        max-width: 100%;
     }
+
+    .variant-drawer-item {
+        padding: 10px;
+        gap: 10px;
+    }
+
+    .variant-drawer-image {
+        width: 50px;
+        height: 67px;
+    }
+
+    .variant-size {
+        font-size: 14px;
+    }
+
+    /* Eski stiller mobil */
+    .variant-accordion-box {
+        margin: 15px 0;
+    }
+
+    .product-trust-badges {
+        padding: 12px;
+        gap: 10px;
+    }
+
+    .badge-item {
+        font-size: 13px;
+    }
+}
+
+
+/* ==========================================
+   BODY DRAWER ACIK KENN SCROLL KILIT
+   ========================================== */
+
+body.drawer-open {
+    overflow: hidden;
 }
