@@ -1,7 +1,6 @@
 // ==========================================
-// PRODUCT.UI.JS - SUPABASE UYUMLU (v3.3 - FIXED)
-// Eski Airtable yapısını koru, sadece API Supabase'e çevrildi
-// YENI: Eski URL formatlarını yeni slug-based URL'lere yönlendirme
+// PRODUCT.UI.JS - SUPABASE UYUMLU (v4.0 - RUGVISTA STILI)
+// YENI: Renk swatch'lari + Dropdown olcu + Filtreli drawer
 // ==========================================
 
 if (window.__productPageInitialized) {
@@ -12,12 +11,14 @@ if (window.__productPageInitialized) {
     let currentProduct = null;
     let currentImages = [];
     let currentVariants = [];
+    let currentFilteredVariants = []; // Filtrelenmis varyasyonlar (renge gore)
     let selectedVariant = null;
+    let selectedColor = null;
     let selectedImageIndex = 0;
     let isZoomed = false;
     let isMobile = window.innerWidth <= 768;
 
-    // Mobilde swipe için
+    // Mobilde swipe icin
     let touchStartX = 0;
     let touchCurrentX = 0;
     let isDragging = false;
@@ -49,20 +50,20 @@ if (window.__productPageInitialized) {
 
 
     // ==========================================
-    // RENKLER - Ürün Sayfası Renk Kutucukları
+    // RENKLER - Renk Swatch'lari (Rugvista Stili)
     // ==========================================
 
     const COLOR_MAP = {
-        'rod': '#D32F2F', 'röd': '#D32F2F', 'red': '#D32F2F',
-        'bla': '#1976D2', 'blå': '#1976D2', 'blue': '#1976D2',
-        'gron': '#388E3C', 'grön': '#388E3C', 'green': '#388E3C',
+        'rod': '#D32F2F', 'roed': '#D32F2F', 'röd': '#D32F2F', 'red': '#D32F2F',
+        'bla': '#1976D2', 'blaa': '#1976D2', 'blå': '#1976D2', 'blue': '#1976D2',
+        'gron': '#388E3C', 'groen': '#388E3C', 'grön': '#388E3C', 'green': '#388E3C',
         'gul': '#FBC02D', 'yellow': '#FBC02D',
         'orange': '#F57C00',
         'rosa': '#E91E63', 'pink': '#E91E63',
         'lila': '#7B1FA2', 'purple': '#7B1FA2',
         'svart': '#212121', 'black': '#212121',
         'vit': '#FAFAFA', 'white': '#FAFAFA',
-        'grå': '#9E9E9E', 'gra': '#9E9E9E', 'grey': '#9E9E9E', 'gray': '#9E9E9E',
+        'graa': '#9E9E9E', 'grå': '#9E9E9E', 'gra': '#9E9E9E', 'grey': '#9E9E9E', 'gray': '#9E9E9E',
         'brun': '#5D4037', 'brown': '#5D4037',
         'beige': '#D7CCC8',
         'turkos': '#00BCD4', 'turquoise': '#00BCD4',
@@ -71,13 +72,14 @@ if (window.__productPageInitialized) {
         'bronze': '#CD7F32', 'brons': '#CD7F32',
         'krem': '#FFF8E1', 'cream': '#FFF8E1',
         'oliv': '#556B2F', 'olive': '#556B2F',
-        'marin': '#1A237E', 'navy': '#1A237E', 'marinblå': '#1A237E',
+        'marin': '#1A237E', 'navy': '#1A237E', 'marinblaa': '#1A237E', 'marinblå': '#1A237E',
         'mint': '#98FF98',
         'korall': '#FF7F50', 'coral': '#FF7F50',
-        'vinröd': '#722F37', 'bordo': '#722F37', 'burgundy': '#722F37',
+        'vinrod': '#722F37', 'vinröd': '#722F37', 'bordo': '#722F37', 'burgundy': '#722F37',
         'taupe': '#483C32',
         'mullvad': '#8B7355',
         'flerfargad': 'linear-gradient(135deg, #FF6B6B, #4ECDC4, #45B7D1, #96CEB4)', 
+        'flerfaergad': 'linear-gradient(135deg, #FF6B6B, #4ECDC4, #45B7D1, #96CEB4)',
         'flerfärgad': 'linear-gradient(135deg, #FF6B6B, #4ECDC4, #45B7D1, #96CEB4)',
         'multicolor': 'linear-gradient(135deg, #FF6B6B, #4ECDC4, #45B7D1, #96CEB4)',
         'randig': 'repeating-linear-gradient(90deg, #fff 0px, #fff 10px, #333 10px, #333 20px)',
@@ -100,33 +102,110 @@ if (window.__productPageInitialized) {
         return '#ccc';
     }
 
-    function renderProductColors(colors) {
-        const wrapper = document.getElementById('product-colors-wrapper');
-        const list = document.getElementById('product-colors-list');
-        if (!wrapper || !list) return;
+    // ==========================================
+    // RENK SWATCH'LARI - Rugvista Stili
+    // ==========================================
 
-        if (!colors || colors.length === 0) {
-            wrapper.style.display = 'none';
+    function renderColorSwatches(variants) {
+        const container = document.getElementById('color-selector');
+        const swatchesContainer = document.getElementById('color-swatches');
+
+        if (!container || !swatchesContainer) return;
+
+        // Benzersiz renkleri al
+        const colorMap = new Map();
+        variants.forEach(v => {
+            if (v.color && !colorMap.has(v.color)) {
+                colorMap.set(v.color, {
+                    color: v.color,
+                    hex: v.color_hex || getColorStyle(v.color),
+                    image: v.variant_image || (currentImages.length > 0 ? currentImages[0] : '')
+                });
+            }
+        });
+
+        const colors = Array.from(colorMap.values());
+        if (colors.length === 0) {
+            container.style.display = 'none';
             return;
         }
 
-        let html = '';
-        colors.forEach((color, index) => {
-            const bgStyle = getColorStyle(color);
-            html += `<button type="button" class="color-option" data-color="${color}" title="${color}" style="background: ${bgStyle};"></button>`;
-        });
+        // "Vald farg: X" yazisi
+        const colorNameEl = document.getElementById('selected-color-name');
+        if (colorNameEl) colorNameEl.textContent = colors[0].color;
 
-        list.innerHTML = html;
-        wrapper.style.display = 'block';
+        // Swatch'lari ciz
+        swatchesContainer.innerHTML = colors.map((c, i) => `
+            <button type="button" 
+                    class="color-swatch-btn ${i === 0 ? 'active' : ''}" 
+                    data-color="${c.color}"
+                    data-hex="${c.hex}"
+                    data-image="${c.image}">
+                <div class="color-swatch-inner" style="background: ${c.hex};"></div>
+            </button>
+        `).join('');
 
-        // Renk seçim event'i
-        list.querySelectorAll('.color-option').forEach(btn => {
+        container.style.display = 'block';
+
+        // Event listener'lar
+        swatchesContainer.querySelectorAll('.color-swatch-btn').forEach(btn => {
             btn.addEventListener('click', () => {
-                list.querySelectorAll('.color-option').forEach(b => b.classList.remove('selected'));
-                btn.classList.add('selected');
-                console.log('Renk seçildi:', btn.dataset.color);
+                // Aktif sinifi guncelle
+                swatchesContainer.querySelectorAll('.color-swatch-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                const color = btn.dataset.color;
+
+                // "Vald farg" yazisini guncelle
+                if (colorNameEl) colorNameEl.textContent = color;
+
+                // Dropdown preview guncelle
+                const preview = document.getElementById('dropdown-color-preview');
+                if (preview) {
+                    preview.style.background = btn.dataset.hex;
+                    preview.classList.add('visible');
+                }
+
+                // Varyasyonlari filtrele (sadece bu renkteki olculer)
+                filterVariantsByColor(color);
             });
         });
+
+        // Ilk rengi otomatik sec
+        if (colors.length > 0) {
+            selectedColor = colors[0].color;
+            filterVariantsByColor(colors[0].color);
+        }
+    }
+
+    // Renge gore varyasyonlari filtrele
+    function filterVariantsByColor(color) {
+        selectedColor = color;
+        if (!currentVariants) return;
+
+        // Bu renkteki varyasyonlari bul
+        const colorVariants = currentVariants.filter(v => v.color === color);
+
+        // Drawer'i yeniden ciz (sadece bu renkteki olculer)
+        currentFilteredVariants = colorVariants;
+        renderVariantDrawerFiltered(colorVariants);
+
+        // Secimi sifirla
+        selectedVariant = null;
+
+        const selectedDisplay = document.getElementById('selected-variant-display');
+        if (selectedDisplay) selectedDisplay.textContent = 'Välj storlek';
+
+        const status = document.getElementById('variant-status');
+        if (status) status.style.display = 'none';
+
+        // Dropdown text sifirla
+        const dropdownText = document.getElementById('dropdown-size-text');
+        if (dropdownText) dropdownText.textContent = 'Välj storlek';
+
+        // Stok bilgisini gizle
+        const stockInfo = document.getElementById('stock-info');
+        if (stockInfo) stockInfo.style.display = 'none';
     }
 
     // ==========================================
@@ -141,7 +220,7 @@ if (window.__productPageInitialized) {
             });
 
             if (products.length > 0 && products[0].slug) {
-                window.location.replace(`/produkt/${products[0].slug}`);
+                window.location.replace('/produkt/' + products[0].slug);
             } else {
                 console.error("ID ile slug bulunamadi:", productId);
                 window.location.href = '/404.html';
@@ -165,7 +244,7 @@ if (window.__productPageInitialized) {
     }
 
 // ==========================================
-// URUN SAYFASI INIT - SLUG ROUTING (DÜZELTİLMİŞ)
+// URUN SAYFASI INIT - SLUG ROUTING
 // ==========================================
 
 async function initProductPage() {
@@ -185,7 +264,7 @@ async function initProductPage() {
         else console.log("Slug pathname'den bulundu:", slug);
     }
 
-    // 2) ESKI FORMAT: /produkt/?slug=xxx (kategori sayfasından gelen)
+    // 2) ESKI FORMAT: /produkt/?slug=xxx
     if (!slug) {
         const slugParam = urlParams.get('slug');
         if (slugParam) {
@@ -195,14 +274,24 @@ async function initProductPage() {
     }
 
     // 3) ESKI FORMAT: ?id=xxx
-      if (!slug) {
-    const slugParam = urlParams.get('slug');
-    if (slugParam) {
-        console.log("Eski ?slug= formati, yonlendiriliyor:", slugParam);
-        window.location.replace('/produkt/' + encodeURIComponent(slugParam));
-        return;
+    if (!slug) {
+        const idParam = urlParams.get('id');
+        if (idParam) {
+            console.log("Eski ?id= formati, yonlendiriliyor...");
+            await redirectFromIdToSlug(idParam);
+            return;
+        }
     }
-}
+
+    // 4) ESKI FORMAT: ?slug=xxx (redirect et)
+    if (!slug) {
+        const slugParam = urlParams.get('slug');
+        if (slugParam) {
+            console.log("Eski ?slug= formati, yonlendiriliyor:", slugParam);
+            window.location.replace('/produkt/' + encodeURIComponent(slugParam));
+            return;
+        }
+    }
 
     if (!slug) {
         console.error("Slug bulunamadi! URL:", window.location.href);
@@ -214,8 +303,6 @@ async function initProductPage() {
     console.log("Final Slug:", slug);
 
         try {
-            // Duz cekme (embed olmadan)
-
             const products = await supabaseGet('products', {
                 slug: 'eq.' + slug,
                 select: '*'
@@ -256,7 +343,7 @@ async function initProductPage() {
                 Variants: p.product_variants || []
             };
 
-            // Temel bilgiler - element kontrolu ile
+            // Temel bilgiler
             setText('page-title-product-name', f.Name);
             setText('breadcrumb-product-name', f.Name);
             setText('product-main-name-desktop', f.Name);
@@ -285,11 +372,6 @@ async function initProductPage() {
             // Tooltip'i baslat
             if (typeof setupSizeTooltip === 'function') setupSizeTooltip(f.Size_tooltip, f.Variants);
 
-            // Renkler
-            if (p.colors && p.colors.length > 0) {
-                renderProductColors(p.colors);
-            }
-
             // Gorseller
             currentImages = p.images || [];
             console.log(currentImages.length + ' gorsel');
@@ -308,15 +390,21 @@ async function initProductPage() {
                     var priceB = b.discount_price || b.price || 999999;
                     return priceA - priceB;
                 });
+
+                // YENI: Renk swatch'larini baslat
+                renderColorSwatches(currentVariants);
+
+                // Dropdown ve drawer'i hazirla
                 setupVariantAccordion();
-                renderVariantDrawer();
-                // Baslangicta en kucuk fiyatli varyanti otomatik sec
-                selectVariant(0);
-                // Baslangicta en kucuk varyasyonun olcusunu urun isminin altinda goster
-                if (typeof updateProductSubtitle === 'function') updateProductSubtitle(currentVariants[0]);
+
+                // Baslangicta en kucuk fiyatli varyanti otomatik sec (eski davranis)
+                // selectVariant(0); // Artik renk secilince olcu secilecek
             } else {
                 const el = document.getElementById('variant-accordion-wrapper');
                 if (el) el.style.display = 'none';
+
+                const colorEl = document.getElementById('color-selector');
+                if (colorEl) colorEl.style.display = 'none';
             }
 
             // Lightbox (sadece masaustu)
@@ -345,127 +433,12 @@ async function initProductPage() {
         const el = document.getElementById(id);
         if (el) { el.innerHTML = ''; el.innerHTML = html || ''; }
     }
-        
-    // ==========================================
-    // WISHLIST / FAVORI - ID FIX
-    // ==========================================
-
-    
 
     // ==========================================
-    // TOOLTIP - Boyut Tablosu
+    // WISHLIST / FAVORI
     // ==========================================
 
-    function setupSizeTooltip(sizeTooltipHtml, variants) {
-        const tooltipBody = document.getElementById('tooltip-body');
-        if (!tooltipBody) return;
-
-        if (sizeTooltipHtml && sizeTooltipHtml.trim()) {
-            tooltipBody.innerHTML = sizeTooltipHtml;
-        } else if (variants && variants.length > 0) {
-            // Varyasyonlardan basit bir tablo oluştur
-            let html = '<table style="width:100%;border-collapse:collapse;font-size:13px;">';
-            html += '<tr style="border-bottom:1px solid #eee;"><th style="text-align:left;padding:6px;">Storlek</th><th style="text-align:right;padding:6px;">Pris</th></tr>';
-            variants.forEach(v => {
-                const price = v.discount_price || v.price || 0;
-                html += `<tr style="border-bottom:1px solid #f5f5f5;"><td style="padding:6px;">${v.size || '-'}</td><td style="text-align:right;padding:6px;">${price} SEK</td></tr>`;
-            });
-            html += '</table>';
-            tooltipBody.innerHTML = html;
-        } else {
-            tooltipBody.innerHTML = '<p>Ingen storleksinformation tillgänglig.</p>';
-        }
-
-        // Tooltip toggle event
-        const tooltipContainer = document.getElementById('tooltip-container');
-        const closeBtn = tooltipContainer?.querySelector('.tooltip-close-btn');
-
-        const popupBox = tooltipContainer.querySelector('.tooltip-popup-box');
-
-        if (tooltipContainer) {
-            const toggle = tooltipContainer.querySelector('.tooltip-toggle-span');
-            if (toggle) {
-                toggle.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    if (popupBox) popupBox.classList.toggle('active');
-                });
-            }
-        }
-
-        if (closeBtn) {
-            closeBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                if (popupBox) popupBox.classList.remove('active');
-            });
-        }
-
-        // Dışarı tıklayınca kapat
-        document.addEventListener('click', (e) => {
-            const tooltipContainer = document.getElementById('tooltip-container');
-            if (tooltipContainer && !tooltipContainer.contains(e.target)) {
-                if (popupBox) popupBox.classList.remove('active');
-            }
-        });
-    }
-
-    // ==========================================
-    // AKORDİYONLAR
-    // ==========================================
-
-    function setupAccordions() {
-        document.querySelectorAll('.product-accordion-header').forEach(header => {
-            header.addEventListener('click', () => {
-                const item = header.parentElement;
-                const content = item.querySelector('.product-accordion-content');
-                const icon = header.querySelector('.fa-chevron-down');
-
-                // Diğerlerini kapat (isteğe bağlı - tek açık)
-                // document.querySelectorAll('.product-accordion-item').forEach(other => {
-                //     if (other !== item) {
-                //         other.classList.remove('open');
-                //         other.querySelector('.product-accordion-content').style.display = 'none';
-                //         other.querySelector('.fa-chevron-down').style.transform = 'rotate(0deg)';
-                //     }
-                // });
-
-                const isOpen = item.classList.contains('active');
-
-                if (isOpen) {
-                    item.classList.remove('active');
-                    if (content) content.style.display = 'none';
-                    if (icon) icon.style.transform = 'rotate(0deg)';
-                } else {
-                    item.classList.add('active');
-                    if (content) content.style.display = 'block';
-                    if (icon) icon.style.transform = 'rotate(180deg)';
-                }
-            });
-        });
-
-        // Başlangıçta tüm akordiyonları kapalı tut
-        document.querySelectorAll('.product-accordion-content').forEach(content => {
-            content.style.display = 'none';
-        });
-    }
-
-    // ==========================================
-    // URUN ALT BASLIK GUNCELLEME
-    // ==========================================
-
-    function updateProductSubtitle(variant) {
-        const subtitleEl = document.getElementById('dynamic-product-subtitle');
-        if (!subtitleEl || !variant) return;
-
-        const sizeDisplay = subtitleEl.querySelector('.selected-size-display');
-        if (sizeDisplay) {
-            sizeDisplay.textContent = variant.size || 'Välj storlek';
-            sizeDisplay.style.color = '#333';
-        }
-    }
-
-function setupWishlistButton(fields) {
+    function setupWishlistButton(fields) {
         const btn = document.querySelector('.ana-urun-favori-buton');
         if (!btn) return;
 
@@ -528,6 +501,107 @@ function setupWishlistButton(fields) {
     }
 
     // ==========================================
+    // TOOLTIP - Boyut Tablosu
+    // ==========================================
+
+    function setupSizeTooltip(sizeTooltipHtml, variants) {
+        const tooltipBody = document.getElementById('tooltip-body');
+        if (!tooltipBody) return;
+
+        if (sizeTooltipHtml && sizeTooltipHtml.trim()) {
+            tooltipBody.innerHTML = sizeTooltipHtml;
+        } else if (variants && variants.length > 0) {
+            let html = '<table style="width:100%;border-collapse:collapse;font-size:13px;">';
+            html += '<tr style="border-bottom:1px solid #eee;"><th style="text-align:left;padding:6px;">Storlek</th><th style="text-align:right;padding:6px;">Pris</th></tr>';
+            variants.forEach(v => {
+                const price = v.discount_price || v.price || 0;
+                html += `<tr style="border-bottom:1px solid #f5f5f5;"><td style="padding:6px;">${v.size || '-'}</td><td style="text-align:right;padding:6px;">${price} SEK</td></tr>`;
+            });
+            html += '</table>';
+            tooltipBody.innerHTML = html;
+        } else {
+            tooltipBody.innerHTML = '<p>Ingen storleksinformation tillgänglig.</p>';
+        }
+
+        const tooltipContainer = document.getElementById('tooltip-container');
+        const popupBox = tooltipContainer.querySelector('.tooltip-popup-box');
+
+        if (tooltipContainer) {
+            const toggle = tooltipContainer.querySelector('.tooltip-toggle-span');
+            if (toggle) {
+                toggle.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (popupBox) popupBox.classList.toggle('active');
+                });
+            }
+        }
+
+        const closeBtn = tooltipContainer?.querySelector('.tooltip-close-btn');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (popupBox) popupBox.classList.remove('active');
+            });
+        }
+
+        // Disari tiklayinca kapat
+        document.addEventListener('click', (e) => {
+            const tooltipContainer = document.getElementById('tooltip-container');
+            if (tooltipContainer && !tooltipContainer.contains(e.target)) {
+                if (popupBox) popupBox.classList.remove('active');
+            }
+        });
+    }
+
+    // ==========================================
+    // AKORDIYONLAR
+    // ==========================================
+
+    function setupAccordions() {
+        document.querySelectorAll('.product-accordion-header').forEach(header => {
+            header.addEventListener('click', () => {
+                const item = header.parentElement;
+                const content = item.querySelector('.product-accordion-content');
+                const icon = header.querySelector('.fa-chevron-down');
+
+                const isOpen = item.classList.contains('active');
+
+                if (isOpen) {
+                    item.classList.remove('active');
+                    if (content) content.style.display = 'none';
+                    if (icon) icon.style.transform = 'rotate(0deg)';
+                } else {
+                    item.classList.add('active');
+                    if (content) content.style.display = 'block';
+                    if (icon) icon.style.transform = 'rotate(180deg)';
+                }
+            });
+        });
+
+        // Baslangicta tum akordiyonlari kapali tut
+        document.querySelectorAll('.product-accordion-content').forEach(content => {
+            content.style.display = 'none';
+        });
+    }
+
+    // ==========================================
+    // URUN ALT BASLIK GUNCELLEME
+    // ==========================================
+
+    function updateProductSubtitle(variant) {
+        const subtitleEl = document.getElementById('dynamic-product-subtitle');
+        if (!subtitleEl || !variant) return;
+
+        const sizeDisplay = subtitleEl.querySelector('.selected-size-display');
+        if (sizeDisplay) {
+            sizeDisplay.textContent = variant.size || 'Välj storlek';
+            sizeDisplay.style.color = '#333';
+        }
+    }
+
+    // ==========================================
     // MASAUSTU GALERI (2 Resim + Thumbnail'lar)
     // ==========================================
 
@@ -542,7 +616,6 @@ function setupWishlistButton(fields) {
 
         if (!container) return;
 
-        // 2 buyuk resim yan yana
         let mainHTML = '';
         const count = Math.min(2, currentImages.length);
 
@@ -558,7 +631,6 @@ function setupWishlistButton(fields) {
         }
         container.innerHTML = mainHTML;
 
-        // Thumbnail'lar
         if (thumbContainer) {
             let thumbHTML = '';
             currentImages.forEach((img, i) => {
@@ -909,18 +981,23 @@ function setupWishlistButton(fields) {
     };
 
     // ==========================================
-    // VARYASYON
+    // VARYASYON - Dropdown + Drawer (Rugvista Stili)
     // ==========================================
 
     function setupVariantAccordion() {
-        const btn = document.getElementById('variant-accordion-btn');
+        const btn = document.getElementById('size-dropdown-btn') || document.getElementById('variant-accordion-btn');
         if (!btn) return;
+
+        // Eski event'leri temizle
         const newBtn = btn.cloneNode(true);
         if (btn.parentNode) {
             btn.parentNode.replaceChild(newBtn, btn);
             newBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
+
+                // Dropdown acik/kapali toggle
+                newBtn.classList.toggle('open');
                 openVariantDrawer();
             });
         }
@@ -944,17 +1021,21 @@ function setupWishlistButton(fields) {
             drawer.classList.remove('open');
             document.body.classList.remove('drawer-open');
         }
+
+        // Dropdown okunu sifirla
+        const dropdownBtn = document.getElementById('size-dropdown-btn') || document.getElementById('variant-accordion-btn');
+        if (dropdownBtn) dropdownBtn.classList.remove('open');
     };
 
-    function renderVariantDrawer() {
+    // Filtrelenmis varyasyonlari drawer'da goster
+    function renderVariantDrawerFiltered(variants) {
         const body = document.getElementById('variant-drawer-body');
         if (!body) return;
 
-        const mainImage = currentImages.length > 0 ? currentImages[0] : '';
         const productName = currentProduct.name;
 
         let html = '';
-        currentVariants.forEach((variant, index) => {
+        variants.forEach((variant, index) => {
             const isSelected = selectedVariant && selectedVariant.id === variant.id;
             const displayPrice = getDisplayPrice(currentProduct, variant);
             const originalPrice = getOriginalPrice(currentProduct, variant);
@@ -962,9 +1043,9 @@ function setupWishlistButton(fields) {
 
             html += `
                 <div class="variant-drawer-item ${isSelected ? 'selected' : ''}" 
-                     data-index="${index}" onclick="selectVariant(${index})">
+                     data-index="${index}" onclick="selectVariantFromFiltered(${index})">
                     <div class="variant-drawer-image">
-                        <img src="${mainImage}" alt="${productName} ${variant.size}">
+                        <img src="${variant.variant_image || (currentImages.length > 0 ? currentImages[0] : '')}" alt="${productName} ${variant.size}">
                     </div>
                     <div class="variant-drawer-info">
                         <span class="variant-size">${variant.size}</span>
@@ -991,7 +1072,73 @@ function setupWishlistButton(fields) {
         if (overlay) overlay.onclick = (e) => { if (e.target === overlay) closeVariantDrawer(); };
     }
 
-      window.selectVariant = function(index) {
+    window.selectVariantFromFiltered = function(index) {
+        selectedVariant = currentFilteredVariants[index];
+
+        document.querySelectorAll('.variant-drawer-item').forEach((item, i) => {
+            item.classList.toggle('selected', i === index);
+            const icon = item.querySelector('.variant-check i');
+            if (icon) icon.className = i === index ? 'fa-solid fa-check-circle' : 'fa-regular fa-circle';
+        });
+
+        // Akordiyon/dropdown guncelle
+        const display = document.getElementById('selected-variant-display');
+        if (display && selectedVariant) {
+            display.textContent = selectedVariant.size;
+        }
+
+        const status = document.getElementById('variant-status');
+        if (status) status.style.display = 'inline';
+
+        // Dropdown text guncelle
+        const dropdownText = document.getElementById('dropdown-size-text');
+        if (dropdownText) dropdownText.textContent = selectedVariant.size;
+
+        // Fiyat guncelle
+        const priceEl = document.getElementById('product-price');
+        if (priceEl) {
+            const hasDiscount = selectedVariant.discount_price && selectedVariant.discount_price < selectedVariant.price;
+            if (hasDiscount) {
+                priceEl.innerHTML = '<span style="text-decoration:line-through;color:#999;font-size:18px;margin-right:8px;">' + selectedVariant.price + ' SEK</span>' +
+                                   '<span style="color:#e54d42;font-size:24px;font-weight:bold;">' + selectedVariant.discount_price + ' SEK</span>';
+            } else {
+                priceEl.textContent = selectedVariant.price + ' SEK';
+            }
+        }
+
+        // Stok bilgisi goster
+        const stockInfo = document.getElementById('stock-info');
+        const stockText = stockInfo?.querySelector('.stock-text');
+        const stockDot = stockInfo?.querySelector('.stock-dot');
+
+        if (stockInfo && stockText && stockDot) {
+            stockInfo.style.display = 'flex';
+
+            if (selectedVariant.stock <= 0) {
+                stockText.textContent = 'Slutsåld';
+                stockDot.className = 'stock-dot out';
+            } else if (selectedVariant.stock <= 3) {
+                stockText.textContent = 'Endast ' + selectedVariant.stock + ' tillgängliga - Klar för leverans';
+                stockDot.className = 'stock-dot low';
+            } else {
+                stockText.textContent = 'I lager - Klar för leverans';
+                stockDot.className = 'stock-dot in-stock';
+            }
+        }
+
+        // Sepet butonu
+        const addBtn = document.getElementById('add-to-cart-btn');
+        if (addBtn) {
+            addBtn.disabled = selectedVariant.stock <= 0;
+            addBtn.textContent = selectedVariant.stock > 0 ? 'Lägg i Varukorg' : 'Slutsåld';
+        }
+
+        // Cekmeceyi kapat
+        closeVariantDrawer();
+    };
+
+    // Eski selectVariant (geriye uyumluluk icin)
+    window.selectVariant = function(index) {
         selectedVariant = currentVariants[index];
         document.querySelectorAll('.variant-drawer-item').forEach((item, i) => {
             item.classList.toggle('selected', i === index);
@@ -1004,11 +1151,10 @@ function setupWishlistButton(fields) {
             display.textContent = selectedVariant.size;
         }
 
-        // Varyasyon seçildiğinde çekmeceyi kapat
         closeVariantDrawer();
     };
 
-        // ==========================================
+    // ==========================================
     // SEPETE EKLE
     // ==========================================
 
@@ -1031,6 +1177,7 @@ function setupWishlistButton(fields) {
                 price: getDisplayPrice(currentProduct, selectedVariant),
                 image: currentImages.length > 0 ? currentImages[0] : '',
                 variants: selectedVariant.size,
+                color: selectedVariant.color || selectedColor,
                 delivery: fields.Delivery_time || '3-7 arbetsdagar',
                 quantity: 1
             };
@@ -1048,12 +1195,12 @@ function setupWishlistButton(fields) {
 
             localStorage.setItem('siteCartItems', JSON.stringify(cart));
 
-            // Badge güncelle
+            // Badge guncelle
             if (typeof updateCartBadge === 'function') {
                 updateCartBadge();
             }
 
-            // Mini cart aç
+            // Mini cart ac
             if (typeof openMiniCart === 'function') {
                 openMiniCart();
             }
@@ -1061,9 +1208,9 @@ function setupWishlistButton(fields) {
             console.log('Sepete eklendi:', fields.Name, selectedVariant.size);
         });
     }
-      
-    
-    
+
+
+
 
     // ==========================================
     // BASLAT
