@@ -249,30 +249,16 @@ if (window.location.hash && window.location.hash.includes('/produkt/')) {
                     </div>
 
 
-                    <div id="color-selector"></div>
-                    <div id="size-selector"></div>
+                     <!-- ✅ YENİ: Varyasyon Seçiciler (Renk + Beden) -->
+                       <div id="color-selector" style="margin-bottom: 12px;"></div>
+                       <div id="size-selector" style="margin-bottom: 12px;"></div>
 
-                    <!-- VARYASYON AKORDİYONU -->
-                    <div id="variant-accordion-wrapper" class="variant-accordion-box">
-                        <button class="variant-accordion-header" id="variant-accordion-btn">
-                            <div class="accordion-left">
-                                <i class="fa-solid fa-ruler-combined"></i>
-                                <div class="accordion-title-group">
-                                    <span class="accordion-title">Välj storlek</span>
-                                    <span class="accordion-subtitle" id="selected-variant-display">Ingen storlek vald</span>
-                                </div>
-                            </div>
-                            <div class="accordion-right">
-                                <span class="accordion-status" id="variant-status" style="display:none;">Vald</span>
-                                <i class="fa-solid fa-chevron-right accordion-chevron"></i>
-                            </div>
-                        </button>
-                    </div>
+                       <!-- ESKİ AKORDİYON KALDIRILDI - JS ile yönetilecek -->
 
-                    <div class="action-buttons">
-                        <button class="add-to-cart-btn" id="add-to-cart-btn">Lägg i Varukorg</button>
-                        <button class="ana-urun-favori-buton"><i class="fa-regular fa-heart"></i></button>
-                    </div>
+                      <div class="action-buttons">
+                      <button class="add-to-cart-btn" id="add-to-cart-btn">Lägg i Varukorg</button>
+                      <button class="ana-urun-favori-buton"><i class="fa-regular fa-heart"></i></button>
+                   </div>
 
 
                     
