@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mattor | DKRUG</title>
+
+     <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+
     <link rel="stylesheet" href="/assets/css/reset.css">
     <link rel="stylesheet" href="/assets/css/common.css">
     <link rel="stylesheet" href="/assets/css/category.css">
@@ -11,8 +17,151 @@
 </head>
 <body>
 
-    <!-- Header -->
-    <div id="header-placeholder"></div>
+    <!-- ========== TOP BAR ========== -->
+<div class="top-bar" id="top-bar">
+    <div class="top-bar-inner">
+        <div class="top-bar-left">
+            <div class="top-bar-slider">
+                <div class="top-bar-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+                    Gratis och snabb frakt
+                </div>
+                <div class="top-bar-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                    30 dagars öppet köp
+                </div>
+                <div class="top-bar-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                    Hemleverans
+                </div>
+                <!-- Tekrar başa dönmek için ilk item kopyası -->
+                <div class="top-bar-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+                    Gratis och snabb frakt
+                </div>
+            </div>
+        </div>
+        <div class="top-bar-right">
+            🔥 Upp till 50% REA på alla mattor!
+        </div>
+    </div>
+</div>
+
+<!-- ========== MAIN HEADER ========== -->
+<header class="main-header" id="main-header">
+    <div class="header-main">
+        <div class="header-left">
+            <button class="menu-toggle-btn" id="open-mobile-menu-btn" aria-label="Öppna meny">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <a href="/" class="logo">DKRUG</a>
+        </div>
+        
+            <nav class="desktop-nav">
+            <ul class="nav-list">
+                <li><a href="/mattor/">Mattor</a></li>
+                <li><a href="/metervara/">Metervara</a></li>
+                <li><a href="/gangmattor/">Gångmattor</a></li>
+                <li><a href="/badrumsmattor/">Badrumsmattor</a></li>
+                <li><a href="/gardiner/">gardiner</a></li>
+                <li><a href="/rea/" class="nav-sale">REA</a></li>
+            </ul>
+        </nav>
+
+        <div class="header-right">
+            <button class="header-icon-btn" id="search-open-btn" title="Sök" aria-label="Sök">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            </button>
+            <a href="/favoriter/" class="header-icon-btn" title="Favoriter" aria-label="Favoriter">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                <span class="icon-badge wishlist-count-badge">0</span>
+            </a>
+            <button class="header-icon-btn" id="open-mini-cart-btn" title="Varukorg" aria-label="Varukorg">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                <span class="icon-badge cart-count-badge">0</span>
+            </button>
+        </div>
+    </div>
+</header>
+
+<!-- ========== SEARCH POPUP ========== -->
+<div class="search-popup-overlay" id="search-popup-overlay">
+    <div class="search-popup-inner">
+        <button class="search-close-btn" id="close-search-popup" aria-label="Stäng sök">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+        <div class="search-field-wrap">
+            <svg class="search-field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input type="text" id="live-search-input" class="search-input-field" placeholder="Sök namn, stil..." autocomplete="off">
+        </div>
+        <div id="search-results-display" style="display: none;"></div>
+    </div>
+</div>
+
+<!-- ========== MOBIL MENU ========== -->
+<div class="mobile-menu-overlay" id="mobile-menu-overlay"></div>
+<div class="mobile-menu-drawer" id="mobile-menu-drawer">
+    <div class="mobile-menu-header">
+        <a href="/" class="logo">DKRUG</a>
+        <button class="mobile-close-btn" id="close-mobile-menu" aria-label="Stäng meny">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+    </div>
+    <div class="mobile-menu-body">
+        <nav>
+             <ul class="mobile-nav-list">
+                <li><a href="/">Start</a></li>
+                <li><a href="/mattor/">Mattor</a></li>
+                <li><a href="/metervara/">Metervara</a></li>
+                <li><a href="/gangmattor/">Gångmattor</a></li>
+                <li><a href="/badrumsmattor/">Badrumsmattor</a></li>
+                 <li><a href="/gardiner/">gardiner</a></li>
+                <li><a href="/rea/" class="mobile-sale">REA</a></li>
+            </ul>
+        </nav>
+    </div>
+    <div class="mobile-menu-footer">
+        © 2021 - 2026 DKRug
+    </div>
+</div>
+
+<!-- ========== MINI CART ========== -->
+<div class="mini-cart-overlay" id="mini-cart-overlay"></div>
+<div class="mini-cart-drawer" id="mini-cart-drawer">
+    <div class="mini-cart-header">
+        <h3>Din Varukorg</h3>
+        <button class="mini-cart-close" id="close-mini-cart" aria-label="Stäng varukorg">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+    </div>
+    <div class="mini-cart-body">
+        <div class="cart-empty-state" id="cart-empty-state">
+            <svg class="cart-empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+            <p>Din varukorg är tom.</p>
+            <a href="/mattor" class="cart-empty-btn">Shoppa Nu</a>
+        </div>
+        <div class="cart-filled-state" id="cart-filled-state" style="display: none;"></div>
+    </div>
+    <div class="mini-cart-footer" id="mini-cart-footer" style="display: none;">
+        <div class="cart-summary-line">
+            <span class="summary-label">Frakt</span>
+            <span class="summary-value" id="cart-shipping-cost" style="color: #c9a96e; font-weight: 600;">Fri frakt</span>
+        </div>
+        <div class="cart-summary-line discount-line" id="discount-wrapper" style="display: none;">
+            <span class="summary-label">Rabatt:</span>
+            <span class="summary-value discount-amount" id="cart-total-discount"></span>
+        </div>
+        <hr class="cart-divider">
+        <div class="cart-summary-line grand-total-line">
+            <span class="summary-label">Totalt (inkl moms)</span>
+            <span class="summary-value" id="cart-grand-total"></span>
+        </div>
+        <a href="/kassa" class="checkout-btn">Till kassan</a>
+    </div>
+</div>
+
 
     <main class="main-content">
         <!-- Breadcrumb (JS ile dinamik) -->
@@ -80,22 +229,173 @@
             </div>
         </div>
 
-        <!-- SEO Section -->
-        <div class="category-seo-section">
+      <!-- SEO Section -->
+              <section class="seo-section" id="seo-content">
             <div class="custom-container">
-                <div class="seo-content-wrapper">
-                    <h2 class="seo-auto-title">Var Mattor</h2>
-                    <div class="seo-text-body">
-                        <p>Upptack var kollektion av handplockade mattor for varje rum och stil. 
-                        Fran klassiska persiska mattor till moderna skandinaviska designer.</p>
+                <div class="seo-inner" id="seo-inner">
+                <!-- JS ile dinamik doldurulacak -->
+             </div>
+          </div>
+        </section>
+     </main>
+    <!-- ========== GOOGLE REVIEWS ========== -->
+<section class="google-reviews-section">
+    <div class="reviews-container">
+        <div class="reviews-header">
+            <div class="google-badge">
+                <img src="https://www.gstatic.com/images/branding/product/1x/googleg_48dp.png" alt="Google" class="google-logo">
+                <div class="rating-info">
+                    <div class="rating-row">
+                        <span class="rating-score">4.3</span>
+                        <div class="stars-outer">
+                            <span class="stars-fill">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+                            <div class="stars-inner" style="width: 86%;">
+                                <span class="stars-fill">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+                            </div>
+                        </div>
                     </div>
+                    <span class="review-count">14 recensioner</span>
+                </div>
+            </div>
+            <h2 class="reviews-title">Vad våra kunder säger</h2>
+        </div>
+
+         <div class="reviews-grid">
+            <div class="review-card">
+                <div class="review-meta">
+                    <span class="reviewer-name">If metall</span>
+                    <span class="review-date">För 1 år sedan</span>
+                </div>
+                <div class="review-stars">★★★★★</div>
+                <p class="review-text">"Vi köpte två mattor till vår expedition som hade både mycket god kvalitet och ett mycket rimligt pris."</p>
+            </div>
+
+            <div class="review-card">
+                <div class="review-meta">
+                    <span class="reviewer-name">Ann Krets</span>
+                    <span class="review-date">För 1 år sedan</span>
+                </div>
+                <div class="review-stars">★★★★★</div>
+                <p class="review-text">"Jag köpte en matta för flera år sedan och den är ff som ny. Köpte ytterligare en i förra veckan på rea. Gillar dom för att de har en undersida som inte glider och att man lätt kan tvätta av fläckar om man råkar spilla."</p>
+            </div>
+
+            <div class="review-card">
+                <div class="review-meta">
+                    <span class="reviewer-name">Ahmet Özmehak</span>
+                    <span class="review-date">För 2 månader sedan</span>
+                </div>
+                <div class="review-stars">★★★★★</div>
+                <p class="review-text">"Trevligt"</p>
+            </div>
+        </div>
+        
+        <div class="reviews-footer">
+            <a href="https://g.page/r/Ccgg-v-8e685EBM/review" target="_blank" class="view-all-reviews">
+                Läs alla recensioner på Google
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- ========== FOOTER ========== -->
+<footer class="modern-footer">
+    <div class="footer-main">
+        <div class="footer-inner grid-container">
+            <div class="footer-col brand-col">
+                <h2 class="footer-logo">DKRug & Gardiner</h2>
+                <p>Kvalitetsmattor och eleganta gardiner för varje hem. Vi handplockar varje produkt med omsorg och passion.</p>
+            </div>
+
+              <div class="footer-col acc-col">
+    <h3 class="acc-trigger">Kundservice <i class="fas fa-chevron-down"></i></h3>
+    <ul class="acc-content">
+        <!-- Klasörün adı kontakta-oss ise -->
+        <li><a href="/kontakt/">Kontakta Oss</a></li>
+        <!-- Klasör adın frakt-leverans ise -->
+        <li><a href="/frakt-leverans/">Frakt & Leverans</a></li>
+        <!-- Klasör adın returpolicy ise -->
+        <li><a href="/returpolicy/">Returpolicy</a></li>
+        <!-- Klasör adın faq ise -->
+        <li><a href="/faq/">FAQ</a></li>
+    </ul>
+</div>
+
+<div class="footer-col acc-col">
+    <h3 class="acc-trigger">Utforska <i class="fas fa-chevron-down"></i></h3>
+    <ul class="acc-content">
+        <!-- Klasör adın om-oss ise -->
+        <li><a href="/om-oss/">Vår Historia</a></li>
+        <!-- Klasör adın hallbarhet ise -->
+        <li><a href="/hallbarhet/">Hållbarhet</a></li>
+        <!-- Klasör adın kopvillkor ise -->
+        <li><a href="/kopvillkor/">Köpvillkor</a></li>
+        <!-- Klasör adın integritetspolicy ise -->
+        <li><a href="/integritetspolicy/">Integritetspolicy</a></li>
+    </ul>
+</div>
+
+            <div class="footer-col newsletter-col">
+                <h3>Nyhetsbrev</h3>
+                <p class="newsletter-desc">Få exklusiva erbjudanden och inspiration direkt till din inkorg.</p>
+                <form class="m-newsletter-form">
+                    <input type="email" placeholder="Din e-post" required>
+                    <button type="submit">Skicka</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer-methods">
+        <div class="footer-inner method-grid">
+            <div class="method-box">
+                <h4>Vi levererar med</h4>
+                <div class="icons-row">
+                    <img src="/assets/images/postnord.jpg" alt="Postnord" style="height: 40px; width: auto; display: block;">
+                    <img src="/assets/images/dhl.png" alt="DHL" style="height: 40px; width: auto; display: block;">
+                    <img src="/assets/images/ups.svg" alt="UPS" style="height: 40px; width: auto; display: block;">
+                </div>
+            </div>
+
+            <div class="method-box">
+                <h4>Betalningsalternativ</h4>
+                <div class="icons-row">
+                    <img src="/assets/images/klarna.svg" alt="Klarna" style="height: 40px; width: auto; display: block;">
+                    <img src="/assets/images/visa.svg" alt="Visa" style="height: 40px; width: auto; display: block;">
+                    <img src="/assets/images/mastercard.svg" alt="Mastercard" style="height: 40px; width: auto; display: block;">
                 </div>
             </div>
         </div>
-    </main>
+    </div>
 
-    <!-- Footer -->
-    <div id="footer-placeholder"></div>
+    <div class="footer-bottom">
+        <div class="footer-inner bottom-flex">
+            <div class="bottom-item bottom-left">
+                <p>&copy; 2021 - 2026 DKRug</p>
+            </div>
+            <div class="bottom-item bottom-center">
+                <span class="center-logo">DKRug</span>
+            </div>
+            <div class="bottom-item bottom-right">
+                <div class="footer-socials">
+                    <a href="#" target="_blank" title="Instagram">
+                        <img src="/assets/images/instagram.svg" alt="Instagram" style="width: 24px; height: 24px;">
+                    </a>
+                    <a href="#" target="_blank" title="Facebook">
+                        <img src="/assets/images/facebook.svg" alt="Facebook" style="width: 24px; height: 24px;">
+                    </a>
+                    <a href="#" target="_blank" title="Pinterest">
+                        <img src="/assets/images/pinterest.svg" alt="Pinterest" style="width: 24px; height: 24px;">
+                    </a>
+                    <a href="#" target="_blank" title="TikTok">
+                        <img src="/assets/images/tiktok.svg" alt="TikTok" style="width: 24px; height: 24px;">
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+
 
     <!-- ========== FILTRE & SORT DRAWERLAR ========== -->
 
@@ -167,29 +467,17 @@
         <!-- RENSA ALLA butonu KALDIRILDI - sadece ana barda var -->
     </div>
 
-    <!-- JS Yukleyici -->
-    <script>
-        async function loadComponents() {
-            try {
-                const [headerRes, footerRes] = await Promise.all([
-                    fetch('/header.html'),
-                    fetch('/footer.html')
-                ]);
-                document.getElementById('header-placeholder').innerHTML = await headerRes.text();
-                document.getElementById('footer-placeholder').innerHTML = await footerRes.text();
-
-                if (typeof initEventListeners === 'function') {
-                    initEventListeners();
-                }
-            } catch (err) {
-                console.error('Header/footer yuklenemedi:', err);
-            }
-        }
-        loadComponents();
-    </script>
+        <script src="/assets/js/seo-frontend.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const pageSlug = window.location.pathname.replace(/^\/+|\/+$/g, '') || 'mattor';
+    loadSeoContentForPage('gangmattor');
+});
+</script>
 
     <script src="/assets/js/config.js"></script>
     <script src="/assets/js/common.js"></script>
     <script src="/assets/js/category.js"></script>
+    <script src="/assets/js/seo.js"></script>
 </body>
 </html>

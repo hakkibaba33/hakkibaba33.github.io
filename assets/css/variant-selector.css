@@ -1,0 +1,232 @@
+/* ==========================================
+   ÜRÜN SAYFASI - RENK & BOYUT SEÇİCİ STİLLERİ
+   ========================================== */
+
+/* Varyasyon Bölümü */
+.variant-section {
+    margin: 24px 0;
+    padding: 20px 0;
+    border-top: 1px solid #e5e5e5;
+}
+
+.variant-title {
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #1a1a1a;
+    margin-bottom: 16px;
+}
+
+.variant-hint {
+    font-size: 13px;
+    color: #999;
+    font-style: italic;
+}
+
+/* Renk Seçici */
+.color-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.color-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border: 2px solid #e5e5e5;
+    border-radius: 8px;
+    background: #fff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.color-btn:hover {
+    border-color: #c9a96e;
+    transform: translateY(-1px);
+}
+
+.color-btn.active {
+    border-color: #1a1a1a;
+    background: #1a1a1a;
+    color: #fff;
+}
+
+.color-swatch {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid rgba(0,0,0,0.1);
+    display: inline-block;
+}
+
+/* Renk sınıfları */
+.color-swatch.röd { background: #c41e3a; }
+.color-swatch.blå { background: #1e3a8a; }
+.color-swatch.grön { background: #15803d; }
+.color-swatch.beige { background: #d4c4a8; }
+.color-swatch.grå { background: #6b7280; }
+.color-swatch.svart { background: #1a1a1a; border-color: #333; }
+.color-swatch.vit { background: #f9fafb; border-color: #d1d5db; }
+.color-swatch.brun { background: #7c2d12; }
+.color-swatch.gul { background: #eab308; }
+.color-swatch.orange { background: #f97316; }
+.color-swatch.rosa { background: #ec4899; }
+.color-swatch.lila { background: #9333ea; }
+.color-swatch.turkos { background: #06b6d4; }
+
+.color-label {
+    font-size: 13px;
+    font-weight: 500;
+}
+
+/* Boyut Seçici */
+.size-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 12px;
+}
+
+.size-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 12px 16px;
+    border: 2px solid #e5e5e5;
+    border-radius: 8px;
+    background: #fff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.size-btn:hover:not(:disabled) {
+    border-color: #c9a96e;
+}
+
+.size-btn.active {
+    border-color: #1a1a1a;
+    background: #fafafa;
+}
+
+.size-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #f5f5f5;
+}
+
+.size-btn.out-of-stock {
+    border-color: #fee2e2;
+    background: #fef2f2;
+}
+
+.size-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1a1a1a;
+}
+
+.size-price {
+    font-size: 13px;
+    color: #666;
+}
+
+.stock-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: #22c55e;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 12px;
+    text-transform: uppercase;
+}
+
+.stock-badge.low {
+    background: #f59e0b;
+}
+
+/* Fiyat Gösterimi */
+.product-price-section {
+    margin: 24px 0;
+    padding: 20px;
+    background: #fafafa;
+    border-radius: 12px;
+}
+
+.current-price {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1a1a1a;
+}
+
+.old-price {
+    font-size: 18px;
+    color: #999;
+    text-decoration: line-through;
+    margin-right: 12px;
+}
+
+/* Stok Durumu */
+.stock-status {
+    margin: 16px 0;
+    font-size: 14px;
+}
+
+.in-stock {
+    color: #22c55e;
+    font-weight: 500;
+}
+
+.out-stock {
+    color: #ef4444;
+    font-weight: 500;
+}
+
+/* Sepet Butonu */
+.add-to-cart-btn {
+    width: 100%;
+    padding: 16px 24px;
+    background: #1a1a1a;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 24px;
+}
+
+.add-to-cart-btn:hover:not(:disabled) {
+    background: #333;
+}
+
+.add-to-cart-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .color-options {
+        gap: 8px;
+    }
+
+    .color-btn {
+        padding: 6px 12px;
+    }
+
+    .size-options {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .current-price {
+        font-size: 24px;
+    }
+}

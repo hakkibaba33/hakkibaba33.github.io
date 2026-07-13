@@ -1,6 +1,6 @@
 // ==========================================
-// COMMON.JS - TEMEL FONKSIYONLAR (v8.6)
-// Breadcrumb fix: Kategori/urun ayirimi duzeltildi
+// COMMON.JS - TEMEL FONKSIYONLAR (v8.7)
+// Varyasyon fix: Sepette ayni urunun farkli varyasyonlari ayri tutuluyor
 // ==========================================
 
 window.__commonListenersInitialized = false;
@@ -60,6 +60,10 @@ function idsMatch(id1, id2) {
     return String(id1) === String(id2);
 }
 
+// ==========================================
+// SEPET FONKSIYONLARI - VARYASYON FIX v8.7
+// ==========================================
+
 function getCart() {
     try {
         return JSON.parse(localStorage.getItem('siteCartItems')) || [];
@@ -71,6 +75,11 @@ function getCart() {
 function saveCart(cart) {
     localStorage.setItem('siteCartItems', JSON.stringify(cart));
     window.updateCartBadge();
+}
+
+// Benzersiz sepet ogesi ID'si olustur
+function generateCartItemId(productId, variantLabel) {
+    return productId + '_' + (variantLabel || 'default').replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
 }
 
 window.updateCartBadge = function() {
@@ -159,6 +168,10 @@ function observeBadgeElements() {
     return observer;
 }
 
+// ==========================================
+// MINI SEPET FONKSIYONLARI
+// ==========================================
+
 function openMiniCart() {
     const overlay = document.getElementById('mini-cart-overlay');
     const drawer = document.getElementById('mini-cart-drawer');
@@ -199,21 +212,21 @@ function updateMiniCartUI() {
             const qty = item.quantity || 1;
             const itemTotal = item.price * qty;
             total += itemTotal;
-            const itemId = String(item.id);
-            return `<div class="mini-cart-item" data-id="${itemId}">
+            const itemId = item.cartItemId || generateCartItemId(item.id, item.variants);
+            return `<div class="mini-cart-item" data-cart-item-id="${itemId}">
                 <img src="${item.image || ''}" alt="${item.name || ''}" class="item-image" onerror="this.style.display='none'">
                 <div class="item-details-left">
                     <span class="item-name">${item.name || 'Urun'}</span>
                     <span class="item-variant">${item.variants || 'Standard'}</span>
                     <div class="quantity-control">
-                        <button type="button" class="quantity-btn minus" data-id="${itemId}" data-action="decrease">-</button>
+                        <button type="button" class="quantity-btn minus" data-cart-item-id="${itemId}" data-action="decrease">-</button>
                         <input type="text" class="quantity-input" value="${qty}" readonly>
-                        <button type="button" class="quantity-btn plus" data-id="${itemId}" data-action="increase">+</button>
+                        <button type="button" class="quantity-btn plus" data-cart-item-id="${itemId}" data-action="increase">+</button>
                     </div>
                 </div>
                 <div class="item-price-right">
                     <span class="item-price">${itemTotal.toLocaleString('sv-SE')} SEK</span>
-                    <button type="button" class="remove-item-btn" data-id="${itemId}">Ta bort</button>
+                    <button type="button" class="remove-item-btn" data-cart-item-id="${itemId}">Ta bort</button>
                 </div>
             </div>`;
         }).join('');
@@ -223,34 +236,35 @@ function updateMiniCartUI() {
     }
 }
 
-function updateQuantity(productId, change) {
+function updateQuantity(cartItemId, change) {
     let cart = getCart();
-    const item = cart.find(i => idsMatch(i.id, productId));
+    const item = cart.find(i => i.cartItemId === cartItemId);
     if (!item) {
-        console.warn('updateQuantity: Urun bulunamadi, ID:', productId);
+        console.warn('updateQuantity: Urun bulunamadi, cartItemId:', cartItemId);
         return;
     }
     item.quantity = (item.quantity || 1) + change;
     if (item.quantity <= 0) {
-        cart = cart.filter(i => !idsMatch(i.id, productId));
+        cart = cart.filter(i => i.cartItemId !== cartItemId);
     }
     saveCart(cart);
     updateMiniCartUI();
 }
 
-function removeFromCart(productId) {
-    let cart = getCart().filter(i => !idsMatch(i.id, productId));
+function removeFromCart(cartItemId) {
+    let cart = getCart().filter(i => i.cartItemId !== cartItemId);
     saveCart(cart);
     updateMiniCartUI();
 }
 
 function addProductToCart(productData) {
     let cart = getCart();
-    const existing = cart.find(i => idsMatch(i.id, productData.id) && i.variants === productData.variants);
+    const cartItemId = generateCartItemId(productData.id, productData.variants);
+    const existing = cart.find(i => i.cartItemId === cartItemId);
     if (existing) {
         existing.quantity = (existing.quantity || 1) + 1;
     } else {
-        const newItem = { ...productData, quantity: 1 };
+        const newItem = { ...productData, cartItemId: cartItemId, quantity: 1 };
         cart.push(newItem);
     }
     saveCart(cart);
@@ -271,8 +285,10 @@ async function addSupabaseProductToCart(productId, variantSize) {
             }
         }
         const variantLabel = variantSize || 'Standard';
+        const cartItemId = generateCartItemId(product.id, variantLabel);
         const cartItem = {
             id: product.id,
+            cartItemId: cartItemId,
             name: product.name,
             price: displayPrice,
             image: product.images && product.images[0] ? product.images[0] : '',
@@ -281,7 +297,7 @@ async function addSupabaseProductToCart(productId, variantSize) {
             quantity: 1
         };
         let cart = getCart();
-        const existing = cart.find(i => idsMatch(i.id, productId) && i.variants === variantLabel);
+        const existing = cart.find(i => i.cartItemId === cartItemId);
         if (existing) {
             existing.quantity = (existing.quantity || 1) + 1;
         } else {
@@ -295,6 +311,10 @@ async function addSupabaseProductToCart(productId, variantSize) {
         alert('Urun sepete eklenirken bir hata olustu.');
     }
 }
+
+// ==========================================
+// ARAMA FONKSIYONLARI
+// ==========================================
 
 let searchDebounceTimer = null;
 let allProductsCache = [];
@@ -402,7 +422,7 @@ async function fetchAllProductsForSearch() {
         return;
     }
     isFetchingProducts = true;
-    console.log('[Search] Urunler Supabase\'den cekiliyor...');
+    console.log("[Search] Urunler Supabase'den cekiliyor...");
     try {
         const data = await supabaseGet('products', { select: '*', active: 'eq.true' });
         console.log('[Search] Ham veri:', data);
@@ -486,6 +506,10 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+// ==========================================
+// MOBIL MENU FONKSIYONLARI
+// ==========================================
+
 function openMobileMenu() {
     const overlay = document.getElementById('mobile-menu-overlay');
     const drawer = document.getElementById('mobile-menu-drawer');
@@ -504,6 +528,10 @@ function closeMobileMenu() {
     document.body.style.overflow = '';
 }
 
+// ==========================================
+// HEADER SCROLL EFEKTI
+// ==========================================
+
 function initHeaderScroll() {
     const header = document.getElementById('main-header');
     if (!header) return;
@@ -516,6 +544,10 @@ function initHeaderScroll() {
     });
 }
 
+// ==========================================
+// EVENT LISTENERS
+// ==========================================
+
 function initEventListeners() {
     console.log('initEventListeners CAGIRILDI, __commonListenersInitialized:', window.__commonListenersInitialized);
     if (window.__commonListenersInitialized) {
@@ -525,6 +557,7 @@ function initEventListeners() {
     window.__commonListenersInitialized = true;
     console.log('Event listenerlar baslatiliyor...');
     initHeaderScroll();
+
     document.addEventListener('click', (e) => {
         if (e.target.closest('#open-mini-cart-btn, .cart-icon-wrapper, .fa-shopping-bag, .cart-trigger, [data-action="open-cart"], .header-cart-icon')) {
             e.preventDefault();
@@ -568,26 +601,31 @@ function initEventListeners() {
             return;
         }
     });
+
+    // Mini sepet icindeki butonlar - data-cart-item-id ile
     document.addEventListener('click', (e) => {
         const filledState = document.getElementById('cart-filled-state');
         if (!filledState || !filledState.contains(e.target)) return;
+
         const removeBtn = e.target.closest('.remove-item-btn');
         const qtyBtn = e.target.closest('.quantity-btn');
+
         if (removeBtn) {
-            const id = removeBtn.getAttribute('data-id');
-            if (id) {
+            const cartItemId = removeBtn.getAttribute('data-cart-item-id');
+            if (cartItemId) {
                 e.stopPropagation();
-                removeFromCart(id);
+                removeFromCart(cartItemId);
             }
         } else if (qtyBtn) {
-            const id = qtyBtn.getAttribute('data-id');
+            const cartItemId = qtyBtn.getAttribute('data-cart-item-id');
             const action = qtyBtn.getAttribute('data-action');
-            if (id && action) {
+            if (cartItemId && action) {
                 e.stopPropagation();
-                updateQuantity(id, action === 'increase' ? 1 : -1);
+                updateQuantity(cartItemId, action === 'increase' ? 1 : -1);
             }
         }
     });
+
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             closeMiniCart();
@@ -595,12 +633,13 @@ function initEventListeners() {
             closeSearchPopup();
         }
     });
+
     initSearch();
     console.log('Tum event listenerlar basariyla baglandi!');
 }
 
 // ==========================================
-// BREADCRUMB - DUZELTILMIS v8.6
+// BREADCRUMB
 // ==========================================
 
 function initBreadcrumb() {
@@ -612,17 +651,14 @@ function initBreadcrumb() {
         return;
     }
 
-    // Eger nav zaten doluysa (ornek: product.html kendi doldurduysa), dokunma
     if (nav.innerHTML.trim() !== '' && nav.querySelector('ol')) {
         console.log('[Breadcrumb] Zaten dolu, atlaniyor.');
         return;
     }
 
     const path = window.location.pathname;
-    const urlParams = new URLSearchParams(window.location.search);
     const crumbs = [{ name: 'Hem', url: '/' }];
 
-    // ========== KATEGORI SAYFALARI (Once kontrol et - daha spesifik) ==========
     const isCategoryPage = document.getElementById('category-main-title') !== null ||
                            path === '/mattor/' ||
                            path === '/metervara/' ||
@@ -636,7 +672,6 @@ function initBreadcrumb() {
         let catName = 'Produkter';
         let catUrl = path;
 
-        // Bilinen kategoriler
         if (path === '/mattor/') catName = 'Mattor';
         else if (path === '/metervara/') catName = 'Metervara';
         else if (path === '/gangmattor/') catName = 'Gangmattor';
@@ -644,10 +679,8 @@ function initBreadcrumb() {
         else if (path === '/gardiner/') catName = 'Gardiner';
         else if (path === '/rea/') catName = 'REA';
         else if (document.getElementById('category-main-title')) {
-            // Sayfa basligindan al
             catName = document.getElementById('category-main-title').textContent.trim();
         } else {
-            // URL son kismindan cikar
             const pathParts = path.split('/').filter(p => p);
             if (pathParts.length > 0) {
                 catName = pathParts[pathParts.length - 1]
@@ -657,18 +690,14 @@ function initBreadcrumb() {
         }
 
         crumbs.push({ name: catName, url: '#' });
-    }
-    // ========== URUN SAYFALARI (Sadece /produkt/ altindaki sayfalar) ==========
-    else if (path.startsWith('/produkt/')) {
+    } else if (path.startsWith('/produkt/')) {
         crumbs.push({ name: 'Alla Mattor', url: '/mattor/' });
         const productName = document.getElementById('product-main-name-desktop')?.textContent?.trim();
         crumbs.push({
             name: (productName && productName !== '---') ? productName : 'Produkt',
             url: '#'
         });
-    }
-    // ========== WISHLIST ==========
-    else if (path.includes('wishlist') || path.includes('favoriter')) {
+    } else if (path.includes('wishlist') || path.includes('favoriter')) {
         crumbs.push({ name: 'Mina Favoriter', url: '#' });
     }
 
@@ -729,4 +758,4 @@ window.addEventListener('load', () => {
     }
 });
 
-console.log('common.js v8.6 yuklendi - Breadcrumb fix v2');
+console.log('common.js v8.7 yuklendi - Varyasyon fix');

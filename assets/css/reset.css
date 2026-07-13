@@ -1,3 +1,21 @@
+/* Animasyon tanımı aynı kalıyor (zıplamayı 5px'e düşürdük, daha soft) */
+@keyframes fadeInContent {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* body yerine sadece bu klasa sahip elementler yumuşakça açılacak */
+.page-content {
+    animation: fadeInContent 0.4s ease-out forwards;
+}
+
+
 
 /* assets/css/common.css (veya ana stil dosyanız) */
 

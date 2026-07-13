@@ -1995,3 +1995,94 @@ body.no-scroll {
         font-size: 0.85rem;
     }
 }
+
+
+
+/* ==========================================
+   FRONTEND SEO SECTION FIX
+   Metinler sağa sola yapışmasın diye
+   ========================================== */
+
+/* Ana section */
+.seo-section {
+    background: var(--dk-secondary, #f5f0eb);
+    padding: 80px 0;
+    margin-top: 60px;
+    width: 100%;
+}
+
+/* Container - hem .container hem .custom-container için */
+.seo-section .container,
+.seo-section .custom-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 40px;        /* ← 24px'den 40px'e çıkardım */
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* İç wrapper */
+.seo-section .seo-inner,
+.seo-section .custom-container > div:first-child {
+    padding: 0 20px;        /* ← Ekstra iç padding */
+}
+
+/* Başlık */
+.seo-section h2,
+.seo-section .seo-inner h2 {
+    font-family: var(--dk-font-heading, 'Playfair Display', serif);
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    font-weight: 400;
+    color: var(--dk-primary, #1a1a1a);
+    text-align: center;
+    margin-bottom: 32px;
+    padding: 0 10px;        /* ← Başlık kenarlardan içeri */
+}
+
+/* Body metinleri */
+.seo-section .seo-body,
+.seo-section .custom-container > div:first-child {
+    font-size: 1rem;
+    line-height: 1.8;
+    color: var(--dk-text, #333);
+}
+
+.seo-section .seo-body p,
+.seo-section .custom-container p {
+    margin-bottom: 20px;
+    padding: 0 10px;        /* ← Paragraflara yan padding */
+}
+
+.seo-section .seo-body p:last-child,
+.seo-section .custom-container p:last-child {
+    margin-bottom: 0;
+}
+
+.seo-section .seo-body strong,
+.seo-section .custom-container strong {
+    color: var(--dk-primary, #1a1a1a);
+    font-weight: 600;
+}
+
+.seo-section .seo-body em,
+.seo-section .custom-container em {
+    color: var(--dk-accent, #c9a96e);
+    font-style: italic;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .seo-section {
+        padding: 50px 0;
+    }
+
+    .seo-section .container,
+    .seo-section .custom-container {
+        padding: 0 24px;    /* ← Mobilde biraz daralt */
+    }
+
+    .seo-section .seo-body p,
+    .seo-section .custom-container p {
+        padding: 0 5px;
+    }
+}
