@@ -100,31 +100,43 @@ if (window.location.hash && window.location.hash.includes('/produkt/')) {
                     </div>
 
 
-                      <!-- Renk Seçici -->
-<div id="color-selector">
-    <div class="color-label-row">
-        <span class="variant-label">Välj färg</span>
-        <span class="selected-color-name" id="selected-color-name"></span>
-    </div>
-    <div id="color-swatches" class="color-swatches-row"></div>
-</div>
+                 <div id="color-selector" style="margin-bottom: 12px;"></div>
 
-<!-- Ölçü Dropdown -->
-<div id="size-dropdown-wrapper" class="size-dropdown-box">
-    <button class="size-dropdown-trigger" id="size-dropdown-btn">
-        <div class="dropdown-left">
-            <span class="dropdown-color-preview" id="dropdown-color-preview"></span>
-            <span class="dropdown-size-text" id="dropdown-size-text">Välj storlek</span>
-        </div>
-        <i class="fa-solid fa-chevron-down"></i>
-    </button>
-</div>
+                    <div id="color-selector">
+                     <div class="color-label-row">
+                     <span class="variant-label">Välj färg</span>
+                     <span class="selected-color-name" id="selected-color-name"></span>
+                  </div>
+                     <div id="color-swatches" class="color-swatches-row"></div>
+                </div>
 
-<!-- Stok Bilgisi -->
-<div class="stock-info" id="stock-info" style="display: none;">
-    <span class="stock-dot"></span>
-    <span class="stock-text"></span>
-</div>
+                    <!-- VARYASYON AKORDİYONU -->
+                    <div id="variant-accordion-wrapper" class="variant-accordion-box">
+                        <button class="variant-accordion-header" id="variant-accordion-btn">
+                            <div class="accordion-left">
+                                <i class="fa-solid fa-ruler-combined"></i>
+                                <div class="accordion-title-group">
+                                    <span class="accordion-title">Välj storlek</span>
+                                    <span class="accordion-subtitle" id="selected-variant-display">Ingen storlek vald</span>
+                                </div>
+                            </div>
+                            <div class="accordion-right">
+                                <span class="accordion-status" id="variant-status" style="display:none;">Vald</span>
+                                <i class="fa-solid fa-chevron-right accordion-chevron"></i>
+                            </div>
+                        </button>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button class="add-to-cart-btn" id="add-to-cart-btn">Lägg i         Varukorg</button>
+                        <button class="ana-urun-favori-buton"><i class="fa-regular fa-heart"></i></button>
+                    </div>
+
+                       <!-- Stok Bilgisi -->
+                    <div class="stock-info" id="stock-info" style="display: none;">
+                        <span class="stock-dot"></span>
+                        <span class="stock-text"></span>
+                   </div>
 
 
                     
