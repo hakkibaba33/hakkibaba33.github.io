@@ -1,6 +1,7 @@
 // ==========================================
-// PRODUCT.UI.JS - SUPABASE UYUMLU (v4.0 - RUGVISTA STILI)
-// YENI: Renk swatch'lari + Dropdown olcu + Filtreli drawer
+// PRODUCT.UI.JS - SUPABASE UYUMLU (v4.1 - OTOMATIK SECIM)
+// YENI: Sayfa acilinca ilk renk + ilk olcu otomatik secili
+//       Akordiyon -> saga drawer (dropdown degil)
 // ==========================================
 
 if (window.__productPageInitialized) {
@@ -11,7 +12,7 @@ if (window.__productPageInitialized) {
     let currentProduct = null;
     let currentImages = [];
     let currentVariants = [];
-    let currentFilteredVariants = []; // Filtrelenmis varyasyonlar (renge gore)
+    let currentFilteredVariants = [];
     let selectedVariant = null;
     let selectedColor = null;
     let selectedImageIndex = 0;
@@ -145,7 +146,7 @@ if (window.__productPageInitialized) {
             </button>
         `).join('');
 
-        container.style.display = 'block';
+        container.classList.add('active');
 
         // Event listener'lar
         swatchesContainer.querySelectorAll('.color-swatch-btn').forEach(btn => {
@@ -171,15 +172,15 @@ if (window.__productPageInitialized) {
             });
         });
 
-        // Ilk rengi otomatik sec
+        // Ilk rengi otomatik sec ve ilk olcuyu de sec
         if (colors.length > 0) {
             selectedColor = colors[0].color;
-            filterVariantsByColor(colors[0].color);
+            filterVariantsByColor(colors[0].color, true); // true = otomatik sec
         }
     }
 
     // Renge gore varyasyonlari filtrele
-    function filterVariantsByColor(color) {
+    function filterVariantsByColor(color, autoSelect = false) {
         selectedColor = color;
         if (!currentVariants) return;
 
@@ -190,22 +191,27 @@ if (window.__productPageInitialized) {
         currentFilteredVariants = colorVariants;
         renderVariantDrawerFiltered(colorVariants);
 
-        // Secimi sifirla
-        selectedVariant = null;
+        // Eger otomatik secim isteniyorsa ilk olcuyu sec
+        if (autoSelect && colorVariants.length > 0) {
+            selectVariantFromFiltered(0, false); // false = drawer'i kapatma
+        } else {
+            // Degilse secimi sifirla
+            selectedVariant = null;
 
-        const selectedDisplay = document.getElementById('selected-variant-display');
-        if (selectedDisplay) selectedDisplay.textContent = 'Välj storlek';
+            const selectedDisplay = document.getElementById('selected-variant-display');
+            if (selectedDisplay) selectedDisplay.textContent = 'Välj storlek';
 
-        const status = document.getElementById('variant-status');
-        if (status) status.style.display = 'none';
+            const status = document.getElementById('variant-status');
+            if (status) status.style.display = 'none';
 
-        // Dropdown text sifirla
-        const dropdownText = document.getElementById('dropdown-size-text');
-        if (dropdownText) dropdownText.textContent = 'Välj storlek';
+            // Dropdown text sifirla
+            const dropdownText = document.getElementById('dropdown-size-text');
+            if (dropdownText) dropdownText.textContent = 'Välj storlek';
 
-        // Stok bilgisini gizle
-        const stockInfo = document.getElementById('stock-info');
-        if (stockInfo) stockInfo.style.display = 'none';
+            // Stok bilgisini gizle
+            const stockInfo = document.getElementById('stock-info');
+            if (stockInfo) stockInfo.classList.remove('active');
+        }
     }
 
     // ==========================================
@@ -391,20 +397,18 @@ async function initProductPage() {
                     return priceA - priceB;
                 });
 
-                // YENI: Renk swatch'larini baslat
+                // YENI: Renk swatch'larini baslat (ilk renk + ilk olcu otomatik sec)
                 renderColorSwatches(currentVariants);
 
-                // Dropdown ve drawer'i hazirla
+                // Akordiyonu hazirla (drawer acmak icin)
                 setupVariantAccordion();
-
-                // Baslangicta en kucuk fiyatli varyanti otomatik sec (eski davranis)
-                // selectVariant(0); // Artik renk secilince olcu secilecek
             } else {
-                const el = document.getElementById('variant-accordion-wrapper');
-                if (el) el.style.display = 'none';
-
+                // Varyasyon yoksa gizle
                 const colorEl = document.getElementById('color-selector');
                 if (colorEl) colorEl.style.display = 'none';
+
+                const accordionEl = document.getElementById('variant-accordion-wrapper');
+                if (accordionEl) accordionEl.style.display = 'none';
             }
 
             // Lightbox (sadece masaustu)
@@ -981,11 +985,12 @@ async function initProductPage() {
     };
 
     // ==========================================
-    // VARYASYON - Dropdown + Drawer (Rugvista Stili)
+    // VARYASYON - Akordiyon -> Drawer (Sagdan)
     // ==========================================
 
     function setupVariantAccordion() {
-        const btn = document.getElementById('size-dropdown-btn') || document.getElementById('variant-accordion-btn');
+        // Eski akordiyon butonunu bul
+        const btn = document.getElementById('variant-accordion-btn');
         if (!btn) return;
 
         // Eski event'leri temizle
@@ -996,8 +1001,7 @@ async function initProductPage() {
                 e.preventDefault();
                 e.stopPropagation();
 
-                // Dropdown acik/kapali toggle
-                newBtn.classList.toggle('open');
+                // SAGDAN DRAWER AC
                 openVariantDrawer();
             });
         }
@@ -1021,10 +1025,6 @@ async function initProductPage() {
             drawer.classList.remove('open');
             document.body.classList.remove('drawer-open');
         }
-
-        // Dropdown okunu sifirla
-        const dropdownBtn = document.getElementById('size-dropdown-btn') || document.getElementById('variant-accordion-btn');
-        if (dropdownBtn) dropdownBtn.classList.remove('open');
     };
 
     // Filtrelenmis varyasyonlari drawer'da goster
@@ -1042,7 +1042,7 @@ async function initProductPage() {
             const hasDiscount = variant.discount_price && variant.discount_price < variant.price;
 
             html += `
-                <div class="variant-drawer-item ${isSelected ? 'selected' : ''}" 
+                <div class="variant-drawer-item ${isSelected ? 'selected' : ''} ${variant.stock <= 0 ? 'out-of-stock' : ''}" 
                      data-index="${index}" onclick="selectVariantFromFiltered(${index})">
                     <div class="variant-drawer-image">
                         <img src="${variant.variant_image || (currentImages.length > 0 ? currentImages[0] : '')}" alt="${productName} ${variant.size}">
@@ -1053,8 +1053,8 @@ async function initProductPage() {
                             ${hasDiscount ? '<span style="text-decoration:line-through;color:#999;font-size:12px;">' + originalPrice + ' SEK</span> ' : ''}
                             <span style="${hasDiscount ? 'color:#e54d42;' : ''}">${displayPrice} SEK</span>
                         </span>
-                        <span class="variant-stock" style="font-size:12px;color:${variant.stock > 0 ? '#22c55e' : '#e54d42'};">
-                            ${variant.stock > 0 ? 'I lager (' + variant.stock + ' st)' : 'Slut i lager'}
+                        <span class="variant-stock ${variant.stock > 0 ? (variant.stock <= 3 ? 'low' : 'in-stock') : 'out'}">
+                            ${variant.stock > 0 ? (variant.stock <= 3 ? 'Endast ' + variant.stock + ' tillgängliga' : 'I lager (' + variant.stock + ' st)') : 'Slutsåld'}
                         </span>
                     </div>
                     <div class="variant-check">
@@ -1072,7 +1072,8 @@ async function initProductPage() {
         if (overlay) overlay.onclick = (e) => { if (e.target === overlay) closeVariantDrawer(); };
     }
 
-    window.selectVariantFromFiltered = function(index) {
+    // Filtrelenmis listeden varyasyon sec
+    window.selectVariantFromFiltered = function(index, closeDrawer = true) {
         selectedVariant = currentFilteredVariants[index];
 
         document.querySelectorAll('.variant-drawer-item').forEach((item, i) => {
@@ -1081,7 +1082,7 @@ async function initProductPage() {
             if (icon) icon.className = i === index ? 'fa-solid fa-check-circle' : 'fa-regular fa-circle';
         });
 
-        // Akordiyon/dropdown guncelle
+        // Akordiyon guncelle
         const display = document.getElementById('selected-variant-display');
         if (display && selectedVariant) {
             display.textContent = selectedVariant.size;
@@ -1090,7 +1091,7 @@ async function initProductPage() {
         const status = document.getElementById('variant-status');
         if (status) status.style.display = 'inline';
 
-        // Dropdown text guncelle
+        // Dropdown text guncelle (eger varsa)
         const dropdownText = document.getElementById('dropdown-size-text');
         if (dropdownText) dropdownText.textContent = selectedVariant.size;
 
@@ -1112,16 +1113,19 @@ async function initProductPage() {
         const stockDot = stockInfo?.querySelector('.stock-dot');
 
         if (stockInfo && stockText && stockDot) {
-            stockInfo.style.display = 'flex';
+            stockInfo.classList.add('active');
 
             if (selectedVariant.stock <= 0) {
                 stockText.textContent = 'Slutsåld';
+                stockText.className = 'stock-text out';
                 stockDot.className = 'stock-dot out';
             } else if (selectedVariant.stock <= 3) {
                 stockText.textContent = 'Endast ' + selectedVariant.stock + ' tillgängliga - Klar för leverans';
+                stockText.className = 'stock-text low';
                 stockDot.className = 'stock-dot low';
             } else {
                 stockText.textContent = 'I lager - Klar för leverans';
+                stockText.className = 'stock-text in-stock';
                 stockDot.className = 'stock-dot in-stock';
             }
         }
@@ -1133,8 +1137,10 @@ async function initProductPage() {
             addBtn.textContent = selectedVariant.stock > 0 ? 'Lägg i Varukorg' : 'Slutsåld';
         }
 
-        // Cekmeceyi kapat
-        closeVariantDrawer();
+        // Cekmeceyi kapat (eger isteniyorsa)
+        if (closeDrawer) {
+            closeVariantDrawer();
+        }
     };
 
     // Eski selectVariant (geriye uyumluluk icin)
