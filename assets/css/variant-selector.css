@@ -1,23 +1,21 @@
 /* ==========================================
-   RENK SWATCH'LARI - Rugvista Stili (YENI)
+   RENK SWATCH'LARI - Rugvista Stili (GÜNCEL v3)
    ========================================== */
 
-/* Renk seçici container */
 #color-selector {
-    margin-bottom: 16px;
-    display: none; /* JS ile aktif edilecek */
+    margin-bottom: 0px;
+    display: none; 
 }
 
 #color-selector.active {
     display: block;
 }
 
-/* "Välj färg" + seçili renk adı satırı */
 .color-label-row {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-bottom: 10px;
+    margin-bottom: 5px;
 }
 
 .variant-label {
@@ -34,7 +32,6 @@
     font-weight: 500;
 }
 
-/* Renk swatch'ları container */
 .color-swatches-row {
     display: flex;
     gap: 10px;
@@ -45,29 +42,35 @@
 .color-swatch-btn {
     width: 52px;
     height: 52px;
-    border: 2px solid var(--dk-border);
-    border-radius: 4px;
+    border: none; 
+    box-shadow: 0 0 0 1px var(--dk-border); 
+    border-radius: 1px;
     padding: 3px;
     cursor: pointer;
     background: var(--dk-white);
-    transition: all 0.2s ease;
+    transition: box-shadow 0.15s ease, transform 0.15s ease; 
     position: relative;
 }
 
+/* HOVER: Üzerine gelince koyu çerçeve */
 .color-swatch-btn:hover {
-    border-color: var(--dk-text-light);
+    box-shadow: 0 0 0 2px #1a1a1a; 
     transform: scale(1.05);
 }
 
+/* ACTIVE (SEÇİLİ HALE): Simsiyah kalın ram burada kilitli kalır */
 .color-swatch-btn.active {
-    border-color: var(--dk-primary);
-    box-shadow: 0 0 0 1px var(--dk-primary);
+    box-shadow: 0 0 0 2.5px #000000 !important; /* Kesin ve net siyah halka */
+    transform: scale(1.05); 
+    background: #fff !important;
 }
 
 .color-swatch-btn:disabled,
 .color-swatch-btn.out-of-stock {
     opacity: 0.4;
     cursor: not-allowed;
+    transform: none !important; 
+    box-shadow: 0 0 0 1px var(--dk-border) !important; 
 }
 
 .color-swatch-btn:disabled::after,
@@ -86,7 +89,7 @@
 .color-swatch-inner {
     width: 100%;
     height: 100%;
-    border-radius: 2px;
+    border-radius: 1px;
     background-size: cover;
     background-position: center;
 }
@@ -97,7 +100,7 @@
    ========================================== */
 
 #size-dropdown-wrapper {
-    margin-bottom: 16px;
+    margin-bottom: 10px;
     display: none; /* JS ile aktif edilecek */
 }
 
@@ -413,15 +416,25 @@
 
 
 /* ==========================================
-   ESKI VARYASYON AKORDIYONU (KORUNUYOR)
+   VARYASYON AKORDIYONU - GÜNCELLENMİŞ v4 (Titreşimsiz)
    ========================================== */
 
 .variant-accordion-box {
-    border: 1px solid var(--dk-border);
-    border-radius: var(--dk-radius-sm);
+    /* Fiziksel border yerine box-shadow kullanarak titremeyi sıfırladık */
+    box-shadow: 0 0 0 1px #ccc; 
+    background-color: #fff;
+    border-radius: 2px;
     overflow: hidden;
-    background: var(--dk-secondary);
-    margin: 20px 0;
+    background: #fff;                      /* Beyaz arka plan - sabit */
+    margin: 10px 0;
+    
+    /* Sadece gölge geçişini yumuşatıyoruz */
+    transition: box-shadow 0.15s ease;  
+}
+
+/* HOVER: Etrafındaki çizgi boyutları bozmadan kalınlaşır */
+.variant-accordion-box:hover {
+    box-shadow: 0 0 0 2px #1a1a1a;         /* 2px kalınlığında siyah çizgi */
 }
 
 .variant-accordion-box.disabled {
@@ -438,22 +451,22 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 14px 16px;
-    background: var(--dk-secondary);
+    padding: 20px 16px;        /* İnce padding */
+    background: #fff;          /* Beyaz arka plan - SABİT */
     border: none;
     cursor: pointer;
     text-align: left;
-    transition: background 0.2s ease;
     -webkit-tap-highlight-color: transparent;
     user-select: none;
 }
 
+/* HOVER: Butonun arka planı değişmesin! */
 .variant-accordion-header:hover {
-    background: var(--dk-border);
+    background: #fff;          /* Beyaz kalsın */
 }
 
 .variant-accordion-header:active {
-    background: var(--dk-border);
+    background: #fff;          /* Beyaz kalsın */
 }
 
 .variant-accordion-header .accordion-left {
@@ -518,8 +531,6 @@
     transition: transform 0.3s ease;
     flex-shrink: 0;
 }
-
-
 /* ==========================================
    GUVEN ROZETLERI (KORUNUYOR)
    ========================================== */

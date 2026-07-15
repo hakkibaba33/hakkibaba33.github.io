@@ -1436,7 +1436,7 @@ body.no-scroll {
 
 /* ===== 8. BREADCRUMB ===== */
 .breadcrumb-nav {
-    padding: 16px 30px;
+    padding: 10px 30px;
     min-height: 24px;
     max-width: 1800px;
     margin: 0 auto;
@@ -2084,5 +2084,284 @@ body.no-scroll {
     .seo-section .seo-body p,
     .seo-section .custom-container p {
         padding: 0 5px;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+.price-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+}
+
+.original-price {
+    text-decoration: line-through;
+    color: #999;
+    font-size: 13px;
+}
+
+.discounted-price {
+    color: #c9a96e;
+    font-weight: 600;
+    font-size: 15px;
+}
+
+.discount-line {
+    color: #22c55e;
+    font-weight: 600;
+}
+
+.discount-amount {
+    color: #22c55e;
+    font-weight: 700;
+}
+
+
+
+
+/* ==========================================
+   RELATED PRODUCTS SLIDER - DUZELTILMIS v4.9
+   ========================================== */
+
+/* === SECTION TEMEL === */
+.related-products-section {
+    display: none;
+    padding: 50px 0 70px;
+    background: #fff;
+    border-top: 1px solid #e8e8e8;
+    margin-top: 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+.related-products-section.active {
+    display: block;
+}
+
+/* Ustte ince dekoratif cizgi */
+.related-products-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 3px;
+    background: var(--dk-accent, #c9a96e);
+    border-radius: 0 0 3px 3px;
+}
+
+.related-products-section .container {
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 0 60px;
+    box-sizing: border-box;
+    position: relative;
+}
+
+/* BASLIK */
+.related-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 28px;
+    text-align: center;
+    letter-spacing: 0.5px;
+}
+
+/* === SLIDER WRAPPER - RELATIVE (oklar icin zorunlu) === */
+.related-slider-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+/* === TRACK - Yatay Scroll === */
+.related-slider-track {
+    display: flex;
+    gap: 20px;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding: 10px 4px 20px;
+    flex: 1;
+}
+
+.related-slider-track::-webkit-scrollbar {
+    display: none;
+}
+
+/* Kart boyutu */
+.related-slider-track .product-card {
+    flex: 0 0 auto;
+    width: 260px;
+    scroll-snap-align: start;
+}
+
+/* ==========================================
+   NAVIGASYON OKLARI
+   ========================================== */
+
+.slider-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #fff;
+    border: 1.5px solid #d4c9b8;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    z-index: 10;
+    color: #5c4d3c;
+    font-size: 14px;
+    padding: 0;
+    outline: none;
+}
+
+.slider-arrow:hover:not(:disabled) {
+    background: var(--dk-accent, #c9a96e);
+    color: #fff;
+    border-color: var(--dk-accent, #c9a96e);
+    box-shadow: 0 4px 16px rgba(201, 169, 110, 0.35);
+    transform: translateY(-50%) scale(1.05);
+}
+
+.slider-arrow:active:not(:disabled) {
+    transform: translateY(-50%) scale(0.95);
+}
+
+.slider-arrow:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    background: #f5f3ef;
+    border-color: #e0dcd6;
+    color: #bbb;
+}
+
+/* SOL OK */
+.slider-arrow.slider-prev {
+    left: -52px;
+}
+
+/* SAG OK */
+.slider-arrow.slider-next {
+    right: -52px;
+}
+
+
+/* Discount badge */
+.related-slider-track .discount-badge {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: #e54d42;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 4px;
+    z-index: 2;
+}
+
+
+
+/* ==========================================
+   MOBIL UYUMLU
+   ========================================== */
+
+@media (max-width: 768px) {
+    .related-products-section {
+        padding: 35px 0 50px;
+        margin-top: 10px;
+    }
+
+    .related-products-section::before {
+        width: 40px;
+        height: 2px;
+    }
+
+    .related-products-section .container {
+        padding: 0 16px;
+    }
+
+    .related-title {
+        font-size: 17px;
+        margin-bottom: 20px;
+    }
+
+    .related-slider-track .product-card {
+        width: 170px;
+    }
+
+    .slider-arrow {
+        display: none !important;
+    }
+
+    .related-slider-track {
+        gap: 12px;
+        padding: 6px 0 16px;
+    }
+
+    /* Mobil scroll hint */
+    .related-slider-wrapper::after {
+        content: '';
+        position: absolute;
+        right: 0;
+        top: 0;
+        bottom: 30px;
+        width: 40px;
+        background: linear-gradient(to right, transparent, rgba(255,255,255,0.95));
+        pointer-events: none;
+        z-index: 5;
+    }
+}
+
+/* Tablet */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .related-products-section .container {
+        padding: 0 50px;
+    }
+
+    .related-slider-track .product-card {
+        width: 220px;
+    }
+
+    .slider-arrow {
+        width: 40px;
+        height: 40px;
+    }
+
+    .slider-arrow.slider-prev {
+        left: -46px;
+    }
+
+    .slider-arrow.slider-next {
+        right: -46px;
+    }
+}
+
+/* Kucuk desktop */
+@media (min-width: 1025px) and (max-width: 1200px) {
+    .related-products-section .container {
+        padding: 0 55px;
     }
 }

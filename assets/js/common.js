@@ -1,6 +1,6 @@
 // ==========================================
-// COMMON.JS - TEMEL FONKSIYONLAR (v8.7)
-// Varyasyon fix: Sepette ayni urunun farkli varyasyonlari ayri tutuluyor
+// COMMON.JS - TEMEL FONKSIYONLAR (v8.9)
+// Mini cart buton fix: Geriye donuk uyumluluk + cartItemId migrate
 // ==========================================
 
 window.__commonListenersInitialized = false;
@@ -61,12 +61,27 @@ function idsMatch(id1, id2) {
 }
 
 // ==========================================
-// SEPET FONKSIYONLARI - VARYASYON FIX v8.7
+// SEPET FONKSIYONLARI - VARYASYON FIX v8.9
 // ==========================================
 
 function getCart() {
     try {
-        return JSON.parse(localStorage.getItem('siteCartItems')) || [];
+        let cart = JSON.parse(localStorage.getItem('siteCartItems')) || [];
+        // MIGRATE: Eski sepet verilerine cartItemId ekle (geriye donuk uyumluluk)
+        let needsSave = false;
+        cart = cart.map(item => {
+            if (!item.cartItemId) {
+                item.cartItemId = generateCartItemId(item.id, item.variants);
+                needsSave = true;
+                console.log('[Cart] Migrate edildi:', item.cartItemId);
+            }
+            return item;
+        });
+        if (needsSave) {
+            localStorage.setItem('siteCartItems', JSON.stringify(cart));
+            console.log('[Cart] Sepet migrate edildi ve kaydedildi');
+        }
+        return cart;
     } catch (e) {
         return [];
     }
@@ -79,7 +94,43 @@ function saveCart(cart) {
 
 // Benzersiz sepet ogesi ID'si olustur
 function generateCartItemId(productId, variantLabel) {
-    return productId + '_' + (variantLabel || 'default').replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
+    return String(productId) + '_' + (variantLabel || 'default')
+        .replace(/\s+/g, '_')
+        .replace(/[^a-zA-Z0-9_]/g, '');
+}
+
+// SEPETTEKI OGEYI BUL - cartItemId, id+variants, veya sadece id ile
+function findCartItem(cart, cartItemId, productId, variantLabel) {
+    // 1. Once cartItemId ile dene
+    let item = cart.find(i => i.cartItemId === cartItemId);
+    if (item) return item;
+    
+    // 2. Yoksa id + variants ile dene (geriye donuk uyumluluk)
+    if (productId !== undefined) {
+        item = cart.find(i => idsMatch(i.id, productId) && i.variants === variantLabel);
+        if (item) return item;
+        
+        // 3. En kotu ihtimal sadece id ile dene
+        item = cart.find(i => idsMatch(i.id, productId));
+        if (item) return item;
+    }
+    
+    return null;
+}
+
+// SEPETTEN OGE KALDIR - cartItemId veya id+variants ile
+function filterCartItem(cart, cartItemId, productId, variantLabel) {
+    // 1. Once cartItemId ile filtrele
+    let filtered = cart.filter(i => i.cartItemId !== cartItemId);
+    if (filtered.length < cart.length) return filtered;
+    
+    // 2. Yoksa id + variants ile filtrele
+    if (productId !== undefined) {
+        filtered = cart.filter(i => !(idsMatch(i.id, productId) && i.variants === variantLabel));
+        if (filtered.length < cart.length) return filtered;
+    }
+    
+    return filtered;
 }
 
 window.updateCartBadge = function() {
@@ -199,6 +250,7 @@ function updateMiniCartUI() {
     const filledState = document.getElementById('cart-filled-state');
     const footer = document.getElementById('mini-cart-footer');
     if (!emptyState || !filledState || !footer) return;
+    
     if (cart.length === 0) {
         emptyState.style.display = 'block';
         filledState.style.display = 'none';
@@ -207,17 +259,52 @@ function updateMiniCartUI() {
         emptyState.style.display = 'none';
         filledState.style.display = 'block';
         footer.style.display = 'flex';
-        let total = 0;
+        
+        let grandTotal = 0;
+        let totalOriginalPrice = 0;
+        let totalDiscount = 0;
+        
         const html = cart.map(item => {
             const qty = item.quantity || 1;
-            const itemTotal = item.price * qty;
-            total += itemTotal;
+            const currentPrice = Number(item.price) || 0;
+            
+            let originalPrice = Number(item.original_price) || Number(item.base_price) || Number(item.old_price) || currentPrice;
+            if (!originalPrice || originalPrice <= 0) {
+                originalPrice = currentPrice;
+            }
+            
+            const itemCurrentTotal = currentPrice * qty;
+            const itemOriginalTotal = originalPrice * qty;
+            const itemDiscount = itemOriginalTotal - itemCurrentTotal;
+            
+            grandTotal += itemCurrentTotal;
+            totalOriginalPrice += itemOriginalTotal;
+            if (itemDiscount > 0) totalDiscount += itemDiscount;
+            
             const itemId = item.cartItemId || generateCartItemId(item.id, item.variants);
+            
+            // RENK bilgisi varsa göster
+            const colorDisplay = item.color ? ` / ${item.color}` : '';
+            const variantDisplay = (item.variants || 'Standard') + colorDisplay;
+            
+            // Fiyat gösterimi
+            let priceHtml = '';
+            if (itemDiscount > 0 && originalPrice > currentPrice) {
+                priceHtml = `
+                    <div class="price-stack">
+                        <span class="original-price">${itemOriginalTotal.toLocaleString('sv-SE')} SEK</span>
+                        <span class="discounted-price">${itemCurrentTotal.toLocaleString('sv-SE')} SEK</span>
+                    </div>
+                `;
+            } else {
+                priceHtml = `<span class="item-price">${itemCurrentTotal.toLocaleString('sv-SE')} SEK</span>`;
+            }
+            
             return `<div class="mini-cart-item" data-cart-item-id="${itemId}">
                 <img src="${item.image || ''}" alt="${item.name || ''}" class="item-image" onerror="this.style.display='none'">
                 <div class="item-details-left">
                     <span class="item-name">${item.name || 'Urun'}</span>
-                    <span class="item-variant">${item.variants || 'Standard'}</span>
+                    <span class="item-variant">${variantDisplay}</span>
                     <div class="quantity-control">
                         <button type="button" class="quantity-btn minus" data-cart-item-id="${itemId}" data-action="decrease">-</button>
                         <input type="text" class="quantity-input" value="${qty}" readonly>
@@ -225,46 +312,87 @@ function updateMiniCartUI() {
                     </div>
                 </div>
                 <div class="item-price-right">
-                    <span class="item-price">${itemTotal.toLocaleString('sv-SE')} SEK</span>
+                    ${priceHtml}
                     <button type="button" class="remove-item-btn" data-cart-item-id="${itemId}">Ta bort</button>
                 </div>
             </div>`;
         }).join('');
+        
         filledState.innerHTML = html;
-        const grandTotal = document.getElementById('cart-grand-total');
-        if (grandTotal) grandTotal.textContent = total.toLocaleString('sv-SE') + ' SEK';
+        
+        // Toplam indirim gösterimi
+        const discountWrapper = document.getElementById('discount-wrapper');
+        const discountAmount = document.getElementById('cart-total-discount');
+        if (discountWrapper && discountAmount) {
+            if (totalDiscount > 0) {
+                discountWrapper.style.display = 'flex';
+                discountAmount.textContent = '-' + totalDiscount.toLocaleString('sv-SE') + ' SEK';
+            } else {
+                discountWrapper.style.display = 'none';
+            }
+        }
+        
+        const grandTotalEl = document.getElementById('cart-grand-total');
+        if (grandTotalEl) grandTotalEl.textContent = grandTotal.toLocaleString('sv-SE') + ' SEK';
     }
 }
 
 function updateQuantity(cartItemId, change) {
     let cart = getCart();
-    const item = cart.find(i => i.cartItemId === cartItemId);
+    
+    // cartItemId'den productId ve variantLabel cikar
+    const parts = cartItemId.split('_');
+    const productId = parts[0];
+    const variantLabel = parts.slice(1).join('_').replace(/_/g, ' ');
+    
+    const item = findCartItem(cart, cartItemId, productId, variantLabel);
+    
     if (!item) {
-        console.warn('updateQuantity: Urun bulunamadi, cartItemId:', cartItemId);
+        console.warn('updateQuantity: Urun bulunamadi, cartItemId:', cartItemId, 'Mevcut cartItemIdler:', cart.map(i => i.cartItemId));
         return;
     }
+    
     item.quantity = (item.quantity || 1) + change;
     if (item.quantity <= 0) {
-        cart = cart.filter(i => i.cartItemId !== cartItemId);
+        cart = filterCartItem(cart, cartItemId, productId, variantLabel);
     }
     saveCart(cart);
     updateMiniCartUI();
 }
 
 function removeFromCart(cartItemId) {
-    let cart = getCart().filter(i => i.cartItemId !== cartItemId);
+    console.log('[Cart] removeFromCart cagrildi, cartItemId:', cartItemId);
+    
+    // cartItemId'den productId ve variantLabel cikar
+    const parts = cartItemId.split('_');
+    const productId = parts[0];
+    const variantLabel = parts.slice(1).join('_').replace(/_/g, ' ');
+    
+    let cart = getCart();
+    cart = filterCartItem(cart, cartItemId, productId, variantLabel);
     saveCart(cart);
     updateMiniCartUI();
 }
 
 function addProductToCart(productData) {
     let cart = getCart();
-    const cartItemId = generateCartItemId(productData.id, productData.variants);
+    const variantLabel = productData.variants || 'Standard';
+    const cartItemId = generateCartItemId(productData.id, variantLabel);
+    
+    // Eğer original_price yoksa, price'i kullan
+    if (!productData.original_price) {
+        productData.original_price = productData.price;
+    }
+    
     const existing = cart.find(i => i.cartItemId === cartItemId);
     if (existing) {
         existing.quantity = (existing.quantity || 1) + 1;
     } else {
-        const newItem = { ...productData, cartItemId: cartItemId, quantity: 1 };
+        const newItem = { 
+            ...productData, 
+            cartItemId: cartItemId, 
+            quantity: 1 
+        };
         cart.push(newItem);
     }
     saveCart(cart);
@@ -278,24 +406,31 @@ async function addSupabaseProductToCart(productId, variantSize) {
         if (!product) throw new Error('Urun bulunamadi');
         const variants = await supabaseGet('product_variants', { product_id: 'eq.' + productId });
         let displayPrice = product.discount_price || product.base_price || 0;
+        let originalPrice = product.base_price || product.price || displayPrice;
+        
         if (variantSize && variants.length > 0) {
             const variant = variants.find(v => v.size === variantSize);
             if (variant) {
                 displayPrice = variant.discount_price || variant.price || displayPrice;
+                originalPrice = variant.price || product.base_price || displayPrice;
             }
         }
+        
         const variantLabel = variantSize || 'Standard';
         const cartItemId = generateCartItemId(product.id, variantLabel);
+        
         const cartItem = {
             id: product.id,
             cartItemId: cartItemId,
             name: product.name,
             price: displayPrice,
+            original_price: originalPrice,
             image: product.images && product.images[0] ? product.images[0] : '',
             variants: variantLabel,
             delivery: product.delivery_time || '3-7 arbetsdagar',
             quantity: 1
         };
+        
         let cart = getCart();
         const existing = cart.find(i => i.cartItemId === cartItemId);
         if (existing) {
@@ -545,7 +680,7 @@ function initHeaderScroll() {
 }
 
 // ==========================================
-// EVENT LISTENERS
+// EVENT LISTENERS - DUZELTILMIS v8.9
 // ==========================================
 
 function initEventListeners() {
@@ -602,7 +737,9 @@ function initEventListeners() {
         }
     });
 
-    // Mini sepet icindeki butonlar - data-cart-item-id ile
+    // ==========================================
+    // MINI SEPET ICINDEKI BUTONLAR - DUZELTILMIS
+    // ==========================================
     document.addEventListener('click', (e) => {
         const filledState = document.getElementById('cart-filled-state');
         if (!filledState || !filledState.contains(e.target)) return;
@@ -611,17 +748,25 @@ function initEventListeners() {
         const qtyBtn = e.target.closest('.quantity-btn');
 
         if (removeBtn) {
-            const cartItemId = removeBtn.getAttribute('data-cart-item-id');
+            const cartItemId = removeBtn.getAttribute('data-cart-item-id') || removeBtn.getAttribute('data-id');
             if (cartItemId) {
+                e.preventDefault();
                 e.stopPropagation();
+                console.log('[Cart] Remove tiklandi, cartItemId:', cartItemId);
                 removeFromCart(cartItemId);
+            } else {
+                console.warn('[Cart] Remove butonunda ID bulunamadi!');
             }
         } else if (qtyBtn) {
-            const cartItemId = qtyBtn.getAttribute('data-cart-item-id');
+            const cartItemId = qtyBtn.getAttribute('data-cart-item-id') || qtyBtn.getAttribute('data-id');
             const action = qtyBtn.getAttribute('data-action');
             if (cartItemId && action) {
+                e.preventDefault();
                 e.stopPropagation();
+                console.log('[Cart] Quantity tiklandi, cartItemId:', cartItemId, 'action:', action);
                 updateQuantity(cartItemId, action === 'increase' ? 1 : -1);
+            } else {
+                console.warn('[Cart] Quantity butonunda ID veya action bulunamadi!');
             }
         }
     });
@@ -758,4 +903,4 @@ window.addEventListener('load', () => {
     }
 });
 
-console.log('common.js v8.7 yuklendi - Varyasyon fix');
+console.log('common.js v8.9 yuklendi - Mini cart buton fix + migrate');
