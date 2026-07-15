@@ -1,6 +1,5 @@
 // ==========================================
 // CLOUDFLARE PAGES FUNCTIONS - SPA ROUTING
-// /produkt/slug-adi → /produkt/index.html
 // ==========================================
 
 export default {
@@ -8,12 +7,29 @@ export default {
     const url = new URL(request.url);
     const path = url.pathname;
     
-    // Statik dosyaları (CSS, JS, resim) olduğu gibi serve et
+    // 1. Statik dosyaları (CSS, JS, resim) olduğu gibi serve et
     if (path.match(/\.(css|js|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot)$/)) {
       return env.ASSETS.fetch(request);
     }
+
+    // 2. YENİ EKLENEN STATİK SAYFALAR (Burada dosyaları doğrudan eşleştiriyoruz)
     
-    // /produkt/slug-adi → /produkt/index.html
+    // KOOPVILLKOR YÖNLENDİRMESİ
+    if (path === '/kopvillkor' || path === '/kopvillkor/' || path === '/kopvillkor/index.html') {
+      return env.ASSETS.fetch(new URL('/kopvillkor/index.html', request.url));
+    }
+
+    // INTEGRITETSPOLICY YÖNLENDİRMESİ
+    if (path === '/integritetspolicy' || path === '/integritetspolicy/' || path === '/integritetspolicy/index.html') {
+      return env.ASSETS.fetch(new URL('/integritetspolicy/index.html', request.url));
+    }
+
+    // KONTAKT YÖNLENDİRMESİ
+    if (path === '/kontakt' || path === '/kontakt/' || path === '/kontakt/index.html') {
+      return env.ASSETS.fetch(new URL('/kontakt/index.html', request.url));
+    }
+    
+    // 3. /produkt/slug-adi → /produkt/index.html
     if (path.startsWith('/produkt/') && path !== '/produkt/' && path !== '/produkt/index.html') {
       return env.ASSETS.fetch(new URL('/produkt/index.html', request.url));
     }

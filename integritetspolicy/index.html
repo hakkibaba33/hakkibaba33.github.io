@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Handplockade exklusiva mattor sedan 2021. Fri frakt, 30 dagars öppet köp.">
+
+    <!-- Preconnect -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/assets/css/product.css">
+    <link rel="stylesheet" href="/assets/css/style.css">
+    <link rel="stylesheet" href="/assets/css/common.css">
+    <link rel="stylesheet" href="/assets/css/reset.css">
+    <link rel="stylesheet" href="/assets/css/category.css">
+    <link rel="stylesheet" href="/assets/css/variant-selector.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<script>
+// Hash router'ı kaldır, normal URL'ye yönlendir
+if (window.location.hash && window.location.hash.includes('/produkt/')) {
+    const cleanUrl = window.location.hash.replace('#', '');
+    window.location.replace(cleanUrl);
+}
+</script>
+</head>
+<body>
+
+
+<!-- ========== TOP BAR ========== -->
+<div class="top-bar" id="top-bar">
+    <div class="top-bar-inner">
+        <div class="top-bar-left">
+            <div class="top-bar-slider">
+                <div class="top-bar-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+                    Gratis och snabb frakt
+                </div>
+                <div class="top-bar-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                    30 dagars öppet köp
+                </div>
+                <div class="top-bar-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                    Hemleverans
+                </div>
+                <!-- Tekrar başa dönmek için ilk item kopyası -->
+                <div class="top-bar-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+                    Gratis och snabb frakt
+                </div>
+            </div>
+        </div>
+        <div class="top-bar-right">
+            🔥 Upp till 50% REA på alla mattor!
+        </div>
+    </div>
+</div>
+
+<!-- ========== MAIN HEADER ========== -->
+<header class="main-header" id="main-header">
+    <div class="header-main">
+        <div class="header-left">
+            <button class="menu-toggle-btn" id="open-mobile-menu-btn" aria-label="Öppna meny">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <a href="/" class="logo">DKRUG</a>
+        </div>
+        
+            <nav class="desktop-nav">
+            <ul class="nav-list">
+                <li><a href="/mattor/">Mattor</a></li>
+                <li><a href="/metervara/">Metervara</a></li>
+                <li><a href="/gangmattor/">Gångmattor</a></li>
+                <li><a href="/badrumsmattor/">Badrumsmattor</a></li>
+                <li><a href="/gardiner/">gardiner</a></li>
+                <li><a href="/rea/" class="nav-sale">REA</a></li>
+            </ul>
+        </nav>
+
+        <div class="header-right">
+            <button class="header-icon-btn" id="search-open-btn" title="Sök" aria-label="Sök">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            </button>
+            <a href="/favoriter/" class="header-icon-btn" title="Favoriter" aria-label="Favoriter">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                <span class="icon-badge wishlist-count-badge">0</span>
+            </a>
+            <button class="header-icon-btn" id="open-mini-cart-btn" title="Varukorg" aria-label="Varukorg">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                <span class="icon-badge cart-count-badge">0</span>
+            </button>
+        </div>
+    </div>
+</header>
+
+<!-- ========== SEARCH POPUP ========== -->
+<div class="search-popup-overlay" id="search-popup-overlay">
+    <div class="search-popup-inner">
+        <button class="search-close-btn" id="close-search-popup" aria-label="Stäng sök">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+        <div class="search-field-wrap">
+            <svg class="search-field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input type="text" id="live-search-input" class="search-input-field" placeholder="Sök namn, stil..." autocomplete="off">
+        </div>
+        <div id="search-results-display" style="display: none;"></div>
+    </div>
+</div>
+
+<!-- ========== MOBIL MENU ========== -->
+<div class="mobile-menu-overlay" id="mobile-menu-overlay"></div>
+<div class="mobile-menu-drawer" id="mobile-menu-drawer">
+    <div class="mobile-menu-header">
+        <a href="/" class="logo">DKRUG</a>
+        <button class="mobile-close-btn" id="close-mobile-menu" aria-label="Stäng meny">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+    </div>
+    <div class="mobile-menu-body">
+        <nav>
+             <ul class="mobile-nav-list">
+                <li><a href="/">Start</a></li>
+                <li><a href="/mattor/">Mattor</a></li>
+                <li><a href="/metervara/">Metervara</a></li>
+                <li><a href="/gangmattor/">Gångmattor</a></li>
+                <li><a href="/badrumsmattor/">Badrumsmattor</a></li>
+                 <li><a href="/gardiner/">gardiner</a></li>
+                <li><a href="/rea/" class="mobile-sale">REA</a></li>
+            </ul>
+        </nav>
+    </div>
+    <div class="mobile-menu-footer">
+        © 2021 - 2026 DKRug
+    </div>
+</div>
+
+<!-- ========== MINI CART ========== -->
+<div class="mini-cart-overlay" id="mini-cart-overlay"></div>
+<div class="mini-cart-drawer" id="mini-cart-drawer">
+    <div class="mini-cart-header">
+        <h3>Din Varukorg</h3>
+        <button class="mini-cart-close" id="close-mini-cart" aria-label="Stäng varukorg">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+    </div>
+    <div class="mini-cart-body">
+        <div class="cart-empty-state" id="cart-empty-state">
+            <svg class="cart-empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+            <p>Din varukorg är tom.</p>
+            <a href="/mattor" class="cart-empty-btn">Shoppa Nu</a>
+        </div>
+        <div class="cart-filled-state" id="cart-filled-state" style="display: none;"></div>
+    </div>
+    <div class="mini-cart-footer" id="mini-cart-footer" style="display: none;">
+        <div class="cart-summary-line">
+            <span class="summary-label">Frakt</span>
+            <span class="summary-value" id="cart-shipping-cost" style="color: #c9a96e; font-weight: 600;">Fri frakt</span>
+        </div>
+        <div class="cart-summary-line discount-line" id="discount-wrapper" style="display: none;">
+            <span class="summary-label">Rabatt:</span>
+            <span class="summary-value discount-amount" id="cart-total-discount"></span>
+        </div>
+        <hr class="cart-divider">
+        <div class="cart-summary-line grand-total-line">
+            <span class="summary-label">Totalt (inkl moms)</span>
+            <span class="summary-value" id="cart-grand-total"></span>
+        </div>
+        <a href="/kassa" class="checkout-btn">Till kassan</a>
+    </div>
+</div>
+
+<main class="legal-page-container" style="max-width: 800px; margin: 40px auto; padding: 0 20px; font-family: var(--dk-font-body, sans-serif); line-height: 1.6; color: #333;">
+    <h1 style="font-size: 28px; margin-bottom: 10px; color: #1a1a1a;">Integritetspolicy</h1>
+    <p style="font-size: 14px; color: #666; margin-bottom: 30px;">Senast uppdaterad: Juli 2026</p>
+
+    <p>Vi på <strong>DKRug & Gardiner</strong> (Hakki Islek, org.nr 19770426-7231) värnar om din personliga integritet. Denna integritetspolicy förklarar hur vi samlar in, använder och skyddar dina personuppgifter i enlighet med dataskyddsförordningen (GDPR).</p>
+
+    <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;">
+
+    <h2 style="font-size: 20px; color: #1a1a1a; margin-top: 20px;">1. Vilka uppgifter samlar vi in?</h2>
+    <p>När du besöker vår hemsida eller gör ett köp samlar vi in följande uppgifter för att kunna fullfölja vårt avtal med dig:</p>
+    <ul>
+        <li>Namn och adressuppgifter (för leverans och fakturering)</li>
+        <li>E-postadress och telefonnummer (för orderbekräftelse och leveransavisering)</li>
+        <li>IP-adress och information om din användning av vår webbplats (via cookies)</li>
+    </ul>
+
+    <h2 style="font-size: 20px; color: #1a1a1a; margin-top: 20px;">2. Varför behandlar vi dina uppgifter?</h2>
+    <p>Vi behandlar dina uppgifter för att:</p>
+    <ul>
+        <li>Kunna hantera och skicka dina beställningar.</li>
+        <li>Kommunicera med dig angående din order och erbjuda kundservice.</li>
+        <li>Följa lagkrav, exempelvis bokföringslagen.</li>
+        <li>Skicka nyhetsbrev om du uttryckligen har gett ditt samtycke till detta.</li>
+    </ul>
+
+    <h2 style="font-size: 20px; color: #1a1a1a; margin-top: 20px;">3. Hur länge sparar vi dina uppgifter?</h2>
+    <p>Vi sparar endast dina uppgifter så länge det krävs för att fullfölja våra åtaganden mot dig, eller så länge som krävs enligt svensk lag (t.ex. sparas bokföringsmaterial i 7 år enligt bokföringslagen).</p>
+
+    <h2 style="font-size: 20px; color: #1a1a1a; margin-top: 20px;">4. Delning av uppgifter till tredje part</h2>
+    <p>Vi säljer aldrig dina uppgifter vidare till tredje part. Vi delar endast nödvändig information med betrodda samarbetspartners för att genomföra ditt köp och din leverans:</p>
+    <ul>
+        <li><strong>Betaltjänster:</strong> Klarna, VISA, Mastercard för att hantera säkra betalningar.</li>
+        <li><strong>Fraktbolag:</strong> PostNord, DHL, UPS för att leverera dina varor till rätt adress.</li>
+    </ul>
+
+    <h2 style="font-size: 20px; color: #1a1a1a; margin-top: 20px;">5. Dina rättigheter</h2>
+    <p>Enligt GDPR har du rätt till följande när som helst:</p>
+    <ul>
+        <li>Att få ett utdrag på vilka personuppgifter vi har sparade om dig.</li>
+        <li>Att begära rättelse eller radering av dina personuppgifter (såvida de inte krävs för att följa andra lagar som bokföringslagen).</li>
+        <li>Att när som helst avbryta prenumerationen på vårt nyhetsbrev.</li>
+    </ul>
+
+    <h2 style="font-size: 20px; color: #1a1a1a; margin-top: 20px;">6. Kontaktuppgifter för dataskydd</h2>
+    <p>Om du har frågor om dina personuppgifter eller vill utnyttja dina rättigheter, är du välkommen att kontakta oss på:</p>
+    <p style="background: #f9f9f9; padding: 15px; border-radius: 4px; border-left: 3px solid #1a1a1a;">
+        <strong>Personuppgiftsansvarig:</strong> Hakki Islek<br>
+        <strong>E-post:</strong> <a href="mailto:info@dekorist.se">info@dekorist.se</a><br>
+        <strong>Adress:</strong> Agnesfridsvägen 3, 212 37 Malmö, Sweden
+    </p>
+</main>
+
+<footer class="modern-footer">
+    <div class="footer-main">
+        <div class="footer-inner grid-container">
+            <div class="footer-col brand-col">
+                <h2 class="footer-logo">DKRug & Gardiner</h2>
+                <p>Kvalitetsmattor och eleganta gardiner för varje hem. Vi handplockar varje produkt med omsorg och passion.</p>
+            </div>
+
+            <div class="footer-col acc-col">
+                <h3 class="acc-trigger">Kundservice & Villkor <i class="fas fa-chevron-down"></i></h3>
+                <ul class="acc-content">
+                    <li><a href="/kontakt/index.html">Kontakta Oss</a></li>
+                    <li><a href="/kopvillkor/index.html">Köpvillkor & Retur</a></li>
+                    <li><a href="/integritetspolicy/index.html">Integritetspolicy</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-col newsletter-col">
+                <h3>Nyhetsbrev</h3>
+                <p class="newsletter-desc">Få exklusiva erbjudanden och inspiration direkt till din inkorg.</p>
+                <form class="m-newsletter-form">
+                    <input type="email" placeholder="Din e-post" required>
+                    <button type="submit">Skicka</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer-methods">
+        <div class="footer-inner method-grid">
+            <div class="method-box">
+                <h4>Vi levererar med</h4>
+                <div class="icons-row">
+                    <img src="/assets/images/postnord.jpg" alt="Postnord" style="height: 40px; width: auto; display: block;">
+                    <img src="/assets/images/dhl.png" alt="DHL" style="height: 40px; width: auto; display: block;">
+                    <img src="/assets/images/ups.svg" alt="UPS" style="height: 40px; width: auto; display: block;">
+                </div>
+            </div>
+
+            <div class="method-box">
+                <h4>Betalningsalternativ</h4>
+                <div class="icons-row">
+                    <img src="/assets/images/klarna.svg" alt="Klarna" style="height: 40px; width: auto; display: block;">
+                    <img src="/assets/images/visa.svg" alt="Visa" style="height: 40px; width: auto; display: block;">
+                    <img src="/assets/images/mastercard.svg" alt="Mastercard" style="height: 40px; width: auto; display: block;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer-bottom">
+        <div class="footer-inner bottom-flex">
+            <div class="bottom-item bottom-left">
+                <p>&copy; 2021 - 2026 DKRug</p>
+            </div>
+            <div class="bottom-item bottom-center">
+                <span class="center-logo">DKRug</span>
+            </div>
+            <div class="bottom-item bottom-right">
+                <div class="footer-socials">
+                    <a href="#" target="_blank" title="Instagram">
+                        <img src="/assets/images/instagram.svg" alt="Instagram" style="width: 24px; height: 24px;">
+                    </a>
+                    <a href="#" target="_blank" title="Facebook">
+                        <img src="/assets/images/facebook.svg" alt="Facebook" style="width: 24px; height: 24px;">
+                    </a>
+                    <a href="#" target="_blank" title="Pinterest">
+                        <img src="/assets/images/pinterest.svg" alt="Pinterest" style="width: 24px; height: 24px;">
+                    </a>
+                    <a href="#" target="_blank" title="TikTok">
+                        <img src="/assets/images/tiktok.svg" alt="TikTok" style="width: 24px; height: 24px;">
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+   <!-- Scripts -->
+    <script src="/assets/js/config.js"></script>
+    <script src="/assets/js/common.js"></script>
+    <script src="/assets/js/index.js"></script>
+</body>
+</html>
