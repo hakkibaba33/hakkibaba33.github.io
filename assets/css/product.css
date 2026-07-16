@@ -696,7 +696,7 @@ button:not(:disabled),
 }
 
 /* ==========================================
-   TOOLTIP
+   TOOLTIP - DUZELTILMIS v5.0
    ========================================== */
 
 .product-label-row {
@@ -728,21 +728,22 @@ button:not(:disabled),
     text-decoration: underline;
 }
 
+/* 🔥 TOOLTIP - FIXED POSITION (z-index sorununu cozer) */
 .tooltip-popup-box {
     display: none;
-    position: absolute;
-    bottom: 30px;
-    left: 0;
-    width: 260px;
+    position: fixed;          /* absolute yerine fixed */
+    width: 280px;
+    max-width: 90vw;
     background: var(--dk-white);
     border: 1px solid var(--dk-border);
     border-radius: var(--dk-radius-sm);
     padding: 15px;
-    z-index: 99999;
-    box-shadow: var(--dk-shadow);
+    z-index: 999999;          /* cok yuksek z-index */
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
     opacity: 0;
     transform: translateY(10px);
     transition: opacity 0.3s ease, transform 0.3s ease;
+    pointer-events: auto;
 }
 
 .tooltip-popup-box.active {
@@ -786,6 +787,37 @@ button:not(:disabled),
     to { opacity: 1; transform: translateY(0); }
 }
 
+/* ==========================================
+   MOBIL TOOLTIP - EKRAN ORTASI
+   ========================================== */
+@media (max-width: 768px) {
+    .tooltip-popup-box {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) scale(0.95);
+        width: 90vw;
+        max-width: 320px;
+        bottom: auto;         /* bottom'u kaldir */
+        left: auto;           /* left'i kaldir */
+    }
+
+    .tooltip-popup-box.active {
+        transform: translate(-50%, -50%) scale(1);
+    }
+
+    /* Arkaplan overlay */
+    .tooltip-popup-box.active::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.4);
+        z-index: -1;
+    }
+}
 
 /* ==========================================
    FAVORİ / WISHLIST

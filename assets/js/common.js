@@ -904,3 +904,23 @@ window.addEventListener('load', () => {
 });
 
 console.log('common.js v8.9 yuklendi - Mini cart buton fix + migrate');
+
+
+// ===== FOOTER MOBİL AKORDEON =====
+document.addEventListener('DOMContentLoaded', function() {
+    
+    const accCol = document.querySelector('.acc-col');
+    const accTrigger = document.querySelector('.acc-trigger');
+    
+    if (!accCol || !accTrigger) return;
+    
+    // Başlangıçta kapalı (mobilde)
+    accCol.classList.remove('active');
+    
+    accTrigger.addEventListener('click', function() {
+        // Sadece mobilde çalışsın
+        if (window.innerWidth <= 768) {
+            accCol.classList.toggle('active');
+        }
+    });
+});
