@@ -1469,3 +1469,24 @@ body.modal-open {
 }
 
 
+
+
+/* Ürün gridinin sayfa açılır açılmaz en azından Footer'ı aşağıda tutacak bir yüksekliği olmalı */
+#product-grid {
+  min-height: 600px; /* Ortalama 1-2 ürün satırı yüksekliği */
+}
+
+/* Yüklenme esnasında görünecek gri efektli skeleton kartları */
+.skeleton-loader-card {
+  width: 100%;
+  height: 380px; /* Senin gerçek ürün kartlarının ortalama yüksekliği */
+  background: linear-gradient(90deg, #f3f3f3 25%, #e6e6e6 50%, #f3f3f3 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s infinite ease-in-out;
+  border-radius: 8px;
+}
+
+@keyframes skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}

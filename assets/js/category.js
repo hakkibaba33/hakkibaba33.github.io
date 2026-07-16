@@ -266,6 +266,20 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function fetchProducts() {
         try {
+            // ==========================================
+            // [EKLEME] ZIPLAMAYI ÖNLEME: Veri yüklenmeden önce grid içerisine geçici skeleton'lar ekliyoruz
+            // ==========================================
+            const grid = document.getElementById('product-grid');
+            if (grid) {
+                grid.innerHTML = `
+                    <div class="skeleton-loader-card"></div>
+                    <div class="skeleton-loader-card"></div>
+                    <div class="skeleton-loader-card"></div>
+                    <div class="skeleton-loader-card"></div>
+                `;
+            }
+            // ==========================================
+
             const currentCategory = getCurrentCategory();
             const subCategory = getCurrentSubCategory();
 
@@ -328,7 +342,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             console.log(allProducts.length + ' urun yuklendi');
 
-            renderProducts();
+            // renderProducts() çalışırken zaten grid.innerHTML = '' yapıp 
+            // bizim eklediğimiz skeleton-loader-card'ları silecek ve gerçek ürünleri basacak.
+            renderProducts(); 
             updateProgress();
             generateFilters();
 
@@ -341,8 +357,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                     <button onclick="location.reload()" class="visa-mer-btn">Forsok igen</button>
                 </div>
             `;
-        }
-    }
+             } 
+            }   
 
     function getVariantDisplayText(product) {
         const variants = product.variants || [];
@@ -934,11 +950,4 @@ function createProductCard(product, isWishlisted) {
         updateChipsActiveState(); // Aktif chip'i değiştir
         fetchProductsOnce();      // Ürünleri yeniden çek
     });
-
-
-
-
-
-
-
-   });
+});

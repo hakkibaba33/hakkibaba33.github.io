@@ -1,7 +1,8 @@
 // ==========================================
-// PRODUCT.UI.JS - SUPABASE UYUMLU (v4.9)
+// PRODUCT.UI.JS - SUPABASE UYUMLU (v5.0)
 // FIX: Inline CSS'ler temizlendi
 // FIX: Fiyat sıralaması: indirimli önce, orijinal sonra
+// NEW: Skeleton loader desteği eklendi
 // ==========================================
 
 if (window.__productPageInitialized) {
@@ -141,7 +142,7 @@ if (window.__productPageInitialized) {
         swatchesContainer.querySelectorAll('.color-swatch-btn').forEach(btn => {
             const inner = btn.querySelector('.color-swatch-inner');
             if (inner) inner.style.background = btn.dataset.hex;
-            
+
             btn.addEventListener('click', () => {
                 swatchesContainer.querySelectorAll('.color-swatch-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
@@ -206,6 +207,15 @@ if (window.__productPageInitialized) {
         return product.base_price || 0;
     }
 
+    // ==========================================
+    // SKELETON HELPER FUNCTIONS
+    // ==========================================
+    function hideAllSkeletons() {
+        document.querySelectorAll('.skeleton, .skeleton-gallery-grid, .skeleton-slide, .skeleton-card-wrapper, .skeleton-swatches-row').forEach(el => {
+            el.style.display = 'none';
+        });
+    }
+
     async function initProductPage() {
         let slug = null;
         const path = window.location.pathname;
@@ -231,6 +241,7 @@ if (window.__productPageInitialized) {
         }
 
         if (!slug) {
+            hideAllSkeletons();
             document.querySelector('.product-page').innerHTML = 
                 '<p style="text-align:center;padding:60px;">Produkt hittades inte. <a href="/">Tillbaka till startsidan</a></p>';
             return;
@@ -243,6 +254,7 @@ if (window.__productPageInitialized) {
             });
 
             if (products.length === 0) {
+                hideAllSkeletons();
                 document.querySelector('.product-page').innerHTML = 
                     '<p style="text-align:center;padding:60px;">Produkt hittades inte. <a href="/">Tillbaka till startsidan</a></p>';
                 return;
@@ -288,7 +300,7 @@ if (window.__productPageInitialized) {
 
             setHTML('product-delivery', f.Delivery_return ? '<div class="delivery-content-placeholder">' + f.Delivery_return.split('\n').join('<br>') + '</div>' : '<div class="delivery-content-placeholder"><p><strong>Leveranstid:</strong> <span id="delivery-time-display">' + f.Delivery_time + '</span></p><p><strong>Frakt:</strong> Fri frakt vid köp över 500 Kr</p><p><strong>Retur:</strong> 30 dagars öppet köp</p></div>');
 
-            if (typeof setupSizeTooltip === 'function') setupSizeTooltip(f.Size_tooltip, f.Variants);
+            if (typeof setupSizeDrawer === 'function') setupSizeDrawer(f.Size_tooltip, f.Variants);
 
             currentImages = p.images || [];
 
@@ -318,12 +330,18 @@ if (window.__productPageInitialized) {
             if (typeof setupAddToCart === 'function') setupAddToCart(f);
             setupWishlistButton(f);
 
+            // ✅ Tüm skeleton'ları gizle - veri yüklendi
+            hideAllSkeletons();
+
             setTimeout(() => {
                 loadRelatedSlider();
             }, 500);
 
         } catch (e) { 
-            console.error("Hata:", e); 
+            console.error("Hata:", e);
+            hideAllSkeletons();
+            document.querySelector('.product-page').innerHTML = 
+                '<p style="text-align:center;padding:60px;">Kunde inte ladda produkten. <a href="/">Tillbaka till startsidan</a></p>';
         }
     }
 
@@ -338,10 +356,11 @@ if (window.__productPageInitialized) {
     }
 
 // ==========================================
-// ILGILI URUNLER - KATEGORI KARTI BIREBIR + VARYASYON/RENK (v4.9)
+// ILGILI URUNLER - KATEGORI KARTI BIREBIR + VARYASYON/RENK (v5.0)
 // FIX: Inline CSS'ler temizlendi
 // FIX: Fiyat sirasi: indirimli once, orijinal sonra
 // FIX: Event listener cakismasi giderildi
+// NEW: Skeleton loader desteği
 // ==========================================
 
 function getRelatedVariantText(product) {
@@ -397,6 +416,13 @@ async function loadRelatedSlider() {
         return;
     }
 
+    // ✅ Skeleton'ları göster - ilgili ürünler yükleniyor
+    const section = document.getElementById('related-products-section');
+    if (section) {
+        section.style.display = '';
+        section.classList.add('active');
+    }
+
     try {
         let firstCategory = 'mattor';
         const cats = currentProduct.categories;
@@ -436,12 +462,13 @@ async function loadRelatedSlider() {
 
         if (!relatedProducts || relatedProducts.length === 0) {
             console.log('[Related] Hic urun bulunamadi');
+            if (section) section.style.display = 'none';
             return;
         }
 
         const productIds = relatedProducts.map(p => p.id);
         let relatedVariants = [];
-        
+
         if (productIds.length > 0) {
             try {
                 const idList = productIds.join(',');
@@ -463,6 +490,9 @@ async function loadRelatedSlider() {
 
     } catch (e) {
         console.error('[Related] HATA:', e);
+        if (section) section.style.display = 'none';
+        const track = document.getElementById('related-slider-track');
+        if (track) track.innerHTML = '';
     }
 }
 
@@ -605,10 +635,10 @@ function setupSliderNavigation() {
         requestAnimationFrame(() => {
             const scrollLeft = Math.round(track.scrollLeft);
             const maxScroll = Math.round(track.scrollWidth - track.clientWidth);
-            
+
             prevBtn.disabled = scrollLeft <= 2;
             nextBtn.disabled = scrollLeft >= maxScroll - 2;
-            
+
             prevBtn.style.opacity = prevBtn.disabled ? '0.35' : '1';
             nextBtn.style.opacity = nextBtn.disabled ? '0.35' : '1';
         });
@@ -636,15 +666,15 @@ function updateSliderButtons() {
     const track = document.getElementById('related-slider-track');
     const prevBtn = document.getElementById('related-prev');
     const nextBtn = document.getElementById('related-next');
-    
+
     if (!track || !prevBtn || !nextBtn) return;
-    
+
     const scrollLeft = Math.round(track.scrollLeft);
     const maxScroll = Math.round(track.scrollWidth - track.clientWidth);
-    
+
     prevBtn.disabled = scrollLeft <= 2;
     nextBtn.disabled = scrollLeft >= maxScroll - 2;
-    
+
     prevBtn.style.opacity = prevBtn.disabled ? '0.35' : '1';
     nextBtn.style.opacity = nextBtn.disabled ? '0.35' : '1';
 }
@@ -698,57 +728,87 @@ function updateSliderButtons() {
         }
     }
 
-    function setupSizeTooltip(sizeTooltipHtml, variants) {
-        const tooltipBody = document.getElementById('tooltip-body');
-        if (!tooltipBody) return;
+         function setupSizeDrawer(sizeTooltipHtml, variants) {
+    const drawerBody = document.getElementById('drawer-body');
+    const toggle = document.getElementById('drawer-toggle');
+    const overlay = document.getElementById('drawer-overlay');
+    const panel = document.getElementById('drawer-panel');
+    const closeBtn = document.getElementById('drawer-close');
+    const doneBtn = document.getElementById('drawer-done');
 
-        if (sizeTooltipHtml && sizeTooltipHtml.trim()) {
-            tooltipBody.innerHTML = sizeTooltipHtml;
-        } else if (variants && variants.length > 0) {
-            let html = '<table style="width:100%;border-collapse:collapse;font-size:13px;">';
-            html += '<tr style="border-bottom:1px solid #eee;"><th style="text-align:left;padding:6px;">Storlek</th><th style="text-align:right;padding:6px;">Pris</th></tr>';
-            variants.forEach(v => {
-                const price = v.discount_price || v.price || 0;
-                html += `<tr style="border-bottom:1px solid #f5f5f5;"><td style="padding:6px;">${v.size || '-'}</td><td style="text-align:right;padding:6px;">${price} Kr</td></tr>`;
-            });
-            html += '</table>';
-            tooltipBody.innerHTML = html;
-        } else {
-            tooltipBody.innerHTML = '<p>Ingen storleksinformation tillgänglig.</p>';
-        }
+    if (!drawerBody || !toggle || !overlay || !panel) return;
 
-        const tooltipContainer = document.getElementById('tooltip-container');
-        const popupBox = tooltipContainer.querySelector('.tooltip-popup-box');
-
-        if (tooltipContainer) {
-            const toggle = tooltipContainer.querySelector('.tooltip-toggle-span');
-            if (toggle) {
-                toggle.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    if (popupBox) popupBox.classList.toggle('active');
-                });
-            }
-        }
-
-        const closeBtn = tooltipContainer?.querySelector('.tooltip-close-btn');
-        if (closeBtn) {
-            closeBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                if (popupBox) popupBox.classList.remove('active');
-            });
-        }
-
-        document.addEventListener('click', (e) => {
-            const tooltipContainer = document.getElementById('tooltip-container');
-            if (tooltipContainer && !tooltipContainer.contains(e.target)) {
-                if (popupBox) popupBox.classList.remove('active');
-            }
+    // İçeriği doldur
+    if (sizeTooltipHtml && sizeTooltipHtml.trim()) {
+        drawerBody.innerHTML = sizeTooltipHtml;
+    } else if (variants && variants.length > 0) {
+        let html = '<table class="size-table">';
+        html += '<thead><tr><th>Storlek</th><th>Pris</th></tr></thead><tbody>';
+        variants.forEach(v => {
+            const price = v.discount_price || v.price || 0;
+            const original = v.discount_price ? `<s style="color:#999;font-size:12px;margin-right:6px;">${v.price} Kr</s>` : '';
+            html += `<tr><td class="size-cell">${v.size || '-'}</td><td class="price-cell">${original}${price} Kr</td></tr>`;
         });
+        html += '</tbody></table>';
+        drawerBody.innerHTML = html;
+    } else {
+        drawerBody.innerHTML = '<p>Ingen storleksinformation tillgänglig.</p>';
     }
 
-    function setupAccordions() {
+    // 🔥 AÇMA FONKSİYONU
+    function openDrawer() {
+        overlay.classList.add('active');
+        panel.classList.add('active');
+        document.body.classList.add('drawer-open');
+    }
+
+    // 🔥 KAPATMA FONKSİYONU - setTimeout ile yumuşak kapanış
+    function closeDrawer() {
+        overlay.classList.remove('active');
+        panel.classList.remove('active');
+
+        // Transition bitince body scroll'u aç
+        setTimeout(() => {
+            if (!panel.classList.contains('active')) {
+                document.body.classList.remove('drawer-open');
+            }
+        }, 500);
+    }
+
+    // Event listener'lar
+    toggle.addEventListener('click', openDrawer);
+    toggle.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            openDrawer();
+        }
+    });
+
+    overlay.addEventListener('click', closeDrawer);
+    closeBtn.addEventListener('click', closeDrawer);
+    doneBtn.addEventListener('click', closeDrawer);
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && panel.classList.contains('active')) {
+            closeDrawer();
+        }
+    });
+
+    // Swipe down kapatma (mobile)
+    let startY = 0;
+    panel.addEventListener('touchstart', (e) => {
+        startY = e.touches[0].clientY;
+    }, { passive: true });
+
+    panel.addEventListener('touchend', (e) => {
+        const endY = e.changedTouches[0].clientY;
+        if (endY - startY > 80 && window.innerWidth <= 768) {
+            closeDrawer();
+        }
+    }, { passive: true });
+}
+
+function setupAccordions() {
         document.querySelectorAll('.product-accordion-header').forEach(header => {
             header.addEventListener('click', () => {
                 const item = header.parentElement;
@@ -1197,28 +1257,31 @@ function updateSliderButtons() {
         document.body.style.overflow = 'hidden';
     }
 
-    window.closeVariantDrawer = function() {
-        const overlay = document.getElementById('variant-drawer-overlay');
-        const drawer = document.getElementById('variant-drawer');
+        window.closeVariantDrawer = function() {
+    const overlay = document.getElementById('variant-drawer-overlay');
+    const drawer = document.getElementById('variant-drawer');
 
-        if (!overlay || !drawer) return;
+    if (!overlay || !drawer) return;
 
-        overlay.style.opacity = '0';
-        drawer.style.transform = 'translateX(100%)';
+    overlay.style.opacity = '0';
+    drawer.style.transform = 'translateX(100%)';
 
-        overlay.classList.remove('open', 'active');
-        drawer.classList.remove('open', 'active');
+    overlay.classList.remove('open', 'active');
+    drawer.classList.remove('open', 'active');
 
-        setTimeout(() => {
-            if (!overlay.classList.contains('active')) {
-                overlay.style.display = '';
-                drawer.style.display = '';
-            }
-        }, 300);
+    // 🔥 Transition bitince temizle
+    setTimeout(() => {
+        if (!drawer.classList.contains('active')) {
+            overlay.style.display = '';
+            drawer.style.display = '';
+            document.body.classList.remove('drawer-open');
+            document.body.style.overflow = '';
+        }
+    }, 500); // CSS transition süresi
 
-        document.body.classList.remove('drawer-open');
-        document.body.style.overflow = '';
-    };
+    document.body.classList.remove('drawer-open');
+    document.body.style.overflow = '';
+};
 
     function renderVariantDrawerFiltered(variants) {
         const body = document.getElementById('variant-drawer-body');
@@ -1439,4 +1502,4 @@ function updateSliderButtons() {
     } else {
         initProductPage();
     }
-}
+     }

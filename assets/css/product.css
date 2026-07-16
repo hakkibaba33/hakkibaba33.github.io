@@ -696,129 +696,400 @@ button:not(:disabled),
 }
 
 /* ==========================================
-   TOOLTIP - DUZELTILMIS v5.0
+   MODERN DRAWER TOOLTIP - v2.0 (Yumuşak Animasyon)
    ========================================== */
 
+:root {
+    --drawer-width: 420px;
+    --drawer-bg: #ffffff;
+    --drawer-overlay: rgba(0,0,0,0);
+    --drawer-overlay-active: rgba(0,0,0,0.45);
+    --drawer-border: #e8e8e8;
+    --drawer-text: #1a1a1a;
+    --drawer-text-light: #666;
+    --drawer-accent: #1a1a1a;
+    --drawer-radius: 16px;
+    --drawer-shadow: 0 0 40px rgba(0,0,0,0.15);
+    
+    /* 🔥 Yeni easing değerleri - daha yumuşak */
+    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-out-back: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+    
+    /* 🔥 Daha yavaş süreler */
+    --transition-overlay: 0.6s;
+    --transition-panel: 0.6s;
+    --transition-content: 0.35s;
+}
+
+/* Product Label Row */
 .product-label-row {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 12px;
     margin-bottom: 10px;
     margin-top: -5px;
 }
 
-.custom-tooltip-container {
-    position: relative;
-    display: inline-flex;
-}
-
-.tooltip-toggle-span {
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    user-select: none;
-    position: relative;
-    top: 0px;
-}
-
-.tooltip-label-text {
-    font-size: 13px;
-    color: var(--dk-primary);
-    text-decoration: underline;
-}
-
-/* 🔥 TOOLTIP - FIXED POSITION (z-index sorununu cozer) */
-.tooltip-popup-box {
-    display: none;
-    position: fixed;          /* absolute yerine fixed */
-    width: 280px;
-    max-width: 90vw;
-    background: var(--dk-white);
-    border: 1px solid var(--dk-border);
-    border-radius: var(--dk-radius-sm);
-    padding: 15px;
-    z-index: 999999;          /* cok yuksek z-index */
-    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
-    opacity: 0;
-    transform: translateY(10px);
-    transition: opacity 0.3s ease, transform 0.3s ease;
-    pointer-events: auto;
-}
-
-.tooltip-popup-box.active {
-    display: block;
-    opacity: 1;
-    transform: translateY(0);
-}
-
-.tooltip-body {
+.selected-size-display {
     font-size: 14px;
-    color: var(--dk-text);
-    line-height: 1.5;
+    color: #666;
+    font-weight: 500;
 }
 
-.tooltip-body a {
-    color: var(--dk-accent);
-    text-decoration: underline;
-    font-weight: bold;
-    transition: color 0.2s ease;
-}
-
-.tooltip-body a:hover {
-    color: var(--dk-accent-hover);
-}
-
-.tooltip-close-btn {
-    position: absolute;
-    top: 5px;
-    right: 8px;
-    background: none;
-    border: none;
-    font-size: 20px;
+/* Toggle Button */
+.drawer-tooltip-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     cursor: pointer;
-    color: var(--dk-text-light);
-    padding: 0;
-    line-height: 1;
+    user-select: none;
+    padding: 6px 12px;
+    border-radius: 20px;
+    background: rgba(0,0,0,0.03);
+    border: 1px solid rgba(0,0,0,0.06);
+    transition: all 0.2s ease;
 }
 
-@keyframes slideUpFade {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+.drawer-tooltip-toggle:hover {
+    background: rgba(0,0,0,0.06);
+    border-color: rgba(0,0,0,0.12);
+}
+
+.drawer-tooltip-toggle svg {
+    width: 16px;
+    height: 16px;
+    color: #666;
+    flex-shrink: 0;
+}
+
+.drawer-tooltip-toggle span {
+    font-size: 13px;
+    color: #444;
+    font-weight: 500;
 }
 
 /* ==========================================
-   MOBIL TOOLTIP - EKRAN ORTASI
+   OVERLAY - Yumuşak fade + blur
    ========================================== */
-@media (max-width: 768px) {
-    .tooltip-popup-box {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%) scale(0.95);
-        width: 90vw;
-        max-width: 320px;
-        bottom: auto;         /* bottom'u kaldir */
-        left: auto;           /* left'i kaldir */
-    }
 
-    .tooltip-popup-box.active {
-        transform: translate(-50%, -50%) scale(1);
-    }
-
-    /* Arkaplan overlay */
-    .tooltip-popup-box.active::before {
-        content: '';
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0,0,0,0.4);
-        z-index: -1;
-    }
+.drawer-tooltip-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--drawer-overlay);
+    backdrop-filter: blur(0px);
+    -webkit-backdrop-filter: blur(0px);
+    z-index: 99999;
+    opacity: 0;
+    visibility: hidden;
+    transition: 
+        opacity var(--transition-overlay) var(--ease-out-expo),
+        visibility var(--transition-overlay) var(--ease-out-expo),
+        background var(--transition-overlay) var(--ease-out-expo),
+        backdrop-filter var(--transition-overlay) var(--ease-out-expo);
 }
 
+.drawer-tooltip-overlay.active {
+    opacity: 1;
+    visibility: visible;
+    background: var(--drawer-overlay-active);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+
+/* ==========================================
+   PANEL - Yumuşak slide + stagger
+   ========================================== */
+
+.drawer-tooltip-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: var(--drawer-width);
+    max-width: 90vw;
+    height: 100vh;
+    background: var(--drawer-bg);
+    z-index: 100000;
+    transform: translateX(100%);
+    transition: transform var(--transition-panel) var(--ease-out-expo);
+    display: flex;
+    flex-direction: column;
+    box-shadow: none;
+}
+
+.drawer-tooltip-panel.active {
+    transform: translateX(0);
+    box-shadow: var(--drawer-shadow);
+}
+
+/* Panel içeriği - stagger animasyonu */
+.drawer-tooltip-panel .drawer-tooltip-header,
+.drawer-tooltip-panel .drawer-tooltip-body,
+.drawer-tooltip-panel .drawer-tooltip-footer {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: 
+        opacity var(--transition-content) var(--ease-out-expo),
+        transform var(--transition-content) var(--ease-out-expo);
+}
+
+/* Açıldığında içerikler sırayla görünsün */
+.drawer-tooltip-panel.active .drawer-tooltip-header {
+    opacity: 1;
+    transform: translateY(0);
+    transition-delay: 0.1s;
+}
+
+.drawer-tooltip-panel.active .drawer-tooltip-body {
+    opacity: 1;
+    transform: translateY(0);
+    transition-delay: 0.18s;
+}
+
+.drawer-tooltip-panel.active .drawer-tooltip-footer {
+    opacity: 1;
+    transform: translateY(0);
+    transition-delay: 0.26s;
+}
+
+/* Kapatma butonu hover */
+.drawer-tooltip-close {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(0,0,0,0.05);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.25s var(--ease-out-back);
+    padding: 0;
+}
+
+.drawer-tooltip-close:hover {
+    background: rgba(0,0,0,0.1);
+    transform: scale(1.1) rotate(90deg);
+}
+
+.drawer-tooltip-close svg {
+    width: 18px;
+    height: 18px;
+    color: #444;
+    transition: color 0.2s;
+}
+
+/* ==========================================
+   HEADER
+   ========================================== */
+
+.drawer-tooltip-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--drawer-border);
+    flex-shrink: 0;
+}
+
+.drawer-tooltip-header h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--drawer-text);
+    margin: 0;
+}
+
+/* ==========================================
+   BODY
+   ========================================== */
+
+.drawer-tooltip-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+    -webkit-overflow-scrolling: touch;
+}
+
+.drawer-tooltip-body::-webkit-scrollbar {
+    width: 4px;
+}
+
+.drawer-tooltip-body::-webkit-scrollbar-thumb {
+    background: #ddd;
+    border-radius: 4px;
+}
+
+/* Size Table */
+.drawer-tooltip-body table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.drawer-tooltip-body thead th {
+    text-align: left;
+    padding: 12px 16px;
+    font-weight: 600;
+    color: #888;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.drawer-tooltip-body tbody td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #f5f5f5;
+    color: var(--drawer-text);
+    transition: background 0.15s ease;
+}
+
+.drawer-tooltip-body tbody tr:hover td {
+    background: #fafafa;
+}
+
+.drawer-tooltip-body tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.drawer-tooltip-body .price-cell {
+    text-align: right;
+    font-weight: 600;
+    color: var(--drawer-accent);
+}
+
+.drawer-tooltip-body .size-cell {
+    font-weight: 500;
+}
+
+/* Info Sections */
+.drawer-tooltip-body h4 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--drawer-text);
+    margin: 24px 0 12px;
+    padding-top: 24px;
+    border-top: 1px solid #f0f0f0;
+}
+
+.drawer-tooltip-body h4:first-of-type {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+}
+
+.drawer-tooltip-body p {
+    font-size: 13px;
+    color: var(--drawer-text-light);
+    line-height: 1.7;
+    margin: 0;
+}
+
+.drawer-tooltip-body a {
+    color: var(--drawer-accent);
+    text-decoration: underline;
+    font-weight: 500;
+}
+
+/* ==========================================
+   FOOTER
+   ========================================== */
+
+.drawer-tooltip-footer {
+    padding: 16px 24px;
+    border-top: 1px solid var(--drawer-border);
+    flex-shrink: 0;
+}
+
+.drawer-tooltip-footer button {
+    width: 100%;
+    padding: 14px;
+    background: var(--drawer-accent);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s var(--ease-out-back);
+}
+
+.drawer-tooltip-footer button:hover {
+    opacity: 0.85;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.drawer-tooltip-footer button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+/* Swipe handle */
+.drawer-swipe-handle {
+    display: none;
+    width: 40px;
+    height: 4px;
+    background: #ddd;
+    border-radius: 2px;
+    margin: 12px auto 0;
+    transition: width 0.3s var(--ease-out-back);
+}
+
+/* Body lock */
+body.drawer-open {
+    overflow: hidden;
+}
+
+/* ==========================================
+   MOBILE - Bottom Sheet Yumuşak Animasyon
+   ========================================== */
+
+@media (max-width: 768px) {
+    .drawer-tooltip-panel {
+        width: 100vw;
+        max-width: 100vw;
+        border-radius: var(--drawer-radius) var(--drawer-radius) 0 0;
+        transform: translateY(100%);
+        top: auto;
+        bottom: 0;
+        height: 85vh;
+        transition: transform var(--transition-panel) var(--ease-out-expo),
+                    box-shadow var(--transition-panel) var(--ease-out-expo);
+    }
+
+    .drawer-tooltip-panel.active {
+        transform: translateY(0);
+        box-shadow: 0 -10px 40px rgba(0,0,0,0.2);
+    }
+
+    .drawer-swipe-handle {
+        display: block;
+        animation: handlePulse 2s ease-in-out infinite;
+    }
+
+    @keyframes handlePulse {
+        0%, 100% { opacity: 0.6; }
+        50% { opacity: 1; }
+    }
+
+    .drawer-tooltip-header {
+        padding-top: 8px;
+    }
+
+    /* Mobilde stagger daha hızlı */
+    .drawer-tooltip-panel.active .drawer-tooltip-header {
+        transition-delay: 0.08s;
+    }
+
+    .drawer-tooltip-panel.active .drawer-tooltip-body {
+        transition-delay: 0.14s;
+    }
+
+    .drawer-tooltip-panel.active .drawer-tooltip-footer {
+        transition-delay: 0.2s;
+    }
+}
 /* ==========================================
    FAVORİ / WISHLIST
    ========================================== */
@@ -1160,3 +1431,96 @@ button:not(:disabled),
     overflow-wrap: break-word;
 }
 
+
+
+/* Skeleton Base */
+.skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.5s infinite;
+    border-radius: 4px;
+    display: block;
+}
+@keyframes skeleton-shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* Skeleton Variants */
+.skeleton-text { height: 14px; margin-bottom: 10px; }
+.skeleton-text-sm { height: 11px; margin-bottom: 6px; }
+.skeleton-title { height: 32px; margin-bottom: 14px; border-radius: 6px; }
+.skeleton-title-sm { height: 22px; margin-bottom: 10px; border-radius: 5px; }
+.skeleton-price { height: 28px; width: 100px; border-radius: 6px; }
+.skeleton-image { border-radius: 10px; }
+.skeleton-circle { border-radius: 50%; width: 36px; height: 36px; display: inline-block; }
+.skeleton-button { height: 52px; border-radius: 10px; width: 100%; }
+.skeleton-badge { height: 18px; width: 140px; border-radius: 4px; margin-bottom: 8px; }
+.skeleton-accordion { height: 56px; border-radius: 10px; margin-bottom: 8px; }
+.skeleton-trust { height: 20px; width: 80%; margin-bottom: 10px; }
+
+/* Gallery Skeletons */
+.skeleton-gallery-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    width: 100%;
+}
+.skeleton-gallery-grid .skeleton-image {
+    width: 100%;
+    aspect-ratio: 3/4;
+    border-radius: 12px;
+}
+.skeleton-slide {
+    min-width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.skeleton-slide .skeleton-image {
+    width: 100%;
+    height: 100%;
+    border-radius: 12px;
+}
+
+/* Related Products Skeleton */
+.skeleton-card-wrapper {
+    min-width: 260px;
+    flex-shrink: 0;
+}
+.skeleton-card-wrapper .skeleton-image {
+    width: 100%;
+    aspect-ratio: 3/4;
+    margin-bottom: 14px;
+    border-radius: 12px;
+}
+.skeleton-card-wrapper .skeleton-text { width: 75%; }
+.skeleton-card-wrapper .skeleton-price { width: 50px; height: 18px; margin-top: 8px; }
+
+/* Color swatches skeleton row */
+.skeleton-swatches-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+/* Mobile counter skeleton */
+.skeleton-counter {
+    width: 50px;
+    height: 20px;
+    margin: 0 auto;
+    border-radius: 10px;
+}
+
+/* Responsive: Mobile gallery skeleton */
+@media (max-width: 768px) {
+    .skeleton-gallery-grid {
+        display: none;
+    }
+}
+@media (min-width: 769px) {
+    .skeleton-mobile-gallery {
+        display: none !important;
+    }
+}

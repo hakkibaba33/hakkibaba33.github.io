@@ -1345,7 +1345,7 @@ body.no-scroll {
 
 .icons-row {
     display: flex;
-    gap: 20px;
+    gap: 10px;
     align-items: center;
     justify-content: center;
     flex-wrap: wrap;
@@ -2309,17 +2309,14 @@ body.no-scroll {
     font-weight: 700;
 }
 
-
-
-
 /* ==========================================
-   RELATED PRODUCTS SLIDER - DUZELTILMIS v4.9
+   RELATED PRODUCTS SLIDER - v5.0
    ========================================== */
 
 /* === SECTION TEMEL === */
 .related-products-section {
     display: none;
-    padding: 50px 0 70px;
+    padding: 30px 0 20px;
     background: #fff;
     border-top: 1px solid #e8e8e8;
     margin-top: 20px;
@@ -2331,7 +2328,7 @@ body.no-scroll {
     display: block;
 }
 
-/* Ustte ince dekoratif cizgi */
+/* Dekoratif çizgi */
 .related-products-section::before {
     content: '';
     position: absolute;
@@ -2347,7 +2344,7 @@ body.no-scroll {
 .related-products-section .container {
     max-width: 1300px;
     margin: 0 auto;
-    padding: 0 60px;
+    padding: 0 30px;
     box-sizing: border-box;
     position: relative;
 }
@@ -2362,14 +2359,14 @@ body.no-scroll {
     letter-spacing: 0.5px;
 }
 
-/* === SLIDER WRAPPER - RELATIVE (oklar icin zorunlu) === */
+/* === SLIDER WRAPPER === */
 .related-slider-wrapper {
     position: relative;
     display: flex;
     align-items: center;
 }
 
-/* === TRACK - Yatay Scroll === */
+/* === TRACK === */
 .related-slider-track {
     display: flex;
     gap: 20px;
@@ -2387,7 +2384,7 @@ body.no-scroll {
     display: none;
 }
 
-/* Kart boyutu */
+/* Kart boyutu - Desktop */
 .related-slider-track .product-card {
     flex: 0 0 auto;
     width: 260px;
@@ -2395,7 +2392,7 @@ body.no-scroll {
 }
 
 /* ==========================================
-   NAVIGASYON OKLARI
+   NAVIGASYON OKLARI - DESKTOP
    ========================================== */
 
 .slider-arrow {
@@ -2440,16 +2437,8 @@ body.no-scroll {
     color: #bbb;
 }
 
-/* SOL OK */
-.slider-arrow.slider-prev {
-    left: -52px;
-}
-
-/* SAG OK */
-.slider-arrow.slider-next {
-    right: -52px;
-}
-
+.slider-arrow.slider-prev { left: -52px; }
+.slider-arrow.slider-next { right: -52px; }
 
 /* Discount badge */
 .related-slider-track .discount-badge {
@@ -2465,10 +2454,8 @@ body.no-scroll {
     z-index: 2;
 }
 
-
-
 /* ==========================================
-   MOBIL UYUMLU - 1.5 KART GORUNUMU
+   MOBIL - 2 TAM KART + YARIM KART
    ========================================== */
 
 @media (max-width: 768px) {
@@ -2491,36 +2478,104 @@ body.no-scroll {
         margin-bottom: 20px;
     }
 
-    /* 🔥 1.5 kart göstermek için viewport bazlı genişlik */
+    /* 2 tam + yarım kart */
     .related-slider-track .product-card {
-        width: calc((100vw - 40px) / 1.5);
-        min-width: 180px;  /* çok küçük ekranlar için */
+        width: calc((100vw - 48px) / 2.3);
+        min-width: 140px;
+        max-width: 200px;
     }
 
+    /* Scroll snap - düzgün hizalama */
+    .related-slider-track {
+        gap: 12px;
+        padding: 6px 0 16px;
+        scroll-snap-type: x mandatory;
+        scroll-padding-left: 16px;
+    }
+
+    .related-slider-track .product-card {
+        scroll-snap-align: start;
+    }
+
+    /* Son karttan sonra boşluk - yarım kart hissi */
+    .related-slider-track::after {
+        content: '';
+        flex: 0 0 calc((100vw - 48px) / 4.6);
+    }
+
+    /* Swipe indicator */
+    .related-slider-wrapper::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 40px;
+        height: 4px;
+        background: #ddd;
+        border-radius: 2px;
+        opacity: 0.6;
+    }
+
+    /* Oklar gizli */
     .slider-arrow {
         display: none !important;
     }
 
-    .related-slider-track {
-        gap: 12px;
-        padding: 6px 0 16px;
-        /* Yarım kartın görünmesi için snap'i kaldır */
-        scroll-snap-type: none;
+    /* Kart içi mobil optimize */
+    .related-slider-track .product-card .image-box {
+   .related-slider-track .product-card .image-box {
+        height: 0;
+        padding-bottom: 130%;  /* Dikey oran: genişliğin %130'u kadar yükseklik */
+        position: relative;
+        overflow: hidden;
     }
 
-    /* Son karttan sonra boşluk bırak - yarım kart hissi için */
-    .related-slider-track::after {
-        content: '';
-        flex: 0 0 8px;
+     .related-slider-track .product-card .image-box img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
     }
 
-    /* Scroll hint gerekmez, yarım kart zaten hint */
-    .related-slider-wrapper::after {
+    .related-slider-track .product-card .product-title {
+        font-size: 13px;
+        line-height: 1.3;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .related-slider-track .product-card .current-price {
+        font-size: 14px;
+    }
+
+    .related-slider-track .product-card .original-price {
+        font-size: 12px;
+    }
+
+    /* Varyasyon text gizli */
+    .related-slider-track .product-variants-row {
         display: none;
+    }
+
+    .related-slider-track .product-colors-wrapper {
+        margin-top: 6px;
+    }
+
+    .related-slider-track .swatch-circle {
+        width: 14px;
+        height: 14px;
     }
 }
 
-/* Tablet */
+/* ==========================================
+   TABLET
+   ========================================== */
+
 @media (min-width: 769px) and (max-width: 1024px) {
     .related-products-section .container {
         padding: 0 50px;
@@ -2535,13 +2590,8 @@ body.no-scroll {
         height: 40px;
     }
 
-    .slider-arrow.slider-prev {
-        left: -46px;
-    }
-
-    .slider-arrow.slider-next {
-        right: -46px;
-    }
+    .slider-arrow.slider-prev { left: -46px; }
+    .slider-arrow.slider-next { right: -46px; }
 }
 
 /* Kucuk desktop */
@@ -2550,7 +2600,3 @@ body.no-scroll {
         padding: 0 55px;
     }
 }
-
-
-
-
