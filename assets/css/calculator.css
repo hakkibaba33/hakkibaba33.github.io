@@ -1,0 +1,693 @@
+/* ==========================================
+   PRODUCT CALCULATOR STYLES
+   Halı (M²) ve Perde (Gardin) Hesaplayıcı
+   ========================================== */
+
+/* --- Ana Konteyner --- */
+#calculator-insertion-point {
+    margin: 16px 0;
+}
+
+/* --- Akordiyon Kutusu --- */
+.calc-accordion-box {
+    border: 1px solid #e5e5e5;
+    border-radius: 12px;
+    background: #fff;
+    overflow: hidden;
+    transition: box-shadow 0.3s ease;
+}
+
+.calc-accordion-box:hover {
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+
+/* --- Akordiyon Header --- */
+.calc-accordion-header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    background: #fafafa;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.2s ease;
+}
+
+.calc-accordion-header:hover {
+    background: #f5f5f5;
+}
+
+.calc-accordion-header.active {
+    background: #f0f7ff;
+    border-bottom: 1px solid #e5e5e5;
+}
+
+.calc-accordion-header .accordion-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+}
+
+.calc-accordion-header .accordion-left i {
+    font-size: 18px;
+    color: #c9a96e;
+    width: 24px;
+    text-align: center;
+}
+
+.calc-accordion-header .accordion-title-group {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.calc-accordion-header .accordion-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1a1a1a;
+    letter-spacing: 0.3px;
+}
+
+.calc-accordion-header .accordion-subtitle {
+    font-size: 12px;
+    color: #888;
+    font-weight: 400;
+}
+
+.calc-accordion-header .accordion-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.calc-accordion-header .accordion-status {
+    font-size: 11px;
+    font-weight: 600;
+    color: #4CAF50;
+    background: #e8f5e9;
+    padding: 3px 10px;
+    border-radius: 20px;
+}
+
+.calc-accordion-header .accordion-chevron {
+    font-size: 13px;
+    color: #999;
+    transition: transform 0.3s ease;
+}
+
+.calc-accordion-header.active .accordion-chevron {
+    transform: rotate(180deg);
+}
+
+/* --- Akordiyon Content --- */
+.calc-accordion-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease, padding 0.3s ease;
+}
+
+.calc-accordion-content.open {
+    max-height: 800px;
+    padding: 0;
+}
+
+.calc-accordion-content .accordion-inner {
+    padding: 20px;
+}
+
+/* --- Form Etiketleri --- */
+.form-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 8px;
+}
+
+/* --- Input Grid --- */
+.input-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 18px;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.premium-input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #1a1a1a;
+    background: #fff;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.premium-input:focus {
+    border-color: #c9a96e;
+    box-shadow: 0 0 0 3px rgba(201, 169, 110, 0.1);
+}
+
+.premium-input::placeholder {
+    color: #bbb;
+}
+
+select.premium-input {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 36px;
+}
+
+/* --- Form Seçimi (Halı Şekli) --- */
+.form-selector {
+    margin-bottom: 18px;
+}
+
+.form-options-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.form-option {
+    cursor: pointer;
+}
+
+.form-option input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.form-option .option-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 14px 8px;
+    border: 1.5px solid #e5e5e5;
+    border-radius: 10px;
+    background: #fff;
+    transition: all 0.2s ease;
+    text-align: center;
+}
+
+.form-option .option-content:hover {
+    border-color: #c9a96e;
+    background: #fdfbf7;
+}
+
+.form-option input:checked + .option-content {
+    border-color: #c9a96e;
+    background: #fdfbf7;
+    box-shadow: 0 0 0 2px rgba(201, 169, 110, 0.15);
+}
+
+.form-option .shape-icon {
+    width: 28px;
+    height: 28px;
+    color: #666;
+}
+
+.form-option input:checked + .option-content .shape-icon {
+    color: #c9a96e;
+}
+
+.form-option .option-content span {
+    font-size: 11px;
+    font-weight: 500;
+    color: #555;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* --- Korniş Seçimi (Perde) --- */
+.suspension-selector {
+    margin-bottom: 18px;
+}
+
+.suspension-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.suspension-option {
+    cursor: pointer;
+}
+
+.suspension-option input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.suspension-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 12px;
+    border: 1.5px solid #e5e5e5;
+    border-radius: 10px;
+    background: #fff;
+    transition: all 0.2s ease;
+    text-align: center;
+}
+
+.suspension-card:hover {
+    border-color: #c9a96e;
+    background: #fdfbf7;
+}
+
+.suspension-card.active,
+.suspension-option input:checked + .suspension-card {
+    border-color: #c9a96e;
+    background: #fdfbf7;
+    box-shadow: 0 0 0 2px rgba(201, 169, 110, 0.15);
+}
+
+.suspension-card i {
+    font-size: 20px;
+    color: #666;
+}
+
+.suspension-card.active i,
+.suspension-option input:checked + .suspension-card i {
+    color: #c9a96e;
+}
+
+.suspension-card span {
+    font-size: 12px;
+    font-weight: 500;
+    color: #444;
+}
+
+/* --- Pile Bilgisi --- */
+.pile-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: #f0f7ff;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    font-size: 12px;
+    color: #1976d2;
+}
+
+.pile-info i {
+    font-size: 14px;
+}
+
+/* --- Adet Seçimi --- */
+.quantity-section {
+    margin-bottom: 18px;
+}
+
+.quantity-row,
+.quantity-note-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.quantity-note-row {
+    justify-content: space-between;
+}
+
+.qty-stepper {
+    display: flex;
+    align-items: center;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+    height: 42px;
+}
+
+.qty-stepper button {
+    width: 38px;
+    height: 100%;
+    border: none;
+    background: #f5f5f5;
+    color: #333;
+    font-size: 18px;
+    font-weight: 300;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.qty-stepper button:hover {
+    background: #e8e8e8;
+}
+
+.qty-stepper input {
+    width: 50px;
+    height: 100%;
+    border: none;
+    border-left: 1px solid #e0e0e0;
+    border-right: 1px solid #e0e0e0;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: #1a1a1a;
+    background: #fff;
+    outline: none;
+    -moz-appearance: textfield;
+}
+
+.qty-stepper input::-webkit-outer-spin-button,
+.qty-stepper input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.qty-label {
+    font-size: 13px;
+    color: #666;
+}
+
+/* --- Not Butonu --- */
+.note-btn-wrapper button {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 14px;
+    border: 1.5px dashed #ccc;
+    border-radius: 8px;
+    background: #fff;
+    color: #666;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.note-btn-wrapper button:hover {
+    border-color: #c9a96e;
+    color: #c9a96e;
+}
+
+.note-btn-wrapper button.saved {
+    border-style: solid;
+    border-color: #4CAF50;
+    color: #4CAF50;
+    background: #e8f5e9;
+}
+
+/* --- Not Modal --- */
+.note-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.note-modal.visible {
+    display: flex;
+}
+
+.note-modal-inner {
+    background: #fff;
+    border-radius: 16px;
+    padding: 24px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+}
+
+.note-modal-inner h4 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 14px;
+    color: #1a1a1a;
+}
+
+.note-modal-inner textarea {
+    width: 100%;
+    min-height: 100px;
+    padding: 12px;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 14px;
+    resize: vertical;
+    margin-bottom: 14px;
+    outline: none;
+    font-family: inherit;
+}
+
+.note-modal-inner textarea:focus {
+    border-color: #c9a96e;
+}
+
+.note-modal-inner button {
+    width: 100%;
+    padding: 12px;
+    background: #1a1a1a;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.note-modal-inner button:hover {
+    background: #333;
+}
+
+/* --- Live Summary --- */
+.live-summary {
+    display: none;
+    padding: 10px 14px;
+    background: #f5f5f5;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #555;
+    margin-bottom: 14px;
+}
+
+.live-summary.visible {
+    display: block;
+}
+
+/* --- Action Butonları --- */
+.form-actions {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.calc-btn-primary {
+    flex: 1;
+    padding: 14px 20px;
+    background: #1a1a1a;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.calc-btn-primary:hover {
+    background: #333;
+    transform: translateY(-1px);
+}
+
+.calc-btn-primary.calculated {
+    background: #4CAF50;
+}
+
+.calc-btn-primary.calculated:hover {
+    background: #43a047;
+}
+
+.calc-btn-secondary {
+    padding: 14px 18px;
+    background: #fff;
+    color: #666;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.calc-btn-secondary:hover {
+    border-color: #999;
+    color: #333;
+}
+
+/* --- Fiyat Özeti --- */
+.calc-summary {
+    display: none;
+    background: #fafafa;
+    border-radius: 10px;
+    padding: 16px;
+    border: 1px solid #eee;
+}
+
+.calc-summary.visible {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    font-size: 13px;
+}
+
+.summary-row span {
+    color: #666;
+}
+
+.summary-row strong {
+    color: #1a1a1a;
+    font-weight: 500;
+}
+
+.summary-row.note-row {
+    background: #fff8e1;
+    padding: 8px 10px;
+    border-radius: 6px;
+    margin-top: 4px;
+}
+
+.summary-row.note-row strong {
+    color: #f57c00;
+    font-size: 12px;
+}
+
+.summary-divider {
+    border: none;
+    border-top: 1px solid #e5e5e5;
+    margin: 10px 0;
+}
+
+.summary-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 4px;
+}
+
+.summary-total span {
+    font-size: 14px;
+    color: #1a1a1a;
+}
+
+.summary-total .total-price {
+    font-size: 16px;
+    color: #1a1a1a;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.summary-total .total-price .original-price {
+    font-size: 13px;
+    color: #999;
+    text-decoration: line-through;
+    font-weight: 400;
+}
+
+/* --- Mobil Uyumluluk --- */
+@media (max-width: 768px) {
+    .input-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .form-options-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+    }
+
+    .form-option .option-content {
+        padding: 12px 6px;
+    }
+
+    .form-option .option-content span {
+        font-size: 10px;
+    }
+
+    .suspension-options {
+        gap: 8px;
+    }
+
+    .suspension-card {
+        padding: 12px 8px;
+    }
+
+    .quantity-note-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+
+    .calc-btn-secondary {
+        width: 100%;
+    }
+
+    .calc-accordion-header {
+        padding: 14px 16px;
+    }
+
+    .calc-accordion-content .accordion-inner {
+        padding: 16px;
+    }
+}
+
+/* --- Varyasyon Accordion Gizleme --- */
+.variant-accordion-box.hidden-by-calculator {
+    display: none !important;
+}
+
+/* --- Renk Seçici Gizleme (Metre ürünlerinde) --- */
+#color-selector.hidden-by-calculator {
+    display: none !important;
+}

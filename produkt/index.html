@@ -7,9 +7,11 @@
     <link rel="stylesheet" href="/assets/css/product.css">
     <link rel="stylesheet" href="/assets/css/style.css">
     <link rel="stylesheet" href="/assets/css/common.css">
+    <link rel="stylesheet" href="/assets/css/calculator.css">
     <link rel="stylesheet" href="/assets/css/reset.css">
     <link rel="stylesheet" href="/assets/css/category.css">
     <link rel="stylesheet" href="/assets/css/variant-selector.css">
+    <link rel="stylesheet" href="/assets/css/calculator.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
 <script>
@@ -181,25 +183,12 @@ if (window.location.hash && window.location.hash.includes('/produkt/')) {
                     <h1 id="product-main-name-mobile" style="display: none;">---</h1>
 
                     <!-- MASAÜSTÜ: 2 Büyük Resim Yan Yana -->
-                    <div class="main-display-wrapper desktop-gallery" id="desktop-gallery">
-                        <!-- SKELETON: Desktop Gallery -->
-                        <div class="skeleton-gallery-grid">
-                            <div class="skeleton skeleton-image"></div>
-                            <div class="skeleton skeleton-image"></div>
-                        </div>
-                    </div>
+                    <div class="main-display-wrapper desktop-gallery" id="desktop-gallery"></div>
 
                     <!-- MOBİL: Swipe Galeri -->
                     <div class="mobile-gallery-wrapper" id="mobile-gallery" style="display:none;">
-                        <div class="mobile-gallery-track" id="mobile-gallery-track">
-                            <!-- SKELETON: Mobile Gallery Slide -->
-                            <div class="mobile-gallery-slide skeleton-slide skeleton-mobile-gallery">
-                                <div class="skeleton skeleton-image"></div>
-                            </div>
-                        </div>
-                        <div class="mobile-gallery-counter" id="mobile-gallery-counter">
-                            <span class="skeleton skeleton-counter"></span>
-                        </div>
+                        <div class="mobile-gallery-track" id="mobile-gallery-track"></div>
+                        <div class="mobile-gallery-counter" id="mobile-gallery-counter">1 / 5</div>
                         <div class="mobile-gallery-scrollbar">
                             <div class="mobile-gallery-scrollbar-thumb" id="mobile-scrollbar-thumb"></div>
                         </div>
@@ -212,11 +201,7 @@ if (window.location.hash && window.location.hash.includes('/produkt/')) {
                 <!-- SAĞ: Ürün Detayları -->
                 <div class="product-details">
                     <div class="brand-label-top">DKRUG SWEDEN</div>
-                    <h1 id="product-main-name-desktop">
-                        <!-- SKELETON: Product Title -->
-                        <span class="skeleton skeleton-title" style="width: 85%;"></span>
-                        <span class="skeleton skeleton-title" style="width: 60%;"></span>
-                    </h1> 
+                    <h1 id="product-main-name-desktop">---</h1> 
 
                       <!-- SEÇİLİ ÖLÇÜ + TOOLTIP YAN YANA -->
 <div class="product-label-row">
@@ -238,10 +223,7 @@ if (window.location.hash && window.location.hash.includes('/produkt/')) {
                     <!-- FİYAT + GOOGLE TRUST SATIRI -->
                     <div class="product-price-trust-row">
                         <div class="product-price-display">
-                            <span class="current-price" id="product-price">
-                                <!-- SKELETON: Price -->
-                                <span class="skeleton skeleton-price"></span>
-                            </span>
+                            <span class="current-price" id="product-price">---</span>
                             <span class="tax-info-static">(Inkl. moms)</span>
                         </div>
 
@@ -259,20 +241,9 @@ if (window.location.hash && window.location.hash.includes('/produkt/')) {
                     <div id="color-selector">
                         <div class="color-label-row">
                             <span class="variant-label">Vald färg</span>
-                            <span class="selected-color-name" id="selected-color-name">
-                                <!-- SKELETON: Color name -->
-                                <span class="skeleton skeleton-text-sm" style="width: 80px; display: inline-block;"></span>
-                            </span>
+                            <span class="selected-color-name" id="selected-color-name"></span>
                         </div>
-                        <div id="color-swatches" class="color-swatches-row">
-                            <!-- SKELETON: Color Swatches -->
-                            <div class="skeleton-swatches-row">
-                                <span class="skeleton skeleton-circle"></span>
-                                <span class="skeleton skeleton-circle"></span>
-                                <span class="skeleton skeleton-circle"></span>
-                                <span class="skeleton skeleton-circle"></span>
-                            </div>
-                        </div>
+                        <div id="color-swatches" class="color-swatches-row"></div>
                     </div>
 
                     <!-- 2. ÖLÇÜ AKORDİYONU -->
@@ -281,10 +252,7 @@ if (window.location.hash && window.location.hash.includes('/produkt/')) {
                             <div class="accordion-left">
                                 <div class="accordion-title-group">
                                     <span class="accordion-title"></span>
-                                    <span class="accordion-subtitle" id="selected-variant-display">
-                                        <!-- SKELETON: Size placeholder -->
-                                        <span class="skeleton skeleton-text-sm" style="width: 120px; display: inline-block;"></span>
-                                    </span>
+                                    <span class="accordion-subtitle" id="selected-variant-display">Ingen storlek vald</span>
                                 </div>
                             </div>
                             <div class="accordion-right">
@@ -294,12 +262,12 @@ if (window.location.hash && window.location.hash.includes('/produkt/')) {
                         </button>
                     </div>
 
-                    <!-- 3. SEPETE EKLE -->
+                    
+                    <!-- HESAPLAYICI (Metre ile satılan ürünler için) -->
+                    <div id="calculator-insertion-point" style="display: none;"></div>
+<!-- 3. SEPETE EKLE -->
                     <div class="action-buttons">
-                        <button class="add-to-cart-btn" id="add-to-cart-btn">
-                            <!-- SKELETON: Button -->
-                            <span class="skeleton skeleton-button" style="display: block;"></span>
-                        </button>
+                        <button class="add-to-cart-btn" id="add-to-cart-btn">Lägg i Varukorg</button>
                         <button class="ana-urun-favori-buton"><i class="fa-regular fa-heart"></i></button>
                     </div>
 
@@ -310,21 +278,21 @@ if (window.location.hash && window.location.hash.includes('/produkt/')) {
                     </div> 
 
                     <div class="delivery-time-box">
-                        <span id="delivery-time-text">
-                            <!-- SKELETON: Delivery time -->
-                            <span class="skeleton skeleton-text-sm" style="width: 160px; display: inline-block;"></span>
-                        </span>
+                        <span id="delivery-time-text">Leveranstid: 3-7 arbetsdagar</span>
                     </div>
 
                     <div class="product-trust-badges">
                         <div class="badge-item">
-                            <span class="skeleton skeleton-badge"></span>
+                            <i class="fa-solid fa-truck-fast"></i>
+                            <span><strong>Snabb leverans</strong> & fri frakt</span>
                         </div>
                         <div class="badge-item">
-                            <span class="skeleton skeleton-badge" style="width: 180px;"></span>
+                            <i class="fa-solid fa-arrow-rotate-left"></i>
+                            <span>Enkel retur – <strong>30 dagars öppet köp</strong></span>
                         </div>
                         <div class="badge-item">
-                            <span class="skeleton skeleton-badge" style="width: 200px;"></span>
+                            <i class="fa-solid fa-shield-halved"></i>
+                            <span>Säkra betalningar med <strong>Klarna</strong></span>
                         </div>
                     </div>
 
@@ -332,32 +300,37 @@ if (window.location.hash && window.location.hash.includes('/produkt/')) {
                     <div class="product-accordion-wrapper">
                         <!-- 1. Produktbeskrivning -->
                         <div class="product-accordion-item">
-                            <div class="skeleton skeleton-accordion"></div>
-                            <div class="product-accordion-content" id="product-description" style="display: none;">
-                                <div class="skeleton skeleton-text" style="width: 95%;"></div>
-                                <div class="skeleton skeleton-text" style="width: 85%;"></div>
-                                <div class="skeleton skeleton-text" style="width: 70%;"></div>
-                            </div>
+                            <button class="product-accordion-header">
+                                <h3>Produktbeskrivning</h3>
+                                <i class="fa-solid fa-chevron-down"></i>
+                            </button>
+                            <div class="product-accordion-content" id="product-description"></div>
                         </div>
 
                         <!-- 2. Produktinformation -->
                         <div class="product-accordion-item">
-                            <div class="skeleton skeleton-accordion"></div>
-                            <div class="product-accordion-content" id="product-specs" style="display: none;">
+                            <button class="product-accordion-header">
+                                <h3>Produktinformation</h3>
+                                <i class="fa-solid fa-chevron-down"></i>
+                            </button>
+                            <div class="product-accordion-content" id="product-specs">
                                 <div class="specs-content-placeholder">
-                                    <div class="skeleton skeleton-text" style="width: 90%;"></div>
-                                    <div class="skeleton skeleton-text" style="width: 75%;"></div>
+                                    <p>Material, skötselråd och övrig produktinformation visas här.</p>
                                 </div>
                             </div>
                         </div>
 
                         <!-- 3. Leverans & Retur -->
                         <div class="product-accordion-item">
-                            <div class="skeleton skeleton-accordion"></div>
-                            <div class="product-accordion-content" id="product-delivery" style="display: none;">
+                            <button class="product-accordion-header">
+                                <h3>Leverans & Retur</h3>
+                                <i class="fa-solid fa-chevron-down"></i>
+                            </button>
+                            <div class="product-accordion-content" id="product-delivery">
                                 <div class="delivery-content-placeholder">
-                                    <div class="skeleton skeleton-text" style="width: 80%;"></div>
-                                    <div class="skeleton skeleton-text" style="width: 65%;"></div>
+                                    <p><strong>Leveranstid:</strong> <span id="delivery-time-display">3-7 arbetsdagar</span></p>
+                                    <p><strong>Frakt:</strong> Fri frakt vid köp över 500 SEK</p>
+                                    <p><strong>Retur:</strong> 30 dagars öppet köp</p>
                                 </div>
                             </div>
                         </div>
@@ -374,31 +347,11 @@ if (window.location.hash && window.location.hash.includes('/produkt/')) {
                     <button class="slider-arrow slider-prev" id="related-prev" aria-label="Föregående">
                         <i class="fa-solid fa-chevron-left"></i>
                     </button>
-
+                    
                     <div class="related-slider-track" id="related-slider-track">
-                        <!-- SKELETON: Related Product Cards -->
-                        <div class="product-card skeleton-card-wrapper">
-                            <div class="skeleton skeleton-image"></div>
-                            <div class="skeleton skeleton-text"></div>
-                            <div class="skeleton skeleton-price"></div>
-                        </div>
-                        <div class="product-card skeleton-card-wrapper">
-                            <div class="skeleton skeleton-image"></div>
-                            <div class="skeleton skeleton-text"></div>
-                            <div class="skeleton skeleton-price"></div>
-                        </div>
-                        <div class="product-card skeleton-card-wrapper">
-                            <div class="skeleton skeleton-image"></div>
-                            <div class="skeleton skeleton-text"></div>
-                            <div class="skeleton skeleton-price"></div>
-                        </div>
-                        <div class="product-card skeleton-card-wrapper">
-                            <div class="skeleton skeleton-image"></div>
-                            <div class="skeleton skeleton-text"></div>
-                            <div class="skeleton skeleton-price"></div>
-                        </div>
+                        <!-- JS ile doldurulacak -->
                     </div>
-
+                    
                     <button class="slider-arrow slider-next" id="related-next" aria-label="Nästa">
                         <i class="fa-solid fa-chevron-right"></i>
                     </button>
@@ -456,7 +409,7 @@ if (window.location.hash && window.location.hash.includes('/produkt/')) {
                 <p class="review-text">"Trevligt"</p>
             </div>
         </div>
-
+        
         <div class="reviews-footer">
             <a href="https://g.page/r/Ccgg-v-8e685EBM/review" target="_blank" class="view-all-reviews">
                 Läs alla recensioner på Google
@@ -616,6 +569,7 @@ if (window.location.hash && window.location.hash.includes('/produkt/')) {
 
     <script src="/assets/js/config.js"></script>
     <script src="/assets/js/common.js"></script>
-    <script src="/assets/js/product.ui.js?v=1002"></script>
+    <script src="/assets/js/product-calculator.js"></script>
+    <script src="/assets/js/product.ui.js?v=1005"></script>
 </body>
 </html>

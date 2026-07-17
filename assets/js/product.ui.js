@@ -326,6 +326,54 @@ if (window.__productPageInitialized) {
             }
 
             if (!isMobile && typeof setupLightbox === 'function') setupLightbox();
+
+            // ✅ HESAPLAYICI INIT - Admin panel veri yapısına uygun
+            console.log('[ProductUI] Hesaplayıcı kontrolü başlıyor...');
+            console.log('[ProductUI] product_type:', currentProduct.product_type);
+            console.log('[ProductUI] m2_calculator_active:', currentProduct.m2_calculator_active);
+            console.log('[ProductUI] gardin_calculator_active:', currentProduct.gardin_calculator_active);
+
+            const isM2Product = currentProduct.product_type === 'm2_calculator' || currentProduct.m2_calculator_active === true;
+            const isGardinProduct = currentProduct.gardin_calculator_active === true;
+
+            if (isM2Product || isGardinProduct) {
+                console.log('[ProductUI] Hesaplayıcı ürün tespit edildi!');
+
+                // Varyasyon accordion ve renk seçiciyi gizle
+                const variantAccordion = document.getElementById('variant-accordion-wrapper');
+                const colorSelector = document.getElementById('color-selector');
+
+                if (variantAccordion) {
+                    variantAccordion.style.display = 'none';
+                    variantAccordion.classList.add('hidden-by-calculator');
+                }
+                if (colorSelector) {
+                    colorSelector.style.display = 'none';
+                    colorSelector.classList.add('hidden-by-calculator');
+                }
+
+                // Hesaplayıcıyı göster ve init et
+                const calcContainer = document.getElementById('calculator-insertion-point');
+                if (calcContainer && typeof ProductCalculator !== 'undefined') {
+                    calcContainer.style.display = 'block';
+
+                    // Ürün verisini hesaplayıcıya hazırla (admin panel veri yapısı)
+                    const calcProduct = {
+                        ...currentProduct,
+                        images: currentImages,
+                        delivery_time: f.Delivery_time
+                    };
+
+                    ProductCalculator.init(calcProduct);
+                } else {
+                    console.error('[ProductUI] Hesaplayıcı container veya ProductCalculator bulunamadı!');
+                }
+            } else {
+                console.log('[ProductUI] Normal ürün - hesaplayıcı gösterilmiyor');
+                const calcContainer = document.getElementById('calculator-insertion-point');
+                if (calcContainer) calcContainer.style.display = 'none';
+            }
+
             if (typeof setupAccordions === 'function') setupAccordions();
             if (typeof setupAddToCart === 'function') setupAddToCart(f);
             setupWishlistButton(f);
@@ -1455,6 +1503,34 @@ function setupAccordions() {
         btn.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
+
+            // 🎯 HESAPLAYICI ÜRÜN KONTROLÜ
+            if (typeof ProductCalculator !== 'undefined' && ProductCalculator.isReady && ProductCalculator.isReady()) {
+                console.log('[ProductUI] Hesaplayıcı ürün sepete ekleniyor...');
+                const calcItem = ProductCalculator.getCartItem();
+                if (calcItem) {
+                    let cart = JSON.parse(localStorage.getItem('siteCartItems')) || [];
+
+                    // Aynı ürün var mı kontrol et
+                    const existing = cart.find(item => item.cartItemId === calcItem.cartItemId);
+                    if (existing) {
+                        existing.quantity = (existing.quantity || 1) + calcItem.quantity;
+                    } else {
+                        cart.push(calcItem);
+                    }
+
+                    localStorage.setItem('siteCartItems', JSON.stringify(cart));
+
+                    if (typeof updateCartBadge === 'function') updateCartBadge();
+                    if (typeof openMiniCart === 'function') openMiniCart();
+
+                    // Başarılı bildirim
+                    if (typeof window.showToast === 'function') {
+                        window.showToast('Produkten har lagts till i varukorgen!', 'success');
+                    }
+                    return;
+                }
+            }
 
             if (!selectedVariant) {
                 alert('Välj storlek först');
