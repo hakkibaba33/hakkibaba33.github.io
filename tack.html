@@ -159,7 +159,6 @@
             h1 { font-size: 1.5rem; }
         }
     </style>
-<base target="_blank">
 </head>
 <body>
     <div class="success-box">
@@ -267,6 +266,87 @@
             // Toplam hesapla
             const total = cart.reduce((sum, item) => sum + (parseFloat(item.price) * (item.quantity || 1)), 0);
 
+            // ==========================================
+            // SİPARİŞ VERİSİ OLUŞTUR - HESAPLAYICI DESTEKLİ
+            // ==========================================
+            const orderItems = cart.map(function(item) {
+                // Temel sipariş öğesi
+                const orderItem = {
+                    id: item.id,
+                    name: item.name,
+                    price: parseFloat(item.price),
+                    quantity: item.quantity || 1,
+                    image: item.image || '',
+                    // HESAPLAYICI BILGILERINI EKLE
+                    calculatorType: item.calculatorType || null,
+                    calc_width_cm: item.calc_width_cm || item.en || null,
+                    calc_length_cm: item.calc_length_cm || item.boy || null,
+                    calc_m2: item.calc_m2 || item.m2 || null,
+                    calc_form: item.calc_form || item.form || null,
+                    calc_meters: item.calc_meters || item.metre || null,
+                    calc_suspension: item.calc_suspension || item.suspension || null,
+                    isM2: item.isM2 || false,
+                    isGardin: item.isGardin || false,
+                    en: item.en || null,
+                    boy: item.boy || null,
+                    m2: item.m2 || null,
+                    form: item.form || null,
+                    metre: item.metre || null,
+                    suspension: item.suspension || null,
+                    size: item.size || null,
+                    note: item.note || null
+                };
+
+                // VARYANT METNINI OLUSTUR
+                // Once hesaplayici verilerinden olustur, yoksa mevcut variant'i kullan
+                let variantText = 'Standard';
+
+                if (item.isM2 || item.calculatorType === 'm2') {
+                    // M2 urun: Olcu bilgisini goster
+                    const width = item.en || item.calc_width_cm;
+                    const length = item.boy || item.calc_length_cm;
+                    const m2 = item.m2 || item.calc_m2;
+                    const form = item.form || item.calc_form || 'Rektangulär';
+
+                    if (width && length) {
+                        variantText = width + '×' + length + ' cm (' + form + ') = ' + (m2 ? parseFloat(m2).toFixed(2) : '?') + ' m²';
+                    } else if (item.size) {
+                        variantText = item.size;
+                    }
+                } else if (item.isGardin || item.calculatorType === 'gardin') {
+                    // Gardin urun: Olcu bilgisini goster
+                    const width = item.en || item.calc_width_cm;
+                    const length = item.boy || item.calc_length_cm;
+                    const metres = item.metre || item.calc_meters;
+                    const suspension = item.suspension || item.calc_suspension;
+
+                    if (width && length) {
+                        variantText = width + '×' + length + ' cm';
+                        if (metres) variantText += ' | ' + metres + ' m';
+                        if (suspension) variantText += ' | ' + suspension;
+                    } else if (item.size) {
+                        variantText = item.size;
+                    }
+                } else {
+                    // Normal varyasyonlu urun
+                    if (Array.isArray(item.variants) && item.variants.length > 0) {
+                        variantText = item.variants[0].size || item.variants[0].name || 'Standard';
+                    } else if (typeof item.variants === 'string') {
+                        variantText = item.variants;
+                    } else if (typeof item.variants === 'object' && item.variants) {
+                        variantText = item.variants.size || item.variants.name || item.variants.color || 'Standard';
+                    } else if (typeof item.variant === 'string') {
+                        variantText = item.variant;
+                    } else if (typeof item.variant === 'object' && item.variant) {
+                        variantText = item.variant.size || item.variant.name || 'Standard';
+                    }
+                }
+
+                orderItem.variant = variantText;
+
+                return orderItem;
+            });
+
             // Siparis verisi olustur
             const orderData = {
                 customer_name: (customer.firstName + ' ' + customer.lastName).trim() || 'Kund',
@@ -278,86 +358,7 @@
                     city: customer.city || '',
                     country: 'Sverige'
                 },
-                  // ==========================================
-// SİPARİŞ VERİSİ OLUŞTUR - HESAPLAYICI DESTEKLİ
-// ==========================================
-items: cart.map(function(item) {
-    // Temel sipariş öğesi
-    const orderItem = {
-        id: item.id,
-        name: item.name,
-        price: parseFloat(item.price),
-        quantity: item.quantity || 1,
-        image: item.image || '',
-        // ✅ HESAPLAYICI BİLGİLERİNİ EKLE
-        calculatorType: item.calculatorType || null,
-        calc_width_cm: item.calc_width_cm || item.en || null,
-        calc_length_cm: item.calc_length_cm || item.boy || null,
-        calc_m2: item.calc_m2 || item.m2 || null,
-        calc_form: item.calc_form || item.form || null,
-        calc_meters: item.calc_meters || item.metre || null,
-        calc_suspension: item.calc_suspension || item.suspension || null,
-        isM2: item.isM2 || false,
-        isGardin: item.isGardin || false,
-        en: item.en || null,
-        boy: item.boy || null,
-        m2: item.m2 || null,
-        form: item.form || null,
-        metre: item.metre || null,
-        suspension: item.suspension || null,
-        size: item.size || null,
-        note: item.note || null
-    };
-
-    // ✅ VARYANT METNİNİ OLUŞTUR
-    // Önce hesaplayıcı verilerinden oluştur, yoksa mevcut variant'ı kullan
-    let variantText = 'Standard';
-    
-    if (item.isM2 || item.calculatorType === 'm2') {
-        // M2 ürün: Ölçü bilgisini göster
-        const width = item.en || item.calc_width_cm;
-        const length = item.boy || item.calc_length_cm;
-        const m2 = item.m2 || item.calc_m2;
-        const form = item.form || item.calc_form || 'Rektangulär';
-        
-        if (width && length) {
-            variantText = `${width}×${length} cm (${form}) = ${m2 ? m2.toFixed(2) : '?'} m²`;
-        } else if (item.size) {
-            variantText = item.size;
-        }
-    } else if (item.isGardin || item.calculatorType === 'gardin') {
-        // Gardin ürün: Ölçü bilgisini göster
-        const width = item.en || item.calc_width_cm;
-        const length = item.boy || item.calc_length_cm;
-        const metres = item.metre || item.calc_meters;
-        const suspension = item.suspension || item.calc_suspension;
-        
-        if (width && length) {
-            variantText = `${width}×${length} cm`;
-            if (metres) variantText += ` | ${metres} m`;
-            if (suspension) variantText += ` | ${suspension}`;
-        } else if (item.size) {
-            variantText = item.size;
-        }
-    } else {
-        // Normal varyasyonlu ürün
-        if (Array.isArray(item.variants) && item.variants.length > 0) {
-            variantText = item.variants[0].size || item.variants[0].name || 'Standard';
-        } else if (typeof item.variants === 'string') {
-            variantText = item.variants;
-        } else if (typeof item.variants === 'object' && item.variants) {
-            variantText = item.variants.size || item.variants.name || item.variants.color || 'Standard';
-        } else if (typeof item.variant === 'string') {
-            variantText = item.variant;
-        } else if (typeof item.variant === 'object' && item.variant) {
-            variantText = item.variant.size || item.variant.name || 'Standard';
-        }
-    }
-    
-    orderItem.variant = variantText;
-    
-    return orderItem;
-})
+                items: orderItems,
                 total_amount: total,
                 status: 'pending',
                 payment_status: 'paid',
@@ -532,47 +533,47 @@ items: cart.map(function(item) {
 
                 cart.forEach(function(item) {
                     const itemTotal = (parseFloat(item.price) * (item.quantity || 1)).toLocaleString('sv-SE');
-                    // Varyant bilgisini guvenli sekilde al
-                     var variantText = 'Standard';
+                    // Varyant bilgisini guvenli sekilde al - hesaplayici destekli
+                    var variantText = 'Standard';
 
-if (item.isM2 || item.calculatorType === 'm2') {
-    const width = item.en || item.calc_width_cm;
-    const length = item.boy || item.calc_length_cm;
-    const m2 = item.m2 || item.calc_m2;
-    const form = item.form || item.calc_form || 'Rektangulär';
-    
-    if (width && length) {
-        variantText = `${width}×${length} cm (${form}) = ${m2 ? parseFloat(m2).toFixed(2) : '?'} m²`;
-    } else if (item.size) {
-        variantText = item.size;
-    }
-} else if (item.isGardin || item.calculatorType === 'gardin') {
-    const width = item.en || item.calc_width_cm;
-    const length = item.boy || item.calc_length_cm;
-    const metres = item.metre || item.calc_meters;
-    const suspension = item.suspension || item.calc_suspension;
-    
-    if (width && length) {
-        variantText = `${width}×${length} cm`;
-        if (metres) variantText += ` | ${metres} m`;
-        if (suspension) variantText += ` | ${suspension}`;
-    } else if (item.size) {
-        variantText = item.size;
-    }
-} else {
-    // Normal varyasyon
-    if (Array.isArray(item.variants) && item.variants.length > 0) {
-        variantText = item.variants[0].size || item.variants[0].name || 'Standard';
-    } else if (typeof item.variants === 'string') {
-        variantText = item.variants;
-    } else if (typeof item.variants === 'object' && item.variants) {
-        variantText = item.variants.size || item.variants.name || 'Standard';
-    } else if (typeof item.variant === 'string') {
-        variantText = item.variant;
-    } else if (typeof item.variant === 'object' && item.variant) {
-        variantText = item.variant.size || item.variant.name || 'Standard';
-    }
-}
+                    if (item.isM2 || item.calculatorType === 'm2') {
+                        const width = item.en || item.calc_width_cm;
+                        const length = item.boy || item.calc_length_cm;
+                        const m2 = item.m2 || item.calc_m2;
+                        const form = item.form || item.calc_form || 'Rektangulär';
+
+                        if (width && length) {
+                            variantText = width + '×' + length + ' cm (' + form + ') = ' + (m2 ? parseFloat(m2).toFixed(2) : '?') + ' m²';
+                        } else if (item.size) {
+                            variantText = item.size;
+                        }
+                    } else if (item.isGardin || item.calculatorType === 'gardin') {
+                        const width = item.en || item.calc_width_cm;
+                        const length = item.boy || item.calc_length_cm;
+                        const metres = item.metre || item.calc_meters;
+                        const suspension = item.suspension || item.calc_suspension;
+
+                        if (width && length) {
+                            variantText = width + '×' + length + ' cm';
+                            if (metres) variantText += ' | ' + metres + ' m';
+                            if (suspension) variantText += ' | ' + suspension;
+                        } else if (item.size) {
+                            variantText = item.size;
+                        }
+                    } else {
+                        // Normal varyasyon
+                        if (Array.isArray(item.variants) && item.variants.length > 0) {
+                            variantText = item.variants[0].size || item.variants[0].name || 'Standard';
+                        } else if (typeof item.variants === 'string') {
+                            variantText = item.variants;
+                        } else if (typeof item.variants === 'object' && item.variants) {
+                            variantText = item.variants.size || item.variants.name || 'Standard';
+                        } else if (typeof item.variant === 'string') {
+                            variantText = item.variant;
+                        } else if (typeof item.variant === 'object' && item.variant) {
+                            variantText = item.variant.size || item.variant.name || 'Standard';
+                        }
+                    }
 
                     itemsHtml += '<tr>' +
                         '<td style="padding:8px;border:1px solid #e5e7eb;">' + (item.name || 'Urun') + '</td>' +
@@ -594,7 +595,9 @@ if (item.isM2 || item.calculatorType === 'm2') {
                     payment_method: 'Stripe',
                     customer_address: (customer.address ? (customer.address + ', ' + customer.postcode + ' ' + customer.city).trim() : 'Sverige'),
                     customer_phone: customer.phone || 'N/A',
-                    tracking_link: 'https://www.dekorist.se/orders/' + orderId + '\n\n(Du kommer att få ett separat mail med spårningsinformation när din beställning skickas.)'
+                    tracking_link: 'https://www.dekorist.se/orders/' + orderId + '
+
+(Du kommer att få ett separat mail med spårningsinformation när din beställning skickas.)'
                 };
 
                 console.log('>>> EmailJS gonderiliyor...', JSON.stringify(templateParams));
