@@ -77,6 +77,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const itemTotal = parseFloat(item.price) * qty;
             total += itemTotal;
 
+            // ✅ HESAPLAYICI URUN: size alanını göster, yoksa variants
+            const variantDisplay = (item.isM2 || item.isGardin) && item.size 
+                ? item.size 
+                : (item.variants || 'Standard');
+
             const productEl = document.createElement('div');
             productEl.className = 'summary-item';
             productEl.innerHTML = `
@@ -84,7 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="item-details-wrapper">
                     <div class="item-info-left">
                         <p class="item-name">${item.name || 'Urun'}</p>
-                        <p class="item-variant">${item.variants || 'Standard'}</p>
+                        <p class="item-variant">${variantDisplay}</p>
                         <div class="quantity-control">
                             <button class="qty-btn minus" data-index="${index}">-</button>
                             <input type="text" class="qty-display" value="${qty}" readonly>
@@ -225,11 +230,51 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             console.log('Payment Intent istegi gonderiliyor...');
 
+            // ✅ ADMIN PANEL FORMATINA DÖNÜŞTÜR
+            const formattedItems = cart.map(item => {
+                const baseItem = {
+                    id: item.id,
+                    name: item.name,
+                    price: item.price,
+                    quantity: item.quantity || 1,
+                    image: item.image || '',
+                    variant: item.variants || 'Standard'
+                };
+
+                // M2 hesaplayıcı ürün
+                if (item.isM2) {
+                    return {
+                        ...baseItem,
+                        calculatorType: 'm2',
+                        calc_width_cm: item.en,
+                        calc_length_cm: item.boy,
+                        calc_m2: item.m2,
+                        calc_form: item.form,
+                        variant: item.size || `${item.en}×${item.boy} cm (${item.form})`
+                    };
+                }
+
+                // Gardin hesaplayıcı ürün
+                if (item.isGardin) {
+                    return {
+                        ...baseItem,
+                        calculatorType: 'gardin',
+                        calc_width_cm: item.en,
+                        calc_length_cm: item.boy,
+                        calc_meters: item.metre,
+                        calc_suspension: item.suspension,
+                        variant: item.size || `${item.en}×${item.boy} cm | ${item.metre} m`
+                    };
+                }
+
+                return baseItem;
+            });
+
             const response = await fetch(CONFIG.API.PAYMENT_INTENT, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    items: cart,
+                    items: formattedItems,
                     customer: customerData
                 })
             });

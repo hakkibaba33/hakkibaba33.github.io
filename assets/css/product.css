@@ -734,7 +734,7 @@ button:not(:disabled),
 .selected-size-display {
     font-size: 14px;
     color: #666;
-    font-weight: 500;
+    font-weight: 600;
 }
 
 /* Toggle Button */
@@ -744,7 +744,7 @@ button:not(:disabled),
     gap: 6px;
     cursor: pointer;
     user-select: none;
-    padding: 6px 12px;
+    padding: 6px 6px;
     border-radius: 20px;
     background: rgba(0,0,0,0.03);
     border: 1px solid rgba(0,0,0,0.06);

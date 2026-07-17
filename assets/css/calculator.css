@@ -1,24 +1,45 @@
 /* ==========================================
-   PRODUCT CALCULATOR STYLES
+   PRODUCT CALCULATOR STYLES v2.1
    Halı (M²) ve Perde (Gardin) Hesaplayıcı
+   DK Color Palette Uyumlu - Tutarlı & Modern
    ========================================== */
+
+:root {
+    --dk-primary: #1a1a1a;
+    --dk-secondary: #f5f0eb;
+    --dk-accent: #c9a96e;
+    --dk-accent-hover: #b8945a;
+    --dk-text: #333333;
+    --dk-text-light: #666666;
+    --dk-white: #ffffff;
+    --dk-border: #e8e4df;
+    --dk-radius: 2px;
+    --dk-radius-sm: 8px;
+    --dk-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    --dk-shadow-lg: 0 12px 48px rgba(0,0,0,0.12);
+    --dk-transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    --dk-font-heading: 'Playfair Display', Georgia, serif;
+    --dk-font-body: 'Inter', -apple-system, sans-serif;
+}
 
 /* --- Ana Konteyner --- */
 #calculator-insertion-point {
-    margin: 16px 0;
+    margin: 10px 0;
+    font-family: var(--dk-font-body);
 }
 
 /* --- Akordiyon Kutusu --- */
 .calc-accordion-box {
-    border: 1px solid #e5e5e5;
-    border-radius: 12px;
-    background: #fff;
+    border: 1px solid var(--dk-border);
+    border-radius:#000 ;
+    background: var(--dk-white);
     overflow: hidden;
-    transition: box-shadow 0.3s ease;
+    transition: var(--dk-transition);
+    box-shadow: var(--dk-shadow);
 }
 
 .calc-accordion-box:hover {
-    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    box-shadow: var(--dk-shadow-lg);
 }
 
 /* --- Akordiyon Header --- */
@@ -27,75 +48,84 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 16px 20px;
-    background: #fafafa;
+    padding: 18px 24px;
+    background: var(--dk-secondary);
     border: none;
     cursor: pointer;
     text-align: left;
-    transition: background 0.2s ease;
+    transition: var(--dk-transition);
+    font-family: var(--dk-font-body);
 }
 
 .calc-accordion-header:hover {
-    background: #f5f5f5;
+    background: #ede8e2;
 }
 
 .calc-accordion-header.active {
-    background: #f0f7ff;
-    border-bottom: 1px solid #e5e5e5;
+    background: #faf7f3;
+    border-bottom: 1px solid var(--dk-border);
 }
 
 .calc-accordion-header .accordion-left {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 14px;
     flex: 1;
 }
 
 .calc-accordion-header .accordion-left i {
-    font-size: 18px;
-    color: #c9a96e;
-    width: 24px;
+    font-size: 20px;
+    color: var(--dk-accent);
+    width: 28px;
     text-align: center;
+    transition: var(--dk-transition);
+}
+
+.calc-accordion-header:hover .accordion-left i {
+    color: var(--dk-accent-hover);
 }
 
 .calc-accordion-header .accordion-title-group {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 4px;
 }
 
 .calc-accordion-header .accordion-title {
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 600;
-    color: #1a1a1a;
+    color: var(--dk-primary);
     letter-spacing: 0.3px;
+    font-family: var(--dk-font-heading);
 }
 
 .calc-accordion-header .accordion-subtitle {
-    font-size: 12px;
-    color: #888;
+    font-size: 13px;
+    color: var(--dk-text-light);
     font-weight: 400;
 }
 
 .calc-accordion-header .accordion-right {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
 }
 
 .calc-accordion-header .accordion-status {
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 600;
-    color: #4CAF50;
-    background: #e8f5e9;
-    padding: 3px 10px;
+    color: var(--dk-accent);
+    background: rgba(201, 169, 110, 0.12);
+    padding: 4px 12px;
     border-radius: 20px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
 }
 
 .calc-accordion-header .accordion-chevron {
-    font-size: 13px;
-    color: #999;
-    transition: transform 0.3s ease;
+    font-size: 14px;
+    color: var(--dk-text-light);
+    transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .calc-accordion-header.active .accordion-chevron {
@@ -106,16 +136,16 @@
 .calc-accordion-content {
     max-height: 0;
     overflow: hidden;
-    transition: max-height 0.4s ease, padding 0.3s ease;
+    transition: max-height 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94), padding 0.4s ease;
 }
 
 .calc-accordion-content.open {
-    max-height: 800px;
+    max-height: 900px;
     padding: 0;
 }
 
 .calc-accordion-content .accordion-inner {
-    padding: 20px;
+    padding: 28px 24px;
 }
 
 /* --- Form Etiketleri --- */
@@ -123,18 +153,19 @@
     display: block;
     font-size: 11px;
     font-weight: 600;
-    color: #666;
+    color: var(--dk-text-light);
     text-transform: uppercase;
-    letter-spacing: 0.8px;
-    margin-bottom: 8px;
+    letter-spacing: 1.2px;
+    margin-bottom: 10px;
+    font-family: var(--dk-font-body);
 }
 
 /* --- Input Grid --- */
 .input-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 14px;
-    margin-bottom: 18px;
+    gap: 16px;
+    margin-bottom: 22px;
 }
 
 .input-group {
@@ -144,43 +175,45 @@
 
 .premium-input {
     width: 100%;
-    padding: 12px 14px;
-    border: 1.5px solid #e0e0e0;
-    border-radius: 8px;
+    padding: 14px 16px;
+    border: 1.5px solid var(--dk-border);
+    border-radius: var(--dk-radius-sm);
     font-size: 14px;
-    color: #1a1a1a;
-    background: #fff;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    color: var(--dk-primary);
+    background: var(--dk-white);
+    transition: var(--dk-transition);
     outline: none;
+    font-family: var(--dk-font-body);
     -webkit-appearance: none;
     appearance: none;
 }
 
 .premium-input:focus {
-    border-color: #c9a96e;
-    box-shadow: 0 0 0 3px rgba(201, 169, 110, 0.1);
+    border-color: var(--dk-accent);
+    box-shadow: 0 0 0 4px rgba(201, 169, 110, 0.12);
 }
 
 .premium-input::placeholder {
-    color: #bbb;
+    color: #b8b3ad;
 }
 
 select.premium-input {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23c9a96e' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
-    background-position: right 12px center;
-    padding-right: 36px;
+    background-position: right 14px center;
+    padding-right: 40px;
+    cursor: pointer;
 }
 
 /* --- Form Seçimi (Halı Şekli) --- */
 .form-selector {
-    margin-bottom: 18px;
+    margin-bottom: 22px;
 }
 
 .form-options-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
+    gap: 12px;
 }
 
 .form-option {
@@ -198,53 +231,56 @@ select.premium-input {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 6px;
-    padding: 14px 8px;
-    border: 1.5px solid #e5e5e5;
-    border-radius: 10px;
-    background: #fff;
-    transition: all 0.2s ease;
+    gap: 8px;
+    padding: 18px 10px;
+    border: 1.5px solid var(--dk-border);
+    border-radius: var(--dk-radius-sm);
+    background: var(--dk-white);
+    transition: var(--dk-transition);
     text-align: center;
 }
 
 .form-option .option-content:hover {
-    border-color: #c9a96e;
-    background: #fdfbf7;
+    border-color: var(--dk-accent);
+    background: var(--dk-secondary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
 }
 
 .form-option input:checked + .option-content {
-    border-color: #c9a96e;
-    background: #fdfbf7;
-    box-shadow: 0 0 0 2px rgba(201, 169, 110, 0.15);
+    border-color: var(--dk-accent);
+    background: var(--dk-secondary);
+    box-shadow: 0 0 0 3px rgba(201, 169, 110, 0.15);
 }
 
 .form-option .shape-icon {
-    width: 28px;
-    height: 28px;
-    color: #666;
+    width: 32px;
+    height: 32px;
+    color: var(--dk-text-light);
+    transition: var(--dk-transition);
 }
 
 .form-option input:checked + .option-content .shape-icon {
-    color: #c9a96e;
+    color: var(--dk-accent);
 }
 
 .form-option .option-content span {
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 500;
-    color: #555;
+    color: var(--dk-text);
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.6px;
 }
 
 /* --- Korniş Seçimi (Perde) --- */
 .suspension-selector {
-    margin-bottom: 18px;
+    margin-bottom: 22px;
 }
 
 .suspension-options {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 10px;
+    gap: 12px;
 }
 
 .suspension-option {
@@ -262,70 +298,75 @@ select.premium-input {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
-    padding: 16px 12px;
-    border: 1.5px solid #e5e5e5;
-    border-radius: 10px;
-    background: #fff;
-    transition: all 0.2s ease;
+    gap: 10px;
+    padding: 18px 14px;
+    border: 1.5px solid var(--dk-border);
+    border-radius: var(--dk-radius-sm);
+    background: var(--dk-white);
+    transition: var(--dk-transition);
     text-align: center;
 }
 
 .suspension-card:hover {
-    border-color: #c9a96e;
-    background: #fdfbf7;
+    border-color: var(--dk-accent);
+    background: var(--dk-secondary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
 }
 
 .suspension-card.active,
 .suspension-option input:checked + .suspension-card {
-    border-color: #c9a96e;
-    background: #fdfbf7;
-    box-shadow: 0 0 0 2px rgba(201, 169, 110, 0.15);
+    border-color: var(--dk-accent);
+    background: var(--dk-secondary);
+    box-shadow: 0 0 0 3px rgba(201, 169, 110, 0.15);
 }
 
 .suspension-card i {
-    font-size: 20px;
-    color: #666;
+    font-size: 22px;
+    color: var(--dk-text-light);
+    transition: var(--dk-transition);
 }
 
 .suspension-card.active i,
 .suspension-option input:checked + .suspension-card i {
-    color: #c9a96e;
+    color: var(--dk-accent);
 }
 
 .suspension-card span {
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 500;
-    color: #444;
+    color: var(--dk-text);
 }
 
 /* --- Pile Bilgisi --- */
 .pile-info {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 10px 14px;
-    background: #f0f7ff;
-    border-radius: 8px;
-    margin-bottom: 16px;
-    font-size: 12px;
-    color: #1976d2;
+    gap: 10px;
+    padding: 12px 16px;
+    background: var(--dk-secondary);
+    border-radius: var(--dk-radius-sm);
+    margin-bottom: 20px;
+    font-size: 13px;
+    color: var(--dk-text);
+    border-left: 3px solid var(--dk-accent);
 }
 
 .pile-info i {
-    font-size: 14px;
+    font-size: 16px;
+    color: var(--dk-accent);
 }
 
 /* --- Adet Seçimi --- */
 .quantity-section {
-    margin-bottom: 18px;
+    margin-bottom: 22px;
 }
 
 .quantity-row,
 .quantity-note-row {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 14px;
 }
 
 .quantity-note-row {
@@ -335,43 +376,46 @@ select.premium-input {
 .qty-stepper {
     display: flex;
     align-items: center;
-    border: 1.5px solid #e0e0e0;
-    border-radius: 8px;
+    border: 1.5px solid var(--dk-border);
+    border-radius: var(--dk-radius-sm);
     overflow: hidden;
-    height: 42px;
+    height: 46px;
 }
 
 .qty-stepper button {
-    width: 38px;
+    width: 42px;
     height: 100%;
     border: none;
-    background: #f5f5f5;
-    color: #333;
+    background: var(--dk-secondary);
+    color: var(--dk-primary);
     font-size: 18px;
     font-weight: 300;
     cursor: pointer;
-    transition: background 0.2s ease;
+    transition: var(--dk-transition);
     display: flex;
     align-items: center;
     justify-content: center;
+    font-family: var(--dk-font-body);
 }
 
 .qty-stepper button:hover {
-    background: #e8e8e8;
+    background: var(--dk-accent);
+    color: var(--dk-white);
 }
 
 .qty-stepper input {
-    width: 50px;
+    width: 56px;
     height: 100%;
     border: none;
-    border-left: 1px solid #e0e0e0;
-    border-right: 1px solid #e0e0e0;
+    border-left: 1px solid var(--dk-border);
+    border-right: 1px solid var(--dk-border);
     text-align: center;
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 600;
-    color: #1a1a1a;
-    background: #fff;
+    color: var(--dk-primary);
+    background: var(--dk-white);
     outline: none;
+    font-family: var(--dk-font-body);
     -moz-appearance: textfield;
 }
 
@@ -382,36 +426,39 @@ select.premium-input {
 }
 
 .qty-label {
-    font-size: 13px;
-    color: #666;
+    font-size: 14px;
+    color: var(--dk-text-light);
+    font-weight: 500;
 }
 
 /* --- Not Butonu --- */
 .note-btn-wrapper button {
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 10px 14px;
-    border: 1.5px dashed #ccc;
-    border-radius: 8px;
-    background: #fff;
-    color: #666;
-    font-size: 12px;
+    gap: 8px;
+    padding: 12px 16px;
+    border: 1.5px dashed var(--dk-border);
+    border-radius: var(--dk-radius-sm);
+    background: var(--dk-white);
+    color: var(--dk-text-light);
+    font-size: 13px;
     font-weight: 500;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: var(--dk-transition);
+    font-family: var(--dk-font-body);
 }
 
 .note-btn-wrapper button:hover {
-    border-color: #c9a96e;
-    color: #c9a96e;
+    border-color: var(--dk-accent);
+    color: var(--dk-accent);
+    background: var(--dk-secondary);
 }
 
 .note-btn-wrapper button.saved {
     border-style: solid;
-    border-color: #4CAF50;
-    color: #4CAF50;
-    background: #e8f5e9;
+    border-color: var(--dk-accent);
+    color: var(--dk-accent);
+    background: rgba(201, 169, 110, 0.08);
 }
 
 /* --- Not Modal --- */
@@ -422,11 +469,12 @@ select.premium-input {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0,0,0,0.5);
+    background: rgba(26, 26, 26, 0.5);
     z-index: 2000;
     align-items: center;
     justify-content: center;
     padding: 20px;
+    backdrop-filter: blur(4px);
 }
 
 .note-modal.visible {
@@ -434,138 +482,157 @@ select.premium-input {
 }
 
 .note-modal-inner {
-    background: #fff;
-    border-radius: 16px;
-    padding: 24px;
+    background: var(--dk-white);
+    border-radius: var(--dk-radius);
+    padding: 28px;
     width: 100%;
-    max-width: 400px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+    max-width: 420px;
+    box-shadow: var(--dk-shadow-lg);
+    border: 1px solid var(--dk-border);
 }
 
 .note-modal-inner h4 {
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 600;
-    margin-bottom: 14px;
-    color: #1a1a1a;
+    margin-bottom: 16px;
+    color: var(--dk-primary);
+    font-family: var(--dk-font-heading);
 }
 
 .note-modal-inner textarea {
     width: 100%;
-    min-height: 100px;
-    padding: 12px;
-    border: 1.5px solid #e0e0e0;
-    border-radius: 8px;
+    min-height: 120px;
+    padding: 14px;
+    border: 1.5px solid var(--dk-border);
+    border-radius: var(--dk-radius-sm);
     font-size: 14px;
     resize: vertical;
-    margin-bottom: 14px;
+    margin-bottom: 16px;
     outline: none;
-    font-family: inherit;
+    font-family: var(--dk-font-body);
+    color: var(--dk-text);
+    transition: var(--dk-transition);
 }
 
 .note-modal-inner textarea:focus {
-    border-color: #c9a96e;
+    border-color: var(--dk-accent);
+    box-shadow: 0 0 0 4px rgba(201, 169, 110, 0.12);
 }
 
 .note-modal-inner button {
     width: 100%;
-    padding: 12px;
-    background: #1a1a1a;
-    color: #fff;
+    padding: 14px;
+    background: var(--dk-primary);
+    color: var(--dk-white);
     border: none;
-    border-radius: 8px;
+    border-radius: var(--dk-radius-sm);
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
-    transition: background 0.2s ease;
+    transition: var(--dk-transition);
+    font-family: var(--dk-font-body);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
 }
 
 .note-modal-inner button:hover {
-    background: #333;
+    background: #333333;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
 /* --- Live Summary --- */
 .live-summary {
     display: none;
-    padding: 10px 14px;
-    background: #f5f5f5;
-    border-radius: 8px;
-    font-size: 13px;
-    color: #555;
-    margin-bottom: 14px;
+    padding: 12px 16px;
+    background: var(--dk-secondary);
+    border-radius: var(--dk-radius-sm);
+    font-size: 14px;
+    color: var(--dk-text);
+    margin-bottom: 18px;
+    border-left: 3px solid var(--dk-accent);
+    font-weight: 500;
 }
 
 .live-summary.visible {
     display: block;
+    animation: fadeIn 0.4s ease;
 }
 
 /* --- Action Butonları --- */
 .form-actions {
     display: flex;
-    gap: 10px;
-    margin-bottom: 14px;
+    gap: 12px;
+    margin-bottom: 18px;
 }
 
 .calc-btn-primary {
     flex: 1;
-    padding: 14px 20px;
-    background: #1a1a1a;
-    color: #fff;
+    padding: 16px 22px;
+    background: var(--dk-primary);
+    color: var(--dk-white);
     border: none;
-    border-radius: 8px;
+    border-radius: var(--dk-radius-sm);
     font-size: 13px;
     font-weight: 600;
-    letter-spacing: 0.5px;
+    letter-spacing: 1px;
     text-transform: uppercase;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: var(--dk-transition);
+    font-family: var(--dk-font-body);
+    position: relative;
+    overflow: hidden;
 }
 
 .calc-btn-primary:hover {
-    background: #333;
-    transform: translateY(-1px);
+    background: #333333;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
 }
 
 .calc-btn-primary.calculated {
-    background: #4CAF50;
+    background: var(--dk-accent);
 }
 
 .calc-btn-primary.calculated:hover {
-    background: #43a047;
+    background: var(--dk-accent-hover);
 }
 
 .calc-btn-secondary {
-    padding: 14px 18px;
-    background: #fff;
-    color: #666;
-    border: 1.5px solid #e0e0e0;
-    border-radius: 8px;
+    padding: 16px 20px;
+    background: var(--dk-white);
+    color: var(--dk-text-light);
+    border: 1.5px solid var(--dk-border);
+    border-radius: var(--dk-radius-sm);
     font-size: 13px;
     font-weight: 500;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: var(--dk-transition);
+    font-family: var(--dk-font-body);
 }
 
 .calc-btn-secondary:hover {
-    border-color: #999;
-    color: #333;
+    border-color: var(--dk-accent);
+    color: var(--dk-accent);
+    background: var(--dk-secondary);
 }
 
 /* --- Fiyat Özeti --- */
 .calc-summary {
     display: none;
-    background: #fafafa;
-    border-radius: 10px;
-    padding: 16px;
-    border: 1px solid #eee;
+    background: var(--dk-secondary);
+    border-radius: var(--dk-radius-sm);
+    padding: 20px;
+    border: 1px solid var(--dk-border);
 }
 
 .calc-summary.visible {
     display: block;
-    animation: fadeIn 0.3s ease;
+    animation: fadeIn 0.4s ease;
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-5px); }
+    from { opacity: 0; transform: translateY(-8px); }
     to { opacity: 1; transform: translateY(0); }
 }
 
@@ -573,96 +640,102 @@ select.premium-input {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 6px 0;
-    font-size: 13px;
+    padding: 8px 0;
+    font-size: 14px;
 }
 
 .summary-row span {
-    color: #666;
+    color: var(--dk-text-light);
 }
 
 .summary-row strong {
-    color: #1a1a1a;
-    font-weight: 500;
+    color: var(--dk-primary);
+    font-weight: 600;
 }
 
 .summary-row.note-row {
-    background: #fff8e1;
-    padding: 8px 10px;
-    border-radius: 6px;
-    margin-top: 4px;
+    background: rgba(201, 169, 110, 0.08);
+    padding: 10px 12px;
+    border-radius: var(--dk-radius-sm);
+    margin-top: 6px;
+    border-left: 3px solid var(--dk-accent);
 }
 
 .summary-row.note-row strong {
-    color: #f57c00;
-    font-size: 12px;
+    color: var(--dk-accent);
+    font-size: 13px;
 }
 
 .summary-divider {
     border: none;
-    border-top: 1px solid #e5e5e5;
-    margin: 10px 0;
+    border-top: 1px solid var(--dk-border);
+    margin: 12px 0;
 }
 
 .summary-total {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding-top: 4px;
+    padding-top: 6px;
 }
 
 .summary-total span {
-    font-size: 14px;
-    color: #1a1a1a;
+    font-size: 15px;
+    color: var(--dk-primary);
+    font-weight: 600;
+    font-family: var(--dk-font-heading);
 }
 
 .summary-total .total-price {
-    font-size: 16px;
-    color: #1a1a1a;
+    font-size: 18px;
+    color: var(--dk-primary);
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
+    font-weight: 700;
+    font-family: var(--dk-font-heading);
 }
 
 .summary-total .total-price .original-price {
-    font-size: 13px;
-    color: #999;
+    font-size: 14px;
+    color: var(--dk-text-light);
     text-decoration: line-through;
     font-weight: 400;
+    font-family: var(--dk-font-body);
 }
 
 /* --- Mobil Uyumluluk --- */
 @media (max-width: 768px) {
     .input-grid {
         grid-template-columns: 1fr;
-        gap: 12px;
+        gap: 14px;
     }
 
     .form-options-grid {
         grid-template-columns: repeat(3, 1fr);
-        gap: 8px;
+        gap: 10px;
     }
 
     .form-option .option-content {
-        padding: 12px 6px;
+        padding: 14px 8px;
     }
 
     .form-option .option-content span {
-        font-size: 10px;
+        font-size: 11px;
     }
 
     .suspension-options {
-        gap: 8px;
+        gap: 10px;
     }
 
     .suspension-card {
-        padding: 12px 8px;
+        padding: 14px 10px;
     }
 
     .quantity-note-row {
         flex-direction: column;
         align-items: flex-start;
-        gap: 10px;
+        gap: 12px;
     }
 
     .form-actions {
@@ -674,11 +747,15 @@ select.premium-input {
     }
 
     .calc-accordion-header {
-        padding: 14px 16px;
+        padding: 16px 18px;
     }
 
     .calc-accordion-content .accordion-inner {
-        padding: 16px;
+        padding: 20px 18px;
+    }
+
+    .note-modal-inner {
+        padding: 22px;
     }
 }
 

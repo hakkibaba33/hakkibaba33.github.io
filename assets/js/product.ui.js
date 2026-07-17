@@ -1,8 +1,9 @@
 // ==========================================
-// PRODUCT.UI.JS - SUPABASE UYUMLU (v5.0)
+// PRODUCT.UI.JS - SUPABASE UYUMLU (v5.1)
 // FIX: Inline CSS'ler temizlendi
 // FIX: Fiyat sıralaması: indirimli önce, orijinal sonra
 // NEW: Skeleton loader desteği eklendi
+// NEW: M2 / Basit ürünler için fiyat ve subtitle fix
 // ==========================================
 
 if (window.__productPageInitialized) {
@@ -318,6 +319,7 @@ if (window.__productPageInitialized) {
                 });
                 renderColorSwatches(currentVariants);
                 setupVariantAccordion();
+               
             } else {
                 const colorEl = document.getElementById('color-selector');
                 if (colorEl) colorEl.style.display = 'none';
@@ -327,14 +329,69 @@ if (window.__productPageInitialized) {
 
             if (!isMobile && typeof setupLightbox === 'function') setupLightbox();
 
+            // ==========================================
+            // ✅ M2 / BASIT / GARDIN URUNLER ICIN FIYAT VE SUBTITLE FIX
+            // ==========================================
+            const isM2Product = currentProduct.product_type === 'm2_calculator' || currentProduct.m2_calculator_active === true;
+            const isGardinProduct = currentProduct.gardin_calculator_active === true;
+
+            if (currentVariants.length === 0) {
+                const priceEl = document.getElementById('product-price');
+                const hasDiscount = p.discount_price && p.discount_price < p.base_price;
+                const displayPrice = p.discount_price || p.base_price || 0;
+                const basePrice = p.base_price || 0;
+
+                if (priceEl) {
+                    if (hasDiscount) {
+                     priceEl.innerHTML = 
+                    '<span class="discount-price">' + displayPrice.toLocaleString('sv-SE') + ' Kr</span>' +
+                    '<span class="original-price">' + basePrice.toLocaleString('sv-SE') + ' Kr</span>';
+                  } else {
+                  priceEl.innerHTML = '<span class="normal-price">' + displayPrice.toLocaleString('sv-SE') + ' Kr</span>';
+                  }
+                }
+
+                const subtitleEl = document.getElementById('dynamic-product-subtitle');
+                if (subtitleEl) {
+                    const sizeDisplay = subtitleEl.querySelector('.selected-size-display');
+                    if (sizeDisplay) {
+                        if (isM2Product && p.m2_available_widths && p.m2_available_widths.length > 0) {
+                            sizeDisplay.className = 'selected-size-display size-m2';
+                            sizeDisplay.textContent = p.m2_available_widths.join(', ') + ' cm';
+                        } else if (isGardinProduct && p.gardin_min_width) {
+                            sizeDisplay.textContent = 'Min. bredd: ' + p.gardin_min_width + ' cm';
+                            sizeDisplay.style.color = '#666';
+                        } else {
+                            sizeDisplay.textContent = displayPrice > 0 ? displayPrice.toLocaleString('sv-SE') + ' Kr' : '';
+                            sizeDisplay.style.color = '#333';
+                        }
+                    }
+                }
+
+                const stockInfo = document.getElementById('stock-info');
+                const stockText = stockInfo?.querySelector('.stock-text');
+                const stockDot = stockInfo?.querySelector('.stock-dot');
+                if (stockInfo && stockText && stockDot) {
+                    stockInfo.classList.add('active');
+                    stockText.textContent = 'I lager - Klar för leverans';
+                    stockText.className = 'stock-text in-stock';
+                    stockDot.className = 'stock-dot in-stock';
+                }
+
+                const addBtn = document.getElementById('add-to-cart-btn');
+                if (addBtn && !isM2Product && !isGardinProduct) {
+                    addBtn.disabled = false;
+                    addBtn.textContent = 'Lägg i Varukorg';
+                    addBtn.style.opacity = '1';
+                    addBtn.style.pointerEvents = 'auto';
+                }
+            }
+
             // ✅ HESAPLAYICI INIT - Admin panel veri yapısına uygun
             console.log('[ProductUI] Hesaplayıcı kontrolü başlıyor...');
             console.log('[ProductUI] product_type:', currentProduct.product_type);
             console.log('[ProductUI] m2_calculator_active:', currentProduct.m2_calculator_active);
             console.log('[ProductUI] gardin_calculator_active:', currentProduct.gardin_calculator_active);
-
-            const isM2Product = currentProduct.product_type === 'm2_calculator' || currentProduct.m2_calculator_active === true;
-            const isGardinProduct = currentProduct.gardin_calculator_active === true;
 
             if (isM2Product || isGardinProduct) {
                 console.log('[ProductUI] Hesaplayıcı ürün tespit edildi!');
@@ -776,87 +833,87 @@ function updateSliderButtons() {
         }
     }
 
-         function setupSizeDrawer(sizeTooltipHtml, variants) {
-    const drawerBody = document.getElementById('drawer-body');
-    const toggle = document.getElementById('drawer-toggle');
-    const overlay = document.getElementById('drawer-overlay');
-    const panel = document.getElementById('drawer-panel');
-    const closeBtn = document.getElementById('drawer-close');
-    const doneBtn = document.getElementById('drawer-done');
+    function setupSizeDrawer(sizeTooltipHtml, variants) {
+        const drawerBody = document.getElementById('drawer-body');
+        const toggle = document.getElementById('drawer-toggle');
+        const overlay = document.getElementById('drawer-overlay');
+        const panel = document.getElementById('drawer-panel');
+        const closeBtn = document.getElementById('drawer-close');
+        const doneBtn = document.getElementById('drawer-done');
 
-    if (!drawerBody || !toggle || !overlay || !panel) return;
+        if (!drawerBody || !toggle || !overlay || !panel) return;
 
-    // İçeriği doldur
-    if (sizeTooltipHtml && sizeTooltipHtml.trim()) {
-        drawerBody.innerHTML = sizeTooltipHtml;
-    } else if (variants && variants.length > 0) {
-        let html = '<table class="size-table">';
-        html += '<thead><tr><th>Storlek</th><th>Pris</th></tr></thead><tbody>';
-        variants.forEach(v => {
-            const price = v.discount_price || v.price || 0;
-            const original = v.discount_price ? `<s style="color:#999;font-size:12px;margin-right:6px;">${v.price} Kr</s>` : '';
-            html += `<tr><td class="size-cell">${v.size || '-'}</td><td class="price-cell">${original}${price} Kr</td></tr>`;
-        });
-        html += '</tbody></table>';
-        drawerBody.innerHTML = html;
-    } else {
-        drawerBody.innerHTML = '<p>Ingen storleksinformation tillgänglig.</p>';
-    }
+        // İçeriği doldur
+        if (sizeTooltipHtml && sizeTooltipHtml.trim()) {
+            drawerBody.innerHTML = sizeTooltipHtml;
+        } else if (variants && variants.length > 0) {
+            let html = '<table class="size-table">';
+            html += '<thead><tr><th>Storlek</th><th>Pris</th></tr></thead><tbody>';
+            variants.forEach(v => {
+                const price = v.discount_price || v.price || 0;
+                const original = v.discount_price ? `<s style="color:#999;font-size:12px;margin-right:6px;">${v.price} Kr</s>` : '';
+                html += `<tr><td class="size-cell">${v.size || '-'}</td><td class="price-cell">${original}${price} Kr</td></tr>`;
+            });
+            html += '</tbody></table>';
+            drawerBody.innerHTML = html;
+        } else {
+            drawerBody.innerHTML = '<p>Ingen storleksinformation tillgänglig.</p>';
+        }
 
-    // 🔥 AÇMA FONKSİYONU
-    function openDrawer() {
-        overlay.classList.add('active');
-        panel.classList.add('active');
-        document.body.classList.add('drawer-open');
-    }
+        // 🔥 AÇMA FONKSİYONU
+        function openDrawer() {
+            overlay.classList.add('active');
+            panel.classList.add('active');
+            document.body.classList.add('drawer-open');
+        }
 
-    // 🔥 KAPATMA FONKSİYONU - setTimeout ile yumuşak kapanış
-    function closeDrawer() {
-        overlay.classList.remove('active');
-        panel.classList.remove('active');
+        // 🔥 KAPATMA FONKSİYONU - setTimeout ile yumuşak kapanış
+        function closeDrawer() {
+            overlay.classList.remove('active');
+            panel.classList.remove('active');
 
-        // Transition bitince body scroll'u aç
-        setTimeout(() => {
-            if (!panel.classList.contains('active')) {
-                document.body.classList.remove('drawer-open');
+            // Transition bitince body scroll'u aç
+            setTimeout(() => {
+                if (!panel.classList.contains('active')) {
+                    document.body.classList.remove('drawer-open');
+                }
+            }, 500);
+        }
+
+        // Event listener'lar
+        toggle.addEventListener('click', openDrawer);
+        toggle.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                openDrawer();
             }
-        }, 500);
+        });
+
+        overlay.addEventListener('click', closeDrawer);
+        closeBtn.addEventListener('click', closeDrawer);
+        doneBtn.addEventListener('click', closeDrawer);
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && panel.classList.contains('active')) {
+                closeDrawer();
+            }
+        });
+
+        // Swipe down kapatma (mobile)
+        let startY = 0;
+        panel.addEventListener('touchstart', (e) => {
+            startY = e.touches[0].clientY;
+        }, { passive: true });
+
+        panel.addEventListener('touchend', (e) => {
+            const endY = e.changedTouches[0].clientY;
+            if (endY - startY > 80 && window.innerWidth <= 768) {
+                closeDrawer();
+            }
+        }, { passive: true });
     }
 
-    // Event listener'lar
-    toggle.addEventListener('click', openDrawer);
-    toggle.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            openDrawer();
-        }
-    });
-
-    overlay.addEventListener('click', closeDrawer);
-    closeBtn.addEventListener('click', closeDrawer);
-    doneBtn.addEventListener('click', closeDrawer);
-
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && panel.classList.contains('active')) {
-            closeDrawer();
-        }
-    });
-
-    // Swipe down kapatma (mobile)
-    let startY = 0;
-    panel.addEventListener('touchstart', (e) => {
-        startY = e.touches[0].clientY;
-    }, { passive: true });
-
-    panel.addEventListener('touchend', (e) => {
-        const endY = e.changedTouches[0].clientY;
-        if (endY - startY > 80 && window.innerWidth <= 768) {
-            closeDrawer();
-        }
-    }, { passive: true });
-}
-
-function setupAccordions() {
+    function setupAccordions() {
         document.querySelectorAll('.product-accordion-header').forEach(header => {
             header.addEventListener('click', () => {
                 const item = header.parentElement;
@@ -1305,31 +1362,31 @@ function setupAccordions() {
         document.body.style.overflow = 'hidden';
     }
 
-        window.closeVariantDrawer = function() {
-    const overlay = document.getElementById('variant-drawer-overlay');
-    const drawer = document.getElementById('variant-drawer');
+    window.closeVariantDrawer = function() {
+        const overlay = document.getElementById('variant-drawer-overlay');
+        const drawer = document.getElementById('variant-drawer');
 
-    if (!overlay || !drawer) return;
+        if (!overlay || !drawer) return;
 
-    overlay.style.opacity = '0';
-    drawer.style.transform = 'translateX(100%)';
+        overlay.style.opacity = '0';
+        drawer.style.transform = 'translateX(100%)';
 
-    overlay.classList.remove('open', 'active');
-    drawer.classList.remove('open', 'active');
+        overlay.classList.remove('open', 'active');
+        drawer.classList.remove('open', 'active');
 
-    // 🔥 Transition bitince temizle
-    setTimeout(() => {
-        if (!drawer.classList.contains('active')) {
-            overlay.style.display = '';
-            drawer.style.display = '';
-            document.body.classList.remove('drawer-open');
-            document.body.style.overflow = '';
-        }
-    }, 500); // CSS transition süresi
+        // 🔥 Transition bitince temizle
+        setTimeout(() => {
+            if (!drawer.classList.contains('active')) {
+                overlay.style.display = '';
+                drawer.style.display = '';
+                document.body.classList.remove('drawer-open');
+                document.body.style.overflow = '';
+            }
+        }, 500); // CSS transition süresi
 
-    document.body.classList.remove('drawer-open');
-    document.body.style.overflow = '';
-};
+        document.body.classList.remove('drawer-open');
+        document.body.style.overflow = '';
+    };
 
     function renderVariantDrawerFiltered(variants) {
         const body = document.getElementById('variant-drawer-body');
@@ -1578,4 +1635,4 @@ function setupAccordions() {
     } else {
         initProductPage();
     }
-     }
+}

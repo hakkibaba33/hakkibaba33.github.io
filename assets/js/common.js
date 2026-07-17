@@ -284,8 +284,15 @@ function updateMiniCartUI() {
             const itemId = item.cartItemId || generateCartItemId(item.id, item.variants);
             
             // RENK bilgisi varsa göster
-            const colorDisplay = item.color ? ` / ${item.color}` : '';
-            const variantDisplay = (item.variants || 'Standard') + colorDisplay;
+              const isCalculatorItem = item.isM2 || item.isGardin;
+let variantDisplay = '';
+
+if (isCalculatorItem && item.size) {
+    variantDisplay = item.size;
+} else {
+    const colorDisplay = item.color ? ` / ${item.color}` : '';
+    variantDisplay = (item.variants || 'Standard') + colorDisplay;
+}
             
             // Fiyat gösterimi
             let priceHtml = '';
