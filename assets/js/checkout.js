@@ -231,44 +231,68 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('Payment Intent istegi gonderiliyor...');
 
             // ✅ ADMIN PANEL FORMATINA DÖNÜŞTÜR
-            const formattedItems = cart.map(item => {
-                const baseItem = {
-                    id: item.id,
-                    name: item.name,
-                    price: item.price,
-                    quantity: item.quantity || 1,
-                    image: item.image || '',
-                    variant: item.variants || 'Standard'
-                };
+            // ✅ ADMIN PANEL FORMATINA DÖNÜŞTÜR
+const formattedItems = cart.map(item => {
+    const baseItem = {
+        id: item.id,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity || 1,
+        image: item.image || '',
+        // ❌ ESKİ: variant: item.variants || 'Standard'
+        // ✅ YENİ: Hesaplayıcı verileri ayrı alanlarda, variant'ı da koru
+        original_variant: item.variants || 'Standard'
+    };
 
-                // M2 hesaplayıcı ürün
-                if (item.isM2) {
-                    return {
-                        ...baseItem,
-                        calculatorType: 'm2',
-                        calc_width_cm: item.en,
-                        calc_length_cm: item.boy,
-                        calc_m2: item.m2,
-                        calc_form: item.form,
-                        variant: item.size || `${item.en}×${item.boy} cm (${item.form})`
-                    };
-                }
+    // M2 hesaplayıcı ürün
+    if (item.isM2) {
+        return {
+            ...baseItem,
+            calculatorType: 'm2',
+            calc_width_cm: item.en,
+            calc_length_cm: item.boy,
+            calc_m2: item.m2,
+            calc_form: item.form,  // 'Kare', 'Rektangulär', vs.
+            // ✅ YENİ: Ölçü bilgisini variant alanına yaz
+            variant: item.size || `${item.en}×${item.boy} cm (${item.form || 'Rektangulär'})`,
+            // ✅ YENİ: Ham verileri de gönder (admin için)
+            calculator_data: {
+                width_cm: item.en,
+                length_cm: item.boy,
+                m2: item.m2,
+                form: item.form,
+                is_square: item.form === 'Kare' || (item.en === item.boy)
+            }
+        };
+    }
 
-                // Gardin hesaplayıcı ürün
-                if (item.isGardin) {
-                    return {
-                        ...baseItem,
-                        calculatorType: 'gardin',
-                        calc_width_cm: item.en,
-                        calc_length_cm: item.boy,
-                        calc_meters: item.metre,
-                        calc_suspension: item.suspension,
-                        variant: item.size || `${item.en}×${item.boy} cm | ${item.metre} m`
-                    };
-                }
+    // Gardin hesaplayıcı ürün
+    if (item.isGardin) {
+        return {
+            ...baseItem,
+            calculatorType: 'gardin',
+            calc_width_cm: item.en,
+            calc_length_cm: item.boy,
+            calc_meters: item.metre,
+            calc_suspension: item.suspension,
+            // ✅ YENİ: Ölçü bilgisini variant alanına yaz
+            variant: item.size || `${item.en}×${item.boy} cm | ${item.metre} m`,
+            // ✅ YENİ: Ham verileri de gönder (admin için)
+            calculator_data: {
+                width_cm: item.en,
+                length_cm: item.boy,
+                meters: item.metre,
+                suspension: item.suspension
+            }
+        };
+    }
 
-                return baseItem;
-            });
+    // Normal varyasyonlu ürün
+    return {
+        ...baseItem,
+        variant: item.variants || 'Standard'
+    };
+});
 
             const response = await fetch(CONFIG.API.PAYMENT_INTENT, {
                 method: 'POST',
