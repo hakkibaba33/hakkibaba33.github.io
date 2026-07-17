@@ -103,21 +103,21 @@ window.ProductCalculator = (function() {
     };
 
     // Fiyat gösterimini güncelle
-    const updatePriceDisplay = (price, regularPrice = null) => {
-        const priceEl = document.getElementById('product-price');
-        if (!priceEl) return;
+     const updatePriceDisplay = (price, regularPrice = null) => {
+    const priceEl = document.getElementById('product-price');
+    if (!priceEl) return;
 
-        const hasDiscount = regularPrice && regularPrice > price;
+    const hasDiscount = regularPrice && regularPrice > price;
 
-        if (hasDiscount) {
-            priceEl.innerHTML = `
-                <span class="original-price">${formatCurrency(regularPrice)}</span>
-                <span class="current-price price-discount">${formatCurrency(price)}</span>
-            `;
-        } else {
-            priceEl.innerHTML = `<span class="current-price">${formatCurrency(price)}</span>`;
-        }
-    };
+    if (hasDiscount) {
+        // product.ui.js ile aynı sınıf isimleri ve sıralama
+        priceEl.innerHTML = 
+            '<span class="discount-price">' + formatCurrency(price) + '</span>' +
+            '<span class="original-price">' + formatCurrency(regularPrice) + '</span>';
+    } else {
+        priceEl.innerHTML = '<span class="normal-price">' + formatCurrency(price) + '</span>';
+    }
+};
 
     // ==========================================
     // HALI (M²) HESAPLAYICI
@@ -876,11 +876,18 @@ window.ProductCalculator = (function() {
             return null;
         },
 
-        reset: () => {
+          reset: () => {
             state.isCalculated = false;
             state.m2 = { en: 0, boy: 0, calculatedM2: 0, totalPrice: 0, quantity: 1, form: 'Rektangulär', maxStock: 999 };
             state.gardin = { en: 0, boy: 300, metre: 0, totalPrice: 0, quantity: 1, suspensionType: 'gardinskena', customerNote: '', pileRatio: 3.0 };
-        },
+            
+            // ✅ Form ve fiyatı da sıfırla
+            if (state.calculatorType === 'm2' && state.product) {
+                resetMattaForm(state.product);
+            } else if (state.calculatorType === 'gardin' && state.product) {
+                resetGardinForm(state.product);
+            }
+        }, // 👈 TAM BURADAKİ VİRGÜL EKSİKTİ!
 
         getState: () => ({ ...state }),
         getType: () => state.calculatorType,

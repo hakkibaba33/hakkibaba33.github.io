@@ -1582,10 +1582,12 @@ function updateSliderButtons() {
                     if (typeof openMiniCart === 'function') openMiniCart();
 
                     // Başarılı bildirim
-                    if (typeof window.showToast === 'function') {
-                        window.showToast('Produkten har lagts till i varukorgen!', 'success');
-                    }
-                    return;
+                     ProductCalculator.reset();
+
+                   if (typeof window.showToast === 'function') {
+                   window.showToast('Produkten har lagts till i varukorgen!', 'success');
+                  }
+                 return;
                 }
             }
 
