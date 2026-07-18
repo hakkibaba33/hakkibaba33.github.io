@@ -856,22 +856,22 @@ window.ProductCalculator = (function() {
                 };
             }
 
-            if (state.calculatorType === 'gardin' && state.gardin.en > 0) {
-                return {
-                    ...baseItem,
-                    cartItemId: `${product.id}_gardin_${state.gardin.en}_${state.gardin.boy}_${Date.now()}`,
-                    price: state.gardin.totalPrice,
-                    original_price: Math.round(state.gardin.metre * getRegularUnitPrice(product) * state.gardin.quantity),
-                    size: `${state.gardin.en}×${state.gardin.boy} cm (Gardin)`,
-                    en: state.gardin.en,
-                    boy: state.gardin.boy,
-                    metre: state.gardin.metre,
-                    suspension: state.gardin.suspensionType,
-                    note: state.gardin.customerNote,
-                    isGardin: true,
-                    quantity: state.gardin.quantity
-                };
-            }
+              if (state.calculatorType === 'gardin' && state.gardin.en > 0) {
+    return {
+        ...baseItem,
+        cartItemId: `${product.id}_gardin_${state.gardin.en}_${state.gardin.boy}_${Date.now()}`,
+        price: state.gardin.totalPrice,
+        original_price: Math.round(state.gardin.metre * getRegularUnitPrice(product) * state.gardin.quantity),
+        size: `${state.gardin.en}×${state.gardin.boy} cm (Gardin)`,
+        en: state.gardin.en,
+        boy: state.gardin.boy,
+        metre: state.gardin.metre,
+        suspension: state.gardin.suspensionType,
+        note: state.gardin.customerNote,  // ← BU SATIR VAR MI?
+        isGardin: true,
+        quantity: state.gardin.quantity
+    };
+}
 
             return null;
         },

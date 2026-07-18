@@ -1,11 +1,8 @@
 // ==========================================
-// CHECKOUT.JS - GUNCELLENMIS v2
+// CHECKOUT.JS - GUNCELLENMIS v3 (Not Destekli)
 // ==========================================
 
 document.addEventListener('DOMContentLoaded', () => {
-
-    // NOT: getCart ve saveCart common.js'ten geliyor, tekrar tanımlama!
-    // Eğer common.js yüklendiyse onları kullan, yoksa kendi tanımlamanı kullan
 
     // Musteri bilgilerini localStorage'a kaydet (tack sayfasi icin)
     function saveCustomerToLocalStorage() {
@@ -28,9 +25,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (typeof Stripe !== 'undefined' && CONFIG?.STRIPE?.PUBLISHABLE_KEY) {
         stripe = Stripe(CONFIG.STRIPE.PUBLISHABLE_KEY);
-        console.log('✅ Stripe baslatildi');
+        console.log('Stripe baslatildi');
     } else {
-        console.error('❌ Stripe.js yuklenemedi veya config eksik!');
+        console.error('Stripe.js yuklenemedi veya config eksik!');
     }
 
     const checkoutContainer = document.getElementById('checkout-content-root');
@@ -44,7 +41,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const paymentElementContainer = document.getElementById('payment-element');
     const addressForm = document.getElementById('address-form');
 
-    // getCart common.js'ten gelmeli ama fallback olarak tanımla
     function getCart() {
         try {
             return JSON.parse(localStorage.getItem('siteCartItems')) || [];
@@ -55,6 +51,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function saveCart(cart) {
         localStorage.setItem('siteCartItems', JSON.stringify(cart));
+    }
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
 
     function renderCheckoutItems() {
@@ -77,10 +80,18 @@ document.addEventListener('DOMContentLoaded', () => {
             const itemTotal = parseFloat(item.price) * qty;
             total += itemTotal;
 
-            // ✅ HESAPLAYICI URUN: size alanını göster, yoksa variants
-            const variantDisplay = (item.isM2 || item.isGardin) && item.size 
-                ? item.size 
-                : (item.variants || 'Standard');
+             let variantDisplay = (item.isM2 || item.isGardin) && item.size 
+    ? item.size 
+    : (item.variants || 'Standard');
+
+// ✅ RENK BİLGİSİNİ EKLE (normal varyasyonlu ürünler için)
+if (!item.isM2 && !item.isGardin && item.color && item.color.trim() !== '') {
+    variantDisplay += ' <span style="color:#888;">(' + escapeHtml(item.color) + ')</span>';
+}
+
+if (item.isGardin && item.note && item.note.trim() !== '') {
+    variantDisplay += '<br><span style="color:#666;font-size:12px;font-style:italic;">📝 ' + escapeHtml(item.note) + '</span>';
+}
 
             const productEl = document.createElement('div');
             productEl.className = 'summary-item';
@@ -230,69 +241,61 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             console.log('Payment Intent istegi gonderiliyor...');
 
-            // ✅ ADMIN PANEL FORMATINA DÖNÜŞTÜR
-            // ✅ ADMIN PANEL FORMATINA DÖNÜŞTÜR
-const formattedItems = cart.map(item => {
-    const baseItem = {
-        id: item.id,
-        name: item.name,
-        price: item.price,
-        quantity: item.quantity || 1,
-        image: item.image || '',
-        // ❌ ESKİ: variant: item.variants || 'Standard'
-        // ✅ YENİ: Hesaplayıcı verileri ayrı alanlarda, variant'ı da koru
-        original_variant: item.variants || 'Standard'
-    };
+            const formattedItems = cart.map(item => {
+                const baseItem = {
+                    id: item.id,
+                    name: item.name,
+                    price: item.price,
+                    quantity: item.quantity || 1,
+                    image: item.image || '',
+                    original_variant: item.variants || 'Standard'
+                };
 
-    // M2 hesaplayıcı ürün
-    if (item.isM2) {
-        return {
-            ...baseItem,
-            calculatorType: 'm2',
-            calc_width_cm: item.en,
-            calc_length_cm: item.boy,
-            calc_m2: item.m2,
-            calc_form: item.form,  // 'Kare', 'Rektangulär', vs.
-            // ✅ YENİ: Ölçü bilgisini variant alanına yaz
-            variant: item.size || `${item.en}×${item.boy} cm (${item.form || 'Rektangulär'})`,
-            // ✅ YENİ: Ham verileri de gönder (admin için)
-            calculator_data: {
-                width_cm: item.en,
-                length_cm: item.boy,
-                m2: item.m2,
-                form: item.form,
-                is_square: item.form === 'Kare' || (item.en === item.boy)
-            }
-        };
-    }
+                if (item.isM2) {
+                    return {
+                        ...baseItem,
+                        calculatorType: 'm2',
+                        calc_width_cm: item.en,
+                        calc_length_cm: item.boy,
+                        calc_m2: item.m2,
+                        calc_form: item.form,
+                        variant: item.size || `${item.en}×${item.boy} cm (${item.form || 'Rektangulär'})`,
+                        calculator_data: {
+                            width_cm: item.en,
+                            length_cm: item.boy,
+                            m2: item.m2,
+                            form: item.form,
+                            is_square: item.form === 'Kare' || (item.en === item.boy)
+                        }
+                    };
+                }
 
-    // Gardin hesaplayıcı ürün
-    if (item.isGardin) {
-        return {
-            ...baseItem,
-            calculatorType: 'gardin',
-            calc_width_cm: item.en,
-            calc_length_cm: item.boy,
-            calc_meters: item.metre,
-            calc_suspension: item.suspension,
-            // ✅ YENİ: Ölçü bilgisini variant alanına yaz
-            variant: item.size || `${item.en}×${item.boy} cm | ${item.metre} m`,
-            // ✅ YENİ: Ham verileri de gönder (admin için)
-            calculator_data: {
-                width_cm: item.en,
-                length_cm: item.boy,
-                meters: item.metre,
-                suspension: item.suspension
-            }
-        };
-    }
+                if (item.isGardin) {
+                    return {
+                        ...baseItem,
+                        calculatorType: 'gardin',
+                        calc_width_cm: item.en,
+                        calc_length_cm: item.boy,
+                        calc_meters: item.metre,
+                        calc_suspension: item.suspension,
+                        calc_note: item.note || null,
+                        variant: item.size || `${item.en}×${item.boy} cm | ${item.metre} m`,
+                        calculator_data: {
+                            width_cm: item.en,
+                            length_cm: item.boy,
+                            meters: item.metre,
+                            suspension: item.suspension,
+                            note: item.note || null
+                        }
+                    };
+                }
 
-    // Normal varyasyonlu ürün
-    return {
-        ...baseItem,
-        variant: item.variants || 'Standard'
-    };
-});
+                return {
+                    ...baseItem,
+                       variant: item.variants || 'Standard',
+                      color: item.color || null  // ✅ RENK EKLE
+                    };
+            });
 
             const response = await fetch(CONFIG.API.PAYMENT_INTENT, {
                 method: 'POST',
@@ -404,7 +407,6 @@ const formattedItems = cart.map(item => {
             return;
         }
 
-        // Musteri bilgilerini kaydet (tack sayfasi icin)
         saveCustomerToLocalStorage();
 
         confirmBtn.disabled = true;
@@ -438,8 +440,6 @@ const formattedItems = cart.map(item => {
                 confirmBtn.disabled = false;
                 confirmBtn.innerText = 'Betala nu';
             }
-            // NOT: Basarili odeme durumunda Stripe otomatik /tack sayfasina yonlendirir
-            // Kayit islemi tack.html'de yapilir
 
         } catch (error) {
             console.error('Beklenmeyen hata:', error);
@@ -457,12 +457,11 @@ const formattedItems = cart.map(item => {
         });
     }
 
-    // Form degisikliklerini dinle + musteri bilgilerini kaydet
     document.querySelectorAll('#address-form input, #accept-terms').forEach(input => {
         input.addEventListener('input', () => {
             input.classList.remove('input-error');
             checkFormValidity();
-            saveCustomerToLocalStorage(); // Her degisiklikte kaydet
+            saveCustomerToLocalStorage();
         });
         input.addEventListener('change', () => {
             checkFormValidity();

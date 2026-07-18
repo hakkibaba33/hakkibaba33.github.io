@@ -284,11 +284,15 @@ function updateMiniCartUI() {
             const itemId = item.cartItemId || generateCartItemId(item.id, item.variants);
             
             // RENK bilgisi varsa göster
-              const isCalculatorItem = item.isM2 || item.isGardin;
+            const isCalculatorItem = item.isM2 || item.isGardin;
 let variantDisplay = '';
 
 if (isCalculatorItem && item.size) {
     variantDisplay = item.size;
+    // ✅ NOT EKLE (sadece gardin için ve not varsa)
+    if (item.isGardin && item.note && item.note.trim() !== '') {
+        variantDisplay += ' <span style="color:#888;font-size:12px;">📝 ' + item.note + '</span>';
+    }
 } else {
     const colorDisplay = item.color ? ` / ${item.color}` : '';
     variantDisplay = (item.variants || 'Standard') + colorDisplay;

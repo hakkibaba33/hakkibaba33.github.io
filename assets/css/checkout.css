@@ -791,3 +791,28 @@ html, body {
         padding: 14px;
     }
 }
+
+
+
+
+@media (max-width: 768px) {
+    /* 1. Grid yapısının dışa taşmasını kesin olarak engellemek için */
+    .checkout-grid-modern {
+        width: 100%;
+        max-width: 100%;
+        overflow: hidden; /* Dışarı sarkan elemanları kırpar */
+    }
+
+    /* 2. Stripe veya diğer form alanlarının sütunu sıkıştırmaması için */
+    .checkout-form-column, 
+    .order-summary-column {
+        width: 100%;
+        min-width: 0; /* Tarayıcıların varsayılan min-content zorlamasını kırar */
+    }
+
+    /* 3. Ödeme elementinin içindeki esnek butonların (Tab) mobilde taşmasını önlemek */
+    #payment-element [role="tab"] {
+        flex: 1 1 calc(50% - 8px) !important; /* Yan yana sığmıyorsa alt alta düzgünce kırar */
+        max-width: 100% !important;
+    }
+}

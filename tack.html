@@ -5,159 +5,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tack för din beställning | DKRUG</title>
     <script src="/assets/js/config.js"></script>
-    <!-- EmailJS SDK -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: 'Inter', -apple-system, sans-serif; 
-            background: linear-gradient(135deg, #f5f0eb 0%, #e8e4df 100%); 
-            min-height: 100vh; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            padding: 20px;
-        }
-        .success-box { 
-            background: white; 
-            padding: 60px 50px; 
-            border-radius: 20px; 
-            text-align: center; 
-            box-shadow: 0 20px 60px rgba(0,0,0,0.1); 
-            max-width: 520px; 
-            width: 100%;
-            animation: slideUp 0.6s ease;
-        }
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .success-icon { 
-            width: 90px; 
-            height: 90px; 
-            background: linear-gradient(135deg, #d1fae5, #a7f3d0); 
-            border-radius: 50%; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            margin: 0 auto 28px; 
-            font-size: 42px;
-            animation: scaleIn 0.5s ease 0.3s both;
-        }
-        @keyframes scaleIn {
-            from { transform: scale(0); }
-            to { transform: scale(1); }
-        }
-        h1 { 
-            font-family: 'Playfair Display', Georgia, serif;
-            color: #1a1a1a; 
-            margin-bottom: 12px; 
-            font-size: 2rem;
-            font-weight: 600;
-        }
-        .subtitle { 
-            color: #666; 
-            line-height: 1.7; 
-            font-size: 1rem;
-            margin-bottom: 8px;
-        }
-        .status-box {
-            background: #f9fafb;
-            border-radius: 12px;
-            padding: 20px;
-            margin: 24px 0;
-            border: 1px solid #e5e7eb;
-        }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: linear-gradient(135deg, #f5f0eb 0%, #e8e4df 100%); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
+        .success-box { background: white; padding: 60px 50px; border-radius: 20px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.1); max-width: 520px; width: 100%; animation: slideUp 0.6s ease; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        .success-icon { width: 90px; height: 90px; background: linear-gradient(135deg, #d1fae5, #a7f3d0); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 28px; font-size: 42px; animation: scaleIn 0.5s ease 0.3s both; }
+        @keyframes scaleIn { from { transform: scale(0); } to { transform: scale(1); } }
+        h1 { font-family: 'Playfair Display', Georgia, serif; color: #1a1a1a; margin-bottom: 12px; font-size: 2rem; font-weight: 600; }
+        .subtitle { color: #666; line-height: 1.7; font-size: 1rem; margin-bottom: 8px; }
+        .status-box { background: #f9fafb; border-radius: 12px; padding: 20px; margin: 24px 0; border: 1px solid #e5e7eb; }
         .status-loading { color: #c9a96e; font-weight: 600; }
         .status-success { color: #059669; font-weight: 600; }
         .status-error { color: #dc2626; font-weight: 600; }
-        .order-id { 
-            background: #1a1a1a; 
-            color: #c9a96e;
-            padding: 10px 20px; 
-            border-radius: 8px; 
-            font-family: 'Courier New', monospace; 
-            font-size: 14px; 
-            margin: 12px 0; 
-            display: inline-block;
-            letter-spacing: 1px;
-        }
-        .order-details {
-            text-align: left;
-            margin-top: 20px;
-        }
-        .order-details h3 {
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #999;
-            margin-bottom: 12px;
-            font-weight: 600;
-        }
-        .detail-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid #eee;
-            font-size: 14px;
-        }
+        .order-id { background: #1a1a1a; color: #c9a96e; padding: 10px 20px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 14px; margin: 12px 0; display: inline-block; letter-spacing: 1px; }
+        .order-details { text-align: left; margin-top: 20px; }
+        .order-details h3 { font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: #999; margin-bottom: 12px; font-weight: 600; }
+        .detail-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; font-size: 14px; }
         .detail-row:last-child { border-bottom: none; }
         .detail-label { color: #666; }
         .detail-value { color: #1a1a1a; font-weight: 500; }
-        .home-btn { 
-            display: inline-block; 
-            margin-top: 28px; 
-            padding: 16px 40px; 
-            background: #1a1a1a; 
-            color: white; 
-            text-decoration: none; 
-            border-radius: 100px; 
-            font-weight: 600; 
-            transition: all 0.3s;
-            border: none;
-            cursor: pointer;
-            font-size: 15px;
-        }
-        .home-btn:hover { 
-            background: #c9a96e; 
-            color: #1a1a1a;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(201,169,110,0.3);
-        }
-        .spinner {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid #c9a96e;
-            border-top-color: transparent;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-right: 8px;
-            vertical-align: middle;
-        }
+        .home-btn { display: inline-block; margin-top: 28px; padding: 16px 40px; background: #1a1a1a; color: white; text-decoration: none; border-radius: 100px; font-weight: 600; transition: all 0.3s; border: none; cursor: pointer; font-size: 15px; }
+        .home-btn:hover { background: #c9a96e; color: #1a1a1a; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(201,169,110,0.3); }
+        .spinner { display: inline-block; width: 20px; height: 20px; border: 3px solid #c9a96e; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; margin-right: 8px; vertical-align: middle; }
         @keyframes spin { to { transform: rotate(360deg); } }
         .hidden { display: none !important; }
-        .email-status {
-            margin-top: 12px;
-            padding: 10px 16px;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 500;
-        }
-        .email-status.sent {
-            background: #d1fae5;
-            color: #065f46;
-        }
-        .email-status.failed {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-
-        @media (max-width: 480px) {
-            .success-box { padding: 40px 24px; }
-            h1 { font-size: 1.5rem; }
-        }
+        .email-status { margin-top: 12px; padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; }
+        .email-status.sent { background: #d1fae5; color: #065f46; }
+        .email-status.failed { background: #fee2e2; color: #991b1b; }
+        @media (max-width: 480px) { .success-box { padding: 40px 24px; } h1 { font-size: 1.5rem; } }
     </style>
 </head>
 <body>
@@ -165,57 +43,37 @@
         <div class="success-icon">✅</div>
         <h1>Tack för din beställning!</h1>
         <p class="subtitle">Din betalning har godkänts och din beställning bearbetas nu.</p>
-
         <div class="status-box" id="status-box">
-            <p id="status-text" class="status-loading">
-                <span class="spinner"></span>
-                Sparar din beställning...
-            </p>
+            <p id="status-text" class="status-loading"><span class="spinner"></span>Sparar din beställning...</p>
             <div id="email-status" class="hidden"></div>
         </div>
-
         <div id="order-info" class="hidden">
             <div class="order-details" id="order-details"></div>
         </div>
-
         <a href="/" class="home-btn">Tillbaka till butiken</a>
     </div>
 
     <script>
-        // ==========================================
-        // EMAILJS KONFIGURASYONU
-        // ==========================================
         const EMAILJS_CONFIG = {
             PUBLIC_KEY: '30giLeeAUgDsJSx6q',
             SERVICE_ID: 'service_ip7lisb',
             TEMPLATE_ID: 'template_s80ep5m'
         };
+        (function() { emailjs.init(EMAILJS_CONFIG.PUBLIC_KEY); })();
 
-        // EmailJS baslat
-        (function() {
-            emailjs.init(EMAILJS_CONFIG.PUBLIC_KEY);
-        })();
-
-        // ==========================================
-        // SUPABASE SIPARIS KAYDETME + EMAIL GONDERME
-        // ==========================================
         async function saveOrderAfterPayment() {
             const urlParams = new URLSearchParams(window.location.search);
             const paymentIntentId = urlParams.get('payment_intent');
-
             console.log('>>> Tack sayfasi yuklendi');
             console.log('>>> payment_intent:', paymentIntentId);
 
-            const statusBox = document.getElementById('status-box');
             const statusText = document.getElementById('status-text');
             const orderInfo = document.getElementById('order-info');
             const orderDetails = document.getElementById('order-details');
             const emailStatusDiv = document.getElementById('email-status');
 
-            // Supabase config
             var SUPABASE_URL = '';
             var SUPABASE_KEY = '';
-
             if (typeof CONFIG !== 'undefined' && CONFIG.SUPABASE) {
                 SUPABASE_URL = CONFIG.SUPABASE.URL;
                 SUPABASE_KEY = CONFIG.SUPABASE.ANON_KEY;
@@ -228,32 +86,22 @@
                 return;
             }
 
-            // Sepeti al
             function getCart() {
-                try {
-                    return JSON.parse(localStorage.getItem('siteCartItems')) || [];
-                } catch (e) {
-                    return [];
-                }
+                try { return JSON.parse(localStorage.getItem('siteCartItems')) || []; }
+                catch (e) { return []; }
+            }
+
+            function getCustomerData() {
+                try { return JSON.parse(localStorage.getItem('dkrug_checkout_customer')) || {}; }
+                catch (e) { return {}; }
             }
 
             const cart = getCart();
             console.log('>>> Sepet:', JSON.stringify(cart));
-
-            // Musteri bilgilerini al
-            function getCustomerData() {
-                try {
-                    return JSON.parse(localStorage.getItem('dkrug_checkout_customer')) || {};
-                } catch (e) {
-                    return {};
-                }
-            }
-
             const customer = getCustomerData();
             console.log('>>> Musteri:', JSON.stringify(customer));
 
             if (cart.length === 0) {
-                // Sepet bos = zaten kaydedilmis veya bos sepet
                 statusText.className = 'status-success';
                 statusText.innerHTML = '✅ Din beställning har bekräftats!';
                 if (paymentIntentId) {
@@ -263,21 +111,15 @@
                 return;
             }
 
-            // Toplam hesapla
             const total = cart.reduce((sum, item) => sum + (parseFloat(item.price) * (item.quantity || 1)), 0);
 
-            // ==========================================
-            // SİPARİŞ VERİSİ OLUŞTUR - HESAPLAYICI DESTEKLİ
-            // ==========================================
             const orderItems = cart.map(function(item) {
-                // Temel sipariş öğesi
                 const orderItem = {
                     id: item.id,
                     name: item.name,
                     price: parseFloat(item.price),
                     quantity: item.quantity || 1,
                     image: item.image || '',
-                    // HESAPLAYICI BILGILERINI EKLE
                     calculatorType: item.calculatorType || null,
                     calc_width_cm: item.calc_width_cm || item.en || null,
                     calc_length_cm: item.calc_length_cm || item.boy || null,
@@ -285,6 +127,7 @@
                     calc_form: item.calc_form || item.form || null,
                     calc_meters: item.calc_meters || item.metre || null,
                     calc_suspension: item.calc_suspension || item.suspension || null,
+                    calc_note: item.note || item.calc_note || null,
                     isM2: item.isM2 || false,
                     isGardin: item.isGardin || false,
                     en: item.en || null,
@@ -297,57 +140,60 @@
                     note: item.note || null
                 };
 
-                // VARYANT METNINI OLUSTUR
-                // Once hesaplayici verilerinden olustur, yoksa mevcut variant'i kullan
                 let variantText = 'Standard';
-
                 if (item.isM2 || item.calculatorType === 'm2') {
-                    // M2 urun: Olcu bilgisini goster
                     const width = item.en || item.calc_width_cm;
                     const length = item.boy || item.calc_length_cm;
                     const m2 = item.m2 || item.calc_m2;
                     const form = item.form || item.calc_form || 'Rektangulär';
-
                     if (width && length) {
                         variantText = width + '×' + length + ' cm (' + form + ') = ' + (m2 ? parseFloat(m2).toFixed(2) : '?') + ' m²';
                     } else if (item.size) {
                         variantText = item.size;
                     }
                 } else if (item.isGardin || item.calculatorType === 'gardin') {
-                    // Gardin urun: Olcu bilgisini goster
                     const width = item.en || item.calc_width_cm;
                     const length = item.boy || item.calc_length_cm;
                     const metres = item.metre || item.calc_meters;
                     const suspension = item.suspension || item.calc_suspension;
-
+                    const note = item.note || item.calc_note;
                     if (width && length) {
                         variantText = width + '×' + length + ' cm';
                         if (metres) variantText += ' | ' + metres + ' m';
                         if (suspension) variantText += ' | ' + suspension;
+                        if (note && note.trim() !== '') {
+                            variantText += '<br><span style="color:#666;font-size:12px;">📝 ' + note + '</span>';
+                        }
                     } else if (item.size) {
                         variantText = item.size;
                     }
-                } else {
-                    // Normal varyasyonlu urun
-                    if (Array.isArray(item.variants) && item.variants.length > 0) {
-                        variantText = item.variants[0].size || item.variants[0].name || 'Standard';
-                    } else if (typeof item.variants === 'string') {
-                        variantText = item.variants;
-                    } else if (typeof item.variants === 'object' && item.variants) {
-                        variantText = item.variants.size || item.variants.name || item.variants.color || 'Standard';
-                    } else if (typeof item.variant === 'string') {
-                        variantText = item.variant;
-                    } else if (typeof item.variant === 'object' && item.variant) {
-                        variantText = item.variant.size || item.variant.name || 'Standard';
-                    }
-                }
+                     } else {
+    // Normal varyasyonlu urun
+    let sizeText = 'Standard';
+    
+    if (Array.isArray(item.variants) && item.variants.length > 0) {
+        sizeText = item.variants[0].size || item.variants[0].name || 'Standard';
+    } else if (typeof item.variants === 'string') {
+        sizeText = item.variants;
+    } else if (typeof item.variants === 'object' && item.variants) {
+        sizeText = item.variants.size || item.variants.name || item.variants.color || 'Standard';
+    } else if (typeof item.variant === 'string') {
+        sizeText = item.variant;
+    } else if (typeof item.variant === 'object' && item.variant) {
+        sizeText = item.variant.size || item.variant.name || 'Standard';
+    }
+    
+    // ✅ RENK BILGISINI EKLE
+    variantText = sizeText;
+    if (item.color && item.color.trim() !== '') {
+        variantText += ' <span style="color:#888;">(' + item.color + ')</span>';
+    }
+}
 
                 orderItem.variant = variantText;
-
                 return orderItem;
             });
 
-            // Siparis verisi olustur
             const orderData = {
                 customer_name: (customer.firstName + ' ' + customer.lastName).trim() || 'Kund',
                 customer_email: customer.email || 'kund@example.com',
@@ -393,21 +239,12 @@
                 const orderId = result[0].id;
                 console.log('>>> ✅ Siparis kaydedildi! ID:', orderId);
 
-                // ==========================================
-                // EMAILJS ILE SIPARIS OZETI MAILI GONDER
-                // ==========================================
                 await sendOrderConfirmationEmail(customer, cart, total, orderId, paymentIntentId);
-
-                // ==========================================
-                // STOK DUSURME
-                // ==========================================
                 await updateStockAfterOrder(cart);
 
-                // Sepeti ve musteri bilgilerini temizle
                 localStorage.removeItem('siteCartItems');
                 localStorage.removeItem('dkrug_checkout_customer');
 
-                // UI guncelle
                 statusText.className = 'status-success';
                 statusText.innerHTML = '✅ Din beställning har sparats!';
 
@@ -428,26 +265,19 @@
             }
         }
 
-        // ==========================================
-        // STOK DUSURME FONKSIYONU
-        // ==========================================
         async function updateStockAfterOrder(cart) {
             try {
                 console.log('>>> Stok dusurme baslatiliyor...');
-
-                // Supabase config (global scope'dan al)
                 var SUPABASE_URL = '';
                 var SUPABASE_KEY = '';
                 if (typeof CONFIG !== 'undefined' && CONFIG.SUPABASE) {
                     SUPABASE_URL = CONFIG.SUPABASE.URL;
                     SUPABASE_KEY = CONFIG.SUPABASE.ANON_KEY;
                 }
-
                 if (!SUPABASE_URL || !SUPABASE_KEY) {
                     console.error('>>> Stok dusurme: Supabase config eksik');
                     return;
                 }
-
                 for (var i = 0; i < cart.length; i++) {
                     var item = cart[i];
                     var productId = item.id;
@@ -461,41 +291,28 @@
                     }
                     console.log('>>> Varyant bilgisi:', item.name, 'variant:', item.variant, 'variants:', JSON.stringify(item.variants), '-> secilen:', variantSize);
                     var quantity = item.quantity || 1;
-
                     if (!productId || !variantSize) {
                         console.log('>>> Urun ID veya varyant boyutu bulunamadi, atlaniyor:', item.name);
                         continue;
                     }
-
                     console.log('>>> Stok dusuruluyor:', item.name, 'Varyant:', variantSize, 'Adet:', quantity);
-
-                    // 1. Mevcut stogu ve variant ID'yi al
                     var variantRes = await fetch(SUPABASE_URL + '/rest/v1/product_variants?product_id=eq.' + productId + '&size=eq.' + encodeURIComponent(variantSize) + '&select=id,stock', {
                         method: 'GET',
-                        headers: {
-                            'apikey': SUPABASE_KEY,
-                            'Authorization': 'Bearer ' + SUPABASE_KEY
-                        }
+                        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
                     });
-
                     if (!variantRes.ok) {
                         console.error('>>> Variant bulunamadi:', item.name, variantSize);
                         continue;
                     }
-
                     var variants = await variantRes.json();
                     if (variants.length === 0) {
                         console.error('>>> Variant bulunamadi:', item.name, variantSize);
                         continue;
                     }
-
                     var variantId = variants[0].id;
                     var currentStock = variants[0].stock || 0;
                     var newStock = Math.max(0, currentStock - quantity);
-
                     console.log('>>> Mevcut stok:', currentStock, 'Yeni stok:', newStock);
-
-                    // 2. Stogu guncelle
                     var updateRes = await fetch(SUPABASE_URL + '/rest/v1/product_variants?id=eq.' + variantId, {
                         method: 'PATCH',
                         headers: {
@@ -506,34 +323,26 @@
                         },
                         body: JSON.stringify({ stock: newStock })
                     });
-
                     if (updateRes.ok) {
                         console.log('>>> ✅ Stok guncellendi:', item.name, '->', newStock, 'adet kaldi');
                     } else {
                         console.error('>>> Stok guncelleme hatasi:', item.name, await updateRes.text());
                     }
                 }
-
                 console.log('>>> ✅ Stok dusurme tamamlandi');
             } catch (err) {
                 console.error('>>> Stok dusurme hatasi:', err);
             }
         }
 
-        // ==========================================
-        // EMAILJS SIPARIS ONAY MAILI
-        // ==========================================
         async function sendOrderConfirmationEmail(customer, cart, total, orderId, paymentId) {
             const emailStatusDiv = document.getElementById('email-status');
-
             try {
-                // Urun listesini HTML tablo formatinda olustur
                 let itemsHtml = '<table style="width:100%;border-collapse:collapse;font-size:14px;">';
                 itemsHtml += '<thead><tr style="background:#f9fafb;"><th style="padding:8px;text-align:left;border:1px solid #e5e7eb;">Urun</th><th style="padding:8px;text-align:center;border:1px solid #e5e7eb;">Varyant</th><th style="padding:8px;text-align:center;border:1px solid #e5e7eb;">Adet</th><th style="padding:8px;text-align:right;border:1px solid #e5e7eb;">Fiyat</th></tr></thead><tbody>';
 
                 cart.forEach(function(item) {
                     const itemTotal = (parseFloat(item.price) * (item.quantity || 1)).toLocaleString('sv-SE');
-                    // Varyant bilgisini guvenli sekilde al - hesaplayici destekli
                     var variantText = 'Standard';
 
                     if (item.isM2 || item.calculatorType === 'm2') {
@@ -541,7 +350,6 @@
                         const length = item.boy || item.calc_length_cm;
                         const m2 = item.m2 || item.calc_m2;
                         const form = item.form || item.calc_form || 'Rektangulär';
-
                         if (width && length) {
                             variantText = width + '×' + length + ' cm (' + form + ') = ' + (m2 ? parseFloat(m2).toFixed(2) : '?') + ' m²';
                         } else if (item.size) {
@@ -552,28 +360,41 @@
                         const length = item.boy || item.calc_length_cm;
                         const metres = item.metre || item.calc_meters;
                         const suspension = item.suspension || item.calc_suspension;
-
+                        const note = item.note || item.calc_note;
                         if (width && length) {
                             variantText = width + '×' + length + ' cm';
                             if (metres) variantText += ' | ' + metres + ' m';
                             if (suspension) variantText += ' | ' + suspension;
+                            if (note && note.trim() !== '') {
+                                variantText += '<br><small style="color:#888;">Not: ' + note + '</small>';
+                            }
                         } else if (item.size) {
                             variantText = item.size;
                         }
-                    } else {
-                        // Normal varyasyon
-                        if (Array.isArray(item.variants) && item.variants.length > 0) {
-                            variantText = item.variants[0].size || item.variants[0].name || 'Standard';
-                        } else if (typeof item.variants === 'string') {
-                            variantText = item.variants;
-                        } else if (typeof item.variants === 'object' && item.variants) {
-                            variantText = item.variants.size || item.variants.name || 'Standard';
-                        } else if (typeof item.variant === 'string') {
-                            variantText = item.variant;
-                        } else if (typeof item.variant === 'object' && item.variant) {
-                            variantText = item.variant.size || item.variant.name || 'Standard';
-                        }
-                    }
+                           } else {
+    // Normal varyasyonlu urun
+    let sizeText = 'Standard';
+    
+    if (Array.isArray(item.variants) && item.variants.length > 0) {
+        sizeText = item.variants[0].size || item.variants[0].name || 'Standard';
+    } else if (typeof item.variants === 'string') {
+        sizeText = item.variants;
+    } else if (typeof item.variants === 'object' && item.variants) {
+        sizeText = item.variants.size || item.variants.name || item.variants.color || 'Standard';
+    } else if (typeof item.variant === 'string') {
+        sizeText = item.variant;
+    } else if (typeof item.variant === 'object' && item.variant) {
+        sizeText = item.variant.size || item.variant.name || 'Standard';
+    }
+    
+    // ✅ RENK BILGISINI EKLE
+    variantText = sizeText;
+    if (item.color && item.color.trim() !== '') {
+        variantText += ' <span style="color:#888;">(' + item.color + ')</span>';
+    }
+}
+    
+     
 
                     itemsHtml += '<tr>' +
                         '<td style="padding:8px;border:1px solid #e5e7eb;">' + (item.name || 'Urun') + '</td>' +
@@ -584,8 +405,7 @@
                 });
                 itemsHtml += '</tbody></table>';
 
-                // EmailJS template parametreleri (senin template'ine gore)
-                const templateParams = {
+                    const templateParams = {
                     customer_email: customer.email || 'kund@example.com',
                     customer_name: (customer.firstName + ' ' + customer.lastName).trim() || 'Kund',
                     order_id: orderId,
@@ -595,10 +415,8 @@
                     payment_method: 'Stripe',
                     customer_address: (customer.address ? (customer.address + ', ' + customer.postcode + ' ' + customer.city).trim() : 'Sverige'),
                     customer_phone: customer.phone || 'N/A',
-                    tracking_link: 'https://www.dekorist.se/orders/' + orderId + '
-
-(Du kommer att få ett separat mail med spårningsinformation när din beställning skickas.)'
-                };
+                    tracking_link: 'https://www.dekorist.se/orders/' + orderId + '\\n\\n(Du kommer att få ett separat mail med spårningsinformation när din beställning skickas.)'
+                };  // ← BU SATIR EKSİKTİ!
 
                 console.log('>>> EmailJS gonderiliyor...', JSON.stringify(templateParams));
 
@@ -622,7 +440,6 @@
             }
         }
 
-        // Sayfa yuklenince calistir
         saveOrderAfterPayment();
     </script>
 </body>
