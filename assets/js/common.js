@@ -935,3 +935,57 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+
+// ==========================================
+// HEADER HIDE/SHOW ON SCROLL
+// Sayfa asagi inerken header gizlenir, yukari cikarken gorunur
+// ==========================================
+
+(function() {
+    let lastScrollY = window.scrollY;
+    let ticking = false;
+    
+    const header = document.querySelector('.main-header');
+    const topBar = document.querySelector('.top-bar');
+    
+    if (!header) {
+        console.warn('[HeaderScroll] .main-header bulunamadi!');
+        return;
+    }
+    
+    function updateHeader() {
+        const currentScrollY = window.scrollY;
+        const topBarHeight = topBar ? topBar.offsetHeight : 0;
+        
+        // Top bar'in altindan gecince basla
+        if (currentScrollY > topBarHeight + 10) {
+            // Asagi scroll → header gizle
+            if (currentScrollY > lastScrollY && currentScrollY > 50) {
+                header.classList.add('hidden');
+                header.classList.remove('visible');
+            } 
+            // Yukari scroll → header goster
+            else {
+                header.classList.remove('hidden');
+                header.classList.add('visible');
+            }
+        } else {
+            // En ustteyken her zaman goster
+            header.classList.remove('hidden');
+            header.classList.add('visible');
+        }
+        
+        lastScrollY = currentScrollY;
+        ticking = false;
+    }
+    
+    window.addEventListener('scroll', function() {
+        if (!ticking) {
+            window.requestAnimationFrame(updateHeader);
+            ticking = true;
+        }
+    }, { passive: true });
+    
+    console.log('[HeaderScroll] Header scroll efekti aktif!');
+})();

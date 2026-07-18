@@ -479,3 +479,4 @@ if (item.isGardin && item.note && item.note.trim() !== '') {
 
     checkFormValidity();
 });
+
