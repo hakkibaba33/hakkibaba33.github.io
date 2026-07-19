@@ -48,12 +48,6 @@
     }
 }
 
-
-
-
-
-
-
 /* ============================================
    MODERN FILTRE MENU (Ana Panel)
    ============================================ */
@@ -153,6 +147,8 @@
     cursor: pointer;
     transition: var(--dk-transition);
     padding: 0;
+    /* SVG ikonun düzgün hizalanması için */
+    line-height: 1;
 }
 
 .back-to-main:hover {
@@ -177,6 +173,7 @@
     flex: 1;
     overflow: hidden;
     direction: ltr;
+    padding: 0 20px;
 }
 
 .drawer-panel {
@@ -360,7 +357,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-top: 10px;
+    margin-top: 3px;
 }
 
 .product-colors-swatches {
@@ -645,7 +642,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-bottom: 8px;
+    margin-bottom: 2px;
     flex-wrap: wrap;
 }
 
@@ -747,17 +744,26 @@
     padding: 0px 0;
 } 
 
-#filter-sidebar {
+#filter-sidebar.filter-drawer {
     position: fixed;
     top: 0;
     left: -100%;
-    width: 450px;
+    width: 420px;
+    max-width: 95vw;
     height: 100%;
     background: var(--dk-white);
     z-index: 99999;
-    transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
     box-shadow: 10px 0 30px rgba(0,0,0,0.1);
-    padding: 30px;
+    direction: ltr;
+    padding: 20px;
+    padding-top: 20px;
+}
+
+#filter-sidebar.filter-drawer.active {
+    left: 0;
 }
 
 #filter-sidebar.active { left: 0; }
@@ -767,7 +773,7 @@
     top: 0;
     right: -100%;
     width: 100%;
-    max-width: 450px;
+    max-width: 520px;
     height: 100%;
     background: var(--dk-white);
     z-index: 99999;
@@ -784,10 +790,14 @@
     display: flex !important;
     justify-content: space-between !important;
     align-items: center !important;
-    padding: 15px 15px !important;
+    padding: 22px 25px !important;
     direction: ltr !important;
     border-bottom: 1px solid var(--dk-border) !important; 
-    background: linear-gradient(135deg, var(--dk-primary), #2d2d2d);
+    background: linear-gradient(135deg, var(--dk-accent), #2d2d2d);
+    position: sticky;      /* YENİ EKLENDİ */
+    top: 0;                /* YENİ EKLENDİ */
+    z-index: 100;          /* YENİ EKLENDİ */
+    flex-shrink: 0;        /* YENİ EKLENDİ */
 }
 
 .drawer-header h3 {
@@ -1135,13 +1145,6 @@ body.modal-open {
     display: none;
 }
 
-.sort-radio-item input[type="radio"]:checked + .radio-custom::after {
-    content: "\f00c";
-    font-family: "Font Awesome 6 Free";
-    font-weight: 900;
-    color: var(--dk-accent);
-}
-
 /* Ana sayfadaki Sortera butonu */
 #sort-menu-btn.sort-trigger {
     background: transparent !important;
@@ -1316,6 +1319,85 @@ body.modal-open {
     }
 }
 
+/* ============================================
+   SEO "LAS MER" BUTONU — MODERN ALT CIZGILI
+   ============================================ */
+
+.seo-text-body {
+    max-height: 160px;
+    overflow: hidden;
+    position: relative;
+    transition: max-height 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.seo-text-body.expanded {
+    max-height: 4000px;
+}
+
+/* Altta gradient fade efekti */
+.seo-text-body::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 80px;
+    background: linear-gradient(to bottom, transparent, var(--dk-secondary));
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.seo-text-body.expanded::after {
+    opacity: 0;
+}
+
+/* Buton container — ortalama icin */
+.seo-read-more-wrapper {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.seo-read-more-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 0 4px 0;
+    background: none;
+    border: none;
+    border-bottom: 2px solid var(--dk-accent);
+    color: var(--dk-accent);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: var(--dk-font-body);
+    letter-spacing: 0.5px;
+}
+
+.seo-read-more-btn:hover {
+    color: var(--dk-primary);
+    border-bottom-color: var(--dk-primary);
+}
+
+.seo-read-more-btn .seo-arrow-icon {
+    transition: transform 0.3s ease;
+}
+
+.seo-read-more-btn.active .seo-arrow-icon {
+    transform: rotate(180deg);
+}
+
+/* Mobil */
+@media (max-width: 768px) {
+    .seo-text-body {
+        max-height: 120px;
+    }
+    
+    .seo-read-more-btn {
+        font-size: 14px;
+    }
+}
+
 /* ============================================================
    MOBIL OPTIMIZASYONU
    ============================================================ */
@@ -1361,7 +1443,7 @@ body.modal-open {
     position: fixed;
     top: 0;
     left: -100%;
-    width: 320px;
+    width: 420px;
     max-width: 90%;
     height: 100%;
     background: var(--dk-white);
@@ -1465,8 +1547,8 @@ body.modal-open {
 #close-filter-sidebar, 
 #close-sort-drawer, 
 .close-btn {
-    background-color: var(--dk-white) !important;
-    color: var(--dk-text) !important;
+    background-color: transparent !important;
+    color: #ffffff;
     border: none !important;
     box-shadow: none !important;
     outline: none !important;

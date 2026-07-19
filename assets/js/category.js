@@ -635,7 +635,7 @@ function createProductCard(product, isWishlisted) {
             mainHTML += `
                 <div class="filter-menu-item" data-filter-type="color">
                     <div class="filter-menu-content">
-                        <span class="filter-menu-label">Farg</span>
+                        <span class="filter-menu-label">Färg</span>
                         <div class="filter-menu-preview" id="color-preview"></div>
                     </div>
                     <i class="fa-solid fa-chevron-right"></i>
@@ -677,8 +677,8 @@ function createProductCard(product, isWishlisted) {
             colorSubPanel.innerHTML = `
                 <div class="sub-panel-header">
                     <button class="back-to-main" data-target="color">
-                        <i class="fa-solid fa-arrow-left"></i>
-                        <span>Farg</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                    <span>Färg</span>
                     </button>
                     <span class="sub-panel-count" id="color-sub-count">0 valda</span>
                 </div>
@@ -705,10 +705,10 @@ function createProductCard(product, isWishlisted) {
         if (sizeSubPanel && allSizes.length > 0) {
             sizeSubPanel.innerHTML = `
                 <div class="sub-panel-header">
-                    <button class="back-to-main" data-target="size">
-                        <i class="fa-solid fa-arrow-left"></i>
-                        <span>Storlek</span>
-                    </button>
+                  <button class="back-to-main" data-target="size">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                  <span>Storlek</span>
+                </button>
                     <span class="sub-panel-count" id="size-sub-count">0 valda</span>
                 </div>
                 <div class="size-filter-grid">
@@ -733,10 +733,10 @@ function createProductCard(product, isWishlisted) {
         if (widthSubPanel && showWidthFilter) {
             widthSubPanel.innerHTML = `
                 <div class="sub-panel-header">
-                    <button class="back-to-main" data-target="width">
-                        <i class="fa-solid fa-arrow-left"></i>
-                        <span>Bredd</span>
-                    </button>
+                  <button class="back-to-main" data-target="width">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                  <span>Bredd</span>
+                </button>
                     <span class="sub-panel-count" id="width-sub-count">0 valda</span>
                 </div>
                 <div class="size-filter-grid">
@@ -836,11 +836,23 @@ function createProductCard(product, isWishlisted) {
         }
 
         // Sub panel counts
-        const colorSubCount = document.getElementById('color-sub-count');
-        if (colorSubCount) colorSubCount.textContent = filterState.colors.length + ' valda';
-        
-        const sizeSubCount = document.getElementById('size-sub-count');
+              const sizeSubCount = document.getElementById('size-sub-count');
         if (sizeSubCount) sizeSubCount.textContent = filterState.sizes.length + ' valda';
+        
+        // Bredd sub panel count
+        const widthSubCount = document.getElementById('width-sub-count');
+        if (widthSubCount) widthSubCount.textContent = filterState.widths.length + ' valda';
+        
+        // Width count badge (ana panel)
+        const widthCount = document.getElementById('width-count');
+        if (widthCount) {
+            if (filterState.widths.length > 0) {
+                widthCount.textContent = filterState.widths.length;
+                widthCount.style.display = 'inline-flex';
+            } else {
+                widthCount.style.display = 'none';
+            }
+        }
     }
 
     function applyFilters() {

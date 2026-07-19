@@ -499,9 +499,9 @@
 }
 
 .variant-accordion-header .accordion-subtitle {
-    font-size: 12px;
+    font-size: 15px;
     color: var(--dk-text-light);
-    font-weight: 400;
+    font-weight: 600;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;

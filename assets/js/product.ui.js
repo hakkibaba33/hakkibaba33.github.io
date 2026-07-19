@@ -1473,7 +1473,7 @@ function updateSliderButtons() {
         if (accordionStatus) {
             if (selectedVariant) {
                 accordionStatus.style.display = 'inline';
-                accordionStatus.textContent = 'Vald';
+                accordionStatus.textContent = '';
             } else {
                 accordionStatus.style.display = 'none';
             }

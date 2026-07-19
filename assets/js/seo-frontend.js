@@ -1,6 +1,7 @@
 // ==========================================
-// FRONTEND SEO CONTENT LOADER v3
-// Debug modlu, hata yakalama
+// FRONTEND SEO CONTENT LOADER v4.1
+// "Läs mer" / "Visa mindre" butonu eklendi
+// FIX: Cache buster header'a taşındı
 // ==========================================
 
 async function loadSeoContentForPage(pageSlug) {
@@ -9,8 +10,6 @@ async function loadSeoContentForPage(pageSlug) {
 
     console.log('[SEO] Başlatılıyor...');
     console.log('[SEO] pageSlug:', pageSlug);
-    console.log('[SEO] container:', container);
-    console.log('[SEO] inner:', inner);
 
     if (!container || !inner) {
         console.error('[SEO] container veya inner bulunamadı!');
@@ -20,41 +19,32 @@ async function loadSeoContentForPage(pageSlug) {
     const SUPABASE_URL = window.SUPABASE_URL || 'https://mowyhsssmpjrwxzvelax.supabase.co';
     const SUPABASE_KEY = window.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1vd3loc3NzbXBqcnd4enZlbGF4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMxNTAyODUsImV4cCI6MjA5ODcyNjI4NX0.7cfd5Ikx7nS0GqomBS3axiJ20Jz6X9h3Yk_j6Kg3lF8';
 
-    console.log('[SEO] SUPABASE_URL:', SUPABASE_URL);
-
     try {
-        // URL oluştur
         const url = new URL(SUPABASE_URL + '/rest/v1/seo_content');
         url.searchParams.append('page_slug', 'eq.' + pageSlug);
-        url.searchParams.append('is_active', 'eq.true');
+        url.searchParams.append('active', 'eq.true');
         url.searchParams.append('select', '*');
         url.searchParams.append('order', 'sort_order.asc');
-
-        console.log('[SEO] API URL:', url.toString());
 
         const res = await fetch(url, {
             headers: {
                 'apikey': SUPABASE_KEY,
                 'Authorization': 'Bearer ' + SUPABASE_KEY,
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Cache-Control': 'no-cache',           // Cache buster
+                'Pragma': 'no-cache'                   // Cache buster
             }
         });
 
-        console.log('[SEO] Response status:', res.status);
-        console.log('[SEO] Response ok:', res.ok);
-
         if (!res.ok) {
             const errText = await res.text();
-            console.error('[SEO] API Hatası:', res.status, errText);
             throw new Error('API Hatası: ' + res.status + ' - ' + errText);
         }
 
         const items = await res.json();
-        console.log('[SEO] Gelen veri sayısı:', items.length);
-        console.log('[SEO] Gelen veri:', items);
+        console.log('[SEO] Gelen items:', items);
 
         if (items.length === 0) {
-            console.log('[SEO] Veri bulunamadı, section gizleniyor');
             container.style.display = 'none';
             return;
         }
@@ -65,7 +55,6 @@ async function loadSeoContentForPage(pageSlug) {
         // Meta tag'leri güncelle
         if (item.title) {
             document.title = item.title;
-            console.log('[SEO] Title güncellendi:', item.title);
         }
 
         let metaDesc = document.querySelector('meta[name="description"]');
@@ -73,26 +62,50 @@ async function loadSeoContentForPage(pageSlug) {
             metaDesc = document.createElement('meta');
             metaDesc.setAttribute('name', 'description');
             document.head.appendChild(metaDesc);
-            console.log('[SEO] Meta description tag oluşturuldu');
         }
         if (item.meta_description) {
             metaDesc.setAttribute('content', item.meta_description);
-            console.log('[SEO] Meta description güncellendi:', item.meta_description);
         }
 
-        // İçeriği render et
+        // İçeriği "Läs mer" butonu ile render et
         const contentHtml = items.map(i => i.content).join('\n');
+        console.log('[SEO] Content HTML:', contentHtml.substring(0, 100) + '...');
+
         inner.innerHTML = `
-            <h2>${item.title}</h2>
-            <div class="seo-body">
+            <h2 class="seo-title">${item.title}</h2>
+            <div class="seo-text-body" id="seo-text-body">
                 ${contentHtml}
             </div>
+            <div class="seo-read-more-wrapper">
+                <button class="seo-read-more-btn" id="seo-read-more-btn" onclick="toggleSeoContent()">
+                    Läs mer
+                </button>
+            </div>
         `;
+        
         container.style.display = 'block';
         console.log('[SEO] İçerik render edildi ✓');
 
     } catch (e) {
         console.error('[SEO] HATA:', e);
         container.style.display = 'none';
+    }
+}
+
+// "Läs mer" / "Visa mindre" toggle
+function toggleSeoContent() {
+    const body = document.getElementById('seo-text-body');
+    const btn = document.getElementById('seo-read-more-btn');
+    
+    if (!body || !btn) return;
+    
+    const isExpanded = body.classList.toggle('expanded');
+    btn.classList.toggle('active', isExpanded);
+    
+    if (isExpanded) {
+        btn.innerHTML = `Visa mindre`;
+    } else {
+        btn.innerHTML = `Läs mer`;
+        document.getElementById('seo-content')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 }
