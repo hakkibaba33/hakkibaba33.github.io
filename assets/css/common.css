@@ -8,7 +8,7 @@
 :root {
     --dk-primary: #1a1a1a;
     --dk-secondary: #f5f0eb;
-    --dk-accent: #c9a96e;
+    --dk-accent: #b1996c;
     --dk-accent-hover: #b8945a;
     --dk-text: #333333;
     --dk-text-light: #666666;
@@ -114,8 +114,8 @@ body.no-scroll {
 }
 
 .top-bar-item img {
-    width: 16px;
-    height: 16px;
+    width: 28px;
+    height: 28px;
     flex-shrink: 0;
 }
 
@@ -1838,7 +1838,6 @@ body.no-scroll {
 }
 
 @media (max-width: 768px) {
-    .top-bar-left { display: none; }
     .top-bar-inner { justify-content: center; }
 
     .header-main { 

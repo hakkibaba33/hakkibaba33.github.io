@@ -30,10 +30,10 @@ function isReaPage() {
 function updatePageTitle(category) {
     const titleMap = {
         'mattor': 'Mattor',
+        'metervara': 'Metervara',
+        'gangmattor': 'Gångmattor',
+        'badrumsmattor': 'Badrumsmattor',
         'gardiner': 'Gardiner',
-        'mobler': 'Möbler',
-        'belysning': 'Belysning',
-        'dekoration': 'Dekoration',
         'rea': 'REA',
         'kontakt': 'Kontakt'
     };
@@ -320,23 +320,43 @@ document.addEventListener('DOMContentLoaded', async () => {
                 product_variants: variants.filter(v => v.product_id === p.id)
             }));
 
-            allProducts = data.map(product => ({
-                id: product.id,
-                name: product.name || 'Urun',
-                price: getDisplayPrice(product),
-                base_price: product.base_price || 0,
-                discount_price: product.discount_price || null,
-                image: product.images && product.images[0] ? product.images[0] : '',
-                slug: product.slug || '',
-                description: product.description || '',
-                variants: product.product_variants || [],
-                colors: product.colors || [],
-                sizes: product.product_variants ? product.product_variants.map(v => v.size) : [],
-                stock: product.product_variants && product.product_variants.length > 0 
-                    ? (product.product_variants.some(v => v.stock > 0) ? 'In Stock' : 'Out of Stock')
-                    : 'In Stock',
-                delivery_time: product.delivery_time || '3-7 arbetsdagar'
-            }));
+                         allProducts = data.map(product => {
+                let productVariants = product.product_variants || [];
+                
+                // 🔥 YENİ: Basit ürünlerde simple_size varsa varyasyona dönüştür
+                if (productVariants.length === 0 && product.simple_size) {
+                    productVariants = [{
+                        size: product.simple_size,
+                        color: null,
+                        price: product.base_price || 0,
+                        discount_price: product.discount_price || null,
+                        stock: 999
+                    }];
+                }
+                
+                return {
+                    id: product.id,
+                    name: product.name || 'Urun',
+                    price: getDisplayPrice(product),
+                    base_price: product.base_price || 0,
+                    discount_price: product.discount_price || null,
+                    image: product.images && product.images[0] ? product.images[0] : '',
+                    slug: product.slug || '',
+                    description: product.description || '',
+                    variants: productVariants,
+                    colors: product.colors || [],
+                    sizes: productVariants.map(v => v.size),
+                    measurements: product.measurements || [],
+                    m2_available_widths: product.m2_available_widths || [],
+                    m2_calculator_active: product.m2_calculator_active || false,
+                    gardin_measurements: product.gardin_measurements || [],
+                    gardin_calculator_active: product.gardin_calculator_active || false,
+                    stock: productVariants.length > 0 
+                        ? (productVariants.some(v => v.stock > 0) ? 'In Stock' : 'Out of Stock')
+                        : 'In Stock',
+                    delivery_time: product.delivery_time || '3-7 arbetsdagar'
+                };
+            });
 
             filteredProducts = [...allProducts];
 
@@ -360,23 +380,57 @@ document.addEventListener('DOMContentLoaded', async () => {
              } 
             }   
 
-    function getVariantDisplayText(product) {
-        const variants = product.variants || [];
-        if (variants.length === 0) return '';
+  function getVariantDisplayText(product) {
+    // 1. ONCELIK: M2 Hesaplayici (Hali) - m2_available_widths
+    const m2Widths = product.m2_available_widths || [];
+    if (product.m2_calculator_active && m2Widths.length > 0) {
+        const firstWidth = m2Widths[0];
+        const extraCount = m2Widths.length - 1;
 
-        const firstSize = variants[0].size || '';
-        const extraCount = variants.length - 1;
-
-        if (variants.length === 1) {
-            // Tek varyasyon - sadece boyut
-            return `<span class="variant-single">${firstSize}</span>`;
+        if (m2Widths.length === 1) {
+            return `<span class="variant-main">${firstWidth} cm</span>`;
         }
-
-        // Çoklu varyasyon - boyut + badge
-        return `<span class="variant-main">${firstSize}</span><span class="variant-extra-badge">+${extraCount} storlekar</span>`;
+        return `<span class="variant-main">${firstWidth} cm</span><span class="variant-extra-badge">+${extraCount} storlek</span>`;
     }
 
-    function renderProducts(append = false) {
+    // 2. IKINCI ONCELIK: Gardin Hesaplayici (Perde) - gardin_measurements
+    const gardinMeasurements = product.gardin_measurements || [];
+    if (product.gardin_calculator_active && gardinMeasurements.length > 0) {
+        const firstMeasurement = gardinMeasurements[0].replace('x', '×');
+        const extraCount = gardinMeasurements.length - 1;
+
+        if (gardinMeasurements.length === 1) {
+            return `<span class="variant-main">${firstMeasurement} cm</span>`;
+        }
+        return `<span class="variant-main">${firstMeasurement} cm</span><span class="variant-extra-badge">+${extraCount} storlek</span>`;
+    }
+
+    // 3. UcUNCU ONCELIK: measurements varsa goster (perde/metre urunleri - legacy)
+    const measurements = product.measurements || [];
+    if (measurements.length > 0) {
+        const firstMeasurement = measurements[0];
+        const extraCount = measurements.length - 1;
+
+        if (measurements.length === 1) {
+            return `<span class="variant-main">${firstMeasurement}</span>`;
+        }
+        return `<span class="variant-main">${firstMeasurement}</span><span class="variant-extra-badge">+${extraCount} storlekar</span>`;
+    }
+
+    // 4. SON ONCELIK: varyasyonlari goster (boyutlu urunler - eski davranis)
+    const variants = product.variants || [];
+    if (variants.length === 0) return '';
+
+    const firstSize = variants[0].size || '';
+    const extraCount = variants.length - 1;
+
+    if (variants.length === 1) {
+        return `<span class="variant-main">${firstSize}</span>`;
+    }
+    return `<span class="variant-main">${firstSize}</span><span class="variant-extra-badge">+${extraCount} storlekar</span>`;
+}
+
+function renderProducts(append = false) {
         if (!append) {
             grid.innerHTML = '';
             currentPage = 0;
@@ -436,11 +490,13 @@ function createProductCard(product, isWishlisted) {
                          onerror="this.style.display='none'">
                 </a>
                 ${hasDiscount ? '<span class="discount-badge">REA</span>' : ''}
-                <button class="wishlist-btn ${isWishlisted ? 'active' : ''}" 
-                        data-product-id="${String(product.id)}"
-                        aria-label="Lagg till favoriter">
-                    <i class="${isWishlisted ? 'fa-solid' : 'fa-regular'} fa-heart"></i>
-                </button>
+               <button class="wishlist-btn ${isWishlisted ? 'active' : ''}" 
+               data-product-id="${String(product.id)}"
+               aria-label="Lagg till favoriter">
+               <svg class="heart-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+               <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+               </svg>
+               </button>
             </div>
             <div class="product-info">
                 <h3 class="product-title">${product.name}</h3>
@@ -500,14 +556,21 @@ function createProductCard(product, isWishlisted) {
         if (index > -1) {
             wishlist.splice(index, 1);
             btn.classList.remove('active');
-            const icon = btn.querySelector('i');
-            if (icon) icon.className = 'fa-regular fa-heart';
+            const icon = btn.querySelector('.heart-icon');
+            if (icon) {
+            icon.style.fill = 'none';
+            icon.style.stroke = 'currentColor';
+           }
+            
             console.log('Favorilerden kaldirildi:', product.name);
         } else {
             wishlist.push({ id: product.id, name: product.name, price: product.price, image: product.image });
             btn.classList.add('active');
-            const icon = btn.querySelector('i');
-            if (icon) icon.className = 'fa-solid fa-heart';
+            const icon = btn.querySelector('.heart-icon');
+            if (icon) {
+            icon.style.fill = '#D30000';
+            icon.style.stroke = '#D30000';
+         }
             console.log('Favorilere eklendi:', product.name);
         }
 
@@ -535,7 +598,8 @@ function createProductCard(product, isWishlisted) {
     
     let filterState = {
         colors: [],
-        sizes: []
+        sizes: [],
+        widths: []
     };
 
     function generateFilters() {
@@ -547,6 +611,18 @@ function createProductCard(product, isWishlisted) {
             };
             return getArea(a) - getArea(b);
         });
+
+        // 🔥 YENİ: M² halı genişliklerini topla (sadece m2_calculator_active olan ürünlerden)
+        const allWidths = [...new Set(allProducts.flatMap(p => {
+            if (p.m2_calculator_active && p.m2_available_widths && p.m2_available_widths.length > 0) {
+                return p.m2_available_widths.map(w => String(w));
+            }
+            return [];
+        }))].filter(Boolean).sort((a, b) => parseInt(a) - parseInt(b));
+
+        // Bredd filtresi gösterimi: allWidths zaten sadece m2_calculator_active ürünlerden toplanıyor
+        // Yani herhangi bir kategoride M² hesaplayıcı ürün varsa Bredd gösterilecek
+        const showWidthFilter = allWidths.length > 0;
 
         const mainPanel = document.getElementById('main-panel');
         if (!mainPanel) return;
@@ -574,6 +650,19 @@ function createProductCard(product, isWishlisted) {
                     <div class="filter-menu-content">
                         <span class="filter-menu-label">Storlek</span>
                         <span class="filter-menu-count" id="size-count" style="display:none;">0</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right"></i>
+                </div>
+            `;
+        }
+
+        // Bredd (Genişlik) kategorisi - SADECE mattor kategorisinde göster
+        if (showWidthFilter) {
+            mainHTML += `
+                <div class="filter-menu-item" data-filter-type="width">
+                    <div class="filter-menu-content">
+                        <span class="filter-menu-label">Bredd</span>
+                        <span class="filter-menu-count" id="width-count" style="display:none;">0</span>
                     </div>
                     <i class="fa-solid fa-chevron-right"></i>
                 </div>
@@ -639,6 +728,34 @@ function createProductCard(product, isWishlisted) {
             `;
         }
 
+        // --- ALT PANEL: Bredd (Genişlik) grid - SADECE mattor kategorisinde ---
+        const widthSubPanel = document.getElementById('width-sub-panel');
+        if (widthSubPanel && showWidthFilter) {
+            widthSubPanel.innerHTML = `
+                <div class="sub-panel-header">
+                    <button class="back-to-main" data-target="width">
+                        <i class="fa-solid fa-arrow-left"></i>
+                        <span>Bredd</span>
+                    </button>
+                    <span class="sub-panel-count" id="width-sub-count">0 valda</span>
+                </div>
+                <div class="size-filter-grid">
+                    ${allWidths.map(width => `
+                        <div class="size-item">
+                            <input type="checkbox" 
+                                   class="filter-input" 
+                                   id="width-${width}" 
+                                   value="${width}" 
+                                   data-type="width">
+                            <label class="size-box" for="width-${width}">
+                                <span class="size-text">${width} cm</span>
+                            </label>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
         // Event listener'lari ekle
         setupFilterEvents();
     }
@@ -689,6 +806,7 @@ function createProductCard(product, isWishlisted) {
     function updateFilterState() {
         filterState.colors = Array.from(document.querySelectorAll('input[data-type="color"]:checked')).map(el => el.value);
         filterState.sizes = Array.from(document.querySelectorAll('input[data-type="size"]:checked')).map(el => el.value);
+        filterState.widths = Array.from(document.querySelectorAll('input[data-type="width"]:checked')).map(el => el.value);
     }
 
     function updateFilterPreview() {
@@ -728,17 +846,24 @@ function createProductCard(product, isWishlisted) {
     function applyFilters() {
         const checkedColors = filterState.colors;
         const checkedSizes = filterState.sizes;
+        const checkedWidths = filterState.widths;
 
         filteredProducts = allProducts.filter(product => {
             const colorMatch = checkedColors.length === 0 || product.colors.some(c => checkedColors.includes(c));
             const sizeMatch = checkedSizes.length === 0 || product.sizes.some(s => checkedSizes.includes(s));
-            return colorMatch && sizeMatch;
+            // Width filtresi: Ürün m2_calculator_active ise ve m2_available_widths içinde seçili genişlik varsa
+            const widthMatch = checkedWidths.length === 0 || (
+                product.m2_calculator_active && 
+                product.m2_available_widths && 
+                product.m2_available_widths.some(w => checkedWidths.includes(String(w)))
+            );
+            return colorMatch && sizeMatch && widthMatch;
         });
 
         currentPage = 0;
         renderProducts();
         updateProgress();
-        updateFilterBadge(checkedColors.length + checkedSizes.length);
+        updateFilterBadge(checkedColors.length + checkedSizes.length + checkedWidths.length);
     }
 
     function updateFilterBadge(count) {
@@ -763,7 +888,7 @@ function createProductCard(product, isWishlisted) {
             radio.checked = radio.value === 'default';
         });
 
-        filterState = { colors: [], sizes: [] };
+        filterState = { colors: [], sizes: [], widths: [] };
         filteredProducts = [...allProducts];
         currentPage = 0;
 

@@ -491,25 +491,32 @@
     border: none !important;
     z-index: 5;
     transition: var(--dk-transition);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
 }
 
-.wishlist-btn i { 
-    font-size: 1.3rem;
+.wishlist-btn .heart-icon {
+    width: 1.3rem;
+    height: 1.3rem;
     color: var(--dk-primary);
-    text-shadow: 0 0 2px var(--dk-white);
+    filter: drop-shadow(0 0 2px var(--dk-white));
     transition: var(--dk-transition);
 }
 
-.wishlist-btn.active i {
+.wishlist-btn.active .heart-icon {
     color: #D30000 !important;
-    font-weight: 900;
+    fill: #D30000;
+    stroke: #D30000;
 }
 
 .wishlist-btn:hover {
     transform: scale(1.15);
 }
 
-.wishlist-btn:hover i {
+.wishlist-btn:hover .heart-icon {
     color: var(--dk-accent);
 }
 
@@ -1490,3 +1497,4 @@ body.modal-open {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
+

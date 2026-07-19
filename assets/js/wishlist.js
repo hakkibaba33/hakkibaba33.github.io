@@ -1,4 +1,58 @@
 // ==========================================
+// RENK EŞLEŞTİRME (category.js'den kopyala)
+// ==========================================
+const COLOR_MAP = {
+    'rod': '#D32F2F', 'röd': '#D32F2F', 'red': '#D32F2F',
+    'bla': '#1976D2', 'blå': '#1976D2', 'blue': '#1976D2',
+    'gron': '#388E3C', 'grön': '#388E3C', 'green': '#388E3C',
+    'gul': '#FBC02D', 'yellow': '#FBC02D',
+    'orange': '#F57C00',
+    'rosa': '#E91E63', 'pink': '#E91E63',
+    'lila': '#7B1FA2', 'purple': '#7B1FA2',
+    'svart': '#212121', 'black': '#212121',
+    'vit': '#FAFAFA', 'white': '#FAFAFA',
+    'grå': '#9E9E9E', 'gra': '#9E9E9E', 'grey': '#9E9E9E', 'gray': '#9E9E9E',
+    'brun': '#5D4037', 'brown': '#5D4037',
+    'beige': '#D7CCC8',
+    'turkos': '#00BCD4', 'turquoise': '#00BCD4',
+    'guld': '#FFD700', 'gold': '#FFD700',
+    'silver': '#C0C0C0',
+    'bronze': '#CD7F32', 'brons': '#CD7F32',
+    'krem': '#FFF8E1', 'cream': '#FFF8E1',
+    'oliv': '#556B2F', 'olive': '#556B2F',
+    'marin': '#1A237E', 'navy': '#1A237E', 'marinblå': '#1A237E',
+    'mint': '#98FF98',
+    'korall': '#FF7F50', 'coral': '#FF7F50',
+    'vinröd': '#722F37', 'bordo': '#722F37', 'burgundy': '#722F37',
+    'taupe': '#483C32',
+    'mullvad': '#8B7355',
+    'flerfargad': 'linear-gradient(135deg, #FF6B6B, #4ECDC4, #45B7D1, #96CEB4)', 
+    'flerfärgad': 'linear-gradient(135deg, #FF6B6B, #4ECDC4, #45B7D1, #96CEB4)',
+    'multicolor': 'linear-gradient(135deg, #FF6B6B, #4ECDC4, #45B7D1, #96CEB4)',
+    'randig': 'repeating-linear-gradient(90deg, #fff 0px, #fff 10px, #333 10px, #333 20px)',
+    'striped': 'repeating-linear-gradient(90deg, #fff 0px, #fff 10px, #333 10px, #333 20px)',
+    'prickig': 'radial-gradient(circle, #333 2px, transparent 2px)', 
+    'dotted': 'radial-gradient(circle, #333 2px, transparent 2px)',
+    'blommig': 'linear-gradient(45deg, #FFB6C1, #FFF0F5)', 
+    'floral': 'linear-gradient(45deg, #FFB6C1, #FFF0F5)',
+    'transparent': 'rgba(200,200,200,0.3)',
+};
+
+function getColorStyle(colorName) {
+    if (!colorName) return '#ccc';
+    const normalized = colorName.toLowerCase().trim();
+    if (COLOR_MAP[normalized]) return COLOR_MAP[normalized];
+    for (const [key, value] of Object.entries(COLOR_MAP)) {
+        if (normalized.includes(key) || key.includes(normalized)) return value;
+    }
+    if (/^#[0-9A-F]{6}$/i.test(normalized)) return normalized;
+    return '#ccc';
+}
+
+
+
+
+// ==========================================
 // WISHLIST.JS - SUPABASE UYUMLU (v2.1 - URL FIX)
 // Urun linkleri: /produkt/{slug} formatinda
 // ==========================================
@@ -75,18 +129,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Urunleri map'le
         const mappedProducts = filteredProducts.map(product => {
-            const productVariants = variants.filter(v => String(v.product_id) === String(product.id));
-            return {
-                id: product.id,
-                name: product.name || 'Urun',
-                price: product.discount_price || product.base_price || 0,
-                image: product.images && product.images[0] ? product.images[0] : '',
-                slug: product.slug || '',
-                variants: productVariants.length > 0
-                    ? productVariants.length + ' storlekar'
-                    : 'Standard'
-            };
-        });
+    const productVariants = variants.filter(v => String(v.product_id) === String(product.id));
+    return {
+        id: product.id,
+        name: product.name || 'Urun',
+        price: product.discount_price || product.base_price || 0,
+        base_price: product.base_price || 0,           // 🔥 EKLENDİ
+        discount_price: product.discount_price || null, // 🔥 EKLENDİ
+        image: product.images && product.images[0] ? product.images[0] : '',
+        slug: product.slug || '',
+        colors: product.colors || [],                    // 🔥 EKLENDİ
+        variants: productVariants,                        // 🔥 DİZİ olarak tut
+    };
+});
 
         renderProducts(mappedProducts);
         countText.textContent = `Du har ${mappedProducts.length} sparade produkter.`;
@@ -107,47 +162,77 @@ document.addEventListener('DOMContentLoaded', async () => {
         emptyState.style.display = 'block';
     }
 
-    function renderProducts(products) {
-        grid.innerHTML = products.map(product => {
-            // 🔥 URL TUTARLILIGI FIX: /produkt/{slug} formati
-            // slug bos veya undefined ise fallback olarak id kullan
-            const productUrl = product.slug
-                ? `/produkt/${product.slug}`
-                : `/produkt/${product.id}`;
+     function renderProducts(products) {
+    grid.innerHTML = products.map(product => {
+        const productUrl = product.slug
+            ? `/produkt/${product.slug}`
+            : `/produkt/${product.id}`;
 
-            return `
-            <div class="product-item-wrapper" data-id="${String(product.id)}">
-                <div class="product-card">
-                    <div class="image-box">
-                       <a href="${productUrl}" class="product-image-link">
-                            <img src="${product.image}"
-                                 alt="${product.name}"
-                                 loading="lazy"
-                                 onerror="this.style.display='none'"
-                                 style="width:100%; height:100%; object-fit:cover;">
-                        </a>
-                        <button class="wishlist-btn active"
-                                data-product-id="${String(product.id)}"
-                                onclick="removeFromWishlist('${String(product.id)}')">
-                            <i class="fa-solid fa-heart"></i>
-                        </button>
-                    </div>
-                    <div class="product-info">
-                        <h3 class="product-title">
-                            <a href="${productUrl}" style="text-decoration:none; color:inherit;">${product.name}</a>
-                        </h3>
-                        <div class="product-meta-row">
-                            <span class="product-acf-dimension">${product.variants}</span>
-                        </div>
-                        <div class="product-price">
-                            <span class="current-price">${product.price.toLocaleString('sv-SE')} SEK</span>
-                        </div>
-                    </div>
+        // 🔥 İNDİRİM KONTROLÜ (category.js'deki gibi)
+        const hasDiscount = product.discount_price && product.discount_price < product.base_price;
+        const displayPrice = product.discount_price || product.base_price || 0;
+        
+        const priceHTML = hasDiscount 
+            ? `<span class="current-price price-discount">${displayPrice.toLocaleString('sv-SE')} SEK</span>
+               <span class="original-price">${product.base_price.toLocaleString('sv-SE')} SEK</span>`
+            : `<span class="current-price">${displayPrice.toLocaleString('sv-SE')} SEK</span>`;
+
+        // 🔥 VARYANT GÖSTERİMİ (category.js'deki gibi)
+        const variantText = product.variants && product.variants.length > 0
+            ? (product.variants.length === 1 
+                ? `<span class="variant-single">${product.variants[0].size || 'Standard'}</span>`
+                : `<span class="variant-main">${product.variants[0].size || ''}</span><span class="variant-extra-badge">+${product.variants.length - 1} storlekar</span>`)
+            : '';
+
+        // 🔥 RENK SWATCH'LARI (category.js'deki gibi)
+        const colorsHTML = product.colors && product.colors.length > 0 
+            ? `<div class="product-colors-wrapper">
+                <div class="product-colors-swatches">
+                    ${product.colors.slice(0, 5).map(color => `
+                        <span class="swatch-circle" 
+                              style="background: ${getColorStyle(color)};"
+                              title="${color}"></span>
+                    `).join('')}
                 </div>
+                ${product.colors.length > 5 ? '<span class="color-count-text">+' + (product.colors.length - 5) + ' farger</span>' : ''}
+            </div>` 
+            : '';
+
+        return `
+        <div class="product-item-wrapper product-card" data-id="${String(product.id)}">
+            <div class="image-box">
+                <a href="${productUrl}" class="product-image-link">
+                    <img src="${product.image}"
+                         alt="${product.name}"
+                         loading="lazy"
+                         onerror="this.style.display='none'">
+                </a>
+                ${hasDiscount ? '<span class="discount-badge">REA</span>' : ''}
+                <button class="wishlist-btn active"
+                        data-product-id="${String(product.id)}"
+                        onclick="removeFromWishlist('${String(product.id)}')"
+                        aria-label="Ta bort från favoriter">
+                    <svg class="heart-icon" viewBox="0 0 24 24" fill="#D30000" stroke="#D30000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                    </svg>
+                </button>
             </div>
+            <div class="product-info">
+                <h3 class="product-title">
+                    <a href="${productUrl}" style="text-decoration:none; color:inherit;">${product.name}</a>
+                </h3>
+                <div class="product-variants-row">
+                    ${variantText ? `<div class="product-variants">${variantText}</div>` : ''}
+                </div>
+                <div class="product-price">
+                    ${priceHTML}
+                </div>
+                ${colorsHTML}
+            </div>
+        </div>
         `;
-        }).join('');
-    }
+    }).join('');
+}
 });
 
 // Global fonksiyon - HTML onclick'ten erisim icin
