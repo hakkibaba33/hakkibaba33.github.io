@@ -357,9 +357,10 @@ if (window.__productPageInitialized) {
                     if (sizeDisplay) {
                         if (isM2Product && p.m2_available_widths && p.m2_available_widths.length > 0) {
                             sizeDisplay.className = 'selected-size-display size-m2';
-                            sizeDisplay.textContent = p.m2_available_widths.join(', ') + ' cm';
+                            const minWidth = Math.min(...p.m2_available_widths.map(w => parseFloat(w) || 999));
+                            sizeDisplay.textContent = 'bredd: ' + minWidth + ' cm';
                         } else if (isGardinProduct && p.gardin_min_width) {
-                            sizeDisplay.textContent = 'Min. bredd: ' + p.gardin_min_width + ' cm';
+                            sizeDisplay.textContent = ' Min. bredd: ' + p.gardin_min_width + ' cm';
                             sizeDisplay.style.color = '#666';
                         } else {
                             sizeDisplay.textContent = displayPrice > 0 ? displayPrice.toLocaleString('sv-SE') + ' Kr' : '';

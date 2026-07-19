@@ -1,7 +1,7 @@
 /* ==========================================
-   PRODUCT CALCULATOR STYLES v2.1
-   Halı (M²) ve Perde (Gardin) Hesaplayıcı
-   DK Color Palette Uyumlu - Tutarlı & Modern
+   PRODUCT CALCULATOR STYLES v2.4
+   FontAwesome kaldırıldı, Inline SVG eklendi
+   Halı şekilleri chip stiline dönüştürüldü
    ========================================== */
 
 :root {
@@ -14,7 +14,7 @@
     --dk-white: #ffffff;
     --dk-border: #e8e4df;
     --dk-radius: 2px;
-    --dk-radius-sm: 8px;
+    --dk-radius-sm: 2px;
     --dk-shadow: 0 4px 24px rgba(0,0,0,0.08);
     --dk-shadow-lg: 0 12px 48px rgba(0,0,0,0.12);
     --dk-transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -22,16 +22,14 @@
     --dk-font-body: 'Inter', -apple-system, sans-serif;
 }
 
-/* --- Ana Konteyner --- */
 #calculator-insertion-point {
     margin: 10px 0;
     font-family: var(--dk-font-body);
 }
 
-/* --- Akordiyon Kutusu --- */
 .calc-accordion-box {
-    border: 1px solid var(--dk-border);
-    border-radius:#000 ;
+    border: 1px solid var(--dk-primary);
+    border-radius: var(--dk-radius-sm);
     background: var(--dk-white);
     overflow: hidden;
     transition: var(--dk-transition);
@@ -39,32 +37,28 @@
 }
 
 .calc-accordion-box:hover {
-    box-shadow: var(--dk-shadow-lg);
+    /* Border'ı siliyoruz, yerine içe doğru yayılan ekstra 1px gölge ekliyoruz. */
+    /* Böylece kutu boyutunu bozmadan 2px border görüntüsü elde ediyoruz */
+    box-shadow: var(--dk-shadow), inset 0 0 0 1px var(--dk-primary);
 }
+
 
 /* --- Akordiyon Header --- */
 .calc-accordion-header {
-    width: 100%;
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    padding: 18px 24px;
-    background: var(--dk-secondary);
-    border: none;
+    align-items: center;
+    width: 100%;
+    padding: 20px 18px;
     cursor: pointer;
-    text-align: left;
-    transition: var(--dk-transition);
-    font-family: var(--dk-font-body);
+    background: transparent;
+    border: none;
+    outline: none;
+    transition: background 0.2s;
 }
 
-.calc-accordion-header:hover {
-    background: #ede8e2;
-}
-
-.calc-accordion-header.active {
-    background: #faf7f3;
-    border-bottom: 1px solid var(--dk-border);
-}
+.calc-accordion-header:hover {    background: var(--dk-white);}
+.calc-accordion-header.active { background: #faf7f3; border-bottom: 1px solid var(--dk-border); }
 
 .calc-accordion-header .accordion-left {
     display: flex;
@@ -73,36 +67,20 @@
     flex: 1;
 }
 
-.calc-accordion-header .accordion-left i {
-    font-size: 20px;
+/* SVG Icon in header */
+.calc-accordion-header .accordion-left > svg {
     color: var(--dk-accent);
     width: 28px;
-    text-align: center;
+    height: 28px;
+    flex-shrink: 0;
     transition: var(--dk-transition);
 }
 
-.calc-accordion-header:hover .accordion-left i {
-    color: var(--dk-accent-hover);
-}
-
-.calc-accordion-header .accordion-title-group {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.calc-accordion-header .accordion-title {
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--dk-primary);
-    letter-spacing: 0.3px;
-    font-family: var(--dk-font-heading);
-}
 
 .calc-accordion-header .accordion-subtitle {
-    font-size: 13px;
-    color: var(--dk-text-light);
-    font-weight: 400;
+    font-size: 15px;
+    color: var(--dk-primary);
+    font-weight: 600;
 }
 
 .calc-accordion-header .accordion-right {
@@ -122,21 +100,21 @@
     text-transform: uppercase;
 }
 
-.calc-accordion-header .accordion-chevron {
-    font-size: 14px;
+/* Chevron SVG in header */
+.calc-accordion-header .accordion-right > svg {
     color: var(--dk-text-light);
     transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    flex-shrink: 0;
 }
 
-.calc-accordion-header.active .accordion-chevron {
-    transform: rotate(180deg);
-}
+.calc-accordion-header.active .accordion-right > svg { transform: rotate(180deg); }
 
 /* --- Akordiyon Content --- */
 .calc-accordion-content {
     max-height: 0;
     overflow: hidden;
-    transition: max-height 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94), padding 0.4s ease;
+    transition: max-height 0.4s cubic-bezier(0, 1, 0, 1);
+    background: var(--dk-white);
 }
 
 .calc-accordion-content.open {
@@ -193,9 +171,7 @@
     box-shadow: 0 0 0 4px rgba(201, 169, 110, 0.12);
 }
 
-.premium-input::placeholder {
-    color: #b8b3ad;
-}
+.premium-input::placeholder { color: #b8b3ad; }
 
 select.premium-input {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23c9a96e' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
@@ -205,138 +181,70 @@ select.premium-input {
     cursor: pointer;
 }
 
-/* --- Form Seçimi (Halı Şekli) --- */
-.form-selector {
-    margin-bottom: 22px;
+/* ==========================================
+   CHIP STİLİ SEÇİM (HALI + PERDE)
+   ========================================== */
+
+.form-selector { margin-bottom: 22px; }
+
+.suspension-selector { margin-bottom: 22px; }
+
+.suspension-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
 }
 
-.form-options-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-}
-
-.form-option {
+.suspension-chip {
+    position: relative;
     cursor: pointer;
 }
 
-.form-option input {
+.suspension-chip input {
     position: absolute;
     opacity: 0;
     width: 0;
     height: 0;
 }
 
-.form-option .option-content {
+.suspension-chip-label {
     display: flex;
-    flex-direction: column;
     align-items: center;
     gap: 8px;
-    padding: 18px 10px;
+    padding: 10px 16px;
     border: 1.5px solid var(--dk-border);
-    border-radius: var(--dk-radius-sm);
+    border-radius: 100px;
     background: var(--dk-white);
-    transition: var(--dk-transition);
-    text-align: center;
-}
-
-.form-option .option-content:hover {
-    border-color: var(--dk-accent);
-    background: var(--dk-secondary);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-}
-
-.form-option input:checked + .option-content {
-    border-color: var(--dk-accent);
-    background: var(--dk-secondary);
-    box-shadow: 0 0 0 3px rgba(201, 169, 110, 0.15);
-}
-
-.form-option .shape-icon {
-    width: 32px;
-    height: 32px;
-    color: var(--dk-text-light);
-    transition: var(--dk-transition);
-}
-
-.form-option input:checked + .option-content .shape-icon {
-    color: var(--dk-accent);
-}
-
-.form-option .option-content span {
     font-size: 12px;
     font-weight: 500;
-    color: var(--dk-text);
-    text-transform: uppercase;
-    letter-spacing: 0.6px;
-}
-
-/* --- Korniş Seçimi (Perde) --- */
-.suspension-selector {
-    margin-bottom: 22px;
-}
-
-.suspension-options {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-}
-
-.suspension-option {
-    cursor: pointer;
-}
-
-.suspension-option input {
-    position: absolute;
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-
-.suspension-card {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-    padding: 18px 14px;
-    border: 1.5px solid var(--dk-border);
-    border-radius: var(--dk-radius-sm);
-    background: var(--dk-white);
-    transition: var(--dk-transition);
-    text-align: center;
-}
-
-.suspension-card:hover {
-    border-color: var(--dk-accent);
-    background: var(--dk-secondary);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-}
-
-.suspension-card.active,
-.suspension-option input:checked + .suspension-card {
-    border-color: var(--dk-accent);
-    background: var(--dk-secondary);
-    box-shadow: 0 0 0 3px rgba(201, 169, 110, 0.15);
-}
-
-.suspension-card i {
-    font-size: 22px;
     color: var(--dk-text-light);
     transition: var(--dk-transition);
+    cursor: pointer;
+    white-space: nowrap;
+    font-family: var(--dk-font-body);
 }
 
-.suspension-card.active i,
-.suspension-option input:checked + .suspension-card i {
-    color: var(--dk-accent);
+.suspension-chip-label:hover {
+    border-color: var(--dk-accent);
+    background: var(--dk-secondary);
 }
 
-.suspension-card span {
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--dk-text);
+.suspension-chip input:checked + .suspension-chip-label {
+    border-color: var(--dk-accent);
+    background: var(--dk-accent);
+    color: var(--dk-white);
+    box-shadow: 0 2px 8px rgba(201, 169, 110, 0.3);
 }
+
+/* SVG icon inside chip */
+.suspension-chip-label svg {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+/* ESKİ FORM OPTIONS GRID KALDIRILDI */
+/* .form-options-grid, .form-option { ... } */
 
 /* --- Pile Bilgisi --- */
 .pile-info {
@@ -352,194 +260,167 @@ select.premium-input {
     border-left: 3px solid var(--dk-accent);
 }
 
-.pile-info i {
-    font-size: 16px;
+.pile-info svg {
+    width: 16px;
+    height: 16px;
+    color: var(--dk-accent);
+    flex-shrink: 0;
+}
+
+/* ==========================================
+   INLINE EXPANDABLE NOT ALANI
+   ========================================== */
+
+.note-expandable-section {
+    margin-bottom: 22px;
+    border: 1.5px solid var(--dk-border);
+    border-radius: var(--dk-radius-sm);
+    background: var(--dk-white);
+    overflow: hidden;
+    transition: var(--dk-transition);
+}
+
+.note-expandable-section:focus-within {
+    border-color: var(--dk-accent);
+    box-shadow: 0 0 0 3px rgba(201, 169, 110, 0.12);
+}
+
+.note-toggle-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 16px;
+    background: var(--dk-white);
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    font-family: var(--dk-font-body);
+    font-size: 14px;
+    color: var(--dk-text-light);
+    transition: var(--dk-transition);
+    position: relative;
+}
+
+.note-toggle-btn:hover {
+    background: var(--dk-secondary);
     color: var(--dk-accent);
 }
 
-/* --- Adet Seçimi --- */
-.quantity-section {
-    margin-bottom: 22px;
-}
-
-.quantity-row,
-.quantity-note-row {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-}
-
-.quantity-note-row {
-    justify-content: space-between;
-}
-
-.qty-stepper {
-    display: flex;
-    align-items: center;
-    border: 1.5px solid var(--dk-border);
-    border-radius: var(--dk-radius-sm);
-    overflow: hidden;
-    height: 46px;
-}
-
-.qty-stepper button {
-    width: 42px;
-    height: 100%;
-    border: none;
+.note-toggle-btn.active {
     background: var(--dk-secondary);
-    color: var(--dk-primary);
-    font-size: 18px;
-    font-weight: 300;
-    cursor: pointer;
-    transition: var(--dk-transition);
-    display: flex;
+    border-bottom: 1px solid var(--dk-border);
+}
+
+.note-toggle-btn svg:first-child {
+    width: 16px;
+    height: 16px;
+    color: var(--dk-accent);
+    flex-shrink: 0;
+}
+
+.note-toggle-text {
+    flex: 1;
+    font-weight: 500;
+}
+
+.note-toggle-badge {
+    display: none;
     align-items: center;
     justify-content: center;
-    font-family: var(--dk-font-body);
-}
-
-.qty-stepper button:hover {
+    min-width: 22px;
+    height: 22px;
     background: var(--dk-accent);
     color: var(--dk-white);
-}
-
-.qty-stepper input {
-    width: 56px;
-    height: 100%;
-    border: none;
-    border-left: 1px solid var(--dk-border);
-    border-right: 1px solid var(--dk-border);
-    text-align: center;
-    font-size: 15px;
+    font-size: 11px;
     font-weight: 600;
-    color: var(--dk-primary);
-    background: var(--dk-white);
-    outline: none;
-    font-family: var(--dk-font-body);
-    -moz-appearance: textfield;
+    border-radius: 50%;
+    padding: 0 6px;
 }
 
-.qty-stepper input::-webkit-outer-spin-button,
-.qty-stepper input::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-}
-
-.qty-label {
-    font-size: 14px;
+.note-toggle-btn .note-toggle-chevron {
+    width: 12px;
+    height: 12px;
     color: var(--dk-text-light);
-    font-weight: 500;
+    transition: transform 0.3s ease;
+    flex-shrink: 0;
 }
 
-/* --- Not Butonu --- */
-.note-btn-wrapper button {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 16px;
-    border: 1.5px dashed var(--dk-border);
-    border-radius: var(--dk-radius-sm);
-    background: var(--dk-white);
+.note-toggle-btn.active .note-toggle-chevron { transform: rotate(180deg); }
+
+.note-expandable-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), padding 0.3s ease;
+    padding: 0 16px;
+}
+
+.note-expandable-content.open {
+    max-height: 300px;
+    padding: 16px;
+    padding-top: 0;
+}
+
+.note-expandable-content .form-label {
+    margin-bottom: 8px;
+    margin-top: 8px;
+}
+
+.note-optional {
+    font-size: 11px;
     color: var(--dk-text-light);
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: var(--dk-transition);
-    font-family: var(--dk-font-body);
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: normal;
+    margin-left: 4px;
 }
 
-.note-btn-wrapper button:hover {
-    border-color: var(--dk-accent);
-    color: var(--dk-accent);
-    background: var(--dk-secondary);
-}
-
-.note-btn-wrapper button.saved {
-    border-style: solid;
-    border-color: var(--dk-accent);
-    color: var(--dk-accent);
-    background: rgba(201, 169, 110, 0.08);
-}
-
-/* --- Not Modal --- */
-.note-modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(26, 26, 26, 0.5);
-    z-index: 2000;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    backdrop-filter: blur(4px);
-}
-
-.note-modal.visible {
-    display: flex;
-}
-
-.note-modal-inner {
-    background: var(--dk-white);
-    border-radius: var(--dk-radius);
-    padding: 28px;
+.premium-textarea {
     width: 100%;
-    max-width: 420px;
-    box-shadow: var(--dk-shadow-lg);
-    border: 1px solid var(--dk-border);
-}
-
-.note-modal-inner h4 {
-    font-size: 18px;
-    font-weight: 600;
-    margin-bottom: 16px;
-    color: var(--dk-primary);
-    font-family: var(--dk-font-heading);
-}
-
-.note-modal-inner textarea {
-    width: 100%;
-    min-height: 120px;
-    padding: 14px;
+    padding: 12px 14px;
     border: 1.5px solid var(--dk-border);
     border-radius: var(--dk-radius-sm);
     font-size: 14px;
-    resize: vertical;
-    margin-bottom: 16px;
+    color: var(--dk-primary);
+    background: var(--dk-white);
+    transition: var(--dk-transition);
     outline: none;
     font-family: var(--dk-font-body);
-    color: var(--dk-text);
-    transition: var(--dk-transition);
+    resize: none;
+    line-height: 1.5;
+    min-height: 80px;
+    max-height: 150px;
+    overflow-y: auto;
 }
 
-.note-modal-inner textarea:focus {
+.premium-textarea:focus {
     border-color: var(--dk-accent);
-    box-shadow: 0 0 0 4px rgba(201, 169, 110, 0.12);
+    box-shadow: 0 0 0 3px rgba(201, 169, 110, 0.1);
 }
 
-.note-modal-inner button {
-    width: 100%;
-    padding: 14px;
-    background: var(--dk-primary);
-    color: var(--dk-white);
-    border: none;
-    border-radius: var(--dk-radius-sm);
-    font-size: 14px;
+.premium-textarea::placeholder {
+    color: #b8b3ad;
+    font-style: italic;
+}
+
+.note-char-count {
+    text-align: right;
+    font-size: 11px;
+    color: var(--dk-text-light);
+    margin-top: 6px;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.note-char-count.near-limit {
+    color: #e74c3c;
     font-weight: 600;
-    cursor: pointer;
-    transition: var(--dk-transition);
-    font-family: var(--dk-font-body);
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
 }
 
-.note-modal-inner button:hover {
-    background: #333333;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-}
+.premium-textarea::-webkit-scrollbar { width: 5px; }
+.premium-textarea::-webkit-scrollbar-track { background: var(--dk-secondary); border-radius: 3px; }
+.premium-textarea::-webkit-scrollbar-thumb { background: var(--dk-border); border-radius: 3px; }
+.premium-textarea::-webkit-scrollbar-thumb:hover { background: var(--dk-accent); }
 
 /* --- Live Summary --- */
 .live-summary {
@@ -582,6 +463,10 @@ select.premium-input {
     font-family: var(--dk-font-body);
     position: relative;
     overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
 }
 
 .calc-btn-primary:hover {
@@ -590,12 +475,13 @@ select.premium-input {
     box-shadow: 0 8px 24px rgba(0,0,0,0.15);
 }
 
-.calc-btn-primary.calculated {
-    background: var(--dk-accent);
-}
+.calc-btn-primary.calculated { background: var(--dk-accent); }
+.calc-btn-primary.calculated:hover { background: var(--dk-accent-hover); }
 
-.calc-btn-primary.calculated:hover {
-    background: var(--dk-accent-hover);
+/* SVG inside calculated button */
+.calc-btn-primary svg {
+    width: 16px;
+    height: 16px;
 }
 
 .calc-btn-secondary {
@@ -617,12 +503,15 @@ select.premium-input {
     background: var(--dk-secondary);
 }
 
-/* --- Fiyat Özeti --- */
+/* ==========================================
+   KOMPAKT ÖZET
+   ========================================== */
+
 .calc-summary {
     display: none;
     background: var(--dk-secondary);
     border-radius: var(--dk-radius-sm);
-    padding: 20px;
+    padding: 16px;
     border: 1px solid var(--dk-border);
 }
 
@@ -636,34 +525,53 @@ select.premium-input {
     to { opacity: 1; transform: translateY(0); }
 }
 
-.summary-row {
+.summary-compact-row {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    padding: 8px 0;
-    font-size: 14px;
-}
-
-.summary-row span {
+    gap: 8px;
+    font-size: 13px;
     color: var(--dk-text-light);
+    flex-wrap: wrap;
+    line-height: 1.5;
 }
 
-.summary-row strong {
+.summary-compact-row strong {
     color: var(--dk-primary);
     font-weight: 600;
 }
 
-.summary-row.note-row {
-    background: rgba(201, 169, 110, 0.08);
-    padding: 10px 12px;
-    border-radius: var(--dk-radius-sm);
-    margin-top: 6px;
-    border-left: 3px solid var(--dk-accent);
+.summary-dot {
+    width: 4px;
+    height: 4px;
+    background: var(--dk-accent);
+    border-radius: 50%;
+    flex-shrink: 0;
 }
 
-.summary-row.note-row strong {
+.summary-note-compact {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 8px 10px;
+    background: rgba(201, 169, 110, 0.08);
+    border-radius: 6px;
+    border-left: 3px solid var(--dk-accent);
+    margin-top: 8px;
+}
+
+.summary-note-compact svg {
+    width: 12px;
+    height: 12px;
     color: var(--dk-accent);
-    font-size: 13px;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+.summary-note-compact span {
+    font-size: 12px;
+    color: var(--dk-primary);
+    line-height: 1.4;
+    word-break: break-word;
 }
 
 .summary-divider {
@@ -672,31 +580,30 @@ select.premium-input {
     margin: 12px 0;
 }
 
-.summary-total {
+.summary-total-compact {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding-top: 6px;
 }
 
-.summary-total span {
-    font-size: 15px;
-    color: var(--dk-primary);
+.summary-total-compact > span {
+    font-size: 14px;
     font-weight: 600;
+    color: var(--dk-primary);
     font-family: var(--dk-font-heading);
 }
 
-.summary-total .total-price {
-    font-size: 18px;
+.summary-total-compact .total-price {
+    font-size: 20px;
+    font-weight: 700;
     color: var(--dk-primary);
     display: flex;
     align-items: center;
-    gap: 10px;
-    font-weight: 700;
+    gap: 8px;
     font-family: var(--dk-font-heading);
 }
 
-.summary-total .total-price .original-price {
+.summary-total-compact .total-price .original-price {
     font-size: 14px;
     color: var(--dk-text-light);
     text-decoration: line-through;
@@ -704,67 +611,22 @@ select.premium-input {
     font-family: var(--dk-font-body);
 }
 
-/* --- Mobil Uyumluluk --- */
+/* --- Mobil --- */
 @media (max-width: 768px) {
-    .input-grid {
-        grid-template-columns: 1fr;
-        gap: 14px;
-    }
-
-    .form-options-grid {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 10px;
-    }
-
-    .form-option .option-content {
-        padding: 14px 8px;
-    }
-
-    .form-option .option-content span {
-        font-size: 11px;
-    }
-
-    .suspension-options {
-        gap: 10px;
-    }
-
-    .suspension-card {
-        padding: 14px 10px;
-    }
-
-    .quantity-note-row {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 12px;
-    }
-
-    .form-actions {
-        flex-direction: column;
-    }
-
-    .calc-btn-secondary {
-        width: 100%;
-    }
-
-    .calc-accordion-header {
-        padding: 16px 18px;
-    }
-
-    .calc-accordion-content .accordion-inner {
-        padding: 20px 18px;
-    }
-
-    .note-modal-inner {
-        padding: 22px;
-    }
+    .input-grid { grid-template-columns: 1fr; gap: 14px; }
+    .suspension-chips { gap: 6px; }
+    .suspension-chip-label { padding: 8px 12px; font-size: 11px; }
+    .suspension-chip-label svg { width: 16px; height: 16px; }
+    .form-actions { flex-direction: column; }
+    .calc-btn-secondary { width: 100%; }
+    .calc-accordion-header { padding: 16px 18px; }
+    .calc-accordion-content .accordion-inner { padding: 20px 18px; }
+    .note-expandable-content.open { max-height: 250px; }
+    .premium-textarea { min-height: 70px; }
+    .summary-compact-row { font-size: 12px; gap: 6px; }
+    .summary-total-compact .total-price { font-size: 18px; }
 }
 
-/* --- Varyasyon Accordion Gizleme --- */
-.variant-accordion-box.hidden-by-calculator {
-    display: none !important;
-}
-
-/* --- Renk Seçici Gizleme (Metre ürünlerinde) --- */
-#color-selector.hidden-by-calculator {
-    display: none !important;
-}
+/* --- Gizleme --- */
+.variant-accordion-box.hidden-by-calculator { display: none !important; }
+#color-selector.hidden-by-calculator { display: none !important; }
