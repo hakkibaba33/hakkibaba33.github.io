@@ -398,48 +398,63 @@ if (item.isGardin && item.note && item.note.trim() !== '') {
         await initPaymentForm();
     }
 
-    async function handlePayment() {
-        if (!validateForm()) return;
+   async function handlePayment() {
+    if (!validateForm()) return;
 
-        if (!elements || !stripe) {
-            statusMessage.style.display = 'block';
-            statusMessage.innerText = 'Betalningsformuläret är inte redo.';
-            return;
-        }
+    if (!elements || !stripe) {
+        statusMessage.style.display = 'block';
+        statusMessage.innerText = 'Betalningsformuläret är inte redo.';
+        return;
+    }
 
-        saveCustomerToLocalStorage();
+    saveCustomerToLocalStorage();
 
-        confirmBtn.disabled = true;
-        confirmBtn.innerText = 'Bearbetar betalning...';
+    confirmBtn.disabled = true;
+    confirmBtn.innerText = 'Bearbetar betalning...';
 
-        try {
-            const { error } = await stripe.confirmPayment({
-                elements,
-                confirmParams: {
-                    return_url: window.location.origin + '/tack?order_id=' + data.orderId, 
-                    payment_method_data: {
-                        billing_details: {
-                            name: document.getElementById('billing_first_name').value + ' ' + document.getElementById('billing_last_name').value,
-                            email: document.getElementById('billing_email').value,
-                            phone: document.getElementById('billing_phone').value,
-                            address: {
-                                line1: document.getElementById('billing_address_1').value,
-                                postal_code: document.getElementById('billing_postcode').value,
-                                city: document.getElementById('billing_city').value,
-                                country: 'SE'
-                            }
+    try {
+        // ✅ YENİ: data.orderId güvenli kontrol
+        const orderId = (data && data.orderId) ? data.orderId : '';
+        const returnUrl = orderId 
+            ? window.location.origin + '/tack?order_id=' + orderId 
+            : window.location.origin + '/tack';
+
+        const { error } = await stripe.confirmPayment({
+            elements,
+            confirmParams: {
+                return_url: returnUrl,  // ✅ Güncellendi
+                payment_method_data: {
+                    billing_details: {
+                        name: document.getElementById('billing_first_name').value + ' ' + document.getElementById('billing_last_name').value,
+                        email: document.getElementById('billing_email').value,
+                        phone: document.getElementById('billing_phone').value,
+                        address: {
+                            line1: document.getElementById('billing_address_1').value,
+                            postal_code: document.getElementById('billing_postcode').value,
+                            city: document.getElementById('billing_city').value,
+                            country: 'SE'
                         }
                     }
                 }
-            });
-
-            if (error) {
-                console.error('Ödeme hatası:', error);
-                statusMessage.style.display = 'block';
-                statusMessage.innerHTML = `<span style="color:#e54d42;">${error.message}</span>`;
-                confirmBtn.disabled = false;
-                confirmBtn.innerText = 'Betala nu';
             }
+        });
+
+        if (error) {
+            console.error('Ödeme hatası:', error);
+            statusMessage.style.display = 'block';
+            statusMessage.innerHTML = `<span style="color:#e54d42;">${error.message}</span>`;
+            confirmBtn.disabled = false;
+            confirmBtn.innerText = 'Betala nu';
+        }
+
+    } catch (error) {
+        console.error('Beklenmeyen hata:', error);
+        statusMessage.style.display = 'block';
+        statusMessage.innerHTML = `<span style="color:#e54d42;">Ett oväntat fel uppstod. Försök igen.</span>`;
+        confirmBtn.disabled = false;
+        confirmBtn.innerText = 'Betala nu';
+    }
+}
 
         } catch (error) {
             console.error('Beklenmeyen hata:', error);
