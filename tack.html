@@ -6,8 +6,8 @@
     <title>Tack för din beställning | DKRUG</title>
     <script src="/assets/js/config.js"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600&display=swap" rel="stylesheet">
     <style>
+        /* Mevcut stiller aynı kalıyor */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Inter', -apple-system, sans-serif; background: linear-gradient(135deg, #f5f0eb 0%, #e8e4df 100%); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
         .success-box { background: white; padding: 60px 50px; border-radius: 20px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.1); max-width: 520px; width: 100%; animation: slideUp 0.6s ease; }
@@ -44,7 +44,7 @@
         <h1>Tack för din beställning!</h1>
         <p class="subtitle">Din betalning har godkänts och din beställning bearbetas nu.</p>
         <div class="status-box" id="status-box">
-            <p id="status-text" class="status-loading"><span class="spinner"></span>Sparar din beställning...</p>
+            <p id="status-text" class="status-loading"><span class="spinner"></span>Laddar beställningsinformation...</p>
             <div id="email-status" class="hidden"></div>
         </div>
         <div id="order-info" class="hidden">
@@ -61,31 +61,20 @@
         };
         (function() { emailjs.init(EMAILJS_CONFIG.PUBLIC_KEY); })();
 
-        async function saveOrderAfterPayment() {
+        async function showOrderDetails() {
             const urlParams = new URLSearchParams(window.location.search);
             const paymentIntentId = urlParams.get('payment_intent');
+            const orderId = urlParams.get('order_id'); // ✅ YENİ: Worker'dan gelen order ID
+            
             console.log('>>> Tack sayfasi yuklendi');
             console.log('>>> payment_intent:', paymentIntentId);
+            console.log('>>> order_id:', orderId);
 
             const statusText = document.getElementById('status-text');
             const orderInfo = document.getElementById('order-info');
             const orderDetails = document.getElementById('order-details');
-            const emailStatusDiv = document.getElementById('email-status');
 
-            var SUPABASE_URL = '';
-            var SUPABASE_KEY = '';
-            if (typeof CONFIG !== 'undefined' && CONFIG.SUPABASE) {
-                SUPABASE_URL = CONFIG.SUPABASE.URL;
-                SUPABASE_KEY = CONFIG.SUPABASE.ANON_KEY;
-            }
-
-            if (!SUPABASE_URL || !SUPABASE_KEY) {
-                console.error('Supabase config eksik!');
-                statusText.className = 'status-error';
-                statusText.innerHTML = '❌ Konfigurationsfel. Kontakta support.';
-                return;
-            }
-
+            // Sepet ve müşteri bilgilerini al (email için)
             function getCart() {
                 try { return JSON.parse(localStorage.getItem('siteCartItems')) || []; }
                 catch (e) { return []; }
@@ -97,242 +86,46 @@
             }
 
             const cart = getCart();
-            console.log('>>> Sepet:', JSON.stringify(cart));
             const customer = getCustomerData();
+
+            console.log('>>> Sepet:', JSON.stringify(cart));
             console.log('>>> Musteri:', JSON.stringify(customer));
 
-            if (cart.length === 0) {
-                statusText.className = 'status-success';
-                statusText.innerHTML = '✅ Din beställning har bekräftats!';
-                if (paymentIntentId) {
-                    orderInfo.classList.remove('hidden');
-                    orderDetails.innerHTML = '<div class="detail-row"><span class="detail-label">Betalnings-ID:</span><span class="detail-value">' + paymentIntentId + '</span></div>';
-                }
+            if (!paymentIntentId) {
+                statusText.className = 'status-error';
+                statusText.innerHTML = '❌ Betalningsinformation saknas.';
                 return;
             }
 
+            // ✅ Sipariş zaten backend'de kaydedildi!
+            // Sadece gösterim yap ve email gönder
+
             const total = cart.reduce((sum, item) => sum + (parseFloat(item.price) * (item.quantity || 1)), 0);
 
-            const orderItems = cart.map(function(item) {
-                const orderItem = {
-                    id: item.id,
-                    name: item.name,
-                    price: parseFloat(item.price),
-                    quantity: item.quantity || 1,
-                    image: item.image || '',
-                    calculatorType: item.calculatorType || null,
-                    calc_width_cm: item.calc_width_cm || item.en || null,
-                    calc_length_cm: item.calc_length_cm || item.boy || null,
-                    calc_m2: item.calc_m2 || item.m2 || null,
-                    calc_form: item.calc_form || item.form || null,
-                    calc_meters: item.calc_meters || item.metre || null,
-                    calc_suspension: item.calc_suspension || item.suspension || null,
-                    calc_note: item.note || item.calc_note || null,
-                    isM2: item.isM2 || false,
-                    isGardin: item.isGardin || false,
-                    en: item.en || null,
-                    boy: item.boy || null,
-                    m2: item.m2 || null,
-                    form: item.form || null,
-                    metre: item.metre || null,
-                    suspension: item.suspension || null,
-                    size: item.size || null,
-                    note: item.note || null
-                };
-
-                let variantText = 'Standard';
-                if (item.isM2 || item.calculatorType === 'm2') {
-                    const width = item.en || item.calc_width_cm;
-                    const length = item.boy || item.calc_length_cm;
-                    const m2 = item.m2 || item.calc_m2;
-                    const form = item.form || item.calc_form || 'Rektangulär';
-                    if (width && length) {
-                        variantText = width + '×' + length + ' cm (' + form + ') = ' + (m2 ? parseFloat(m2).toFixed(2) : '?') + ' m²';
-                    } else if (item.size) {
-                        variantText = item.size;
-                    }
-                } else if (item.isGardin || item.calculatorType === 'gardin') {
-                    const width = item.en || item.calc_width_cm;
-                    const length = item.boy || item.calc_length_cm;
-                    const metres = item.metre || item.calc_meters;
-                    const suspension = item.suspension || item.calc_suspension;
-                    const note = item.note || item.calc_note;
-                    if (width && length) {
-                        variantText = width + '×' + length + ' cm';
-                        if (metres) variantText += ' | ' + metres + ' m';
-                        if (suspension) variantText += ' | ' + suspension;
-                        if (note && note.trim() !== '') {
-                            variantText += '<br><span style="color:#666;font-size:12px;">📝 ' + note + '</span>';
-                        }
-                    } else if (item.size) {
-                        variantText = item.size;
-                    }
-                     } else {
-    // Normal varyasyonlu urun
-    let sizeText = 'Standard';
-    
-    if (Array.isArray(item.variants) && item.variants.length > 0) {
-        sizeText = item.variants[0].size || item.variants[0].name || 'Standard';
-    } else if (typeof item.variants === 'string') {
-        sizeText = item.variants;
-    } else if (typeof item.variants === 'object' && item.variants) {
-        sizeText = item.variants.size || item.variants.name || item.variants.color || 'Standard';
-    } else if (typeof item.variant === 'string') {
-        sizeText = item.variant;
-    } else if (typeof item.variant === 'object' && item.variant) {
-        sizeText = item.variant.size || item.variant.name || 'Standard';
-    }
-    
-    // ✅ RENK BILGISINI EKLE
-    variantText = sizeText;
-    if (item.color && item.color.trim() !== '') {
-        variantText += ' <span style="color:#888;">(' + item.color + ')</span>';
-    }
-}
-
-                orderItem.variant = variantText;
-                return orderItem;
-            });
-
-            const orderData = {
-                customer_name: (customer.firstName + ' ' + customer.lastName).trim() || 'Kund',
-                customer_email: customer.email || 'kund@example.com',
-                customer_phone: customer.phone || '',
-                shipping_address: {
-                    street: customer.address || '',
-                    postal: customer.postcode || '',
-                    city: customer.city || '',
-                    country: 'Sverige'
-                },
-                items: orderItems,
-                total_amount: total,
-                status: 'pending',
-                payment_status: 'paid',
-                tracking_number: ''
-            };
-
-            console.log('>>> Siparis verisi:', JSON.stringify(orderData));
-
-            try {
-                const res = await fetch(SUPABASE_URL + '/rest/v1/orders', {
-                    method: 'POST',
-                    headers: {
-                        'apikey': SUPABASE_KEY,
-                        'Authorization': 'Bearer ' + SUPABASE_KEY,
-                        'Content-Type': 'application/json',
-                        'Prefer': 'return=representation'
-                    },
-                    body: JSON.stringify(orderData)
-                });
-
-                console.log('>>> Response status:', res.status);
-
-                if (!res.ok) {
-                    const errText = await res.text();
-                    console.error('>>> Kayit hatasi:', errText);
-                    statusText.className = 'status-error';
-                    statusText.innerHTML = '❌ Ett fel uppstod vid sparande. Kontakta support.<br><small style="color:#999;font-weight:400;">' + errText + '</small>';
-                    return;
-                }
-
-                const result = await res.json();
-                const orderId = result[0].id;
-                console.log('>>> ✅ Siparis kaydedildi! ID:', orderId);
-
+            // Email gönder
+            if (customer.email && orderId) {
                 await sendOrderConfirmationEmail(customer, cart, total, orderId, paymentIntentId);
-                await updateStockAfterOrder(cart);
-
-                localStorage.removeItem('siteCartItems');
-                localStorage.removeItem('dkrug_checkout_customer');
-
-                statusText.className = 'status-success';
-                statusText.innerHTML = '✅ Din beställning har sparats!';
-
-                orderInfo.classList.remove('hidden');
-                orderDetails.innerHTML = 
-                    '<h3>Beställningsdetaljer</h3>' +
-                    '<div class="detail-row"><span class="detail-label">Ordernummer:</span><span class="detail-value">#' + orderId + '</span></div>' +
-                    '<div class="detail-row"><span class="detail-label">Totalt:</span><span class="detail-value">' + total.toLocaleString('sv-SE') + ' SEK</span></div>' +
-                    '<div class="detail-row"><span class="detail-label">Betalningsmetod:</span><span class="detail-value">Stripe</span></div>' +
-                    '<div class="detail-row"><span class="detail-label">Status:</span><span class="detail-value">Väntar på behandling</span></div>' +
-                    (customer.email ? '<div class="detail-row"><span class="detail-label">E-post:</span><span class="detail-value">' + customer.email + '</span></div>' : '') +
-                    '<div class="detail-row"><span class="detail-label">Produkter:</span><span class="detail-value">' + cart.length + ' st</span></div>';
-
-            } catch (err) {
-                console.error('>>> Hata:', err);
-                statusText.className = 'status-error';
-                statusText.innerHTML = '❌ Ett fel uppstod. Kontakta support.<br><small style="color:#999;font-weight:400;">' + err.message + '</small>';
             }
-        }
 
-        async function updateStockAfterOrder(cart) {
-            try {
-                console.log('>>> Stok dusurme baslatiliyor...');
-                var SUPABASE_URL = '';
-                var SUPABASE_KEY = '';
-                if (typeof CONFIG !== 'undefined' && CONFIG.SUPABASE) {
-                    SUPABASE_URL = CONFIG.SUPABASE.URL;
-                    SUPABASE_KEY = CONFIG.SUPABASE.ANON_KEY;
-                }
-                if (!SUPABASE_URL || !SUPABASE_KEY) {
-                    console.error('>>> Stok dusurme: Supabase config eksik');
-                    return;
-                }
-                for (var i = 0; i < cart.length; i++) {
-                    var item = cart[i];
-                    var productId = item.id;
-                    var variantSize = null;
-                    if (typeof item.variant === 'string' && item.variant !== 'Standard') {
-                        variantSize = item.variant;
-                    } else if (Array.isArray(item.variants) && item.variants.length > 0) {
-                        variantSize = item.variants[0].size;
-                    } else if (typeof item.variants === 'string') {
-                        variantSize = item.variants;
-                    }
-                    console.log('>>> Varyant bilgisi:', item.name, 'variant:', item.variant, 'variants:', JSON.stringify(item.variants), '-> secilen:', variantSize);
-                    var quantity = item.quantity || 1;
-                    if (!productId || !variantSize) {
-                        console.log('>>> Urun ID veya varyant boyutu bulunamadi, atlaniyor:', item.name);
-                        continue;
-                    }
-                    console.log('>>> Stok dusuruluyor:', item.name, 'Varyant:', variantSize, 'Adet:', quantity);
-                    var variantRes = await fetch(SUPABASE_URL + '/rest/v1/product_variants?product_id=eq.' + productId + '&size=eq.' + encodeURIComponent(variantSize) + '&select=id,stock', {
-                        method: 'GET',
-                        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
-                    });
-                    if (!variantRes.ok) {
-                        console.error('>>> Variant bulunamadi:', item.name, variantSize);
-                        continue;
-                    }
-                    var variants = await variantRes.json();
-                    if (variants.length === 0) {
-                        console.error('>>> Variant bulunamadi:', item.name, variantSize);
-                        continue;
-                    }
-                    var variantId = variants[0].id;
-                    var currentStock = variants[0].stock || 0;
-                    var newStock = Math.max(0, currentStock - quantity);
-                    console.log('>>> Mevcut stok:', currentStock, 'Yeni stok:', newStock);
-                    var updateRes = await fetch(SUPABASE_URL + '/rest/v1/product_variants?id=eq.' + variantId, {
-                        method: 'PATCH',
-                        headers: {
-                            'apikey': SUPABASE_KEY,
-                            'Authorization': 'Bearer ' + SUPABASE_KEY,
-                            'Content-Type': 'application/json',
-                            'Prefer': 'return=minimal'
-                        },
-                        body: JSON.stringify({ stock: newStock })
-                    });
-                    if (updateRes.ok) {
-                        console.log('>>> ✅ Stok guncellendi:', item.name, '->', newStock, 'adet kaldi');
-                    } else {
-                        console.error('>>> Stok guncelleme hatasi:', item.name, await updateRes.text());
-                    }
-                }
-                console.log('>>> ✅ Stok dusurme tamamlandi');
-            } catch (err) {
-                console.error('>>> Stok dusurme hatasi:', err);
-            }
+            // LocalStorage temizle
+            localStorage.removeItem('siteCartItems');
+            localStorage.removeItem('dkrug_checkout_customer');
+
+            // Başarılı mesajı göster
+            statusText.className = 'status-success';
+            statusText.innerHTML = '✅ Din beställning har bekräftats!';
+
+            // Sipariş detaylarını göster
+            orderInfo.classList.remove('hidden');
+            orderDetails.innerHTML = 
+                '<h3>Beställningsdetaljer</h3>' +
+                '<div class="detail-row"><span class="detail-label">Ordernummer:</span><span class="detail-value">#' + (orderId || 'N/A') + '</span></div>' +
+                '<div class="detail-row"><span class="detail-label">Betalnings-ID:</span><span class="detail-value">' + paymentIntentId + '</span></div>' +
+                '<div class="detail-row"><span class="detail-label">Totalt:</span><span class="detail-value">' + total.toLocaleString('sv-SE') + ' SEK</span></div>' +
+                '<div class="detail-row"><span class="detail-label">Betalningsmetod:</span><span class="detail-value">Stripe</span></div>' +
+                '<div class="detail-row"><span class="detail-label">Status:</span><span class="detail-value">Väntar på behandling</span></div>' +
+                (customer.email ? '<div class="detail-row"><span class="detail-label">E-post:</span><span class="detail-value">' + customer.email + '</span></div>' : '') +
+                '<div class="detail-row"><span class="detail-label">Produkter:</span><span class="detail-value">' + cart.length + ' st</span></div>';
         }
 
         async function sendOrderConfirmationEmail(customer, cart, total, orderId, paymentId) {
@@ -343,58 +136,11 @@
 
                 cart.forEach(function(item) {
                     const itemTotal = (parseFloat(item.price) * (item.quantity || 1)).toLocaleString('sv-SE');
-                    var variantText = 'Standard';
-
-                    if (item.isM2 || item.calculatorType === 'm2') {
-                        const width = item.en || item.calc_width_cm;
-                        const length = item.boy || item.calc_length_cm;
-                        const m2 = item.m2 || item.calc_m2;
-                        const form = item.form || item.calc_form || 'Rektangulär';
-                        if (width && length) {
-                            variantText = width + '×' + length + ' cm (' + form + ') = ' + (m2 ? parseFloat(m2).toFixed(2) : '?') + ' m²';
-                        } else if (item.size) {
-                            variantText = item.size;
-                        }
-                    } else if (item.isGardin || item.calculatorType === 'gardin') {
-                        const width = item.en || item.calc_width_cm;
-                        const length = item.boy || item.calc_length_cm;
-                        const metres = item.metre || item.calc_meters;
-                        const suspension = item.suspension || item.calc_suspension;
-                        const note = item.note || item.calc_note;
-                        if (width && length) {
-                            variantText = width + '×' + length + ' cm';
-                            if (metres) variantText += ' | ' + metres + ' m';
-                            if (suspension) variantText += ' | ' + suspension;
-                            if (note && note.trim() !== '') {
-                                variantText += '<br><small style="color:#888;">Not: ' + note + '</small>';
-                            }
-                        } else if (item.size) {
-                            variantText = item.size;
-                        }
-                           } else {
-    // Normal varyasyonlu urun
-    let sizeText = 'Standard';
-    
-    if (Array.isArray(item.variants) && item.variants.length > 0) {
-        sizeText = item.variants[0].size || item.variants[0].name || 'Standard';
-    } else if (typeof item.variants === 'string') {
-        sizeText = item.variants;
-    } else if (typeof item.variants === 'object' && item.variants) {
-        sizeText = item.variants.size || item.variants.name || item.variants.color || 'Standard';
-    } else if (typeof item.variant === 'string') {
-        sizeText = item.variant;
-    } else if (typeof item.variant === 'object' && item.variant) {
-        sizeText = item.variant.size || item.variant.name || 'Standard';
-    }
-    
-    // ✅ RENK BILGISINI EKLE
-    variantText = sizeText;
-    if (item.color && item.color.trim() !== '') {
-        variantText += ' <span style="color:#888;">(' + item.color + ')</span>';
-    }
-}
-    
-     
+                    let variantText = item.variant || item.variants || 'Standard';
+                    
+                    if (item.color && item.color.trim() !== '') {
+                        variantText += ' <span style="color:#888;">(' + item.color + ')</span>';
+                    }
 
                     itemsHtml += '<tr>' +
                         '<td style="padding:8px;border:1px solid #e5e7eb;">' + (item.name || 'Urun') + '</td>' +
@@ -405,7 +151,7 @@
                 });
                 itemsHtml += '</tbody></table>';
 
-                    const templateParams = {
+                const templateParams = {
                     customer_email: customer.email || 'kund@example.com',
                     customer_name: (customer.firstName + ' ' + customer.lastName).trim() || 'Kund',
                     order_id: orderId,
@@ -415,10 +161,10 @@
                     payment_method: 'Stripe',
                     customer_address: (customer.address ? (customer.address + ', ' + customer.postcode + ' ' + customer.city).trim() : 'Sverige'),
                     customer_phone: customer.phone || 'N/A',
-                    tracking_link: 'https://www.dekorist.se/orders/' + orderId + '\\n\\n(Du kommer att få ett separat mail med spårningsinformation när din beställning skickas.)'
-                };  // ← BU SATIR EKSİKTİ!
+                    tracking_link: 'https://www.dekorist.se/orders/' + orderId + '\n\n(Du kommer att få ett separat mail med spårningsinformation när din beställning skickas.)'
+                };
 
-                console.log('>>> EmailJS gonderiliyor...', JSON.stringify(templateParams));
+                console.log('>>> EmailJS gonderiliyor...');
 
                 const response = await emailjs.send(
                     EMAILJS_CONFIG.SERVICE_ID,
@@ -426,7 +172,7 @@
                     templateParams
                 );
 
-                console.log('>>> ✅ Email gonderildi! Status:', response.status, response.text);
+                console.log('>>> ✅ Email gonderildi!');
 
                 emailStatusDiv.className = 'email-status sent';
                 emailStatusDiv.innerHTML = '✉️ En bekräftelse har skickats till din e-post.';
@@ -435,12 +181,12 @@
             } catch (emailErr) {
                 console.error('>>> Email gonderme hatasi:', emailErr);
                 emailStatusDiv.className = 'email-status failed';
-                emailStatusDiv.innerHTML = '⚠️ Kunde inte skicka bekräftelsemail. Kontakta oss om du inte får någon bekräftelse.';
+                emailStatusDiv.innerHTML = '⚠️ Kunde inte skicka bekräftelsemail.';
                 emailStatusDiv.classList.remove('hidden');
             }
         }
 
-        saveOrderAfterPayment();
+        showOrderDetails();
     </script>
 </body>
 </html>

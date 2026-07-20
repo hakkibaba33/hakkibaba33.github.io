@@ -416,7 +416,7 @@ if (item.isGardin && item.note && item.note.trim() !== '') {
             const { error } = await stripe.confirmPayment({
                 elements,
                 confirmParams: {
-                    return_url: window.location.origin + '/tack',
+                    return_url: window.location.origin + '/tack?order_id=' + data.orderId, 
                     payment_method_data: {
                         billing_details: {
                             name: document.getElementById('billing_first_name').value + ' ' + document.getElementById('billing_last_name').value,
