@@ -227,14 +227,15 @@ if (item.isGardin && item.note && item.note.trim() !== '') {
         const postcode = document.getElementById('billing_postcode')?.value?.trim();
         const city = document.getElementById('billing_city')?.value?.trim();
 
-        const customerData = {};
-        if (firstName) customerData.firstName = firstName;
-        if (lastName) customerData.lastName = lastName;
-        if (email) customerData.email = email;
-        if (phone) customerData.phone = phone;
-        if (address) customerData.address = address;
-        if (postcode) customerData.postcode = postcode;
-        if (city) customerData.city = city;
+        const customerData = {
+    firstName: firstName || '',
+    lastName: lastName || '',
+    email: email || '',
+    phone: phone || '',
+    address: address || '',
+    postcode: postcode || '',
+    city: city || ''
+};
 
         console.log('Gönderilen customer data:', customerData);
 
@@ -396,6 +397,14 @@ if (item.isGardin && item.note && item.note.trim() !== '') {
 
 async function handlePayment() {
     if (!validateForm()) return;
+
+    // ✅ FORM DOLDURULDUKTAN SONRA TEKRAR INIT ET
+    const paymentReady = await initPaymentForm();
+    if (!paymentReady) {
+        statusMessage.style.display = 'block';
+        statusMessage.innerText = 'Betalningsformuläret kunde inte uppdateras.';
+        return;
+    }
 
     if (!elements || !stripe) {
         statusMessage.style.display = 'block';
