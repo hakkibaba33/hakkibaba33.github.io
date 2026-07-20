@@ -8,9 +8,7 @@ console.log('CONFIG durumu:', typeof CONFIG !== 'undefined' ? 'Yuklu' : 'YUKLU D
 
 function getCurrentCategory() {
     const path = window.location.pathname;
-    // Önce / ile başlayan ve bitenleri temizle
     const cleanPath = path.replace(/^\/+|\/+$/g, '');
-    // İlk segmenti al (örn: /gardiner/alt-sey => gardiner)
     const category = cleanPath.split('/')[0] || null;
     console.log('URL path:', path);
     console.log('Clean path:', cleanPath);
@@ -27,19 +25,18 @@ function isReaPage() {
     return window.location.pathname.includes('/rea/');
 }
 
-function updatePageTitle(category) {
-    const titleMap = {
-        'mattor': 'Mattor',
-        'metervara': 'Metervara',
-        'gangmattor': 'Gångmattor',
-        'badrumsmattor': 'Badrumsmattor',
-        'gardiner': 'Gardiner',
-        'rea': 'REA',
-        'kontakt': 'Kontakt'
-    };
-    
-    let title = titleMap[category] || 'Produkter';
+const titleMap = {
+    'mattor': 'Mattor',
+    'metervara': 'Metervara',
+    'gangmattor': 'Gångmattor',
+    'badrumsmattor': 'Badrumsmattor',
+    'gardiner': 'Gardiner',
+    'rea': 'REA',
+    'kontakt': 'Kontakt'
+};
 
+function updatePageTitle(category) {
+    let title = titleMap[category] || 'Produkter';
     document.title = 'Alla ' + title + ' | DKRUG';
 
     const pageTitle = document.getElementById('category-main-title');
@@ -81,12 +78,8 @@ function initChipsRouting() {
         const href = chip.getAttribute('href');
         if (!href) return;
 
-        // 1. URL'i güncelle
         window.history.pushState({}, '', href);
-        
-        // 2. Tarayıcıya URL'in değiştiğini bildiren özel bir event fırlat (En Güvenli Yol)
-        window.dispatchEvent(new Event('popstate')); 
-        
+        window.dispatchEvent(new Event('popstate'));
         window.scrollTo({ top: 0, behavior: 'smooth' });
     });
 }
@@ -142,21 +135,216 @@ function getColorStyle(colorName) {
     return '#ccc';
 }
 
+// ==========================================
+// KATEGORI SAYFASI SEO META TAG'LERI + SAYFA ALTI ICERIK
+// ==========================================
+function updateCategoryMetaTags(seoData) {
+    if (!seoData) return;
+    
+    // 1. <title>
+    document.title = seoData.title || 'Kategori | DKRUG';
+    
+    // 2. <meta name="description">
+    let metaDesc = document.querySelector('meta[name="description"]');
+    if (!metaDesc) {
+        metaDesc = document.createElement('meta');
+        metaDesc.setAttribute('name', 'description');
+        document.head.appendChild(metaDesc);
+    }
+    metaDesc.setAttribute('content', seoData.meta_description || '');
+    
+    // 3. <meta name="keywords">
+    if (seoData.keywords) {
+        let metaKeywords = document.querySelector('meta[name="keywords"]');
+        if (!metaKeywords) {
+            metaKeywords = document.createElement('meta');
+            metaKeywords.setAttribute('name', 'keywords');
+            document.head.appendChild(metaKeywords);
+        }
+        metaKeywords.setAttribute('content', seoData.keywords);
+    }
+    
+    // 4. <link rel="canonical">
+    const canonicalUrl = seoData.canonical_url || 'https://dkrug.se/' + window.location.pathname.replace(/^\/+|\/+$/g, '');
+    let canonical = document.querySelector('link[rel="canonical"]');
+    if (!canonical) {
+        canonical = document.createElement('link');
+        canonical.setAttribute('rel', 'canonical');
+        document.head.appendChild(canonical);
+    }
+    canonical.setAttribute('href', canonicalUrl);
+    
+    // 5. Open Graph
+    const ogImage = seoData.og_image || '';
+    const ogTitle = seoData.title || '';
+    const ogDesc = seoData.meta_description || '';
+    
+    let ogTitleTag = document.querySelector('meta[property="og:title"]');
+    if (!ogTitleTag) {
+        ogTitleTag = document.createElement('meta');
+        ogTitleTag.setAttribute('property', 'og:title');
+        document.head.appendChild(ogTitleTag);
+    }
+    ogTitleTag.setAttribute('content', ogTitle);
+    
+    let ogDescTag = document.querySelector('meta[property="og:description"]');
+    if (!ogDescTag) {
+        ogDescTag = document.createElement('meta');
+        ogDescTag.setAttribute('property', 'og:description');
+        document.head.appendChild(ogDescTag);
+    }
+    ogDescTag.setAttribute('content', ogDesc);
+    
+    if (ogImage) {
+        let ogImageTag = document.querySelector('meta[property="og:image"]');
+        if (!ogImageTag) {
+            ogImageTag = document.createElement('meta');
+            ogImageTag.setAttribute('property', 'og:image');
+            document.head.appendChild(ogImageTag);
+        }
+        ogImageTag.setAttribute('content', ogImage);
+    }
+    
+    let ogType = document.querySelector('meta[property="og:type"]');
+    if (!ogType) {
+        ogType = document.createElement('meta');
+        ogType.setAttribute('property', 'og:type');
+        document.head.appendChild(ogType);
+    }
+    ogType.setAttribute('content', 'website');
+    
+    let ogUrl = document.querySelector('meta[property="og:url"]');
+    if (!ogUrl) {
+        ogUrl = document.createElement('meta');
+        ogUrl.setAttribute('property', 'og:url');
+        document.head.appendChild(ogUrl);
+    }
+    ogUrl.setAttribute('content', canonicalUrl);
+    
+    // 6. Twitter Cards
+    let twitterCard = document.querySelector('meta[name="twitter:card"]');
+    if (!twitterCard) {
+        twitterCard = document.createElement('meta');
+        twitterCard.setAttribute('name', 'twitter:card');
+        document.head.appendChild(twitterCard);
+    }
+    twitterCard.setAttribute('content', 'summary_large_image');
+    
+    // 7. Schema.org JSON-LD
+    const schemaType = seoData.schema_type || 'CollectionPage';
+    const schemaData = {
+        '@context': 'https://schema.org',
+        '@type': schemaType,
+        'name': seoData.title || '',
+        'description': seoData.meta_description || '',
+        'url': canonicalUrl
+    };
+    
+    const breadcrumbSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        'itemListElement': [
+            {
+                '@type': 'ListItem',
+                'position': 1,
+                'name': 'Hem',
+                'item': 'https://dkrug.se/'
+            },
+            {
+                '@type': 'ListItem',
+                'position': 2,
+                'name': seoData.title || 'Kategori',
+                'item': canonicalUrl
+            }
+        ]
+    };
+    
+    let existingSchema = document.querySelector('script[data-category-schema="true"]');
+    if (existingSchema) existingSchema.remove();
+    
+    const schemaScript = document.createElement('script');
+    schemaScript.setAttribute('type', 'application/ld+json');
+    schemaScript.setAttribute('data-category-schema', 'true');
+    schemaScript.textContent = JSON.stringify([schemaData, breadcrumbSchema], null, 2);
+    document.head.appendChild(schemaScript);
+    
+    // ==========================================
+    // ✅ YENI: SAYFA ALTI SEO ICERIGI (BODY'DE GORUNUR)
+    // ==========================================
+    renderSeoContent(seoData);
+}
+
+// ==========================================
+// SAYFA ALTI SEO ICERIGI RENDER
+// ==========================================
+function renderSeoContent(seoData) {
+    const container = document.getElementById('seo-content');
+    const inner = document.getElementById('seo-inner');
+    
+    if (!container || !inner) {
+        console.log('[SEO Content] Container bulunamadi');
+        return;
+    }
+    
+    if (!seoData.content && !seoData.meta_description) {
+        container.style.display = 'none';
+        return;
+    }
+    
+    container.style.display = 'block';
+    
+    // ✅ DÜZELTME: İçerik wrapper div içine alındı, tüm etiketler ortalanacak
+    inner.innerHTML = `
+        <div class="seo-content-wrapper">
+            <h2 class="seo-auto-title">${seoData.title || ''}</h2>
+            <div class="seo-text-body" id="seo-text-body">
+                ${seoData.content || '<p>' + seoData.meta_description + '</p>'}
+            </div>
+            <div class="seo-read-more-wrapper">
+                <button class="seo-read-more-btn" id="seo-read-more-btn" onclick="toggleSeoContent()">
+                    Läs mer
+                    <svg class="seo-arrow-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M6 9l6 6 6-6"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    `;
+    
+    console.log('[SEO Content] Sayfa alti icerigi render edildi');
+}
+
+
+// ==========================================
+// "Läs mer" / "Visa mindre" TOGGLE
+// ==========================================
+function toggleSeoContent() {
+    const body = document.getElementById('seo-text-body');
+    const btn = document.getElementById('seo-read-more-btn');
+    
+    if (!body || !btn) return;
+    
+    const isExpanded = body.classList.toggle('expanded');
+    btn.classList.toggle('active', isExpanded);
+    
+    if (isExpanded) {
+        btn.innerHTML = 'Visa mindre';
+    } else {
+        btn.innerHTML = 'Läs mer';
+        document.getElementById('seo-content')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
 
-    // ===============================
-    // ✅ ÇİFT ÇALIŞMA KORUMASI (MINIMAL)
-    // ===============================
     if (window.__categoryInitDone) {
         console.log('category.js: init zaten calisti, atlaniyor.');
         return;
     }
     window.__categoryInitDone = true;
 
-    // fetchProducts tek-flight (race condition koruması)
     let __fetchProductsInFlight = false;
 
-    // ✅ initial render'ı tek seferde çalıştır (tam minimal)
     async function fetchProductsOnce() {
         if (__fetchProductsInFlight) return;
         __fetchProductsInFlight = true;
@@ -167,12 +355,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-
     let allProducts = [];
     let filteredProducts = [];
     let currentPage = 0;
     const ITEMS_PER_PAGE = 12;
-
 
     const grid = document.getElementById('product-grid');
     const loadMoreBtn = document.getElementById('load-more-btn');
@@ -246,13 +432,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const category = categories.find(c => c.slug === currentCategory);
         if (category && Array.isArray(subCategories)) {
-            // Sadece mevcut kategoriye ait alt kategorileri göster
             const catId = parseInt(category.id);
             const categorySubs = subCategories.filter(s => {
                 return s && parseInt(s.category_id) === catId && s.active !== false;
             });
 
-            console.log('Chips render - Kategori:', currentCategory, 'ID:', catId, 'Alt kategori sayısı:', categorySubs.length);
+            console.log('Chips render - Kategori:', currentCategory, 'ID:', catId, 'Alt kategori sayisi:', categorySubs.length);
 
             categorySubs.forEach(sub => {
                 const isActive = currentSubCategory === sub.slug;
@@ -266,10 +451,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function fetchProducts() {
         try {
-            // ==========================================
-            // [EKLEME] ZIPLAMAYI ÖNLEME: Veri yüklenmeden önce grid içerisine geçici skeleton'lar ekliyoruz
-            // ==========================================
-            const grid = document.getElementById('product-grid');
             if (grid) {
                 grid.innerHTML = `
                     <div class="skeleton-loader-card"></div>
@@ -278,7 +459,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                     <div class="skeleton-loader-card"></div>
                 `;
             }
-            // ==========================================
 
             const currentCategory = getCurrentCategory();
             const subCategory = getCurrentSubCategory();
@@ -320,10 +500,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 product_variants: variants.filter(v => v.product_id === p.id)
             }));
 
-                         allProducts = data.map(product => {
+            allProducts = data.map(product => {
                 let productVariants = product.product_variants || [];
                 
-                // 🔥 YENİ: Basit ürünlerde simple_size varsa varyasyona dönüştür
                 if (productVariants.length === 0 && product.simple_size) {
                     productVariants = [{
                         size: product.simple_size,
@@ -362,11 +541,47 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             console.log(allProducts.length + ' urun yuklendi');
 
-            // renderProducts() çalışırken zaten grid.innerHTML = '' yapıp 
-            // bizim eklediğimiz skeleton-loader-card'ları silecek ve gerçek ürünleri basacak.
             renderProducts(); 
             updateProgress();
             generateFilters();
+
+            // ✅ SEO Meta Tags
+            if (currentCategory && typeof updateCategoryMetaTags === 'function') {
+                try {
+                    const seoData = await supabaseGet('seo_content', {
+                        page_slug: 'eq.' + currentCategory,
+                        active: 'eq.true',
+                        select: '*'
+                    });
+                    
+                    console.log('SEO verisi:', seoData);
+                    
+                    if (seoData && seoData.length > 0) {
+                        const item = seoData[0];
+                        updateCategoryMetaTags({
+    title: item.title || '...',
+    meta_description: item.meta_description || '',
+    keywords: item.seo_keywords || item.keywords || '',
+    content: item.content || '',  // 👈 BUNU EKLE!
+    og_image: item.og_image || '',
+    canonical_url: item.canonical_url || '',
+    schema_type: item.schema_type || 'CollectionPage'
+});
+                    } else {
+                        console.log('SEO verisi bulunamadi, fallback kullaniliyor');
+                        updateCategoryMetaTags({
+                            title: 'Alla ' + (titleMap[currentCategory] || 'Produkter') + ' | DKRUG',
+                            meta_description: 'Köp ' + (titleMap[currentCategory] || 'produkter') + ' online hos DKRUG. Stort utbud och snabb leverans.',
+                            keywords: (titleMap[currentCategory] || 'produkter') + ', köpa online, DKRUG',
+                            og_image: '',
+                            canonical_url: 'https://dkrug.se/' + currentCategory,
+                            schema_type: 'CollectionPage'
+                        });
+                    }
+                } catch (e) {
+                    console.error('[SEO] Kategori meta tag güncelleme hatasi:', e);
+                }
+            }
 
         } catch (error) {
             console.error('Urun cekme hatasi:', error);
@@ -377,60 +592,56 @@ document.addEventListener('DOMContentLoaded', async () => {
                     <button onclick="location.reload()" class="visa-mer-btn">Forsok igen</button>
                 </div>
             `;
-             } 
-            }   
-
-  function getVariantDisplayText(product) {
-    // 1. ONCELIK: M2 Hesaplayici (Hali) - m2_available_widths
-    const m2Widths = product.m2_available_widths || [];
-    if (product.m2_calculator_active && m2Widths.length > 0) {
-        const firstWidth = m2Widths[0];
-        const extraCount = m2Widths.length - 1;
-
-        if (m2Widths.length === 1) {
-            return `<span class="variant-main">${firstWidth} cm</span>`;
         }
-        return `<span class="variant-main">${firstWidth} cm</span><span class="variant-extra-badge">+${extraCount} storlek</span>`;
     }
 
-    // 2. IKINCI ONCELIK: Gardin Hesaplayici (Perde) - gardin_measurements
-    const gardinMeasurements = product.gardin_measurements || [];
-    if (product.gardin_calculator_active && gardinMeasurements.length > 0) {
-        const firstMeasurement = gardinMeasurements[0].replace('x', '×');
-        const extraCount = gardinMeasurements.length - 1;
+    function getVariantDisplayText(product) {
+        const m2Widths = product.m2_available_widths || [];
+        if (product.m2_calculator_active && m2Widths.length > 0) {
+            const firstWidth = m2Widths[0];
+            const extraCount = m2Widths.length - 1;
 
-        if (gardinMeasurements.length === 1) {
-            return `<span class="variant-main">${firstMeasurement} cm</span>`;
+            if (m2Widths.length === 1) {
+                return `<span class="variant-main">${firstWidth} cm</span>`;
+            }
+            return `<span class="variant-main">${firstWidth} cm</span><span class="variant-extra-badge">+${extraCount} storlek</span>`;
         }
-        return `<span class="variant-main">${firstMeasurement} cm</span><span class="variant-extra-badge">+${extraCount} storlek</span>`;
-    }
 
-    // 3. UcUNCU ONCELIK: measurements varsa goster (perde/metre urunleri - legacy)
-    const measurements = product.measurements || [];
-    if (measurements.length > 0) {
-        const firstMeasurement = measurements[0];
-        const extraCount = measurements.length - 1;
+        const gardinMeasurements = product.gardin_measurements || [];
+        if (product.gardin_calculator_active && gardinMeasurements.length > 0) {
+            const firstMeasurement = gardinMeasurements[0].replace('x', '×');
+            const extraCount = gardinMeasurements.length - 1;
 
-        if (measurements.length === 1) {
-            return `<span class="variant-main">${firstMeasurement}</span>`;
+            if (gardinMeasurements.length === 1) {
+                return `<span class="variant-main">${firstMeasurement} cm</span>`;
+            }
+            return `<span class="variant-main">${firstMeasurement} cm</span><span class="variant-extra-badge">+${extraCount} storlek</span>`;
         }
-        return `<span class="variant-main">${firstMeasurement}</span><span class="variant-extra-badge">+${extraCount} storlekar</span>`;
+
+        const measurements = product.measurements || [];
+        if (measurements.length > 0) {
+            const firstMeasurement = measurements[0];
+            const extraCount = measurements.length - 1;
+
+            if (measurements.length === 1) {
+                return `<span class="variant-main">${firstMeasurement}</span>`;
+            }
+            return `<span class="variant-main">${firstMeasurement}</span><span class="variant-extra-badge">+${extraCount} storlekar</span>`;
+        }
+
+        const variants = product.variants || [];
+        if (variants.length === 0) return '';
+
+        const firstSize = variants[0].size || '';
+        const extraCount = variants.length - 1;
+
+        if (variants.length === 1) {
+            return `<span class="variant-main">${firstSize}</span>`;
+        }
+        return `<span class="variant-main">${firstSize}</span><span class="variant-extra-badge">+${extraCount} storlekar</span>`;
     }
 
-    // 4. SON ONCELIK: varyasyonlari goster (boyutlu urunler - eski davranis)
-    const variants = product.variants || [];
-    if (variants.length === 0) return '';
-
-    const firstSize = variants[0].size || '';
-    const extraCount = variants.length - 1;
-
-    if (variants.length === 1) {
-        return `<span class="variant-main">${firstSize}</span>`;
-    }
-    return `<span class="variant-main">${firstSize}</span><span class="variant-extra-badge">+${extraCount} storlekar</span>`;
-}
-
-function renderProducts(append = false) {
+    function renderProducts(append = false) {
         if (!append) {
             grid.innerHTML = '';
             currentPage = 0;
@@ -466,22 +677,21 @@ function renderProducts(append = false) {
         }
     }
 
-function createProductCard(product, isWishlisted) {
-    const hasDiscount = product.discount_price && product.discount_price < product.base_price;
-    
-    const priceHTML = hasDiscount 
-        ? `<span class="current-price price-discount">${product.price.toLocaleString('sv-SE')} Kr</span>
-           <span class="original-price">${product.base_price.toLocaleString('sv-SE')} Kr</span>`
-        : `<span class="current-price">${product.price.toLocaleString('sv-SE')} Kr</span>`;
+    function createProductCard(product, isWishlisted) {
+        const hasDiscount = product.discount_price && product.discount_price < product.base_price;
+        
+        const priceHTML = hasDiscount 
+            ? `<span class="current-price price-discount">${product.price.toLocaleString('sv-SE')} Kr</span>
+               <span class="original-price">${product.base_price.toLocaleString('sv-SE')} Kr</span>`
+            : `<span class="current-price">${product.price.toLocaleString('sv-SE')} Kr</span>`;
 
-    const variantText = getVariantDisplayText(product);
-    
-    const productUrl = product.slug
-        ? '/produkt/' + encodeURIComponent(String(product.slug).trim())
-        : '/produkt/index.html?id=' + encodeURIComponent(String(product.id));
+        const variantText = getVariantDisplayText(product);
+        
+        const productUrl = product.slug
+            ? '/produkt/' + encodeURIComponent(String(product.slug).trim())
+            : '/produkt/index.html?id=' + encodeURIComponent(String(product.id));
 
-    return `
-        <div class="product-card" data-id="${String(product.id)}">
+        return `<div class="product-card" data-id="${String(product.id)}">
             <div class="image-box">
                 <a href="${productUrl}">
                     <img src="${product.image}" 
@@ -519,9 +729,8 @@ function createProductCard(product, isWishlisted) {
                     </div>
                 ` : ''}
             </div>
-        </div>
-    `;
-}
+        </div>`;
+    }
 
     function isInWishlist(productId) {
         try {
@@ -558,19 +767,18 @@ function createProductCard(product, isWishlisted) {
             btn.classList.remove('active');
             const icon = btn.querySelector('.heart-icon');
             if (icon) {
-            icon.style.fill = 'none';
-            icon.style.stroke = 'currentColor';
-           }
-            
+                icon.style.fill = 'none';
+                icon.style.stroke = 'currentColor';
+            }
             console.log('Favorilerden kaldirildi:', product.name);
         } else {
             wishlist.push({ id: product.id, name: product.name, price: product.price, image: product.image });
             btn.classList.add('active');
             const icon = btn.querySelector('.heart-icon');
             if (icon) {
-            icon.style.fill = '#D30000';
-            icon.style.stroke = '#D30000';
-         }
+                icon.style.fill = '#D30000';
+                icon.style.stroke = '#D30000';
+            }
             console.log('Favorilere eklendi:', product.name);
         }
 
@@ -591,11 +799,6 @@ function createProductCard(product, isWishlisted) {
         }
     }
 
-    // ==========================================
-    // MODERN FILTRE GENERATOR - v5.7
-    // Ana panel (menu) -> Alt panel (grid) slide yapisi
-    // ==========================================
-    
     let filterState = {
         colors: [],
         sizes: [],
@@ -612,7 +815,6 @@ function createProductCard(product, isWishlisted) {
             return getArea(a) - getArea(b);
         });
 
-        // 🔥 YENİ: M² halı genişliklerini topla (sadece m2_calculator_active olan ürünlerden)
         const allWidths = [...new Set(allProducts.flatMap(p => {
             if (p.m2_calculator_active && p.m2_available_widths && p.m2_available_widths.length > 0) {
                 return p.m2_available_widths.map(w => String(w));
@@ -620,17 +822,13 @@ function createProductCard(product, isWishlisted) {
             return [];
         }))].filter(Boolean).sort((a, b) => parseInt(a) - parseInt(b));
 
-        // Bredd filtresi gösterimi: allWidths zaten sadece m2_calculator_active ürünlerden toplanıyor
-        // Yani herhangi bir kategoride M² hesaplayıcı ürün varsa Bredd gösterilecek
         const showWidthFilter = allWidths.length > 0;
 
         const mainPanel = document.getElementById('main-panel');
         if (!mainPanel) return;
 
-        // --- ANA PANEL: Filtre kategorileri listesi ---
         let mainHTML = '';
         
-        // Farg kategorisi
         if (allColors.length > 0) {
             mainHTML += `
                 <div class="filter-menu-item" data-filter-type="color">
@@ -643,7 +841,6 @@ function createProductCard(product, isWishlisted) {
             `;
         }
         
-        // Storlek kategorisi
         if (allSizes.length > 0) {
             mainHTML += `
                 <div class="filter-menu-item" data-filter-type="size">
@@ -656,7 +853,6 @@ function createProductCard(product, isWishlisted) {
             `;
         }
 
-        // Bredd (Genişlik) kategorisi - SADECE mattor kategorisinde göster
         if (showWidthFilter) {
             mainHTML += `
                 <div class="filter-menu-item" data-filter-type="width">
@@ -671,7 +867,6 @@ function createProductCard(product, isWishlisted) {
 
         mainPanel.innerHTML = mainHTML;
 
-        // --- ALT PANEL: Renk grid ---
         const colorSubPanel = document.getElementById('color-sub-panel');
         if (colorSubPanel && allColors.length > 0) {
             colorSubPanel.innerHTML = `
@@ -700,7 +895,6 @@ function createProductCard(product, isWishlisted) {
             `;
         }
 
-        // --- ALT PANEL: Storlek grid ---
         const sizeSubPanel = document.getElementById('size-sub-panel');
         if (sizeSubPanel && allSizes.length > 0) {
             sizeSubPanel.innerHTML = `
@@ -728,7 +922,6 @@ function createProductCard(product, isWishlisted) {
             `;
         }
 
-        // --- ALT PANEL: Bredd (Genişlik) grid - SADECE mattor kategorisinde ---
         const widthSubPanel = document.getElementById('width-sub-panel');
         if (widthSubPanel && showWidthFilter) {
             widthSubPanel.innerHTML = `
@@ -756,12 +949,10 @@ function createProductCard(product, isWishlisted) {
             `;
         }
 
-        // Event listener'lari ekle
         setupFilterEvents();
     }
 
     function setupFilterEvents() {
-        // Ana paneldeki menu item'lara tiklama
         document.querySelectorAll('.filter-menu-item').forEach(item => {
             item.addEventListener('click', () => {
                 const type = item.dataset.filterType;
@@ -769,14 +960,12 @@ function createProductCard(product, isWishlisted) {
             });
         });
 
-        // Geri butonlari
         document.querySelectorAll('.back-to-main').forEach(btn => {
             btn.addEventListener('click', () => {
                 closeSubPanel();
             });
         });
 
-        // Checkbox degisiklikleri
         document.querySelectorAll('.filter-input').forEach(input => {
             input.addEventListener('change', () => {
                 updateFilterState();
@@ -810,7 +999,6 @@ function createProductCard(product, isWishlisted) {
     }
 
     function updateFilterPreview() {
-        // Color preview dots
         const colorPreview = document.getElementById('color-preview');
         if (colorPreview) {
             if (filterState.colors.length > 0) {
@@ -824,7 +1012,6 @@ function createProductCard(product, isWishlisted) {
             }
         }
 
-        // Size count badge
         const sizeCount = document.getElementById('size-count');
         if (sizeCount) {
             if (filterState.sizes.length > 0) {
@@ -835,15 +1022,12 @@ function createProductCard(product, isWishlisted) {
             }
         }
 
-        // Sub panel counts
-              const sizeSubCount = document.getElementById('size-sub-count');
+        const sizeSubCount = document.getElementById('size-sub-count');
         if (sizeSubCount) sizeSubCount.textContent = filterState.sizes.length + ' valda';
         
-        // Bredd sub panel count
         const widthSubCount = document.getElementById('width-sub-count');
         if (widthSubCount) widthSubCount.textContent = filterState.widths.length + ' valda';
         
-        // Width count badge (ana panel)
         const widthCount = document.getElementById('width-count');
         if (widthCount) {
             if (filterState.widths.length > 0) {
@@ -863,7 +1047,6 @@ function createProductCard(product, isWishlisted) {
         filteredProducts = allProducts.filter(product => {
             const colorMatch = checkedColors.length === 0 || product.colors.some(c => checkedColors.includes(c));
             const sizeMatch = checkedSizes.length === 0 || product.sizes.some(s => checkedSizes.includes(s));
-            // Width filtresi: Ürün m2_calculator_active ise ve m2_available_widths içinde seçili genişlik varsa
             const widthMatch = checkedWidths.length === 0 || (
                 product.m2_calculator_active && 
                 product.m2_available_widths && 
@@ -886,9 +1069,6 @@ function createProductCard(product, isWishlisted) {
         }
     }
 
-    // ==========================================
-    // RENSA BUTONU
-    // ==========================================
     function clearAllFilters() {
         console.log('>>> clearAllFilters CAGIRILDI');
 
@@ -1015,7 +1195,6 @@ function createProductCard(product, isWishlisted) {
             filterDrawer?.classList.remove('active');
             filterOverlay?.classList.remove('active');
             document.body.style.overflow = '';
-            // Alt panelleri kapat
             setTimeout(() => closeSubPanel(), 300);
         };
 
@@ -1062,29 +1241,23 @@ function createProductCard(product, isWishlisted) {
 
     await fetchProductsOnce();
     initSort();
-
     initDrawers();
     initChipsRouting();
     initClearFilters();
     updateChipsActiveState();
     updateWishlistBadge();
 
-    // ✅ BREADCRUMB GUNCELLEME - MUTLAKA BURADA
     const initialCategory = getCurrentCategory();
     console.log('>>> DOMContentLoaded sonu, initialCategory:', initialCategory);
     updatePageTitle(initialCategory);
 
     console.log('Category.js v5.7 baslatildi');
 
-
-
-// Urunleri ilk acilista getir
     fetchProductsOnce();
 
-    // ✅ YENİ: URL her değiştiğinde (Chips tıklandığında veya geri gidildiğinde) çalışacak dynamic router
     window.addEventListener('popstate', () => {
-        console.log('URL değişti, ürünler güncelleniyor...');
-        updateChipsActiveState(); // Aktif chip'i değiştir
-        fetchProductsOnce();      // Ürünleri yeniden çek
+        console.log('URL degisti, chip aktifligi guncelleniyor...');
+        updateChipsActiveState();
+        fetchProductsOnce();
     });
 });

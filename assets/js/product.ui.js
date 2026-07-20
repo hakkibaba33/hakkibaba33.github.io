@@ -443,6 +443,10 @@ if (window.__productPageInitialized) {
                 loadRelatedSlider();
             }, 500);
 
+            if (typeof updateProductMetaTags === 'function' && currentProduct) {
+            updateProductMetaTags(currentProduct);
+          }
+
         } catch (e) { 
             console.error("Hata:", e);
             hideAllSkeletons();
@@ -460,6 +464,7 @@ if (window.__productPageInitialized) {
         const el = document.getElementById(id);
         if (el) { el.innerHTML = ''; el.innerHTML = html || ''; }
     }
+
 
 // ==========================================
 // ILGILI URUNLER - KATEGORI KARTI BIREBIR + VARYASYON/RENK (v5.0)
@@ -1638,4 +1643,236 @@ function updateSliderButtons() {
     } else {
         initProductPage();
     }
+
+// ==========================================
+// SEO META TAG'LERİNİ GÜNCELLE
+// ==========================================
+function updateProductMetaTags(product) {
+    if (!product) return;
+    
+    // 1. <title>
+    if (product.seo_title) {
+        document.title = product.seo_title;
+    } else {
+        document.title = `${product.name} | DKRUG`;
+    }
+    
+    // 2. <meta name="description">
+    let metaDesc = document.querySelector('meta[name="description"]');
+    if (!metaDesc) {
+        metaDesc = document.createElement('meta');
+        metaDesc.setAttribute('name', 'description');
+        document.head.appendChild(metaDesc);
+    }
+    if (product.seo_description) {
+        metaDesc.setAttribute('content', product.seo_description);
+    }
+    
+    // 3. <meta name="keywords">
+    if (product.seo_keywords) {
+        let metaKeywords = document.querySelector('meta[name="keywords"]');
+        if (!metaKeywords) {
+            metaKeywords = document.createElement('meta');
+            metaKeywords.setAttribute('name', 'keywords');
+            document.head.appendChild(metaKeywords);
+        }
+        metaKeywords.setAttribute('content', product.seo_keywords);
+    }
+    
+    // 4. <link rel="canonical">
+    const canonicalUrl = product.canonical_url || `https://dkrug.se/produkt/${product.slug}`;
+    let canonical = document.querySelector('link[rel="canonical"]');
+    if (!canonical) {
+        canonical = document.createElement('link');
+        canonical.setAttribute('rel', 'canonical');
+        document.head.appendChild(canonical);
+    }
+    canonical.setAttribute('href', canonicalUrl);
+    
+    // 5. Open Graph
+    const ogImage = product.og_image || (product.images && product.images[0] ? product.images[0] : '');
+    const ogTitle = product.seo_title || product.name;
+    const ogDesc = product.seo_description || product.description?.replace(/<[^>]*>/g, '').substring(0, 160) || '';
+    
+    // og:title
+    let ogTitleTag = document.querySelector('meta[property="og:title"]');
+    if (!ogTitleTag) {
+        ogTitleTag = document.createElement('meta');
+        ogTitleTag.setAttribute('property', 'og:title');
+        document.head.appendChild(ogTitleTag);
+    }
+    ogTitleTag.setAttribute('content', ogTitle);
+    
+    // og:description
+    let ogDescTag = document.querySelector('meta[property="og:description"]');
+    if (!ogDescTag) {
+        ogDescTag = document.createElement('meta');
+        ogDescTag.setAttribute('property', 'og:description');
+        document.head.appendChild(ogDescTag);
+    }
+    ogDescTag.setAttribute('content', ogDesc);
+    
+    // og:image
+    if (ogImage) {
+        let ogImageTag = document.querySelector('meta[property="og:image"]');
+        if (!ogImageTag) {
+            ogImageTag = document.createElement('meta');
+            ogImageTag.setAttribute('property', 'og:image');
+            document.head.appendChild(ogImageTag);
+        }
+        ogImageTag.setAttribute('content', ogImage);
+        
+        // og:image:width & height
+        let ogWidth = document.querySelector('meta[property="og:image:width"]');
+        if (!ogWidth) {
+            ogWidth = document.createElement('meta');
+            ogWidth.setAttribute('property', 'og:image:width');
+            document.head.appendChild(ogWidth);
+        }
+        ogWidth.setAttribute('content', '1200');
+        
+        let ogHeight = document.querySelector('meta[property="og:image:height"]');
+        if (!ogHeight) {
+            ogHeight = document.createElement('meta');
+            ogHeight.setAttribute('property', 'og:image:height');
+            document.head.appendChild(ogHeight);
+        }
+        ogHeight.setAttribute('content', '630');
+    }
+    
+    // og:type
+    let ogType = document.querySelector('meta[property="og:type"]');
+    if (!ogType) {
+        ogType = document.createElement('meta');
+        ogType.setAttribute('property', 'og:type');
+        document.head.appendChild(ogType);
+    }
+    ogType.setAttribute('content', 'product');
+    
+    // og:url
+    let ogUrl = document.querySelector('meta[property="og:url"]');
+    if (!ogUrl) {
+        ogUrl = document.createElement('meta');
+        ogUrl.setAttribute('property', 'og:url');
+        document.head.appendChild(ogUrl);
+    }
+    ogUrl.setAttribute('content', canonicalUrl);
+    
+    // 6. Twitter Cards
+    let twitterCard = document.querySelector('meta[name="twitter:card"]');
+    if (!twitterCard) {
+        twitterCard = document.createElement('meta');
+        twitterCard.setAttribute('name', 'twitter:card');
+        document.head.appendChild(twitterCard);
+    }
+    twitterCard.setAttribute('content', 'summary_large_image');
+    
+    let twitterTitle = document.querySelector('meta[name="twitter:title"]');
+    if (!twitterTitle) {
+        twitterTitle = document.createElement('meta');
+        twitterTitle.setAttribute('name', 'twitter:title');
+        document.head.appendChild(twitterTitle);
+    }
+    twitterTitle.setAttribute('content', ogTitle);
+    
+    let twitterDesc = document.querySelector('meta[name="twitter:description"]');
+    if (!twitterDesc) {
+        twitterDesc = document.createElement('meta');
+        twitterDesc.setAttribute('name', 'twitter:description');
+        document.head.appendChild(twitterDesc);
+    }
+    twitterDesc.setAttribute('content', ogDesc);
+    
+    if (ogImage) {
+        let twitterImage = document.querySelector('meta[name="twitter:image"]');
+        if (!twitterImage) {
+            twitterImage = document.createElement('meta');
+            twitterImage.setAttribute('name', 'twitter:image');
+            document.head.appendChild(twitterImage);
+        }
+        twitterImage.setAttribute('content', ogImage);
+    }
+    
+    // 7. Robots meta (noindex kontrolü)
+    if (product.noindex) {
+        let robotsMeta = document.querySelector('meta[name="robots"]');
+        if (!robotsMeta) {
+            robotsMeta = document.createElement('meta');
+            robotsMeta.setAttribute('name', 'robots');
+            document.head.appendChild(robotsMeta);
+        }
+        robotsMeta.setAttribute('content', 'noindex, nofollow');
+    }
+    
+    // 8. Schema.org JSON-LD (Product)
+    const schemaType = product.schema_type || 'Product';
+    const displayPrice = product.discount_price || product.base_price || 0;
+    const originalPrice = product.base_price || 0;
+    const hasDiscount = product.discount_price && product.discount_price < product.base_price;
+    
+    // Stok durumunu belirle
+    let availability = 'https://schema.org/InStock';
+    if (product.product_variants && product.product_variants.length > 0) {
+        const totalStock = product.product_variants.reduce((sum, v) => sum + (v.stock || 0), 0);
+        if (totalStock <= 0) availability = 'https://schema.org/OutOfStock';
+    } else if (product.m2_calculator_active) {
+        // M² ürün: stok varsa InStock
+        const stocks = product.m2_stock_per_width || {};
+        const totalM2Stock = Object.values(stocks).reduce((sum, s) => sum + (parseFloat(s) || 0), 0);
+        if (totalM2Stock <= 0) availability = 'https://schema.org/OutOfStock';
+    }
+    
+    const schemaData = {
+        '@context': 'https://schema.org',
+        '@type': 'Product',
+        'name': product.name,
+        'image': product.images || [],
+        'description': product.seo_description || product.description?.replace(/<[^>]*>/g, '') || '',
+        'sku': String(product.id),
+        'brand': {
+            '@type': 'Brand',
+            'name': 'DKRUG'
+        },
+        'offers': {
+            '@type': 'Offer',
+            'url': canonicalUrl,
+            'priceCurrency': 'SEK',
+            'price': String(displayPrice),
+            'priceValidUntil': new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0],
+            'availability': availability,
+            'seller': {
+                '@type': 'Organization',
+                'name': 'DKRUG'
+            }
+        }
+    };
+    
+    // İndirim varsa offer'a ekle
+    if (hasDiscount) {
+        schemaData.offers.price = String(product.discount_price);
+        // Schema 3.0+ için
+        schemaData.offers.priceSpecification = {
+            '@type': 'PriceSpecification',
+            'price': String(product.discount_price),
+            'priceCurrency': 'SEK'
+        };
+    }
+    
+    // Eski schema'yı kaldır ve yenisini ekle
+    let existingSchema = document.querySelector('script[data-product-schema="true"]');
+    if (existingSchema) existingSchema.remove();
+    
+    const schemaScript = document.createElement('script');
+    schemaScript.setAttribute('type', 'application/ld+json');
+    schemaScript.setAttribute('data-product-schema', 'true');
+    schemaScript.textContent = JSON.stringify(schemaData, null, 2);
+    document.head.appendChild(schemaScript);
+}
+
+// Bu fonksiyonu initProductPage() içinde, veri yüklendikten sonra çağır:
+// updateProductMetaTags(currentProduct);
+
+
+
+
 }
