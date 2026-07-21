@@ -1,10 +1,9 @@
 // ==========================================
-// CHECKOUT.JS - GUNCELLENMIS v3 (Not Destekli)
+// CHECKOUT.JS - GUNCELLENMIS v3.1 (Payment Element Fix)
 // ==========================================
 
 document.addEventListener('DOMContentLoaded', () => {
 
-    // Musteri bilgilerini localStorage'a kaydet (tack sayfasi icin)
     function saveCustomerToLocalStorage() {
         const customerData = {
             firstName: document.getElementById('billing_first_name')?.value?.trim() || '',
@@ -16,12 +15,12 @@ document.addEventListener('DOMContentLoaded', () => {
             city: document.getElementById('billing_city')?.value?.trim() || ''
         };
         localStorage.setItem('dkrug_checkout_customer', JSON.stringify(customerData));
-        console.log('Musteri bilgileri kaydedildi:', customerData);
     }
 
     let stripe = null;
     let elements = null;
     let paymentElement = null;
+    let currentClientSecret = null; // ← YENİ: Client secret'ı sakla
 
     if (typeof Stripe !== 'undefined' && CONFIG?.STRIPE?.PUBLISHABLE_KEY) {
         stripe = Stripe(CONFIG.STRIPE.PUBLISHABLE_KEY);
@@ -80,18 +79,17 @@ document.addEventListener('DOMContentLoaded', () => {
             const itemTotal = parseFloat(item.price) * qty;
             total += itemTotal;
 
-             let variantDisplay = (item.isM2 || item.isGardin) && item.size 
-    ? item.size 
-    : (item.variants || 'Standard');
+            let variantDisplay = (item.isM2 || item.isGardin) && item.size 
+                ? item.size 
+                : (item.variants || 'Standard');
 
-// ✅ RENK BİLGİSİNİ EKLE (normal varyasyonlu ürünler için)
-if (!item.isM2 && !item.isGardin && item.color && item.color.trim() !== '') {
-    variantDisplay += ' <span style="color:#888;">(' + escapeHtml(item.color) + ')</span>';
-}
+            if (!item.isM2 && !item.isGardin && item.color && item.color.trim() !== '') {
+                variantDisplay += ' <span style="color:#888;">(' + escapeHtml(item.color) + ')</span>';
+            }
 
-if (item.isGardin && item.note && item.note.trim() !== '') {
-    variantDisplay += '<br><span style="color:#666;font-size:12px;font-style:italic;">📝 ' + escapeHtml(item.note) + '</span>';
-}
+            if (item.isGardin && item.note && item.note.trim() !== '') {
+                variantDisplay += '<br><span style="color:#666;font-size:12px;font-style:italic;">📝 ' + escapeHtml(item.note) + '</span>';
+            }
 
             const productEl = document.createElement('div');
             productEl.className = 'summary-item';
@@ -203,6 +201,23 @@ if (item.isGardin && item.note && item.note.trim() !== '') {
         return isValid;
     }
 
+    // ==========================================
+    // YENİ: Sepet değişince Payment Intent'i güncelle (Element'i yeniden oluşturma)
+    // ==========================================
+    async function updatePaymentAmount() {
+        // Eğer zaten bir Payment Element varsa ve sepet değişmişse,
+        // mevcut olanı kullan (Stripe otomatik tutarı günceller)
+        // VEYA yeni bir Payment Intent oluştur
+        if (currentClientSecret) {
+            // Mevcut client secret ile devam et, Stripe tutarı otomatik yönetir
+            // Ama sepet değişikliği büyükse yeni intent gerekir
+            console.log('Sepet güncellendi, mevcut Payment Element kullanılıyor');
+        }
+        
+        // Sepet değişince yeni intent oluştur (güvenli yöntem)
+        await initPaymentForm();
+    }
+
     async function initPaymentForm() {
         console.log('initPaymentForm basladi...');
 
@@ -228,14 +243,14 @@ if (item.isGardin && item.note && item.note.trim() !== '') {
         const city = document.getElementById('billing_city')?.value?.trim();
 
         const customerData = {
-    firstName: firstName || '',
-    lastName: lastName || '',
-    email: email || '',
-    phone: phone || '',
-    address: address || '',
-    postcode: postcode || '',
-    city: city || ''
-};
+            firstName: firstName || '',
+            lastName: lastName || '',
+            email: email || '',
+            phone: phone || '',
+            address: address || '',
+            postcode: postcode || '',
+            city: city || ''
+        };
 
         console.log('Gönderilen customer data:', customerData);
 
@@ -293,9 +308,9 @@ if (item.isGardin && item.note && item.note.trim() !== '') {
 
                 return {
                     ...baseItem,
-                       variant: item.variants || 'Standard',
-                      color: item.color || null  // ✅ RENK EKLE
-                    };
+                    variant: item.variants || 'Standard',
+                    color: item.color || null
+                };
             });
 
             const response = await fetch(CONFIG.API.PAYMENT_INTENT, {
@@ -327,11 +342,18 @@ if (item.isGardin && item.note && item.note.trim() !== '') {
                 throw new Error('clientSecret bos dondu!');
             }
 
-            if (paymentElement) {
-                paymentElement.destroy();
-                paymentElement = null;
+            // ← YENİ: Client secret'ı sakla
+            currentClientSecret = data.clientSecret;
+
+            // ← YENİ: Eğer zaten bir Payment Element varsa, sadece güncelle
+            if (paymentElement && elements) {
+                console.log('Mevcut Payment Element guncelleniyor...');
+                // Elements'i yeni client secret ile güncelle
+                elements.update({ clientSecret: data.clientSecret });
+                return true;
             }
 
+            // ← YENİ: İlk kez oluşturuyorsak
             elements = stripe.elements({
                 clientSecret: data.clientSecret,
                 appearance: {
@@ -395,69 +417,62 @@ if (item.isGardin && item.note && item.note.trim() !== '') {
         }
     }
 
-async function handlePayment() {
-    if (!validateForm()) return;
+    async function handlePayment() {
+        if (!validateForm()) return;
 
-    // ✅ FORM DOLDURULDUKTAN SONRA TEKRAR INIT ET
-    const paymentReady = await initPaymentForm();
-    if (!paymentReady) {
-        statusMessage.style.display = 'block';
-        statusMessage.innerText = 'Betalningsformuläret kunde inte uppdateras.';
-        return;
-    }
+        // ← KALDIRILDI: Burada tekrar initPaymentForm çağrılmayacak!
+        // Payment Element zaten sayfa yüklenirken oluşturuldu
+        
+        if (!elements || !stripe || !paymentElement) {
+            statusMessage.style.display = 'block';
+            statusMessage.innerText = 'Betalningsformuläret är inte redo.';
+            return;
+        }
 
-    if (!elements || !stripe) {
-        statusMessage.style.display = 'block';
-        statusMessage.innerText = 'Betalningsformuläret är inte redo.';
-        return;
-    }
+        saveCustomerToLocalStorage();
 
-    saveCustomerToLocalStorage();
+        confirmBtn.disabled = true;
+        confirmBtn.innerText = 'Bearbetar betalning...';
 
-    confirmBtn.disabled = true;
-    confirmBtn.innerText = 'Bearbetar betalning...';
+        try {
+            const returnUrl = window.location.origin + '/tack';
 
-    try {
-        // ✅ data.orderId YOK - initPaymentForm'dan gelen data burada yok!
-        // Basitçe orderId'siz yapalım
-        const returnUrl = window.location.origin + '/tack';
-
-        const { error } = await stripe.confirmPayment({
-            elements,
-            confirmParams: {
-                return_url: returnUrl,
-                payment_method_data: {
-                    billing_details: {
-                        name: document.getElementById('billing_first_name').value + ' ' + document.getElementById('billing_last_name').value,
-                        email: document.getElementById('billing_email').value,
-                        phone: document.getElementById('billing_phone').value,
-                        address: {
-                            line1: document.getElementById('billing_address_1').value,
-                            postal_code: document.getElementById('billing_postcode').value,
-                            city: document.getElementById('billing_city').value,
-                            country: 'SE'
+            const { error } = await stripe.confirmPayment({
+                elements,
+                confirmParams: {
+                    return_url: returnUrl,
+                    payment_method_data: {
+                        billing_details: {
+                            name: document.getElementById('billing_first_name').value + ' ' + document.getElementById('billing_last_name').value,
+                            email: document.getElementById('billing_email').value,
+                            phone: document.getElementById('billing_phone').value,
+                            address: {
+                                line1: document.getElementById('billing_address_1').value,
+                                postal_code: document.getElementById('billing_postcode').value,
+                                city: document.getElementById('billing_city').value,
+                                country: 'SE'
+                            }
                         }
                     }
                 }
-            }
-        });
+            });
 
-        if (error) {
-            console.error('Ödeme hatası:', error);
+            if (error) {
+                console.error('Ödeme hatası:', error);
+                statusMessage.style.display = 'block';
+                statusMessage.innerHTML = `<span style="color:#e54d42;">${error.message}</span>`;
+                confirmBtn.disabled = false;
+                confirmBtn.innerText = 'Betala nu';
+            }
+
+        } catch (error) {
+            console.error('Beklenmeyen hata:', error);
             statusMessage.style.display = 'block';
-            statusMessage.innerHTML = `<span style="color:#e54d42;">${error.message}</span>`;
+            statusMessage.innerHTML = `<span style="color:#e54d42;">Ett oväntat fel uppstod. Försök igen.</span>`;
             confirmBtn.disabled = false;
             confirmBtn.innerText = 'Betala nu';
         }
-
-    } catch (error) {
-        console.error('Beklenmeyen hata:', error);
-        statusMessage.style.display = 'block';
-        statusMessage.innerHTML = `<span style="color:#e54d42;">Ett oväntat fel uppstod. Försök igen.</span>`;
-        confirmBtn.disabled = false;
-        confirmBtn.innerText = 'Betala nu';
     }
-}
 
     if (confirmBtn) {
         confirmBtn.addEventListener('click', async (e) => {
@@ -488,4 +503,3 @@ async function handlePayment() {
 
     checkFormValidity();
 });
-
