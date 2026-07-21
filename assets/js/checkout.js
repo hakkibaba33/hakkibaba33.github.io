@@ -418,61 +418,146 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function handlePayment() {
-        if (!validateForm()) return;
+    if (!validateForm()) return;
 
-        // ← KALDIRILDI: Burada tekrar initPaymentForm çağrılmayacak!
-        // Payment Element zaten sayfa yüklenirken oluşturuldu
-        
-        if (!elements || !stripe || !paymentElement) {
-            statusMessage.style.display = 'block';
-            statusMessage.innerText = 'Betalningsformuläret är inte redo.';
-            return;
+    if (!elements || !stripe || !paymentElement) {
+        statusMessage.style.display = 'block';
+        statusMessage.innerText = 'Betalningsformuläret är inte redo.';
+        return;
+    }
+
+    saveCustomerToLocalStorage();
+
+    confirmBtn.disabled = true;
+    confirmBtn.innerText = 'Bearbetar betalning...';
+
+    try {
+        // ✅ YENİ: Önce siparişi backend'e kaydet ve order_id al
+        const cart = getCart();
+        const firstName = document.getElementById('billing_first_name').value.trim();
+        const lastName = document.getElementById('billing_last_name').value.trim();
+        const email = document.getElementById('billing_email').value.trim();
+        const phone = document.getElementById('billing_phone').value.trim();
+        const address = document.getElementById('billing_address_1').value.trim();
+        const postcode = document.getElementById('billing_postcode').value.trim();
+        const city = document.getElementById('billing_city').value.trim();
+
+        const customerData = {
+            firstName: firstName,
+            lastName: lastName,
+            email: email,
+            phone: phone,
+            address: address,
+            postcode: postcode,
+            city: city
+        };
+
+        const formattedItems = cart.map(item => {
+            const baseItem = {
+                id: item.id,
+                name: item.name,
+                price: item.price,
+                quantity: item.quantity || 1,
+                image: item.image || '',
+                original_variant: item.variants || 'Standard'
+            };
+
+            if (item.isM2) {
+                return {
+                    ...baseItem,
+                    calculatorType: 'm2',
+                    calc_width_cm: item.en,
+                    calc_length_cm: item.boy,
+                    calc_m2: item.m2,
+                    calc_form: item.form,
+                    variant: item.size || `${item.en}×${item.boy} cm (${item.form || 'Rektangulär'})`
+                };
+            }
+
+            if (item.isGardin) {
+                return {
+                    ...baseItem,
+                    calculatorType: 'gardin',
+                    calc_width_cm: item.en,
+                    calc_length_cm: item.boy,
+                    calc_meters: item.metre,
+                    calc_suspension: item.suspension,
+                    calc_note: item.note || null,
+                    variant: item.size || `${item.en}×${item.boy} cm | ${item.metre} m`
+                };
+            }
+
+            return {
+                ...baseItem,
+                variant: item.variants || 'Standard',
+                color: item.color || null
+            };
+        });
+
+        // ✅ Siparişi önce kaydet (Payment Intent zaten oluşturulmuştu)
+        const saveResponse = await fetch(CONFIG.API.PAYMENT_INTENT, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                items: formattedItems,
+                customer: customerData
+            })
+        });
+
+        let orderId = null;
+        let orderNumber = null;
+
+        if (saveResponse.ok) {
+            const saveData = await saveResponse.json();
+            orderId = saveData.orderId;           // UUID
+            orderNumber = saveData.orderNumber;   // 1001, 1002...
+            console.log('Sipariş kaydedildi! Order ID:', orderId, 'Order No:', orderNumber);
+        } else {
+            console.error('Sipariş kaydetme hatası, devam ediliyor...');
         }
 
-        saveCustomerToLocalStorage();
+        // ✅ return_url'ye order_id ve order_number ekle
+        const returnUrl = new URL(window.location.origin + '/tack');
+        returnUrl.searchParams.set('order_id', orderId || '');
+        returnUrl.searchParams.set('order_number', orderNumber || '');
+        // Stripe kendi parametrelerini de ekleyecek (payment_intent, redirect_status)
 
-        confirmBtn.disabled = true;
-        confirmBtn.innerText = 'Bearbetar betalning...';
-
-        try {
-            const returnUrl = window.location.origin + '/tack';
-
-            const { error } = await stripe.confirmPayment({
-                elements,
-                confirmParams: {
-                    return_url: returnUrl,
-                    payment_method_data: {
-                        billing_details: {
-                            name: document.getElementById('billing_first_name').value + ' ' + document.getElementById('billing_last_name').value,
-                            email: document.getElementById('billing_email').value,
-                            phone: document.getElementById('billing_phone').value,
-                            address: {
-                                line1: document.getElementById('billing_address_1').value,
-                                postal_code: document.getElementById('billing_postcode').value,
-                                city: document.getElementById('billing_city').value,
-                                country: 'SE'
-                            }
+        const { error } = await stripe.confirmPayment({
+            elements,
+            confirmParams: {
+                return_url: returnUrl.toString(),
+                payment_method_data: {
+                    billing_details: {
+                        name: firstName + ' ' + lastName,
+                        email: email,
+                        phone: phone,
+                        address: {
+                            line1: address,
+                            postal_code: postcode,
+                            city: city,
+                            country: 'SE'
                         }
                     }
                 }
-            });
-
-            if (error) {
-                console.error('Ödeme hatası:', error);
-                statusMessage.style.display = 'block';
-                statusMessage.innerHTML = `<span style="color:#e54d42;">${error.message}</span>`;
-                confirmBtn.disabled = false;
-                confirmBtn.innerText = 'Betala nu';
             }
+        });
 
-        } catch (error) {
-            console.error('Beklenmeyen hata:', error);
+        if (error) {
+            console.error('Ödeme hatası:', error);
             statusMessage.style.display = 'block';
-            statusMessage.innerHTML = `<span style="color:#e54d42;">Ett oväntat fel uppstod. Försök igen.</span>`;
+            statusMessage.innerHTML = `<span style="color:#e54d42;">${error.message}</span>`;
             confirmBtn.disabled = false;
             confirmBtn.innerText = 'Betala nu';
         }
+
+    } catch (error) {
+        console.error('Beklenmeyen hata:', error);
+        statusMessage.style.display = 'block';
+        statusMessage.innerHTML = `<span style="color:#e54d42;">Ett oväntat fel uppstod. Försök igen.</span>`;
+        confirmBtn.disabled = false;
+        confirmBtn.innerText = 'Betala nu';
     }
+}
 
     if (confirmBtn) {
         confirmBtn.addEventListener('click', async (e) => {

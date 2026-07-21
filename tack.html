@@ -64,7 +64,8 @@
         async function showOrderDetails() {
             const urlParams = new URLSearchParams(window.location.search);
             const paymentIntentId = urlParams.get('payment_intent');
-            const orderId = urlParams.get('order_id'); // ✅ YENİ: Worker'dan gelen order ID
+            const orderId = urlParams.get('order_id'); 
+const orderNumber = urlParams.get('order_number');
             
             console.log('>>> Tack sayfasi yuklendi');
             console.log('>>> payment_intent:', paymentIntentId);
@@ -103,8 +104,9 @@
             const total = cart.reduce((sum, item) => sum + (parseFloat(item.price) * (item.quantity || 1)), 0);
 
             // Email gönder
-            if (customer.email && orderId) {
-                await sendOrderConfirmationEmail(customer, cart, total, orderId, paymentIntentId);
+            if (customer.email && paymentIntentId) {
+                const displayOrderId = orderNumber || orderId || paymentIntentId;
+                await sendOrderConfirmationEmail(customer, cart, total, displayOrderId, paymentIntentId);
             }
 
             // LocalStorage temizle
@@ -119,7 +121,7 @@
             orderInfo.classList.remove('hidden');
             orderDetails.innerHTML = 
                 '<h3>Beställningsdetaljer</h3>' +
-                '<div class="detail-row"><span class="detail-label">Ordernummer:</span><span class="detail-value">#' + (orderId || 'N/A') + '</span></div>' +
+                '<div class="detail-row"><span class="detail-label">Ordernummer:</span><span class="detail-value">#' + (orderNumber || orderId || 'N/A') + '</span></div>' +
                 '<div class="detail-row"><span class="detail-label">Betalnings-ID:</span><span class="detail-value">' + paymentIntentId + '</span></div>' +
                 '<div class="detail-row"><span class="detail-label">Totalt:</span><span class="detail-value">' + total.toLocaleString('sv-SE') + ' SEK</span></div>' +
                 '<div class="detail-row"><span class="detail-label">Betalningsmetod:</span><span class="detail-value">Stripe</span></div>' +
