@@ -348,8 +348,6 @@ document.addEventListener('DOMContentLoaded', () => {
             // ✅ YENİ: Sipariş bilgilerini sakla
             currentClientSecret = data.clientSecret;
             currentPaymentIntentId = data.paymentIntentId || null;
-            currentOrderId = data.orderId || null;
-            currentOrderNumber = data.orderNumber || null;
 
             console.log('Sipariş bilgileri saklandı:', {
                 orderId: currentOrderId,
@@ -431,94 +429,163 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================
     // ✅ YENİ: handlePayment - SADECE Stripe ödemesini onayla, sipariş zaten kaydedildi!
     // ==========================================
-    async function handlePayment() {
-        // ✅ Çift tıklama koruması
-        if (isSubmitting) {
-            console.log('Zaten işlemde, çift tıklama engellendi');
-            return;
-        }
+   async function handlePayment() {
+    if (isSubmitting) {
+        console.log('Zaten işlemde, çift tıklama engellendi');
+        return;
+    }
+    
+    if (!validateForm()) return;
+
+    if (!elements || !stripe || !paymentElement) {
+        statusMessage.style.display = 'block';
+        statusMessage.innerText = 'Betalningsformuläret är inte redo.';
+        return;
+    }
+
+    if (!currentClientSecret) {
+        statusMessage.style.display = 'block';
+        statusMessage.innerText = 'Betalningsinformationen är inte redo. Vänligen uppdatera sidan.';
+        return;
+    }
+
+    isSubmitting = true;
+    saveCustomerToLocalStorage();
+
+    confirmBtn.disabled = true;
+    confirmBtn.innerText = 'Bearbetar betalning...';
+
+    try {
+        const firstName = document.getElementById('billing_first_name').value.trim();
+        const lastName = document.getElementById('billing_last_name').value.trim();
+        const email = document.getElementById('billing_email').value.trim();
+        const phone = document.getElementById('billing_phone').value.trim();
+        const address = document.getElementById('billing_address_1').value.trim();
+        const postcode = document.getElementById('billing_postcode').value.trim();
+        const city = document.getElementById('billing_city').value.trim();
+
+        // ==========================================
+        // ✅ YENİ: ÖDEME ONAYLANMADAN ÖNCE SİPARİŞİ KAYDET
+        // ==========================================
+        const cart = getCart();
         
-        if (!validateForm()) return;
+        const formattedItems = cart.map(item => {
+            const baseItem = {
+                id: item.id,
+                name: item.name,
+                price: item.price,
+                quantity: item.quantity || 1,
+                image: item.image || '',
+                original_variant: item.variants || 'Standard'
+            };
 
-        if (!elements || !stripe || !paymentElement) {
-            statusMessage.style.display = 'block';
-            statusMessage.innerText = 'Betalningsformuläret är inte redo.';
-            return;
+            if (item.isM2) {
+                return {
+                    ...baseItem,
+                    calculatorType: 'm2',
+                    calc_width_cm: item.en,
+                    calc_length_cm: item.boy,
+                    calc_m2: item.m2,
+                    calc_form: item.form,
+                    variant: item.size || `${item.en}×${item.boy} cm (${item.form || 'Rektangulär'})`
+                };
+            }
+
+            if (item.isGardin) {
+                return {
+                    ...baseItem,
+                    calculatorType: 'gardin',
+                    calc_width_cm: item.en,
+                    calc_length_cm: item.boy,
+                    calc_meters: item.metre,
+                    calc_suspension: item.suspension,
+                    calc_note: item.note || null,
+                    variant: item.size || `${item.en}×${item.boy} cm | ${item.metre} m`
+                };
+            }
+
+            return {
+                ...baseItem,
+                variant: item.variants || 'Standard',
+                color: item.color || null
+            };
+        });
+
+        const customerData = {
+            firstName, lastName, email, phone,
+            address, postcode, city
+        };
+
+        console.log('>>> handlePayment: Sipariş kaydediliyor...');
+
+        // Mevcut Payment Intent ID ile sipariş kaydet
+        const saveOrderResponse = await fetch(CONFIG.API.PAYMENT_INTENT, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                items: formattedItems,
+                customer: customerData
+            })
+        });
+
+        const saveOrderData = await saveOrderResponse.json();
+        console.log('>>> handlePayment: Sipariş kaydetme sonucu:', saveOrderData);
+
+        if (saveOrderData.orderSaved) {
+            currentOrderId = saveOrderData.orderId;
+            currentOrderNumber = saveOrderData.orderNumber;
+            console.log('>>> Sipariş kaydedildi! OrderNo:', currentOrderNumber);
+        } else {
+            console.warn('>>> Sipariş kaydedilemedi, ama ödemeye devam ediliyor');
         }
 
-        // ✅ Eğer sipariş zaten kaydedilmişse, sadece ödemeyi onayla
-        if (!currentClientSecret) {
-            statusMessage.style.display = 'block';
-            statusMessage.innerText = 'Betalningsinformationen är inte redo. Vänligen uppdatera sidan.';
-            return;
-        }
+        // ==========================================
+        // Stripe ödemesini onayla
+        // ==========================================
+        const returnUrl = new URL(window.location.origin + '/tack');
+        
+        if (currentOrderId) returnUrl.searchParams.set('order_id', currentOrderId);
+        if (currentOrderNumber) returnUrl.searchParams.set('order_number', currentOrderNumber);
+        if (currentPaymentIntentId) returnUrl.searchParams.set('payment_intent', currentPaymentIntentId);
 
-        isSubmitting = true;
-        saveCustomerToLocalStorage();
-
-        confirmBtn.disabled = true;
-        confirmBtn.innerText = 'Bearbetar betalning...';
-
-        try {
-            const firstName = document.getElementById('billing_first_name').value.trim();
-            const lastName = document.getElementById('billing_last_name').value.trim();
-            const email = document.getElementById('billing_email').value.trim();
-            const phone = document.getElementById('billing_phone').value.trim();
-            const address = document.getElementById('billing_address_1').value.trim();
-            const postcode = document.getElementById('billing_postcode').value.trim();
-            const city = document.getElementById('billing_city').value.trim();
-
-            // ✅ ARTIK burada YENİ fetch yapmıyoruz! 
-            // Sipariş zaten initPaymentForm()'da kaydedildi.
-            // Sadece Stripe ödemesini onaylıyoruz.
-
-            const returnUrl = new URL(window.location.origin + '/tack');
-            
-            // ✅ Mevcut sipariş bilgilerini ekle
-            if (currentOrderId) returnUrl.searchParams.set('order_id', currentOrderId);
-            if (currentOrderNumber) returnUrl.searchParams.set('order_number', currentOrderNumber);
-            if (currentPaymentIntentId) returnUrl.searchParams.set('payment_intent', currentPaymentIntentId);
-
-            const { error } = await stripe.confirmPayment({
-                elements,
-                confirmParams: {
-                    return_url: returnUrl.toString(),
-                    payment_method_data: {
-                        billing_details: {
-                            name: firstName + ' ' + lastName,
-                            email: email,
-                            phone: phone,
-                            address: {
-                                line1: address,
-                                postal_code: postcode,
-                                city: city,
-                                country: 'SE'
-                            }
+        const { error } = await stripe.confirmPayment({
+            elements,
+            confirmParams: {
+                return_url: returnUrl.toString(),
+                payment_method_data: {
+                    billing_details: {
+                        name: firstName + ' ' + lastName,
+                        email: email,
+                        phone: phone,
+                        address: {
+                            line1: address,
+                            postal_code: postcode,
+                            city: city,
+                            country: 'SE'
                         }
                     }
                 }
-            });
-
-            if (error) {
-                console.error('Ödeme hatası:', error);
-                statusMessage.style.display = 'block';
-                statusMessage.innerHTML = `<span style="color:#e54d42;">${error.message}</span>`;
-                // Hata durumunda butonu tekrar aktif et (tekrar deneyebilsin)
-                isSubmitting = false;
-                confirmBtn.disabled = false;
-                confirmBtn.innerText = 'Betala nu';
             }
-            // Başarılı olursa Stripe redirect yapacak, buraya düşmeyecek
+        });
 
-        } catch (error) {
-            console.error('Beklenmeyen hata:', error);
+        if (error) {
+            console.error('Ödeme hatası:', error);
             statusMessage.style.display = 'block';
-            statusMessage.innerHTML = `<span style="color:#e54d42;">Ett oväntat fel uppstod. Försök igen.</span>`;
+            statusMessage.innerHTML = `<span style="color:#e54d42;">${error.message}</span>`;
             isSubmitting = false;
             confirmBtn.disabled = false;
             confirmBtn.innerText = 'Betala nu';
         }
+
+    } catch (error) {
+        console.error('Beklenmeyen hata:', error);
+        statusMessage.style.display = 'block';
+        statusMessage.innerHTML = `<span style="color:#e54d42;">Ett oväntat fel uppstod. Försök igen.</span>`;
+        isSubmitting = false;
+        confirmBtn.disabled = false;
+        confirmBtn.innerText = 'Betala nu';
     }
+}
 
     if (confirmBtn) {
         confirmBtn.addEventListener('click', async (e) => {
