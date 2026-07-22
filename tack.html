@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tack för din beställning | DEKORIST</title>
+    <script src="https://js.stripe.com/v3/"></script>
     <script src="/assets/js/config.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -54,9 +55,11 @@
             const urlParams = new URLSearchParams(window.location.search);
             const paymentIntentId = urlParams.get('payment_intent');
             const paymentIntentClientSecret = urlParams.get('payment_intent_client_secret');
+            const redirectStatus = urlParams.get('redirect_status');
             
             console.log('>>> Tack sayfasi yuklendi');
             console.log('>>> payment_intent:', paymentIntentId);
+            console.log('>>> redirect_status:', redirectStatus);
 
             const statusText = document.getElementById('status-text');
             const orderInfo = document.getElementById('order-info');
@@ -76,32 +79,42 @@
                 return;
             }
 
+            // Eğer redirect_status zaten succeeded ise Stripe kontrolü atla (daha hızlı)
+            let isPaymentSuccessful = false;
+            
+            if (redirectStatus === 'succeeded') {
+                console.log('>>> redirect_status = succeeded, Stripe kontrolü atlanıyor');
+                isPaymentSuccessful = true;
+            } else if (paymentIntentClientSecret) {
+                // Stripe.js ile kontrol et
+                try {
+                    console.log('>>> Stripe ödeme kontrolü...');
+                    const stripe = Stripe(CONFIG.STRIPE.PUBLISHABLE_KEY);
+                    const { paymentIntent } = await stripe.retrievePaymentIntent(paymentIntentClientSecret);
+                    console.log('>>> PaymentIntent status:', paymentIntent.status);
+                    isPaymentSuccessful = paymentIntent.status === 'succeeded';
+                } catch (stripeErr) {
+                    console.error('>>> Stripe kontrol hatasi:', stripeErr);
+                }
+            }
+
+            if (!isPaymentSuccessful) {
+                statusText.className = 'status-error';
+                statusText.innerHTML = '❌ Betalningen misslyckades eller avbröts.';
+                return;
+            }
+
+            // Ödeme başarılı! Siparişi kaydet ve email gönder
+            statusText.className = 'status-loading';
+            statusText.innerHTML = '<span class="spinner"></span>Sparar din beställning...';
+
+            if (!pendingOrder) {
+                statusText.className = 'status-error';
+                statusText.innerHTML = '❌ Beställningsinformation saknas. Kontakta kundtjänst.';
+                return;
+            }
+
             try {
-                // 1. Ödeme durumunu kontrol et (Stripe API'den)
-                console.log('>>> Stripe ödeme kontrolü...');
-                
-                // Stripe.js ile ödeme durumunu kontrol et
-                const stripe = Stripe(CONFIG.STRIPE.PUBLISHABLE_KEY);
-                const { paymentIntent } = await stripe.retrievePaymentIntent(paymentIntentClientSecret);
-                
-                console.log('>>> PaymentIntent status:', paymentIntent.status);
-
-                if (paymentIntent.status !== 'succeeded') {
-                    statusText.className = 'status-error';
-                    statusText.innerHTML = `❌ Betalningen misslyckades eller avbröts. Status: ${paymentIntent.status}`;
-                    return;
-                }
-
-                // 2. Ödeme başarılı! Siparişi kaydet ve email gönder
-                statusText.className = 'status-loading';
-                statusText.innerHTML = '<span class="spinner"></span>Sparar din beställning...';
-
-                if (!pendingOrder) {
-                    statusText.className = 'status-error';
-                    statusText.innerHTML = '❌ Beställningsinformation saknas. Kontakta kundtjänst.';
-                    return;
-                }
-
                 const confirmData = {
                     payment_intent_id: paymentIntentId,
                     items: pendingOrder.items,
@@ -123,7 +136,7 @@
                     throw new Error(result.error || 'Något gick fel');
                 }
 
-                // 3. Başarılı! Detayları göster
+                // Başarılı! Detayları göster
                 localStorage.removeItem('dkrug_pending_order');
                 localStorage.removeItem('siteCartItems');
                 localStorage.removeItem('dkrug_checkout_customer');
@@ -153,7 +166,12 @@
             }
         }
 
-        processOrder();
+        // Sayfa yüklendiğinde çalıştır
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', processOrder);
+        } else {
+            processOrder();
+        }
     </script>
 </body>
 </html>
