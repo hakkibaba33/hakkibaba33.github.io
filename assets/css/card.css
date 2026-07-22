@@ -1,0 +1,810 @@
+/* -----------------------------------------------------------
+   1. PRODUCT CARD (Ana Konteyner)
+   ----------------------------------------------------------- */
+
+.product-card {
+    position: relative;
+    background: #fff;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    margin: 0;
+}
+
+/* -----------------------------------------------------------
+   2. IMAGE BOX - Zıplama Sorunu Çözüldü
+   ----------------------------------------------------------- */
+
+.image-box {
+    background: #f5f5f5;
+    aspect-ratio: 1 / 1.35;
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+}
+
+/* Shimmer placeholder - resim yüklenene kadar */
+.image-box::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite ease-in-out;
+    z-index: 1;
+    opacity: 1;
+}
+
+/* Resim yüklendiğinde placeholder'i gizle */
+.image-box.img-loaded::before {
+    opacity: 0;
+    animation: none;
+    transition: opacity 0.3s ease;
+}
+
+/* Resim kendisi - başlangıçta görünmez */
+.image-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    position: relative;
+    z-index: 2;
+}
+
+/* Resim yüklendiğinde smooth görün */
+.image-box img.loaded {
+    opacity: 1;
+}
+
+/* Hata durumunda */
+.image-box.error-state::before {
+    animation: none;
+    background: #f5f5f5;
+}
+
+.image-box.error-state::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 48px;
+    height: 48px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 24 24' fill='none' stroke='%23ccc' stroke-width='1.5'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'/%3E%3Ccircle cx='8.5' cy='8.5' r='1.5'/%3E%3Cpolyline points='21 15 16 10 5 21'/%3E%3C/svg%3E");
+    background-size: contain;
+    background-repeat: no-repeat;
+    z-index: 3;
+    opacity: 0.5;
+}
+
+
+/* -----------------------------------------------------------
+   3. WISHLIST (Kalp) BUTONU
+   ----------------------------------------------------------- */
+
+/* === MASAUSTU: Hover ile gorunur === */
+.wishlist-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: transparent !important;
+    border: none;
+    z-index: 10;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    border-radius: 50%;
+    opacity: 0;
+    visibility: hidden;
+      transform: scale(0.8);
+    transition: opacity 0.25s ease, visibility 0.25s ease, transform 0.25s ease, background 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+/* Kart uzerine gelince ikonu goster */
+.product-card:hover .wishlist-btn {
+    opacity: 1;
+    visibility: visible;
+    transform: scale(1);
+}
+
+/* Ikon rengi - siyah belirgin */
+.wishlist-btn .heart-icon {
+    width: 25px;
+    height: 25px;
+    color: #111;
+    transition: all 0.2s ease;
+}
+
+/* Hover durumunda - hafif buyut */
+.wishlist-btn:hover {
+    background: #fff;
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.wishlist-btn:hover .heart-icon {
+    color: #111;
+}
+
+/* Aktif (favoride) - kirmizi */
+.wishlist-btn.active {
+    opacity: 1;
+    visibility: visible;
+    transform: scale(1);
+    background: #fff;
+}
+
+.wishlist-btn.active .heart-icon {
+    color: #D30000;
+    fill: #D30000;
+    stroke: #D30000;
+}
+
+/* Aktif hover */
+.wishlist-btn.active:hover {
+    transform: scale(1.1);
+}
+
+/* === MOBIL/TABLET: Her zaman gorunur === */
+@media (max-width: 1023px) {
+    .wishlist-btn {
+        opacity: 1;
+        visibility: visible;
+        transform: scale(1);
+        top: 10px;
+        right: 10px;
+        width: 36px;
+        height: 36px;
+        padding: 0;
+    }
+
+    .wishlist-btn .heart-icon {
+        width: 18px;
+        height: 18px;
+    }
+}
+
+@media (max-width: 767px) {
+    .wishlist-btn {
+        top: 8px;
+        right: 8px;
+        width: 32px;
+        height: 32px;
+    }
+
+    .wishlist-btn .heart-icon {
+        width: 16px;
+        height: 16px;
+    }
+}
+
+@media (max-width: 479px) {
+    .wishlist-btn {
+        top: 6px;
+        right: 6px;
+        width: 28px;
+        height: 28px;
+    }
+
+    .wishlist-btn .heart-icon {
+        width: 14px;
+        height: 14px;
+    }
+}
+
+
+/* -----------------------------------------------------------
+   4. BADGES (Rozetler)
+   ----------------------------------------------------------- */
+
+.rea-badge, .out-of-stock-badge, .image-bottom-badge {
+    position: absolute;
+    padding: 3px 8px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 4px;
+    z-index: 5;
+}
+
+.rea-badge {
+    top: 5px;
+    left: 5px;
+    background: linear-gradient(135deg, var(--dk-primary, #1a1a1a), var(--dk-accent, #c9a96e));
+    color: #fff;
+}
+
+.image-bottom-badge {
+    bottom: 10px;
+    left: 0px;
+    background: #fff;
+    color: #333;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.out-of-stock-badge {
+    top: 5px;
+    right: 5px;
+    background: #fef2f2;
+    color: #991b1b;
+}
+
+.discount-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: linear-gradient(135deg, var(--dk-primary, #1a1a1a), var(--dk-accent, #c9a96e));
+    color: #fff;
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 4px;
+    z-index: 10;
+    pointer-events: none;
+}
+
+
+/* -----------------------------------------------------------
+   5. PRODUCT INFO
+   ----------------------------------------------------------- */
+
+.product-info {
+    padding: 12px 5px;
+    min-height: 120px;
+    display: flex;
+    flex-direction: column;
+}
+
+.product-title {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--dk-primary, #1a1a1a);
+    margin-bottom: 4px;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.3;
+}
+
+
+/* -----------------------------------------------------------
+   6. PRODUCT META (Ölçü)
+   ----------------------------------------------------------- */
+
+.product-meta-row {
+    margin: 0 0 6px 0;
+    min-height: 16px;
+    display: flex;
+    align-items: center;
+    line-height: 1.2;
+}
+
+.dimension-plus-text {
+    font-size: 12px;
+    color: #888;
+    font-weight: 500;
+    margin-left: 3px;
+}
+
+.unit-text {
+    font-size: 0.85em;
+    color: #888;
+    font-weight: 500;
+    margin-left: 0;
+    letter-spacing: 0.2px;
+}
+
+
+/* -----------------------------------------------------------
+   7. PRODUCT PRICE
+   ----------------------------------------------------------- */
+
+.product-card .product-price {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+    flex-wrap: wrap;
+}
+
+.price-container {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+}
+
+.product-card .original-price {
+    text-decoration: line-through;
+    color: #999;
+    font-weight: 700;
+    font-size: 16px;
+}
+
+.product-card .current-price {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1a1a1a;
+}
+
+.product-card .current-price.price-discount {
+    color: #e54d42;
+}
+
+.price-sale-badge {
+    color: var(--dk-primary, #1a1a1a);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 500;
+    margin-left: 0;
+    display: inline-block;
+    vertical-align: middle;
+    line-height: 1;
+}
+
+
+/* -----------------------------------------------------------
+   8. PRODUCT VARIANTS
+   ----------------------------------------------------------- */
+
+.product-variants-row {
+    margin: 0 0 6px 0;
+}
+
+.product-variants {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+}
+
+.product-variants .variant-main {
+    color: #333;
+    font-weight: 600;
+    font-size: 13px;
+}
+
+.product-variants .variant-single {
+    color: #666;
+    font-weight: 500;
+    font-size: 13px;
+}
+
+.product-variants .variant-extra-badge {
+    border-radius: 13px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #333;
+    transition: all 0.2s ease;
+}
+
+
+/* -----------------------------------------------------------
+   9. PRODUCT COLOR SWATCHES
+   ----------------------------------------------------------- */
+
+.product-colors-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 2px;
+}
+
+.product-colors-swatches {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+
+.swatch-circle {
+    display: block;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 1px solid rgba(0,0,0,0.15);
+    transition: transform 0.2s ease;
+}
+
+.swatch-circle:hover {
+    transform: scale(1.2);
+    box-shadow: 0 0 0 2px var(--dk-accent, #c9a96e);
+}
+
+.color-count-text {
+    font-size: 11px;
+    color: #888;
+    font-weight: 500;
+}
+
+
+/* ============================================================
+   10. SKELETON LOADER
+   ============================================================ */
+
+.skeleton-card {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.skeleton-image {
+    width: 100%;
+    aspect-ratio: 1 / 1.35;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.5s infinite ease-in-out;
+    border-radius: 8px;
+}
+
+.skeleton-body {
+    padding: 12px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.skeleton-line {
+    height: 14px;
+    background: #f0f0f0;
+    border-radius: 4px;
+    animation: skeleton-pulse 2s infinite;
+}
+
+.skeleton-line.title { width: 85%; }
+.skeleton-line.price { width: 40%; height: 18px; }
+.skeleton-line.meta { width: 60%; }
+
+@keyframes skeleton-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.skeleton-line:nth-child(1) { animation-delay: 0s; }
+.skeleton-line:nth-child(2) { animation-delay: 0.15s; }
+.skeleton-line:nth-child(3) { animation-delay: 0.3s; }
+
+
+/* ============================================================
+   11. KEYFRAMES
+   ============================================================ */
+
+@keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+@keyframes skeleton-shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+
+/* ============================================================
+   12. MOBILE RESPONSIVE (Kart Özel)
+   ============================================================ */
+
+/* === TABLET (768px - 1023px) === */
+@media (max-width: 1023px) {
+    .product-card {
+        width: 100%;
+    }
+
+    .image-box {
+        aspect-ratio: 1 / 1.3;
+    }
+
+    .wishlist-btn {
+        top: 10px;
+        right: 10px;
+        width: 36px;
+        height: 36px;
+    }
+
+    .wishlist-btn .heart-icon {
+        width: 18px;
+        height: 18px;
+    }
+
+    .product-info {
+        padding: 10px 4px;
+        min-height: 105px;
+    }
+
+    .product-title {
+        font-size: 15px;
+        margin-bottom: 3px;
+        line-height: 1.25;
+    }
+
+    .product-meta-row {
+        margin-bottom: 4px;
+        min-height: 14px;
+    }
+
+    .dimension-plus-text,
+    .unit-text {
+        font-size: 11px;
+    }
+
+    .product-price {
+        gap: 6px;
+        margin-bottom: 3px;
+    }
+
+    .current-price,
+    .original-price {
+        font-size: 15px;
+    }
+
+    .price-sale-badge {
+        font-size: 12px;
+        padding: 2px 5px;
+    }
+
+    .product-variants-row {
+        margin-bottom: 4px;
+    }
+
+    .product-variants {
+        gap: 6px;
+        font-size: 12px;
+    }
+
+    .product-variants .variant-main,
+    .product-variants .variant-single {
+        font-size: 12px;
+    }
+
+    .variant-extra-badge {
+        font-size: 10px;
+    }
+
+    .swatch-circle {
+        width: 14px;
+        height: 14px;
+    }
+
+    .color-count-text {
+        font-size: 10px;
+    }
+
+    .rea-badge,
+    .discount-badge {
+        top: 6px;
+        left: 6px;
+        padding: 3px 7px;
+        font-size: 11px;
+    }
+
+    .image-bottom-badge {
+        bottom: 8px;
+        left: 0;
+        font-size: 11px;
+        padding: 2px 6px;
+    }
+
+    .out-of-stock-badge {
+        top: 6px;
+        right: 6px;
+        font-size: 11px;
+        padding: 2px 6px;
+    }
+}
+
+/* === MOBIL (480px - 767px) === */
+@media (max-width: 767px) {
+    .image-box {
+        aspect-ratio: 1 / 1.25;
+    }
+
+    .wishlist-btn {
+        top: 8px;
+        right: 8px;
+        width: 32px;
+        height: 32px;
+    }
+
+    .wishlist-btn .heart-icon {
+        width: 16px;
+        height: 16px;
+    }
+
+    .product-info {
+        padding: 8px 3px;
+        min-height: 95px;
+    }
+
+    .product-title {
+        font-size: 14px;
+        margin-bottom: 2px;
+        line-height: 1.2;
+    }
+
+    .product-meta-row {
+        margin-bottom: 3px;
+        min-height: 13px;
+    }
+
+    .dimension-plus-text,
+    .unit-text {
+        font-size: 10px;
+    }
+
+    .product-price {
+        gap: 4px;
+        margin-bottom: 2px;
+    }
+
+    .current-price,
+    .original-price {
+        font-size: 14px;
+    }
+
+    .price-sale-badge {
+        font-size: 11px;
+        padding: 1px 4px;
+    }
+
+    .product-variants-row {
+        margin-bottom: 3px;
+    }
+
+    .product-variants {
+        gap: 5px;
+        font-size: 11px;
+    }
+
+    .product-variants .variant-main,
+    .product-variants .variant-single {
+        font-size: 11px;
+    }
+
+    .variant-extra-badge {
+        font-size: 9px;
+    }
+
+    .swatch-circle {
+        width: 12px;
+        height: 12px;
+    }
+
+    .color-count-text {
+        font-size: 9px;
+    }
+
+    .rea-badge,
+    .discount-badge {
+        top: 5px;
+        left: 5px;
+        padding: 2px 6px;
+        font-size: 10px;
+    }
+
+    .image-bottom-badge {
+        bottom: 6px;
+        font-size: 10px;
+        padding: 2px 5px;
+    }
+
+    .out-of-stock-badge {
+        top: 5px;
+        right: 5px;
+        font-size: 10px;
+        padding: 2px 5px;
+    }
+}
+
+/* === KUCUK MOBIL (479px ve alti) === */
+@media (max-width: 479px) {
+    .image-box {
+        aspect-ratio: 1 / 1.2;
+    }
+
+    .wishlist-btn {
+        top: 6px;
+        right: 6px;
+        width: 28px;
+        height: 28px;
+    }
+
+    .wishlist-btn .heart-icon {
+        width: 14px;
+        height: 14px;
+    }
+
+    .product-info {
+        padding: 6px 2px;
+        min-height: 88px;
+    }
+
+    .product-title {
+        font-size: 13px;
+        margin-bottom: 2px;
+        line-height: 1.2;
+    }
+
+    .product-meta-row {
+        margin-bottom: 2px;
+        min-height: 12px;
+    }
+
+    .dimension-plus-text,
+    .unit-text {
+        font-size: 9px;
+    }
+
+    .product-price {
+        gap: 3px;
+        margin-bottom: 2px;
+    }
+
+    .current-price,
+    .original-price {
+        font-size: 13px;
+    }
+
+    .price-sale-badge {
+        font-size: 10px;
+        padding: 1px 3px;
+    }
+
+    .product-variants-row {
+        margin-bottom: 2px;
+    }
+
+    .product-variants {
+        gap: 4px;
+        font-size: 10px;
+    }
+
+    .product-variants .variant-main,
+    .product-variants .variant-single {
+        font-size: 10px;
+    }
+
+    .variant-extra-badge {
+        font-size: 8px;
+    }
+
+    .swatch-circle {
+        width: 10px;
+        height: 10px;
+    }
+
+    .color-count-text {
+        font-size: 8px;
+    }
+
+    .rea-badge,
+    .discount-badge {
+        top: 4px;
+        left: 4px;
+        padding: 2px 5px;
+        font-size: 9px;
+    }
+
+    .image-bottom-badge {
+        bottom: 5px;
+        font-size: 9px;
+        padding: 1px 4px;
+    }
+
+    .out-of-stock-badge {
+        top: 4px;
+        right: 4px;
+        font-size: 9px;
+        padding: 2px 5px;
+    }
+}

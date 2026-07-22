@@ -5,9 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tack för din beställning | DKRUG</title>
     <script src="/assets/js/config.js"></script>
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <style>
-        /* Mevcut stiller aynı kalıyor */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Inter', -apple-system, sans-serif; background: linear-gradient(135deg, #f5f0eb 0%, #e8e4df 100%); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
         .success-box { background: white; padding: 60px 50px; border-radius: 20px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.1); max-width: 520px; width: 100%; animation: slideUp 0.6s ease; }
@@ -32,9 +30,6 @@
         .spinner { display: inline-block; width: 20px; height: 20px; border: 3px solid #c9a96e; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; margin-right: 8px; vertical-align: middle; }
         @keyframes spin { to { transform: rotate(360deg); } }
         .hidden { display: none !important; }
-        .email-status { margin-top: 12px; padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; }
-        .email-status.sent { background: #d1fae5; color: #065f46; }
-        .email-status.failed { background: #fee2e2; color: #991b1b; }
         @media (max-width: 480px) { .success-box { padding: 40px 24px; } h1 { font-size: 1.5rem; } }
     </style>
 </head>
@@ -45,7 +40,6 @@
         <p class="subtitle">Din betalning har godkänts och din beställning bearbetas nu.</p>
         <div class="status-box" id="status-box">
             <p id="status-text" class="status-loading"><span class="spinner"></span>Laddar beställningsinformation...</p>
-            <div id="email-status" class="hidden"></div>
         </div>
         <div id="order-info" class="hidden">
             <div class="order-details" id="order-details"></div>
@@ -54,18 +48,11 @@
     </div>
 
     <script>
-        const EMAILJS_CONFIG = {
-            PUBLIC_KEY: '30giLeeAUgDsJSx6q',
-            SERVICE_ID: 'service_ip7lisb',
-            TEMPLATE_ID: 'template_s80ep5m'
-        };
-        (function() { emailjs.init(EMAILJS_CONFIG.PUBLIC_KEY); })();
-
         async function showOrderDetails() {
             const urlParams = new URLSearchParams(window.location.search);
             const paymentIntentId = urlParams.get('payment_intent');
             const orderId = urlParams.get('order_id'); 
-const orderNumber = urlParams.get('order_number');
+            const orderNumber = urlParams.get('order_number');
             
             console.log('>>> Tack sayfasi yuklendi');
             console.log('>>> payment_intent:', paymentIntentId);
@@ -75,7 +62,6 @@ const orderNumber = urlParams.get('order_number');
             const orderInfo = document.getElementById('order-info');
             const orderDetails = document.getElementById('order-details');
 
-            // Sepet ve müşteri bilgilerini al (email için)
             function getCart() {
                 try { return JSON.parse(localStorage.getItem('siteCartItems')) || []; }
                 catch (e) { return []; }
@@ -88,25 +74,12 @@ const orderNumber = urlParams.get('order_number');
 
             const cart = getCart();
             const customer = getCustomerData();
-
-            console.log('>>> Sepet:', JSON.stringify(cart));
-            console.log('>>> Musteri:', JSON.stringify(customer));
+            const total = cart.reduce((sum, item) => sum + (parseFloat(item.price) * (item.quantity || 1)), 0);
 
             if (!paymentIntentId) {
                 statusText.className = 'status-error';
                 statusText.innerHTML = '❌ Betalningsinformation saknas.';
                 return;
-            }
-
-            // ✅ Sipariş zaten backend'de kaydedildi!
-            // Sadece gösterim yap ve email gönder
-
-            const total = cart.reduce((sum, item) => sum + (parseFloat(item.price) * (item.quantity || 1)), 0);
-
-            // Email gönder
-            if (customer.email && paymentIntentId) {
-                const displayOrderId = orderNumber || orderId || paymentIntentId;
-                await sendOrderConfirmationEmail(customer, cart, total, displayOrderId, paymentIntentId);
             }
 
             // LocalStorage temizle
@@ -128,64 +101,6 @@ const orderNumber = urlParams.get('order_number');
                 '<div class="detail-row"><span class="detail-label">Status:</span><span class="detail-value">Väntar på behandling</span></div>' +
                 (customer.email ? '<div class="detail-row"><span class="detail-label">E-post:</span><span class="detail-value">' + customer.email + '</span></div>' : '') +
                 '<div class="detail-row"><span class="detail-label">Produkter:</span><span class="detail-value">' + cart.length + ' st</span></div>';
-        }
-
-        async function sendOrderConfirmationEmail(customer, cart, total, orderId, paymentId) {
-            const emailStatusDiv = document.getElementById('email-status');
-            try {
-                let itemsHtml = '<table style="width:100%;border-collapse:collapse;font-size:14px;">';
-                itemsHtml += '<thead><tr style="background:#f9fafb;"><th style="padding:8px;text-align:left;border:1px solid #e5e7eb;">Urun</th><th style="padding:8px;text-align:center;border:1px solid #e5e7eb;">Varyant</th><th style="padding:8px;text-align:center;border:1px solid #e5e7eb;">Adet</th><th style="padding:8px;text-align:right;border:1px solid #e5e7eb;">Fiyat</th></tr></thead><tbody>';
-
-                cart.forEach(function(item) {
-                    const itemTotal = (parseFloat(item.price) * (item.quantity || 1)).toLocaleString('sv-SE');
-                    let variantText = item.variant || item.variants || 'Standard';
-                    
-                    if (item.color && item.color.trim() !== '') {
-                        variantText += ' <span style="color:#888;">(' + item.color + ')</span>';
-                    }
-
-                    itemsHtml += '<tr>' +
-                        '<td style="padding:8px;border:1px solid #e5e7eb;">' + (item.name || 'Urun') + '</td>' +
-                        '<td style="padding:8px;text-align:center;border:1px solid #e5e7eb;">' + variantText + '</td>' +
-                        '<td style="padding:8px;text-align:center;border:1px solid #e5e7eb;">' + (item.quantity || 1) + '</td>' +
-                        '<td style="padding:8px;text-align:right;border:1px solid #e5e7eb;font-weight:600;">' + itemTotal + ' SEK</td>' +
-                    '</tr>';
-                });
-                itemsHtml += '</tbody></table>';
-
-                const templateParams = {
-                    customer_email: customer.email || 'kund@example.com',
-                    customer_name: (customer.firstName + ' ' + customer.lastName).trim() || 'Kund',
-                    order_id: orderId,
-                    order_date: new Date().toLocaleDateString('sv-SE'),
-                    order_items: itemsHtml,
-                    total_price: total.toLocaleString('sv-SE') + ' SEK',
-                    payment_method: 'Stripe',
-                    customer_address: (customer.address ? (customer.address + ', ' + customer.postcode + ' ' + customer.city).trim() : 'Sverige'),
-                    customer_phone: customer.phone || 'N/A',
-                    tracking_link: 'https://www.dekorist.se/orders/' + orderId + '\n\n(Du kommer att få ett separat mail med spårningsinformation när din beställning skickas.)'
-                };
-
-                console.log('>>> EmailJS gonderiliyor...');
-
-                const response = await emailjs.send(
-                    EMAILJS_CONFIG.SERVICE_ID,
-                    EMAILJS_CONFIG.TEMPLATE_ID,
-                    templateParams
-                );
-
-                console.log('>>> ✅ Email gonderildi!');
-
-                emailStatusDiv.className = 'email-status sent';
-                emailStatusDiv.innerHTML = '✉️ En bekräftelse har skickats till din e-post.';
-                emailStatusDiv.classList.remove('hidden');
-
-            } catch (emailErr) {
-                console.error('>>> Email gonderme hatasi:', emailErr);
-                emailStatusDiv.className = 'email-status failed';
-                emailStatusDiv.innerHTML = '⚠️ Kunde inte skicka bekräftelsemail.';
-                emailStatusDiv.classList.remove('hidden');
-            }
         }
 
         showOrderDetails();

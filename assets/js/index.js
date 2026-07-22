@@ -1,12 +1,15 @@
 // ==========================================
-// INDEX.JS - DKRUG Anasayfa
-// Supabase'den ürün çekme, carousel, wishlist
+// INDEX.JS v2.0 - DKRUG Anasayfa
+// Supabase'den ürün çekme, zengin kartlar, modern carousel
 // ==========================================
 
 if (window.__indexPageInitialized) {
     console.log("[Index] Zaten başlatılmış, atlanıyor.");
 } else {
     window.__indexPageInitialized = true;
+
+    // ===== COLOR MAP (category.js ile aynı) =====
+
 
     // ===== CONFIG =====
     const SUPABASE_URL = (typeof CONFIG !== 'undefined' && CONFIG.SUPABASE) ? CONFIG.SUPABASE.URL : '';
@@ -39,31 +42,87 @@ if (window.__indexPageInitialized) {
         return res.json();
     }
 
+    // ===== GET VARIANT DISPLAY TEXT (category.js ile aynı) =====
+
+    // ===== GET DISPLAY PRICE =====
+
+    // ===== WISHLIST FUNCTIONS =====
+
+
+
+    // ===== CREATE PRODUCT CARD (category.js style) =====
+
     // ===== FETCH ALL PRODUCTS =====
     async function fetchAllProducts() {
         try {
             console.log('[Index] Ürünler çekiliyor...');
-            const products = await supabaseGet('products', {
-                select: '*',
-                active: 'eq.true',
-                order: 'created_at.desc'
-            });
+
+            // Önce varyantları çekelim
+            const [products, variants] = await Promise.all([
+                supabaseGet('products', {
+                    select: '*',
+                    active: 'eq.true',
+                    order: 'created_at.desc'
+                }),
+                supabaseGet('product_variants', {
+                    select: '*'
+                })
+            ]);
 
             if (!products || !Array.isArray(products)) {
                 console.error('[Index] Beklenmeyen veri formati');
                 return;
             }
 
-            allProducts = products;
+            // Ürünleri zenginleştir
+            allProducts = products.map(p => {
+                const productVariants = variants.filter(v => v.product_id === p.id);
+
+                // Varyant yoksa simple_size kullan
+                let finalVariants = productVariants;
+                if (productVariants.length === 0 && p.simple_size) {
+                    finalVariants = [{
+                        size: p.simple_size,
+                        color: null,
+                        price: p.base_price || 0,
+                        discount_price: p.discount_price || null,
+                        stock: 999
+                    }];
+                }
+
+                return {
+                    id: p.id,
+                    name: p.name || 'Produkt',
+                    price: getDisplayPrice(p),
+                    base_price: p.base_price || 0,
+                    discount_price: p.discount_price || null,
+                    image: p.images && p.images[0] ? p.images[0] : '',
+                    slug: p.slug || '',
+                    description: p.description || '',
+                    variants: finalVariants,
+                    colors: p.colors || [],
+                    sizes: finalVariants.map(v => v.size),
+                    measurements: p.measurements || [],
+                    m2_available_widths: p.m2_available_widths || [],
+                    m2_calculator_active: p.m2_calculator_active || false,
+                    gardin_measurements: p.gardin_measurements || [],
+                    gardin_calculator_active: p.gardin_calculator_active || false,
+                    stock: finalVariants.length > 0 
+                        ? (finalVariants.some(v => v.stock > 0) ? 'In Stock' : 'Out of Stock')
+                        : 'In Stock',
+                    delivery_time: p.delivery_time || '3-7 arbetsdagar',
+                    is_bestseller: p.is_bestseller || false,
+                    featured: p.featured || false
+                };
+            });
 
             // Kategorize et
-            saleProducts = products.filter(p => p.discount_price && p.discount_price < p.base_price).slice(0, 10);
-            newProducts = products.slice(0, 10); // created_at desc olduğu için ilk 10 en yeni
-            bestSellers = products.filter(p => p.is_bestseller || p.featured).slice(0, 8);
+            saleProducts = allProducts.filter(p => p.discount_price && p.discount_price < p.base_price).slice(0, 10);
+            newProducts = allProducts.slice(0, 10);
+            bestSellers = allProducts.filter(p => p.is_bestseller || p.featured).slice(0, 8);
 
-            // Eğer bestseller yoksa rastgele 8 ürün al
             if (bestSellers.length === 0) {
-                bestSellers = products.slice(0, 8);
+                bestSellers = allProducts.slice(0, 8);
             }
 
             console.log('[Index] Ürünler yüklendi:', {
@@ -85,65 +144,12 @@ if (window.__indexPageInitialized) {
         renderSaleCarousel();
         renderNewArrivalsCarousel();
         renderBestSellersGrid();
-    }
-
-    // ===== PRODUCT CARD HTML =====
-    function getProductCardHTML(product, badgeType) {
-        const image = product.images && product.images[0] ? product.images[0] : '';
-        const name = product.name || 'Produkt';
-        const slug = product.slug || product.id;
-        const hasDiscount = product.discount_price && product.discount_price < product.base_price;
-        const currentPrice = hasDiscount ? product.discount_price : product.base_price;
-        const oldPrice = product.base_price || 0;
-        const category = product.category || 'Mattor';
-
-        let badgeHTML = '';
-        if (badgeType === 'sale') {
-            badgeHTML = '<span class="product-badge sale">REA</span>';
-        } else if (badgeType === 'new') {
-            badgeHTML = '<span class="product-badge new">Ny</span>';
-        } else if (badgeType === 'bestseller') {
-            badgeHTML = '<span class="product-badge">Bästsäljare</span>';
-        }
-
-        const priceHTML = hasDiscount 
-            ? `<span class="price-discount">${formatPrice(currentPrice)}</span><span class="price-old">${formatPrice(oldPrice)}</span>`
-            : `<span class="price-current">${formatPrice(currentPrice)}</span>`;
-
-        const isWishlisted = isInWishlist(product.id);
-        const heartIcon = isWishlisted 
-            ? '<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>'
-            : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>';
-
-        return `
-            <div class="product-card fade-in" data-product-id="${product.id}">
-                <div class="product-img-wrap">
-                    ${image ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(name)}" loading="lazy" onerror="this.style.display='none';this.parentElement.style.background='linear-gradient(135deg, #e8e0d8 0%, #d4ccc4 100%)'">` : ''}
-                    ${badgeHTML}
-                    <div class="product-actions">
-                        <button class="product-action-btn ${isWishlisted ? 'active' : ''}" title="Favorit" onclick="toggleWishlistItem('${product.id}', '${escapeHtml(name)}', ${currentPrice}, '${escapeHtml(image)}')">
-                            ${heartIcon}
-                        </button>
-                        <a href="/produkt/${escapeHtml(slug)}" class="product-action-btn" title="Snabbvy">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                        </a>
-                    </div>
-                </div>
-                <div class="product-info">
-                    <div class="product-cat">${escapeHtml(category)}</div>
-                    <h4 class="product-name"><a href="/produkt/${escapeHtml(slug)}">${escapeHtml(name)}</a></h4>
-                    <div class="product-price">
-                        ${priceHTML}
-                    </div>
-                </div>
-            </div>
-        `;
+        initLazyImages();
     }
 
     // ===== RENDER SALE CAROUSEL =====
     function renderSaleCarousel() {
         const track = document.getElementById('sale-carousel-track');
-        const dots = document.getElementById('sale-carousel-dots');
         if (!track) return;
 
         if (saleProducts.length === 0) {
@@ -152,7 +158,7 @@ if (window.__indexPageInitialized) {
         }
 
         track.innerHTML = saleProducts.map(p => `
-            <div class="carousel-slide">${getProductCardHTML(p, 'sale')}</div>
+            <div class="carousel-slide">${createProductCard(p, isInWishlist(p.id))}</div>
         `).join('');
 
         setupCarousel('sale');
@@ -169,7 +175,7 @@ if (window.__indexPageInitialized) {
         }
 
         track.innerHTML = newProducts.map(p => `
-            <div class="carousel-slide">${getProductCardHTML(p, 'new')}</div>
+            <div class="carousel-slide">${createProductCard(p, isInWishlist(p.id))}</div>
         `).join('');
 
         setupCarousel('new');
@@ -185,7 +191,7 @@ if (window.__indexPageInitialized) {
             return;
         }
 
-        grid.innerHTML = bestSellers.map(p => getProductCardHTML(p, 'bestseller')).join('');
+        grid.innerHTML = bestSellers.map(p => createProductCard(p, isInWishlist(p.id))).join('');
 
         // Re-observe fade-in elements
         document.querySelectorAll('.fade-in').forEach(el => {
@@ -207,15 +213,25 @@ if (window.__indexPageInitialized) {
         const slides = track.querySelectorAll('.carousel-slide');
         if (slides.length === 0) return;
 
-        const slideWidth = slides[0].offsetWidth + 20; // gap included
         let currentIndex = 0;
-        const maxIndex = Math.max(0, slides.length - Math.floor(track.parentElement.offsetWidth / slideWidth));
+        let slideWidth = 0;
+        let maxIndex = 0;
+
+        function calculateDimensions() {
+            if (slides.length === 0) return;
+            slideWidth = slides[0].offsetWidth + 20; // gap included
+            const visibleSlides = Math.floor(track.parentElement.offsetWidth / slideWidth);
+            maxIndex = Math.max(0, slides.length - visibleSlides);
+        }
+
+        calculateDimensions();
+        window.addEventListener('resize', calculateDimensions);
 
         // Dot navigation
         if (dotsContainer && slides.length > 1) {
             const dotCount = Math.min(slides.length, 6);
             dotsContainer.innerHTML = Array.from({length: dotCount}, (_, i) => 
-                `<button class="carousel-dot ${i === 0 ? 'active' : ''}" data-index="${i}"></button>`
+                `<button class="carousel-dot ${i === 0 ? 'active' : ''}" data-index="${i}" aria-label="Gå till slide ${i + 1}"></button>`
             ).join('');
 
             dotsContainer.querySelectorAll('.carousel-dot').forEach(dot => {
@@ -224,6 +240,7 @@ if (window.__indexPageInitialized) {
                     scrollToSlide(track, index, slideWidth);
                     updateDots(dotsContainer, index);
                     currentIndex = index;
+                    updateButtons();
                 });
             });
         }
@@ -234,6 +251,7 @@ if (window.__indexPageInitialized) {
                 currentIndex = Math.max(0, currentIndex - 1);
                 scrollToSlide(track, currentIndex, slideWidth);
                 updateDots(dotsContainer, currentIndex);
+                updateButtons();
             });
         }
 
@@ -242,16 +260,49 @@ if (window.__indexPageInitialized) {
                 currentIndex = Math.min(maxIndex, currentIndex + 1);
                 scrollToSlide(track, currentIndex, slideWidth);
                 updateDots(dotsContainer, currentIndex);
+                updateButtons();
             });
         }
 
-        // Auto-play (optional - 6 seconds)
+        // Touch/Swipe support
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        track.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        }, { passive: true });
+
+        track.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        }, { passive: true });
+
+        function handleSwipe() {
+            const swipeThreshold = 50;
+            if (touchStartX - touchEndX > swipeThreshold) {
+                // Swipe left - next
+                currentIndex = Math.min(maxIndex, currentIndex + 1);
+            } else if (touchEndX - touchStartX > swipeThreshold) {
+                // Swipe right - prev
+                currentIndex = Math.max(0, currentIndex - 1);
+            }
+            scrollToSlide(track, currentIndex, slideWidth);
+            updateDots(dotsContainer, currentIndex);
+            updateButtons();
+        }
+
+        // Auto-play (6 seconds)
         let autoPlayInterval;
         function startAutoPlay() {
             autoPlayInterval = setInterval(() => {
-                currentIndex = (currentIndex + 1) % (maxIndex + 1);
+                if (currentIndex >= maxIndex) {
+                    currentIndex = 0;
+                } else {
+                    currentIndex++;
+                }
                 scrollToSlide(track, currentIndex, slideWidth);
                 updateDots(dotsContainer, currentIndex);
+                updateButtons();
             }, 6000);
         }
 
@@ -261,6 +312,7 @@ if (window.__indexPageInitialized) {
 
         track.parentElement.addEventListener('mouseenter', stopAutoPlay);
         track.parentElement.addEventListener('mouseleave', startAutoPlay);
+        track.parentElement.addEventListener('touchstart', stopAutoPlay, { passive: true });
         startAutoPlay();
 
         // Update button states
@@ -289,46 +341,66 @@ if (window.__indexPageInitialized) {
         });
     }
 
-    // ===== WISHLIST FUNCTIONS =====
-    function isInWishlist(productId) {
-        try {
-            const wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
-            return wishlist.some(item => String(item.id || item) === String(productId));
-        } catch (e) {
-            return false;
+    // ===== INDIRIM SAATI AYARLARI =====
+    function initCountdown() {
+        const endDate = new Date();
+        endDate.setDate(endDate.getDate() + 3); // 3 gün sonra
+        endDate.setHours(14, 42, 18);
+
+        function updateCountdown() {
+            const now = new Date().getTime();
+            const distance = endDate - now;
+
+            if (distance < 0) {
+                endDate.setDate(endDate.getDate() + 7); // Reset
+                return;
+            }
+
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            const pad = (n) => String(n).padStart(2, '0');
+
+            const daysEl = document.getElementById('cd-days');
+            const hoursEl = document.getElementById('cd-hours');
+            const minutesEl = document.getElementById('cd-minutes');
+            const secondsEl = document.getElementById('cd-seconds');
+
+            if (daysEl) daysEl.textContent = pad(days);
+            if (hoursEl) hoursEl.textContent = pad(hours);
+            if (minutesEl) minutesEl.textContent = pad(minutes);
+            if (secondsEl) secondsEl.textContent = pad(seconds);
         }
+
+        updateCountdown();
+        setInterval(updateCountdown, 1000);
     }
 
-    window.toggleWishlistItem = function(productId, name, price, image) {
-        let wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
-        const index = wishlist.findIndex(item => String(item.id || item) === String(productId));
+    // ===== NEWSLETTER HANDLER =====
+    window.handleNewsletterSubmit = function(form) {
+        const email = form.querySelector('input[type="email"]').value;
+        const btn = form.querySelector('button');
+        const originalText = btn.textContent;
 
-        if (index > -1) {
-            wishlist.splice(index, 1);
-            console.log('[Wishlist] Kaldırıldı:', name);
-        } else {
-            wishlist.push({ id: productId, name: name, price: price, image: image });
-            console.log('[Wishlist] Eklendi:', name);
-        }
+        btn.textContent = 'Skickar...';
+        btn.disabled = true;
 
-        localStorage.setItem('wishlistItems', JSON.stringify(wishlist));
+        // Simulate API call
+        setTimeout(() => {
+            btn.textContent = '✓ Tack!';
+            btn.style.background = '#2e8b57';
+            form.querySelector('input').value = '';
 
-        // Update UI
-        const card = document.querySelector(`[data-product-id="${productId}"]`);
-        if (card) {
-            const btn = card.querySelector('.product-action-btn');
-            if (btn) {
-                btn.classList.toggle('active', index === -1); // index -1 ise yeni eklendi
-                btn.innerHTML = index === -1 
-                    ? '<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>'
-                    : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>';
-            }
-        }
+            setTimeout(() => {
+                btn.textContent = originalText;
+                btn.disabled = false;
+                btn.style.background = '';
+            }, 3000);
+        }, 1500);
 
-        // Update header badge
-        if (typeof updateWishlistBadge === 'function') {
-            updateWishlistBadge();
-        }
+        return false;
     };
 
     // ===== UTILITIES =====
@@ -353,10 +425,10 @@ if (window.__indexPageInitialized) {
                 el.innerHTML = Array.from({length: 4}, () => `
                     <div class="carousel-slide">
                         <div class="product-card">
-                            <div class="product-img-wrap skeleton" style="aspect-ratio:3/4;"></div>
-                            <div class="product-info">
-                                <div class="skeleton" style="height:12px;width:40%;margin-bottom:8px;"></div>
+                            <div class="image-box skeleton" style="aspect-ratio:3/4;"></div>
+                            <div style="padding:16px;">
                                 <div class="skeleton" style="height:16px;width:80%;margin-bottom:10px;"></div>
+                                <div class="skeleton" style="height:12px;width:40%;margin-bottom:10px;"></div>
                                 <div class="skeleton" style="height:14px;width:30%;"></div>
                             </div>
                         </div>
@@ -374,6 +446,19 @@ if (window.__indexPageInitialized) {
                 el.innerHTML = '<div style="padding:40px;text-align:center;color:#888;width:100%;">Kunde inte ladda produkter. Försök igen senare.</div>';
             }
         });
+    }
+
+    // ===== HERO SCROLL =====
+    function initHeroScroll() {
+        const scrollBtn = document.querySelector('.hero-scroll');
+        if (scrollBtn) {
+            scrollBtn.addEventListener('click', () => {
+                const nextSection = document.querySelector('.trust-bar-section');
+                if (nextSection) {
+                    nextSection.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        }
     }
 
     // ===== FADE-IN OBSERVER =====
@@ -394,6 +479,15 @@ if (window.__indexPageInitialized) {
 
         // Ürünleri çek
         fetchAllProducts();
+
+        // Countdown başlat
+        initCountdown();
+
+        // Hero scroll
+        initHeroScroll();
+
+        // Wishlist badge güncelle
+        updateWishlistBadge();
 
         // Fade-in elemanlarını gözlemle
         document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));

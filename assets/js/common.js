@@ -1,6 +1,7 @@
 // ==========================================
-// COMMON.JS - TEMEL FONKSIYONLAR (v8.9)
-// Mini cart buton fix: Geriye donuk uyumluluk + cartItemId migrate
+// COMMON.JS - TEMEL FONKSIYONLAR (v9.0)
+// IS_CHECKOUT_PAGE kontrolu kaldirildi - sayfalar kendi elementlerini kontrol ediyor
+// Badge spam loglari temizlendi
 // ==========================================
 
 window.__commonListenersInitialized = false;
@@ -137,7 +138,6 @@ window.updateCartBadge = function() {
     const cart = getCart();
     const badges = document.querySelectorAll('.cart-count-badge');
     if (badges.length === 0) {
-        console.warn('[Badge] .cart-count-badge elementi henuz DOM\'da yok, retry...');
         return false;
     }
     const count = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
@@ -145,7 +145,6 @@ window.updateCartBadge = function() {
         badge.textContent = count;
         badge.classList.toggle('visible', count > 0);
     });
-    console.log('[Badge] Cart badge guncellendi:', count, 'urun');
     return true;
 };
 
@@ -154,14 +153,12 @@ window.updateWishlistBadge = function() {
         const wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
         const badges = document.querySelectorAll('.wishlist-count-badge');
         if (badges.length === 0) {
-            console.warn('[Badge] .wishlist-count-badge elementi henuz DOM\'da yok, retry...');
             return false;
         }
         badges.forEach(badge => {
             badge.textContent = wishlist.length;
             badge.classList.toggle('visible', wishlist.length > 0);
         });
-        console.log('[Badge] Wishlist badge guncellendi:', wishlist.length, 'urun');
         return true;
     } catch (e) {
         console.error('[Badge] Wishlist badge hatasi:', e);
@@ -170,12 +167,22 @@ window.updateWishlistBadge = function() {
 };
 
 window.__dkBadgeInitDone = false;
+window.__dkBadgeInitInProgress = false;
 
 function initBadgesWithRetry(maxRetries = 20, interval = 100) {
-    if (window.__dkBadgeInitDone) {
-        console.log('[Badge] Init zaten tamamlandi, atlaniyor.');
+    // Badge elementleri yoksa bu sayfada badge yok demektir, sessizce cik
+    const cartBadges = document.querySelectorAll('.cart-count-badge');
+    const wishBadges = document.querySelectorAll('.wishlist-count-badge');
+    if (cartBadges.length === 0 && wishBadges.length === 0) {
         return;
     }
+    
+    if (window.__dkBadgeInitDone || window.__dkBadgeInitInProgress) {
+        return;
+    }
+    
+    window.__dkBadgeInitInProgress = true;
+    
     let attempts = 0;
     function tryInit() {
         attempts++;
@@ -183,14 +190,14 @@ function initBadgesWithRetry(maxRetries = 20, interval = 100) {
         const wishOk = window.updateWishlistBadge();
         if (cartOk && wishOk) {
             window.__dkBadgeInitDone = true;
-            console.log('[Badge] Init basarili! Deneme:', attempts);
+            window.__dkBadgeInitInProgress = false;
             return;
         }
         if (attempts >= maxRetries) {
-            console.warn('[Badge] Max retry asildi (' + maxRetries + ').');
+            window.__dkBadgeInitInProgress = false;
+            console.warn('[Badge] Max retry asildi (' + maxRetries + '). Badge elementleri bulunamadi.');
             return;
         }
-        console.log('[Badge] Retry ' + attempts + '/' + maxRetries + '...');
         setTimeout(tryInit, interval);
     }
     tryInit();
@@ -209,13 +216,12 @@ function observeBadgeElements() {
                 );
             });
         });
-        if (hasNewBadges && !window.__dkBadgeInitDone) {
-            console.log('[Badge] Yeni badge elementleri tespit edildi, init calistiriliyor...');
+        if (hasNewBadges && !window.__dkBadgeInitDone && !window.__dkBadgeInitInProgress) {
             initBadgesWithRetry();
         }
     });
     observer.observe(document.body, { childList: true, subtree: true });
-    console.log('[Badge] MutationObserver baslatildi.');
+    
     return observer;
 }
 
@@ -285,18 +291,17 @@ function updateMiniCartUI() {
             
             // RENK bilgisi varsa göster
             const isCalculatorItem = item.isM2 || item.isGardin;
-let variantDisplay = '';
+            let variantDisplay = '';
 
-if (isCalculatorItem && item.size) {
-    variantDisplay = item.size;
-    // ✅ NOT EKLE (sadece gardin için ve not varsa)
-    if (item.isGardin && item.note && item.note.trim() !== '') {
-        variantDisplay += ' <span style="color:#888;font-size:12px;">📝 ' + item.note + '</span>';
-    }
-} else {
-    const colorDisplay = item.color ? ` / ${item.color}` : '';
-    variantDisplay = (item.variants || 'Standard') + colorDisplay;
-}
+            if (isCalculatorItem && item.size) {
+                variantDisplay = item.size;
+                if (item.isGardin && item.note && item.note.trim() !== '') {
+                    variantDisplay += ' <span style="color:#888;font-size:12px;">📝 ' + item.note + '</span>';
+                }
+            } else {
+                const colorDisplay = item.color ? ` / ${item.color}` : '';
+                variantDisplay = (item.variants || 'Standard') + colorDisplay;
+            }
             
             // Fiyat gösterimi
             let priceHtml = '';
@@ -477,11 +482,10 @@ function getSearchElements() {
 function initSearch() {
     const { input, results } = getSearchElements();
     if (!input) {
-        console.warn('[Search] Input bulunamadi, retry...');
-        setTimeout(initSearch, 500);
+        // Search input yoksa bu sayfada search yok demektir, sessizce cik
         return;
     }
-    console.log('[Search] Input bulundu, listener baglaniyor...');
+    
     const newInput = input.cloneNode(true);
     input.parentNode.replaceChild(newInput, input);
     searchInputElement = newInput;
@@ -493,7 +497,7 @@ function initSearch() {
             return;
         }
         if (allProductsCache.length === 0 && !isFetchingProducts) {
-            console.log('[Search] Cache bossa, once urunleri cekiyorum...');
+            
             if (searchResultsElement) {
                 searchResultsElement.innerHTML = '<div class="no-results-found">Laddar produkter...</div>';
                 searchResultsElement.style.display = 'block';
@@ -502,7 +506,7 @@ function initSearch() {
             return;
         }
         if (isFetchingProducts) {
-            console.log('[Search] Urunler hala yukleniyor, bekleniyor...');
+            
             if (searchResultsElement) {
                 searchResultsElement.innerHTML = '<div class="no-results-found">Laddar produkter...</div>';
                 searchResultsElement.style.display = 'block';
@@ -513,11 +517,11 @@ function initSearch() {
     });
     searchInputElement.addEventListener('focus', () => {
         if (allProductsCache.length === 0 && !isFetchingProducts) {
-            console.log('[Search] Focus - urunleri onceden cekiyorum...');
+            
             fetchAllProductsForSearch();
         }
     });
-    console.log('[Search] Listener basariyla baglandi!');
+    
 }
 
 function openSearchPopup() {
@@ -564,14 +568,14 @@ async function fetchAllProductsForSearch() {
         return;
     }
     if (isFetchingProducts) {
-        console.log('[Search] Zaten fetch ediliyor, atlaniyor...');
+        
         return;
     }
     isFetchingProducts = true;
     console.log("[Search] Urunler Supabase'den cekiliyor...");
     try {
         const data = await supabaseGet('products', { select: '*', active: 'eq.true' });
-        console.log('[Search] Ham veri:', data);
+        
         if (!data || !Array.isArray(data)) {
             console.error('[Search] Beklenmeyen veri formati:', data);
             allProductsCache = [];
@@ -585,7 +589,7 @@ async function fetchAllProductsForSearch() {
             category: product.category || '',
             url: '/produkt/' + (product.slug || product.id)
         }));
-        console.log('[Search] ' + allProductsCache.length + ' urun basariyla cachelendi');
+        
     } catch (error) {
         console.error('[Search] Urun cache hatasi:', error);
         allProductsCache = [];
@@ -600,7 +604,7 @@ function performSearch(query) {
         console.error('[Search] Results display elementi bulunamadi!');
         return;
     }
-    console.log('[Search] Arama yapiliyor:', query, 'Cache uzunlugu:', allProductsCache.length);
+    
     if (allProductsCache.length === 0) {
         resultsDisplay.innerHTML = '<div class="no-results-found">Inga produkter tillgangliga. Forsok igen om en stund.</div>';
         resultsDisplay.style.display = 'block';
@@ -617,7 +621,7 @@ function performSearch(query) {
         const catMatch = product.category.toLowerCase().includes(lowerQuery);
         return nameMatch || catMatch;
     });
-    console.log('[Search] Filtrelenen:', filtered.length, 'urun');
+    
     if (filtered.length === 0) {
         resultsDisplay.innerHTML = '<div class="no-results-found">Inga produkter hittades for "' + escapeHtml(query) + '".</div>';
     } else {
@@ -691,17 +695,17 @@ function initHeaderScroll() {
 }
 
 // ==========================================
-// EVENT LISTENERS - DUZELTILMIS v8.9
+// EVENT LISTENERS - DUZELTILMIS v9.0
 // ==========================================
 
 function initEventListeners() {
-    console.log('initEventListeners CAGIRILDI, __commonListenersInitialized:', window.__commonListenersInitialized);
+    
     if (window.__commonListenersInitialized) {
-        console.log('Event listenerlar zaten bagli, atlaniyor.');
+        
         return;
     }
     window.__commonListenersInitialized = true;
-    console.log('Event listenerlar baslatiliyor...');
+    
     initHeaderScroll();
 
     document.addEventListener('click', (e) => {
@@ -791,7 +795,7 @@ function initEventListeners() {
     });
 
     initSearch();
-    console.log('Tum event listenerlar basariyla baglandi!');
+    
 }
 
 // ==========================================
@@ -803,12 +807,12 @@ function initBreadcrumb() {
 
     const nav = document.getElementById('breadcrumb-nav');
     if (!nav) {
-        console.log('[Breadcrumb] Nav elementi bulunamadi, atlaniyor.');
+        
         return;
     }
 
     if (nav.innerHTML.trim() !== '' && nav.querySelector('ol')) {
-        console.log('[Breadcrumb] Zaten dolu, atlaniyor.');
+        
         return;
     }
 
@@ -867,7 +871,7 @@ function initBreadcrumb() {
     html += '</ol>';
 
     nav.innerHTML = html;
-    console.log('[Breadcrumb] Olusturuldu:', crumbs.map(c => c.name).join(' > '));
+    
 }
 
 // ==========================================
@@ -878,16 +882,16 @@ window.__dkInitAllDone = false;
 
 function initAll() {
     if (window.__dkInitAllDone) {
-        console.log('[Init] initAll zaten calisti, atlaniyor.');
+        
         return;
     }
     window.__dkInitAllDone = true;
-    console.log('[Init] common.js initAll baslatiliyor...');
+    
     initEventListeners();
     initBadgesWithRetry();
     observeBadgeElements();
     initBreadcrumb();
-    console.log('[Init] common.js initAll tamamlandi.');
+    
 }
 
 if (document.readyState === 'loading') {
@@ -897,24 +901,17 @@ if (document.readyState === 'loading') {
 }
 
 window.addEventListener('load', () => {
-    console.log('[Init] window.load eventi...');
-    if (!window.__dkBadgeInitDone) {
-        console.log('[Init] Badge init yapilmamis, retry baslatiliyor...');
-        initBadgesWithRetry(10, 50);
-    }
     const input = document.getElementById('live-search-input');
     if (input && !input._searchInitialized) {
-        console.log('[Init] Search init yapilmamis, retry baslatiliyor...');
         initSearch();
     }
     const nav = document.getElementById('breadcrumb-nav');
     if (nav && nav.innerHTML.trim() === '') {
-        console.log('[Init] Breadcrumb bos, retry baslatiliyor...');
         initBreadcrumb();
     }
 });
 
-console.log('common.js v8.9 yuklendi - Mini cart buton fix + migrate');
+
 
 
 // ===== FOOTER MOBİL AKORDEON =====
@@ -950,7 +947,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const topBar = document.querySelector('.top-bar');
     
     if (!header) {
-        console.warn('[HeaderScroll] .main-header bulunamadi!');
+        
         return;
     }
     
@@ -987,5 +984,5 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }, { passive: true });
     
-    console.log('[HeaderScroll] Header scroll efekti aktif!');
+    
 })();

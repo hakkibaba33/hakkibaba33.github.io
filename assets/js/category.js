@@ -1,6 +1,9 @@
 // ==========================================
-// CATEGORY.JS - SUPABASE UYUMLU (v5.7)
+// CardModule fonksiyonları card.js'den geliyor: getColorStyle, getDisplayPrice, getVariantDisplayText, createProductCard, isInWishlist, updateWishlistBadge, initLazyImages, attachWishlistEvents
+
+// CATEGORY.JS - SUPABASE UYUMLU (v5.8)
 // Modern Filtre Cekmecesi: Ana panel -> Alt panel slide yapisi
+// Guncelleme: Profesyonel resim yukleme (IntersectionObserver + fade-in)
 // ==========================================
 
 console.log('category.js yukleniyor...');
@@ -37,15 +40,17 @@ const titleMap = {
 
 function updatePageTitle(category) {
     let title = titleMap[category] || 'Produkter';
-    document.title = 'Alla ' + title + ' | DKRUG';
+    const newTitle = 'Alla ' + title;
+    
+    document.title = newTitle + ' | DKRUG';
 
     const pageTitle = document.getElementById('category-main-title');
-    if (pageTitle) {
-        pageTitle.textContent = 'Alla ' + title;
+    if (pageTitle && pageTitle.textContent !== newTitle) {
+        pageTitle.textContent = newTitle;
     }
 
     const breadcrumbCurrent = document.getElementById('breadcrumb-current');
-    if (breadcrumbCurrent) {
+    if (breadcrumbCurrent && breadcrumbCurrent.textContent !== title) {
         breadcrumbCurrent.textContent = title;
     }
 }
@@ -87,53 +92,7 @@ function initChipsRouting() {
 // ==========================================
 // RENK ESLESTIRME - Isvecce -> CSS
 // ==========================================
-const COLOR_MAP = {
-    'rod': '#D32F2F', 'röd': '#D32F2F', 'red': '#D32F2F',
-    'bla': '#1976D2', 'blå': '#1976D2', 'blue': '#1976D2',
-    'gron': '#388E3C', 'grön': '#388E3C', 'green': '#388E3C',
-    'gul': '#FBC02D', 'yellow': '#FBC02D',
-    'orange': '#F57C00',
-    'rosa': '#E91E63', 'pink': '#E91E63',
-    'lila': '#7B1FA2', 'purple': '#7B1FA2',
-    'svart': '#212121', 'black': '#212121',
-    'vit': '#FAFAFA', 'white': '#FAFAFA',
-    'grå': '#9E9E9E', 'gra': '#9E9E9E', 'grey': '#9E9E9E', 'gray': '#9E9E9E',
-    'brun': '#5D4037', 'brown': '#5D4037',
-    'beige': '#D7CCC8',
-    'turkos': '#00BCD4', 'turquoise': '#00BCD4',
-    'guld': '#FFD700', 'gold': '#FFD700',
-    'silver': '#C0C0C0',
-    'bronze': '#CD7F32', 'brons': '#CD7F32',
-    'krem': '#FFF8E1', 'cream': '#FFF8E1',
-    'oliv': '#556B2F', 'olive': '#556B2F',
-    'marin': '#1A237E', 'navy': '#1A237E', 'marinblå': '#1A237E',
-    'mint': '#98FF98',
-    'korall': '#FF7F50', 'coral': '#FF7F50',
-    'vinröd': '#722F37', 'bordo': '#722F37', 'burgundy': '#722F37',
-    'taupe': '#483C32',
-    'mullvad': '#8B7355',
-    'flerfargad': 'linear-gradient(135deg, #FF6B6B, #4ECDC4, #45B7D1, #96CEB4)', 
-    'flerfärgad': 'linear-gradient(135deg, #FF6B6B, #4ECDC4, #45B7D1, #96CEB4)',
-    'multicolor': 'linear-gradient(135deg, #FF6B6B, #4ECDC4, #45B7D1, #96CEB4)',
-    'randig': 'repeating-linear-gradient(90deg, #fff 0px, #fff 10px, #333 10px, #333 20px)',
-    'striped': 'repeating-linear-gradient(90deg, #fff 0px, #fff 10px, #333 10px, #333 20px)',
-    'prickig': 'radial-gradient(circle, #333 2px, transparent 2px)', 
-    'dotted': 'radial-gradient(circle, #333 2px, transparent 2px)',
-    'blommig': 'linear-gradient(45deg, #FFB6C1, #FFF0F5)', 
-    'floral': 'linear-gradient(45deg, #FFB6C1, #FFF0F5)',
-    'transparent': 'rgba(200,200,200,0.3)',
-};
 
-function getColorStyle(colorName) {
-    if (!colorName) return '#ccc';
-    const normalized = colorName.toLowerCase().trim();
-    if (COLOR_MAP[normalized]) return COLOR_MAP[normalized];
-    for (const [key, value] of Object.entries(COLOR_MAP)) {
-        if (normalized.includes(key) || key.includes(normalized)) return value;
-    }
-    if (/^#[0-9A-F]{6}$/i.test(normalized)) return normalized;
-    return '#ccc';
-}
 
 // ==========================================
 // KATEGORI SAYFASI SEO META TAG'LERI + SAYFA ALTI ICERIK
@@ -269,7 +228,7 @@ function updateCategoryMetaTags(seoData) {
     document.head.appendChild(schemaScript);
     
     // ==========================================
-    // ✅ YENI: SAYFA ALTI SEO ICERIGI (BODY'DE GORUNUR)
+    // YENI: SAYFA ALTI SEO ICERIGI (BODY'DE GORUNUR)
     // ==========================================
     renderSeoContent(seoData);
 }
@@ -293,7 +252,7 @@ function renderSeoContent(seoData) {
     
     container.style.display = 'block';
     
-    // ✅ DÜZELTME: İçerik wrapper div içine alındı, tüm etiketler ortalanacak
+    // Icerik wrapper div icine alindi, tum etiketler ortalanacak
     inner.innerHTML = `
         <div class="seo-content-wrapper">
             <h2 class="seo-auto-title">${seoData.title || ''}</h2>
@@ -334,6 +293,13 @@ function toggleSeoContent() {
         document.getElementById('seo-content')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 }
+
+// ==========================================
+// PROFESYONEL RESIM YUKLEME v2
+// - Ziplama/goz kirpma sorunu cozuldu
+// ==========================================
+// imageObserver card.js'den geliyor
+
 
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -388,9 +354,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         return res.json();
     }
 
-    function getDisplayPrice(product) {
-        return product.discount_price || product.base_price || 0;
-    }
 
     async function fetchCategories() {
         try {
@@ -420,43 +383,105 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    function renderChips(categories, subCategories) {
-        const chipsContainer = document.getElementById('category-chips-list');
-        if (!chipsContainer) return;
+ function renderChips(categories, subCategories) {
+    const chipsContainer = document.getElementById('category-chips-list');
+    const chipsWrapper = document.querySelector('.category-chips-wrapper');
+    if (!chipsContainer) return;
 
-        const currentCategory = getCurrentCategory();
-        const urlParams = new URLSearchParams(window.location.search);
-        const currentSubCategory = urlParams.get('kategori');
+    const currentCategory = getCurrentCategory();
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentSubCategory = urlParams.get('kategori');
 
-        let chipsHTML = '';
+    // Önceki chip'leri kontrol et
+    const existingChips = chipsContainer.querySelectorAll('.category-chip');
+    const existingSlugs = Array.from(existingChips).map(c => c.dataset.chip).join(',');
 
-        const category = categories.find(c => c.slug === currentCategory);
-        if (category && Array.isArray(subCategories)) {
-            const catId = parseInt(category.id);
-            const categorySubs = subCategories.filter(s => {
-                return s && parseInt(s.category_id) === catId && s.active !== false;
-            });
+    let chipsHTML = '';
+    const category = categories.find(c => c.slug === currentCategory);
+    
+    if (category && Array.isArray(subCategories)) {
+        const catId = parseInt(category.id);
+        const categorySubs = subCategories.filter(s => {
+            return s && parseInt(s.category_id) === catId && s.active !== false;
+        });
 
-            console.log('Chips render - Kategori:', currentCategory, 'ID:', catId, 'Alt kategori sayisi:', categorySubs.length);
+        console.log('Chips render - Kategori:', currentCategory, 'ID:', catId, 'Alt kategori sayisi:', categorySubs.length);
 
-            categorySubs.forEach(sub => {
-                const isActive = currentSubCategory === sub.slug;
-                chipsHTML += `<a href="/${currentCategory}/?kategori=${sub.slug}" class="category-chip ${isActive ? 'active' : ''}" data-chip="${sub.slug}">${sub.name}</a>`;
-            });
+        // YENI: Eger alt kategori yoksa container'i gizle
+        if (categorySubs.length === 0) {
+            if (chipsWrapper) chipsWrapper.style.display = 'none';
+            chipsContainer.innerHTML = '';
+            return;
         }
 
+        categorySubs.forEach(sub => {
+            const isActive = currentSubCategory === sub.slug;
+            chipsHTML += `<a href="/${currentCategory}/?kategori=${sub.slug}" class="category-chip ${isActive ? 'active' : ''}" data-chip="${sub.slug}">${sub.name}</a>`;
+        });
+    } else {
+        // Kategori bulunamadiysa da gizle
+        if (chipsWrapper) chipsWrapper.style.display = 'none';
+        chipsContainer.innerHTML = '';
+        return;
+    }
+
+    // Yeni chip'lerin slug'larını al
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = chipsHTML;
+    const newSlugs = Array.from(tempDiv.querySelectorAll('.category-chip')).map(c => c.dataset.chip).join(',');
+
+    // Eğer aynıysa sadece active state güncelle
+    if (existingSlugs === newSlugs && existingChips.length > 0) {
+        updateChipsActiveState();
+        return;
+    }
+
+    // Değiştiyse opacity ile smooth geçiş
+    chipsContainer.style.opacity = '0';
+    setTimeout(() => {
         chipsContainer.innerHTML = chipsHTML;
         initChipsRouting();
-    }
+        updateChipsActiveState();
+        chipsContainer.style.opacity = '1';
+    }, 150);
+}
 
     async function fetchProducts() {
         try {
             if (grid) {
                 grid.innerHTML = `
-                    <div class="skeleton-loader-card"></div>
-                    <div class="skeleton-loader-card"></div>
-                    <div class="skeleton-loader-card"></div>
-                    <div class="skeleton-loader-card"></div>
+                    <div class="product-card skeleton-card">
+                        <div class="skeleton-image"></div>
+                        <div class="skeleton-body">
+                            <div class="skeleton-line title"></div>
+                            <div class="skeleton-line price"></div>
+                            <div class="skeleton-line meta"></div>
+                        </div>
+                    </div>
+                    <div class="product-card skeleton-card">
+                        <div class="skeleton-image"></div>
+                        <div class="skeleton-body">
+                            <div class="skeleton-line title"></div>
+                            <div class="skeleton-line price"></div>
+                            <div class="skeleton-line meta"></div>
+                        </div>
+                    </div>
+                    <div class="product-card skeleton-card">
+                        <div class="skeleton-image"></div>
+                        <div class="skeleton-body">
+                            <div class="skeleton-line title"></div>
+                            <div class="skeleton-line price"></div>
+                            <div class="skeleton-line meta"></div>
+                        </div>
+                    </div>
+                    <div class="product-card skeleton-card">
+                        <div class="skeleton-image"></div>
+                        <div class="skeleton-body">
+                            <div class="skeleton-line title"></div>
+                            <div class="skeleton-line price"></div>
+                            <div class="skeleton-line meta"></div>
+                        </div>
+                    </div>
                 `;
             }
 
@@ -545,7 +570,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             updateProgress();
             generateFilters();
 
-            // ✅ SEO Meta Tags
+            // SEO Meta Tags
             if (currentCategory && typeof updateCategoryMetaTags === 'function') {
                 try {
                     const seoData = await supabaseGet('seo_content', {
@@ -559,14 +584,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                     if (seoData && seoData.length > 0) {
                         const item = seoData[0];
                         updateCategoryMetaTags({
-    title: item.title || '...',
-    meta_description: item.meta_description || '',
-    keywords: item.seo_keywords || item.keywords || '',
-    content: item.content || '',  // 👈 BUNU EKLE!
-    og_image: item.og_image || '',
-    canonical_url: item.canonical_url || '',
-    schema_type: item.schema_type || 'CollectionPage'
-});
+                            title: item.title || '...',
+                            meta_description: item.meta_description || '',
+                            keywords: item.seo_keywords || item.keywords || '',
+                            content: item.content || '',
+                            og_image: item.og_image || '',
+                            canonical_url: item.canonical_url || '',
+                            schema_type: item.schema_type || 'CollectionPage'
+                        });
                     } else {
                         console.log('SEO verisi bulunamadi, fallback kullaniliyor');
                         updateCategoryMetaTags({
@@ -595,51 +620,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    function getVariantDisplayText(product) {
-        const m2Widths = product.m2_available_widths || [];
-        if (product.m2_calculator_active && m2Widths.length > 0) {
-            const firstWidth = m2Widths[0];
-            const extraCount = m2Widths.length - 1;
-
-            if (m2Widths.length === 1) {
-                return `<span class="variant-main">${firstWidth} cm</span>`;
-            }
-            return `<span class="variant-main">${firstWidth} cm</span><span class="variant-extra-badge">+${extraCount} storlek</span>`;
-        }
-
-        const gardinMeasurements = product.gardin_measurements || [];
-        if (product.gardin_calculator_active && gardinMeasurements.length > 0) {
-            const firstMeasurement = gardinMeasurements[0].replace('x', '×');
-            const extraCount = gardinMeasurements.length - 1;
-
-            if (gardinMeasurements.length === 1) {
-                return `<span class="variant-main">${firstMeasurement} cm</span>`;
-            }
-            return `<span class="variant-main">${firstMeasurement} cm</span><span class="variant-extra-badge">+${extraCount} storlek</span>`;
-        }
-
-        const measurements = product.measurements || [];
-        if (measurements.length > 0) {
-            const firstMeasurement = measurements[0];
-            const extraCount = measurements.length - 1;
-
-            if (measurements.length === 1) {
-                return `<span class="variant-main">${firstMeasurement}</span>`;
-            }
-            return `<span class="variant-main">${firstMeasurement}</span><span class="variant-extra-badge">+${extraCount} storlekar</span>`;
-        }
-
-        const variants = product.variants || [];
-        if (variants.length === 0) return '';
-
-        const firstSize = variants[0].size || '';
-        const extraCount = variants.length - 1;
-
-        if (variants.length === 1) {
-            return `<span class="variant-main">${firstSize}</span>`;
-        }
-        return `<span class="variant-main">${firstSize}</span><span class="variant-extra-badge">+${extraCount} storlekar</span>`;
-    }
 
     function renderProducts(append = false) {
         if (!append) {
@@ -667,6 +647,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             grid.insertAdjacentHTML('beforeend', cardHTML);
         });
 
+        // YENI: Profesyonel lazy loading'i baslat
+        initLazyImages();
+        
         attachWishlistEvents();
 
         const shown = (currentPage + 1) * ITEMS_PER_PAGE;
@@ -677,127 +660,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    function createProductCard(product, isWishlisted) {
-        const hasDiscount = product.discount_price && product.discount_price < product.base_price;
-        
-        const priceHTML = hasDiscount 
-            ? `<span class="current-price price-discount">${product.price.toLocaleString('sv-SE')} Kr</span>
-               <span class="original-price">${product.base_price.toLocaleString('sv-SE')} Kr</span>`
-            : `<span class="current-price">${product.price.toLocaleString('sv-SE')} Kr</span>`;
+    // YENI: createProductCard - data-src ile profesyonel resim yukleme
 
-        const variantText = getVariantDisplayText(product);
-        
-        const productUrl = product.slug
-            ? '/produkt/' + encodeURIComponent(String(product.slug).trim())
-            : '/produkt/index.html?id=' + encodeURIComponent(String(product.id));
 
-        return `<div class="product-card" data-id="${String(product.id)}">
-            <div class="image-box">
-                <a href="${productUrl}">
-                    <img src="${product.image}" 
-                         alt="${product.name}" 
-                         loading="lazy"
-                         onerror="this.style.display='none'">
-                </a>
-                ${hasDiscount ? '<span class="discount-badge">REA</span>' : ''}
-               <button class="wishlist-btn ${isWishlisted ? 'active' : ''}" 
-               data-product-id="${String(product.id)}"
-               aria-label="Lagg till favoriter">
-               <svg class="heart-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-               <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-               </svg>
-               </button>
-            </div>
-            <div class="product-info">
-                <h3 class="product-title">${product.name}</h3>
-                <div class="product-variants-row">
-                    ${variantText ? `<div class="product-variants">${variantText}</div>` : ''}
-                </div>
-                <div class="product-price">
-                    ${priceHTML}
-                </div>
-                ${product.colors.length > 0 ? `
-                    <div class="product-colors-wrapper">
-                        <div class="product-colors-swatches">
-                            ${product.colors.slice(0, 5).map(color => `
-                                <span class="swatch-circle" 
-                                      style="background: ${getColorStyle(color)};"
-                                      title="${color}"></span>
-                            `).join('')}
-                        </div>
-                        ${product.colors.length > 5 ? '<span class="color-count-text">+' + (product.colors.length - 5) + ' farger</span>' : ''}
-                    </div>
-                ` : ''}
-            </div>
-        </div>`;
-    }
 
-    function isInWishlist(productId) {
-        try {
-            const wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
-            return wishlist.some(item => (typeof item === 'string' ? item : String(item.id)) === String(productId));
-        } catch (e) {
-            return false;
-        }
-    }
 
-    function attachWishlistEvents() {
-        const grid = document.getElementById('product-grid');
-        if (!grid) return;
-        grid.removeEventListener('click', handleWishlistClick);
-        grid.addEventListener('click', handleWishlistClick);
-    }
-
-    function handleWishlistClick(e) {
-        const btn = e.target.closest('.wishlist-btn');
-        if (!btn) return;
-        e.preventDefault();
-        e.stopPropagation();
-
-        const productId = btn.dataset.productId;
-        if (!productId) return;
-        const product = allProducts.find(p => String(p.id) === String(productId));
-        if (!product) return;
-
-        let wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
-        const index = wishlist.findIndex(item => (typeof item === 'string' ? item : String(item.id)) === String(productId));
-
-        if (index > -1) {
-            wishlist.splice(index, 1);
-            btn.classList.remove('active');
-            const icon = btn.querySelector('.heart-icon');
-            if (icon) {
-                icon.style.fill = 'none';
-                icon.style.stroke = 'currentColor';
-            }
-            console.log('Favorilerden kaldirildi:', product.name);
-        } else {
-            wishlist.push({ id: product.id, name: product.name, price: product.price, image: product.image });
-            btn.classList.add('active');
-            const icon = btn.querySelector('.heart-icon');
-            if (icon) {
-                icon.style.fill = '#D30000';
-                icon.style.stroke = '#D30000';
-            }
-            console.log('Favorilere eklendi:', product.name);
-        }
-
-        localStorage.setItem('wishlistItems', JSON.stringify(wishlist));
-        updateWishlistBadge();
-    }
-
-    function updateWishlistBadge() {
-        try {
-            const wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
-            const badge = document.querySelector('.wishlist-count-badge');
-            if (badge) {
-                badge.textContent = wishlist.length;
-                badge.classList.toggle('visible', wishlist.length > 0);
-            }
-        } catch (e) {
-            console.error('Wishlist badge hatasi:', e);
-        }
-    }
 
     let filterState = {
         colors: [],
@@ -1115,30 +982,34 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    function updateClearButtonVisibility() {
-        const checkedFilters = document.querySelectorAll('.filter-input:checked').length;
-        let hasSort = false;
-        document.querySelectorAll('input[name="orderby"]').forEach(radio => {
-            if (radio.checked && radio.value !== 'default') {
-                hasSort = true;
-            }
-        });
+   function updateClearButtonVisibility() {
+    const checkedFilters = document.querySelectorAll('.filter-input:checked').length;
+    let hasSort = false;
+    document.querySelectorAll('input[name="orderby"]').forEach(radio => {
+        if (radio.checked && radio.value !== 'default') {
+            hasSort = true;
+        }
+    });
 
-        const totalActive = checkedFilters + (hasSort ? 1 : 0);
+    const totalActive = checkedFilters + (hasSort ? 1 : 0);
 
-        const clearBtn = document.getElementById('clear-all-filters');
-        if (clearBtn) {
-            if (totalActive > 0) {
-                clearBtn.classList.add('visible');
-                clearBtn.style.display = 'inline-flex';
-            } else {
+    const clearBtn = document.getElementById('clear-all-filters');
+    if (clearBtn) {
+        if (totalActive > 0) {
+            clearBtn.classList.add('visible');
+            clearBtn.style.display = 'inline-flex';
+            clearBtn.style.opacity = '1';
+        } else {
+            clearBtn.style.opacity = '0';
+            setTimeout(() => {
                 clearBtn.classList.remove('visible');
                 clearBtn.style.display = 'none';
-            }
+            }, 200);
         }
-
-        console.log('Aktif filtre/siralama sayisi:', totalActive);
     }
+
+    console.log('Aktif filtre/siralama sayisi:', totalActive);
+}
 
     function initSort() {
         document.querySelectorAll('input[name="orderby"]').forEach(radio => {
@@ -1251,9 +1122,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.log('>>> DOMContentLoaded sonu, initialCategory:', initialCategory);
     updatePageTitle(initialCategory);
 
-    console.log('Category.js v5.7 baslatildi');
+    console.log('Category.js v5.8 baslatildi');
 
-    fetchProductsOnce();
 
     window.addEventListener('popstate', () => {
         console.log('URL degisti, chip aktifligi guncelleniyor...');
