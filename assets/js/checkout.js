@@ -350,61 +350,72 @@ if (typeof showStockWarning === 'undefined') {
             return false;
         }
 
-        const formattedItems = cart.map(item => {
-            const baseItem = {
-                id: item.id,
-                name: item.name,
-                price: item.price,
-                quantity: item.quantity || 1,
-                image: item.image || '',
-                original_variant: item.variants || 'Standard'
-            };
+     const formattedItems = cart.map(item => {
+    const baseItem = {
+        id: item.id,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity || 1,
+        image: item.image || '',
+        original_variant: item.variants || 'Standard'
+    };
 
-            if (item.isM2) {
-                return {
-                    ...baseItem,
-                    calculatorType: 'm2',
-                    calc_width_cm: item.en,
-                    calc_length_cm: item.boy,
-                    calc_m2: item.m2,
-                    calc_form: item.form,
-                    variant: item.size || `${item.en}×${item.boy} cm (${item.form || 'Rektangulär'})`,
-                    calculator_data: {
-                        width_cm: item.en,
-                        length_cm: item.boy,
-                        m2: item.m2,
-                        form: item.form,
-                        is_square: item.form === 'Kare' || (item.en === item.boy)
-                    }
-                };
+    // M2 urunler - sepetteki item.en, item.boy, item.m2 kullan
+    if (item.isM2) {
+        const widthCm = item.en || item.calc_width_cm || item.width_cm || 0;
+        const lengthCm = item.boy || item.calc_length_cm || item.length_cm || 0;
+        const m2Value = item.m2 || item.calc_m2 || ((widthCm/100) * (lengthCm/100)) || 0;
+        const formValue = item.form || item.calc_form || 'Rektangulär';
+        
+        return {
+            ...baseItem,
+            calculatorType: 'm2',
+            calc_width_cm: widthCm,
+            calc_length_cm: lengthCm,
+            calc_m2: m2Value,
+            calc_form: formValue,
+            variant: item.size || `${widthCm}×${lengthCm} cm (${formValue})`,
+            calculator_data: {
+                width_cm: widthCm,
+                length_cm: lengthCm,
+                m2: m2Value,
+                form: formValue,
+                is_square: formValue === 'Kare' || formValue === 'Rund' || (widthCm === lengthCm)
             }
+        };
+    }
 
-            if (item.isGardin) {
-                return {
-                    ...baseItem,
-                    calculatorType: 'gardin',
-                    calc_width_cm: item.en,
-                    calc_length_cm: item.boy,
-                    calc_meters: item.metre,
-                    calc_suspension: item.suspension,
-                    calc_note: item.note || null,
-                    variant: item.size || `${item.en}×${item.boy} cm | ${item.metre} m`,
-                    calculator_data: {
-                        width_cm: item.en,
-                        length_cm: item.boy,
-                        meters: item.metre,
-                        suspension: item.suspension,
-                        note: item.note || null
-                    }
-                };
+    if (item.isGardin) {
+        const widthCm = item.en || item.calc_width_cm || 0;
+        const lengthCm = item.boy || item.calc_length_cm || 0;
+        const metreValue = item.metre || item.calc_meters || ((widthCm / 100) * (item.pileRatio || 3.0)) || 0;
+        const suspensionValue = item.suspension || item.calc_suspension || 'Gardinskena (Veckband)';
+        
+        return {
+            ...baseItem,
+            calculatorType: 'gardin',
+            calc_width_cm: widthCm,
+            calc_length_cm: lengthCm,
+            calc_meters: metreValue,
+            calc_suspension: suspensionValue,
+            calc_note: item.note || item.calc_note || null,
+            variant: item.size || `${widthCm}×${lengthCm} cm | ${metreValue.toFixed(2)} m`,
+            calculator_data: {
+                width_cm: widthCm,
+                length_cm: lengthCm,
+                meters: metreValue,
+                suspension: suspensionValue,
+                note: item.note || null
             }
+        };
+    }
 
-            return {
-                ...baseItem,
-                variant: item.variants || 'Standard',
-                color: item.color || null
-            };
-        });
+    return {
+        ...baseItem,
+        variant: item.variants || 'Standard',
+        color: item.color || null
+    };
+});
 
         try {
             console.log('Payment Intent istegi gonderiliyor...');
