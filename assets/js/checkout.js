@@ -4,6 +4,97 @@
 
 document.addEventListener('DOMContentLoaded', () => {
 
+// ==========================================
+// STOK KONTROL FONKSIYONLARI (Fallback)
+// ==========================================
+// Bu fonksiyonlar common.js'te de tanimli. Eger common.js yuklenmediyse calisir.
+
+if (typeof fetchProductStock === 'undefined') {
+    async function fetchProductStock(productId, variantLabel, itemData) {
+        try {
+            const product = await supabaseGetOne('products', { id: 'eq.' + productId });
+            if (!product) return { stock: 999 };
+
+            // M2 urunler icin ozel stok hesaplama
+            if (itemData && itemData.isM2 && product.m2_stock_per_width) {
+                let stockData;
+                try {
+                    stockData = typeof product.m2_stock_per_width === 'string' 
+                        ? JSON.parse(product.m2_stock_per_width) 
+                        : product.m2_stock_per_width;
+                } catch (e) {
+                    stockData = {};
+                }
+
+                const widthCm = String(Math.round(parseFloat(itemData.en) || 0));
+                const availableMeters = stockData[widthCm];
+
+                if (availableMeters !== undefined && availableMeters !== null) {
+                    const widthMeters = parseFloat(widthCm) / 100;
+                    const totalM2 = Math.floor(availableMeters * widthMeters);
+                    return { stock: totalM2, type: 'm2', rawStock: availableMeters, unit: 'm' };
+                }
+                return { stock: 0, type: 'm2', rawStock: 0, unit: 'm' };
+            }
+
+            if (variantLabel && variantLabel !== 'Standard') {
+                const variants = await supabaseGet('product_variants', { 
+                    product_id: 'eq.' + productId,
+                    select: '*'
+                });
+                if (variants && variants.length > 0) {
+                    const variant = variants.find(v => (v.size || '').trim() === (variantLabel || '').trim());
+                    if (variant && variant.stock !== undefined && variant.stock !== null) {
+                        return { stock: parseInt(variant.stock) || 0 };
+                    }
+                }
+            }
+
+            const stock = product.stock !== undefined && product.stock !== null 
+                ? parseInt(product.stock) : 999;
+            return { stock: stock };
+
+        } catch (err) {
+            console.error('[Stock] fetchProductStock hatasi:', err);
+            return { stock: 999 };
+        }
+    }
+}
+
+if (typeof showStockWarning === 'undefined') {
+    function showStockWarning(message) {
+        let toast = document.getElementById('stock-warning-toast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'stock-warning-toast';
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #e54d42;
+                color: #fff;
+                padding: 14px 20px;
+                border-radius: 8px;
+                font-size: 14px;
+                font-weight: 500;
+                z-index: 99999;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                transform: translateX(120%);
+                transition: transform 0.3s ease;
+                max-width: 320px;
+                line-height: 1.4;
+            `;
+            document.body.appendChild(toast);
+        }
+        toast.textContent = message;
+        requestAnimationFrame(() => { toast.style.transform = 'translateX(0)'; });
+        clearTimeout(toast._hideTimer);
+        toast._hideTimer = setTimeout(() => { toast.style.transform = 'translateX(120%)'; }, 4000);
+    }
+}
+
+
+
     function saveCustomerToLocalStorage() {
         const customerData = {
             firstName: document.getElementById('billing_first_name')?.value?.trim() || '',
@@ -124,14 +215,50 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function attachItemEvents() {
         document.querySelectorAll('.qty-btn.plus').forEach(btn => {
-            btn.addEventListener('click', (e) => {
+            btn.addEventListener('click', async (e) => {
                 const index = parseInt(e.target.dataset.index);
                 let cart = getCart();
-                cart[index].quantity = (cart[index].quantity || 1) + 1;
-                saveCart(cart);
-                renderCheckoutItems();
-                // Sepet değişince Payment Intent'i yeniden oluştur
-                initPaymentForm();
+                const item = cart[index];
+                const currentQty = item.quantity || 1;
+                const newQty = currentQty + 1;
+
+                // Butonu gecici olarak devre disi birak (cift tiklamayi engelle)
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+
+                try {
+                    // Stok kontrolu
+                    const variantLabel = (item.isM2 || item.isGardin) && item.size 
+                        ? item.size 
+                        : (item.variants || 'Standard');
+
+                    const stockInfo = await fetchProductStock(item.id, variantLabel, item);
+                    const maxStock = stockInfo.stock;
+
+                    if (newQty > maxStock) {
+                        showStockWarning(`Endast ${maxStock} st. i lager för "${item.name}"`);
+                        btn.disabled = false;
+                        btn.style.opacity = '1';
+                        return;
+                    }
+
+                    item.quantity = newQty;
+                    saveCart(cart);
+                    renderCheckoutItems();
+                    // Sepet degisince Payment Intent'i yeniden olustur
+                    initPaymentForm();
+
+                } catch (err) {
+                    console.error('[Checkout] Stok kontrol hatasi:', err);
+                    // Hata durumunda yine de artir ama uyar
+                    item.quantity = newQty;
+                    saveCart(cart);
+                    renderCheckoutItems();
+                    initPaymentForm();
+                } finally {
+                    btn.disabled = false;
+                    btn.style.opacity = '1';
+                }
             });
         });
 

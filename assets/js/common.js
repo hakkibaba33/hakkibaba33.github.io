@@ -226,6 +226,114 @@ function observeBadgeElements() {
 }
 
 // ==========================================
+// STOK KONTROL FONKSIYONLARI
+// ==========================================
+
+async function fetchProductStock(productId, variantLabel, itemData) {
+    try {
+        const product = await supabaseGetOne('products', { id: 'eq.' + productId });
+        if (!product) return { stock: 999 };
+
+        // M2 urunler icin ozel stok hesaplama
+        // m2_stock_per_width JSON: {"100": 15, "150": 20, "200": 20}
+        // Key = en (cm), Value = metre cinsinden stok
+        if (itemData && itemData.isM2 && product.m2_stock_per_width) {
+            let stockData;
+            try {
+                stockData = typeof product.m2_stock_per_width === 'string' 
+                    ? JSON.parse(product.m2_stock_per_width) 
+                    : product.m2_stock_per_width;
+            } catch (e) {
+                console.error('[Stock] m2_stock_per_width parse hatasi:', e);
+                stockData = {};
+            }
+
+            const widthCm = String(Math.round(parseFloat(itemData.en) || 0));
+            const availableMeters = stockData[widthCm];
+
+            if (availableMeters !== undefined && availableMeters !== null) {
+                // Stok metre cinsinden, m2'ye cevirelim
+                const widthMeters = parseFloat(widthCm) / 100;
+                const totalM2 = Math.floor(availableMeters * widthMeters);
+                return { stock: totalM2, type: 'm2', rawStock: availableMeters, unit: 'm' };
+            }
+            
+            // Eger bu genislik yoksa, stok yok demektir
+            console.warn('[Stock] Bu genislik icin stok bulunamadi:', widthCm, 'Mevcut:', Object.keys(stockData));
+            return { stock: 0, type: 'm2', rawStock: 0, unit: 'm' };
+        }
+
+        // Normal varyantli urunler
+        if (variantLabel && variantLabel !== 'Standard') {
+            const variants = await supabaseGet('product_variants', { 
+                product_id: 'eq.' + productId,
+                select: '*'
+            });
+            if (variants && variants.length > 0) {
+                const variant = variants.find(v => {
+                    const vSize = (v.size || '').trim();
+                    const vLabel = (variantLabel || '').trim();
+                    return vSize === vLabel;
+                });
+                if (variant && variant.stock !== undefined && variant.stock !== null) {
+                    return { stock: parseInt(variant.stock) || 0 };
+                }
+            }
+        }
+
+        // Varyantsiz urunler
+        const stock = product.stock !== undefined && product.stock !== null 
+            ? parseInt(product.stock) : 999;
+        return { stock: stock };
+
+    } catch (err) {
+        console.error('[Stock] fetchProductStock hatasi:', err);
+        return { stock: 999 };
+    }
+}
+
+function showStockWarning(message) {
+    // Mevcut bir toast/uyari sistemi var mi kontrol et
+    let toast = document.getElementById('stock-warning-toast');
+
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'stock-warning-toast';
+        toast.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #e54d42;
+            color: #fff;
+            padding: 14px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 99999;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transform: translateX(120%);
+            transition: transform 0.3s ease;
+            max-width: 320px;
+            line-height: 1.4;
+        `;
+        document.body.appendChild(toast);
+    }
+
+    toast.textContent = message;
+
+    // Goster
+    requestAnimationFrame(() => {
+        toast.style.transform = 'translateX(0)';
+    });
+
+    // 4 saniye sonra gizle
+    clearTimeout(toast._hideTimer);
+    toast._hideTimer = setTimeout(() => {
+        toast.style.transform = 'translateX(120%)';
+    }, 4000);
+}
+
+// ==========================================
 // MINI SEPET FONKSIYONLARI
 // ==========================================
 
@@ -353,7 +461,7 @@ function updateMiniCartUI() {
     }
 }
 
-function updateQuantity(cartItemId, change) {
+async function updateQuantity(cartItemId, change) {
     let cart = getCart();
     
     // cartItemId'den productId ve variantLabel cikar
@@ -367,13 +475,69 @@ function updateQuantity(cartItemId, change) {
         console.warn('updateQuantity: Urun bulunamadi, cartItemId:', cartItemId, 'Mevcut cartItemIdler:', cart.map(i => i.cartItemId));
         return;
     }
-    
-    item.quantity = (item.quantity || 1) + change;
-    if (item.quantity <= 0) {
-        cart = filterCartItem(cart, cartItemId, productId, variantLabel);
+
+    const currentQty = item.quantity || 1;
+    const newQty = currentQty + change;
+
+    // Azaltma işlemi ise (stok kontrolü gerekmez, 0'ın altına düşmesini engelle)
+    if (change < 0) {
+        if (newQty <= 0) {
+            cart = filterCartItem(cart, cartItemId, productId, variantLabel);
+            saveCart(cart);
+            updateMiniCartUI();
+            return;
+        }
+        item.quantity = newQty;
+        saveCart(cart);
+        updateMiniCartUI();
+        return;
     }
-    saveCart(cart);
-    updateMiniCartUI();
+
+    // Artırma işlemi - STOK KONTROLÜ
+    // Önce butonu disabled yap (çift tıklamayı engelle)
+    const btn = document.querySelector(`.quantity-btn.plus[data-cart-item-id="${cartItemId}"]`);
+    if (btn) {
+        btn.disabled = true;
+        btn.style.opacity = '0.5';
+    }
+
+    try {
+        // M2 veya Gardin ürünleri için item.size kullan, yoksa variants kullan
+        const stockVariantLabel = (item.isM2 || item.isGardin) && item.size 
+            ? item.size 
+            : (item.variants || variantLabel || 'Standard');
+
+        const stockInfo = await fetchProductStock(productId, stockVariantLabel, item);
+        const maxStock = stockInfo.stock;
+
+        // Stok bilgisi sepet öğesine kaydet (cache)
+        item.maxStock = maxStock;
+
+        if (newQty > maxStock) {
+            showStockWarning(`Endast ${maxStock} st. i lager för "${item.name}"`);
+            // Butonu tekrar aktif et
+            if (btn) {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+            }
+            return;
+        }
+
+        item.quantity = newQty;
+        saveCart(cart);
+        updateMiniCartUI();
+
+    } catch (err) {
+        console.error('[Stock] Stok kontrol hatasi:', err);
+        // Hata durumunda yine de izin ver ama uyarı ver
+        showStockWarning('Kunde inte kontrollera lagerstatus. Försök igen.');
+    } finally {
+        // Butonu tekrar aktif et
+        if (btn) {
+            btn.disabled = false;
+            btn.style.opacity = '1';
+        }
+    }
 }
 
 function removeFromCart(cartItemId) {
