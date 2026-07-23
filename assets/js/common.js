@@ -507,14 +507,28 @@ async function updateQuantity(cartItemId, change) {
             ? item.size 
             : (item.variants || variantLabel || 'Standard');
 
-        const stockInfo = await fetchProductStock(productId, stockVariantLabel, item);
+               const stockInfo = await fetchProductStock(productId, stockVariantLabel, item);
         const maxStock = stockInfo.stock;
 
         // Stok bilgisi sepet öğesine kaydet (cache)
         item.maxStock = maxStock;
 
-        if (newQty > maxStock) {
-            showStockWarning(`Endast ${maxStock} st. i lager för "${item.name}"`);
+        // M2 urunlerde: toplam m2 = quantity * m2
+        let totalNeeded;
+        if (item.isM2 && item.m2) {
+            totalNeeded = newQty * parseFloat(item.m2);
+        } else {
+            totalNeeded = newQty;
+        }
+
+        if (totalNeeded > maxStock) {
+            const maxAllowed = item.isM2 && item.m2 
+                ? Math.floor(maxStock / parseFloat(item.m2))
+                : maxStock;
+                
+            const unitLabel = item.isM2 ? 'm²' : 'st';
+            showStockWarning(`Endast ${maxStock} ${unitLabel} i lager för "${item.name}" (max ${maxAllowed} st)`);
+            
             // Butonu tekrar aktif et
             if (btn) {
                 btn.disabled = false;
