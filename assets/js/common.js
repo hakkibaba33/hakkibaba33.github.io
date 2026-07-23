@@ -1164,3 +1164,198 @@ document.addEventListener('DOMContentLoaded', function() {
     
     
 })();
+
+
+
+
+// ============================================
+// COOKIE CONSENT - GDPR / ePrivacy
+// ============================================
+
+(function() {
+    // CookieConsent CSS'i dinamik yükle
+    const ccCss = document.createElement('link');
+    ccCss.rel = 'stylesheet';
+    ccCss.href = 'https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.0.1/dist/cookieconsent.css';
+    document.head.appendChild(ccCss);
+
+    // DKRUG teması için özel CSS
+    const customCss = document.createElement('style');
+    customCss.textContent = `
+        #cc-main {
+            --cc-font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --cc-bg: #ffffff;
+            --cc-primary-color: #1a1a1a;
+            --cc-secondary-color: #666666;
+            --cc-btn-primary-bg: #1a1a1a;
+            --cc-btn-primary-color: #ffffff;
+            --cc-btn-primary-border-color: #1a1a1a;
+            --cc-btn-primary-hover-bg: #333333;
+            --cc-btn-secondary-bg: transparent;
+            --cc-btn-secondary-color: #1a1a1a;
+            --cc-btn-secondary-border-color: #c9a96e;
+            --cc-btn-secondary-hover-bg: #fdf8f0;
+            --cc-toggle-bg-on: #c9a96e;
+            --cc-toggle-bg-off: #e5e5e5;
+            --cc-toggle-knob-bg: #ffffff;
+            --cc-modal-border-radius: 8px;
+            --cc-btn-border-radius: 6px;
+            --cc-overlay-bg: rgba(0, 0, 0, 0.4);
+        }
+        
+        #cc-main .cm-wrapper {
+            position: fixed !important;
+            bottom: 0 !important;
+            top: auto !important;
+            left: 0 !important;
+            right: 0 !important;
+        }
+        
+        @media (max-width: 640px) {
+            #cc-main .cm-wrapper {
+                padding: 10px !important;
+            }
+        }
+    `;
+    document.head.appendChild(customCss);
+
+    const ccScript = document.createElement('script');
+    ccScript.src = 'https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.0.1/dist/cookieconsent.umd.js';
+    ccScript.onload = initCookieConsent;
+    document.head.appendChild(ccScript);
+
+    function initCookieConsent() {
+        if (typeof CookieConsent === 'undefined') return;
+
+        CookieConsent.run({
+            categories: {
+                necessary: { enabled: true, readOnly: true },
+                analytics: { autoClear: { cookies: [{ name: /^_ga/ }, { name: '_gid' }] } },
+                marketing: { autoClear: { cookies: [{ name: /^_fb/ }] } }
+            },
+            
+            // ✅ BURAYA EKLE: Consent değiştiğinde tracking'i yükle
+            onFirstConsent: ({ cookie }) => {
+                console.log('[CookieConsent] First consent:', cookie);
+                handleTrackingConsent(cookie.categories);
+            },
+            
+            onChange: ({ cookie, changedCategories, changedPreferences }) => {
+                console.log('[CookieConsent] Consent changed:', changedCategories);
+                handleTrackingConsent(cookie.categories);
+            },
+            
+            language: {
+                default: 'sv',
+                translations: {
+                    sv: {
+                        consentModal: {
+                            title: 'Vi använder cookies',
+                            description: 'Vi använder cookies för att förbättra din upplevelse, analysera trafik och anpassa marknadsföring. <br><br><a href="/integritetspolicy/" style="color:#555; text-decoration:underline; font-weight:400; font-size:13px; display:block; text-align:center; margin-bottom:4px;">Läs mer</a>',
+                            acceptAllBtn: 'Acceptera alla',
+                            acceptNecessaryBtn: 'Endast nödvändiga',
+                            showPreferencesBtn: 'Inställningar'
+                        },
+                        preferencesModal: {
+                            title: 'Cookie-inställningar',
+                            acceptAllBtn: 'Acceptera alla',
+                            acceptNecessaryBtn: 'Endast nödvändiga',
+                            savePreferencesBtn: 'Spara inställningar',
+                            closeIconLabel: 'Stäng',
+                            sections: [
+                                {
+                                    title: 'Din integritet är viktig för oss',
+                                    description: 'Du kan anpassa dina cookie-inställningar nedan. Nödvändiga cookies kan inte inaktiveras.'
+                                },
+                                {
+                                    title: 'Nödvändiga cookies',
+                                    description: 'Dessa cookies är nödvändiga för att webbplatsen ska fungera korrekt.',
+                                    linkedCategory: 'necessary'
+                                },
+                                {
+                                    title: 'Analys & Statistik',
+                                    description: 'Hjälper oss att förstå hur besökare interagerar med vår webbplats.',
+                                    linkedCategory: 'analytics'
+                                },
+                                {
+                                    title: 'Marknadsföring',
+                                    description: 'Används för att spåra besökare och visa relevanta annonser.',
+                                    linkedCategory: 'marketing'
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    // ✅ Tracking'i kontrol eden fonksiyon
+    function handleTrackingConsent(categories) {
+        if (!categories) return;
+        
+        // Analitik onaylandıysa GA yükle
+        if (categories.includes('analytics')) {
+            if (typeof loadGoogleAnalytics === 'function') {
+                loadGoogleAnalytics();
+                console.log('[Tracking] Google Analytics loaded');
+            }
+        }
+        
+        // Pazarlama onaylandıysa FB yükle
+        if (categories.includes('marketing')) {
+            if (typeof loadFacebookPixel === 'function') {
+                loadFacebookPixel();
+                console.log('[Tracking] Facebook Pixel loaded');
+            }
+        }
+        
+        // Hiçbiri onaylanmadıysa log
+        if (!categories.includes('analytics') && !categories.includes('marketing')) {
+            console.log('[Tracking] No analytics/marketing tracking loaded');
+        }
+    }
+})();
+
+
+// ============================================
+// TRACKING - GA4 + Facebook Pixel (Koşullu)
+// ============================================
+
+function loadGoogleAnalytics() {
+    // Zaten yüklendiyse tekrar yükleme
+    if (window.gtagLoaded) return;
+    window.gtagLoaded = true;
+    
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-GC40MGMLE1');
+    
+    const script = document.createElement('script');
+    script.async = true;
+    script.src = 'https://www.googletagmanager.com/gtag/js?id=G-GC40MGMLE1';
+    document.head.appendChild(script);
+    
+    console.log('[Tracking] Google Analytics loaded');
+}
+
+function loadFacebookPixel() {
+    // Zaten yüklendiyse tekrar yükleme
+    if (window.fbqLoaded) return;
+    window.fbqLoaded = true;
+    
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+    
+    fbq('init', '1846119059653426');
+    fbq('track', 'PageView');
+    
+    console.log('[Tracking] Facebook Pixel loaded');
+}
