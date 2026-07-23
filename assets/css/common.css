@@ -2312,15 +2312,14 @@ body.no-scroll {
     }
 
     /* Kart içi mobil optimize */
-    .related-slider-track .product-card .image-box {
-   .related-slider-track .product-card .image-box {
+  .related-slider-track .product-card .image-box {
         height: 0;
-        padding-bottom: 130%;  /* Dikey oran: genişliğin %130'u kadar yükseklik */
+        padding-bottom: 130%;
         position: relative;
         overflow: hidden;
     }
 
-     .related-slider-track .product-card .image-box img {
+    .related-slider-track .product-card .image-box img {
         position: absolute;
         top: 0;
         left: 0;
@@ -2344,11 +2343,6 @@ body.no-scroll {
 
     .related-slider-track .product-card .original-price {
         font-size: 12px;
-    }
-
-    /* Varyasyon text gizli */
-    .related-slider-track .product-variants-row {
-        display: none;
     }
 
     .related-slider-track .product-colors-wrapper {

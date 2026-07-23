@@ -615,7 +615,7 @@ select.premium-input {
 @media (max-width: 768px) {
     .input-grid { grid-template-columns: 1fr; gap: 14px; }
     .suspension-chips { gap: 6px; }
-    .suspension-chip-label { padding: 8px 12px; font-size: 11px; }
+    .suspension-chip-label { padding: 8px 10px; font-size: 11px; }
     .suspension-chip-label svg { width: 16px; height: 16px; }
     .form-actions { flex-direction: column; }
     .calc-btn-secondary { width: 100%; }

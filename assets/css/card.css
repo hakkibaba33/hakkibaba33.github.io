@@ -105,7 +105,7 @@
     border-radius: 50%;
     opacity: 0;
     visibility: hidden;
-      transform: scale(0.8);
+    transform: scale(0.8);
     transition: opacity 0.25s ease, visibility 0.25s ease, transform 0.25s ease, background 0.2s ease;
     box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }
@@ -279,7 +279,7 @@
 
 
 /* -----------------------------------------------------------
-   6. PRODUCT META (Ölçü)
+   6. PRODUCT META (Ölçü) - ESKI KOD, KULLANILMIYOR
    ----------------------------------------------------------- */
 
 .product-meta-row {
@@ -291,7 +291,7 @@
 }
 
 .dimension-plus-text {
-    font-size: 12px;
+    font-size: 30px;
     color: #888;
     font-weight: 500;
     margin-left: 3px;
@@ -355,11 +355,12 @@
 
 
 /* -----------------------------------------------------------
-   8. PRODUCT VARIANTS
+   8. PRODUCT VARIANTS - DÜZELTILMIŞ
    ----------------------------------------------------------- */
 
 .product-variants-row {
-    margin: 0 0 6px 0;
+    margin: 0 0 5px 0;
+    min-height: 20px;
 }
 
 .product-variants {
@@ -367,26 +368,43 @@
     align-items: center;
     gap: 8px;
     font-size: 13px;
+    flex-wrap: wrap;
 }
 
+/* Ölçü metni - 80 x 150 cm */
 .product-variants .variant-main {
     color: #333;
     font-weight: 600;
-    font-size: 13px;
+    font-size: 15px;
+    white-space: nowrap;
+    line-height: 1.3;
 }
 
+/* Tekli varyant */
 .product-variants .variant-single {
     color: #666;
     font-weight: 500;
     font-size: 13px;
+    white-space: nowrap;
 }
 
+/* +3 storlekar badge - ARTIK GÖRÜNÜR */
 .product-variants .variant-extra-badge {
+    background: #f0f0f0;          /* EKLENDI */
+    padding: 3px 10px;            /* EKLENDI */
     border-radius: 13px;
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 600;
-    color: #333;
+    color: #555;                  /* DEĞIŞTI: #333 -> #555 (daha soft) */
     transition: all 0.2s ease;
+    white-space: nowrap;
+    line-height: 1.3;
+}
+
+/* Varyant satırı hover efekti */
+.product-variants .variant-extra-badge:hover {
+    background: #e0e0e0;
+    color: #333;
 }
 
 
@@ -492,7 +510,7 @@
 
 
 /* ============================================================
-   12. MOBILE RESPONSIVE (Kart Özel)
+   12. MOBILE RESPONSIVE (Kart Özel) - DÜZELTILMIŞ
    ============================================================ */
 
 /* === TABLET (768px - 1023px) === */
@@ -502,7 +520,7 @@
     }
 
     .image-box {
-        aspect-ratio: 1 / 1.3;
+        aspect-ratio: 1 / 1.35;
     }
 
     .wishlist-btn {
@@ -555,6 +573,7 @@
 
     .product-variants-row {
         margin-bottom: 4px;
+        min-height: 18px;
     }
 
     .product-variants {
@@ -562,13 +581,17 @@
         font-size: 12px;
     }
 
-    .product-variants .variant-main,
+    .product-variants .variant-main {
+        font-size: 14px;           /* DÜZELTILDI: 12px -> 14px */
+    }
+
     .product-variants .variant-single {
         font-size: 12px;
     }
 
-    .variant-extra-badge {
-        font-size: 10px;
+    .product-variants .variant-extra-badge {
+        font-size: 11px;           /* DÜZELTILDI: 10px -> 11px */
+        padding: 2px 8px;          /* EKLENDI */
     }
 
     .swatch-circle {
@@ -606,7 +629,7 @@
 /* === MOBIL (480px - 767px) === */
 @media (max-width: 767px) {
     .image-box {
-        aspect-ratio: 1 / 1.25;
+        aspect-ratio: 1 / 1.35;
     }
 
     .wishlist-btn {
@@ -659,6 +682,7 @@
 
     .product-variants-row {
         margin-bottom: 3px;
+        min-height: 16px;
     }
 
     .product-variants {
@@ -666,13 +690,17 @@
         font-size: 11px;
     }
 
-    .product-variants .variant-main,
+    .product-variants .variant-main {
+        font-size: 13px;           /* DÜZELTILDI: 11px -> 13px */
+    }
+
     .product-variants .variant-single {
         font-size: 11px;
     }
 
-    .variant-extra-badge {
-        font-size: 9px;
+    .product-variants .variant-extra-badge {
+        font-size: 10px;           /* DÜZELTILDI: 9px -> 10px */
+        padding: 2px 6px;          /* EKLENDI */
     }
 
     .swatch-circle {
@@ -709,7 +737,7 @@
 /* === KUCUK MOBIL (479px ve alti) === */
 @media (max-width: 479px) {
     .image-box {
-        aspect-ratio: 1 / 1.2;
+        aspect-ratio: 1 / 1.35;
     }
 
     .wishlist-btn {
@@ -762,6 +790,7 @@
 
     .product-variants-row {
         margin-bottom: 2px;
+        min-height: 14px;
     }
 
     .product-variants {
@@ -769,13 +798,17 @@
         font-size: 10px;
     }
 
-    .product-variants .variant-main,
+    .product-variants .variant-main {
+        font-size: 12px;           /* DÜZELTILDI: 10px -> 12px */
+    }
+
     .product-variants .variant-single {
         font-size: 10px;
     }
 
-    .variant-extra-badge {
-        font-size: 8px;
+    .product-variants .variant-extra-badge {
+        font-size: 9px;            /* DÜZELTILDI: 8px -> 9px */
+        padding: 1px 5px;          /* EKLENDI */
     }
 
     .swatch-circle {

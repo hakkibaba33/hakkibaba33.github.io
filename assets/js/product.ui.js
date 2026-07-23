@@ -618,59 +618,37 @@ function renderRelatedProducts(products) {
         return;
     }
 
+    // Kartlari createProductCard() ile olustur
     track.innerHTML = products.map(product => {
-        const hasDiscount = product.discount_price && product.discount_price < product.base_price;
-        const displayPrice = product.discount_price || product.base_price || 0;
-        const basePrice = product.base_price || 0;
+        const cardProduct = {
+            id: product.id,
+            name: product.name,
+            base_price: product.base_price || 0,
+            discount_price: product.discount_price || null,
+            image: product.images && product.images[0] ? product.images[0] : '',
+            slug: product.slug || '',
+            colors: product.colors || [],
+            variants: (product.product_variants || []).map(v => ({
+                size: v.size || '',
+                color: v.color || null,
+                price: v.price || 0,
+                discount_price: v.discount_price || null,
+                stock: v.stock || 0
+            })),
+            measurements: product.measurements || [],
+            m2_available_widths: product.m2_available_widths || [],
+            m2_calculator_active: product.m2_calculator_active || false,
+            gardin_measurements: product.gardin_measurements || [],
+            gardin_calculator_active: product.gardin_calculator_active || false
+        };
 
-        // FIX: Indirimli fiyat ONCE, orijinal fiyat SONRA
-        const priceHTML = hasDiscount 
-            ? `<span class="current-price price-discount">${displayPrice.toLocaleString('sv-SE')} Kr</span>
-               <span class="original-price">${basePrice.toLocaleString('sv-SE')} Kr</span>`
-            : `<span class="current-price">${displayPrice.toLocaleString('sv-SE')} Kr</span>`;
-
-        const productUrl = product.slug
-            ? '/produkt/' + encodeURIComponent(String(product.slug).trim())
-            : '/produkt/index.html?id=' + encodeURIComponent(String(product.id));
-
-        let isWishlisted = false;
-        try {
-            const wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
-            isWishlisted = wishlist.some(item => 
-                (typeof item === 'string' ? item : String(item.id)) === String(product.id)
-            );
-        } catch (e) {}
-
-        const variantText = getRelatedVariantText(product);
-        const colorSwatches = getRelatedColorSwatches(product);
-
-        return `
-            <div class="product-card" data-id="${String(product.id)}">
-                <div class="image-box">
-                    <a href="${productUrl}">
-                        <img src="${product.images && product.images[0] ? product.images[0] : ''}" 
-                             alt="${product.name || 'Urun'}" 
-                             loading="lazy"
-                             onerror="this.style.display='none'">
-                    </a>
-                    ${hasDiscount ? '<span class="discount-badge">REA</span>' : ''}
-                    <button class="wishlist-btn ${isWishlisted ? 'active' : ''}" 
-                            data-product-id="${String(product.id)}"
-                            aria-label="Lagg till favoriter">
-                        <i class="${isWishlisted ? 'fa-solid' : 'fa-regular'} fa-heart"></i>
-                    </button>
-                </div>
-                <div class="product-info">
-                    <h3 class="product-title">${product.name || 'Urun'}</h3>
-                    ${variantText ? `<div class="product-variants-row"><div class="product-variants">${variantText}</div></div>` : ''}
-                    <div class="product-price">${priceHTML}</div>
-                    ${colorSwatches}
-                </div>
-            </div>
-        `;
+        const isWishlisted = isInWishlist(product.id);
+        return createProductCard(cardProduct, isWishlisted);
     }).join('');
 
-    attachRelatedWishlistEvents();
+    // Lazy loading ve wishlist event'lerini baslat
+    initLazyImages();
+    attachWishlistEvents();
 
     section.style.display = '';
     section.classList.add('active');
