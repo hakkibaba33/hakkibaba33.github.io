@@ -50,8 +50,8 @@ body.modal-open {
     font-weight: 700;
     margin: 10px 0;
     padding-left: 20px;
-    margin-top: 0;
-    margin-bottom: 10px;
+    margin-top: 20;
+    margin-bottom: 5px;
     color: var(--dk-primary);
     font-family: var(--dk-font-heading);
 }
@@ -63,7 +63,7 @@ body.modal-open {
 .category-chips-wrapper {
     max-width: 1800px;
     padding-left: 0;
-    margin: 5px 0 15px 0;
+    margin: 5px 0 5px 0;
     padding-bottom: 0;
     padding-top: 0;
     overflow-x: auto;
@@ -1129,12 +1129,23 @@ body.modal-open {
         justify-content: center;
     }
 
+    .category-header-bar h1.product-title {
+    display: block;
+    width: 100%;
+    font-size: 25px;
+    font-weight: 700;
+    margin: 30px 0;
+    padding-left: 10px;
+    margin-bottom: 5px;
+
+     }
+
     .category-chips-wrapper {
         max-width: 100%;
         padding-left: 0;
-        margin-left: -15px;
+        margin-left: -10px;
         margin-top: -5px;
-        margin-bottom: 15px;
+        margin-bottom: 5px;
         display: flex;
         justify-content: flex-start;
         gap: 6px;
@@ -1180,12 +1191,6 @@ body.modal-open {
 
 }
 
-@media (max-width: 480px) {
-    .category-chip {
-        padding: 6px 14px;
-        font-size: 13px;
-    }
-}
 
 /* ============================================================
    LAYOUT STABILIZATION - Zıplama Önleme
@@ -1193,7 +1198,7 @@ body.modal-open {
 
 /* H1 - Sabit yükseklik */
 .category-header-bar {
-    min-height: 45px;
+    min-height: 50px;
     display: flex;
     align-items: center;
 }

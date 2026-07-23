@@ -4,7 +4,7 @@ const CONFIG = {
         ANON_KEY: 'sb_publishable_Fp4Nstc2lpCPNL-5OHPU8w_KD0AC6xf'
     },
     STRIPE: {
-        PUBLISHABLE_KEY: 'pk_test_51TiZYcBSwC91LA4pGzXdLDpfdgM78kznpXb5U7hedy3ox6EgLbHM5L7bXpTKmHmiUwu6JkhKZaX0EH3sZREiXXDt00a3qyz6eL',
+        PUBLISHABLE_KEY: 'pk_live_51TiZYcBSwC91LA4pqLZn8kXVFxsbk2FBXzNCanqjh9NPSS90bXxLN2X7HbKaYlyHjMlP5MPNPda4RlZTFBVdTmjX00biqiizzF',
         SUCCESS_URL: 'https://www.dekorist.se/tack',
         CANCEL_URL: 'https://www.dekorist.se/kassa'
     },

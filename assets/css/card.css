@@ -102,12 +102,11 @@
     align-items: center;
     justify-content: center;
     padding: 8px;
-    border-radius: 50%;
     opacity: 0;
     visibility: hidden;
     transform: scale(0.8);
     transition: opacity 0.25s ease, visibility 0.25s ease, transform 0.25s ease, background 0.2s ease;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+   
 }
 
 /* Kart uzerine gelince ikonu goster */
@@ -155,50 +154,57 @@
     transform: scale(1.1);
 }
 
-/* === MOBIL/TABLET: Her zaman gorunur === */
+
+
+
+
+/* === MOBIL/TABLET: Her zaman görünür wishlist butonu === */
 @media (max-width: 1023px) {
     .wishlist-btn {
         opacity: 1;
         visibility: visible;
         transform: scale(1);
-        top: 10px;
-        right: 10px;
-        width: 36px;
-        height: 36px;
+        top: 12px;
+        right: 12px;
+        width: 44px;
+        height: 44px;
         padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .wishlist-btn .heart-icon {
-        width: 18px;
-        height: 18px;
+        width: 22px;
+        height: 22px;
     }
 }
 
 @media (max-width: 767px) {
     .wishlist-btn {
-        top: 8px;
-        right: 8px;
-        width: 32px;
-        height: 32px;
+        top: 10px;
+        right: 10px;
+        width: 40px;
+        height: 40px;
     }
 
     .wishlist-btn .heart-icon {
-        width: 16px;
-        height: 16px;
+        width: 20px;
+        height: 20px;
     }
 }
 
 @media (max-width: 479px) {
     .wishlist-btn {
-        top: 6px;
-        right: 6px;
-        width: 28px;
-        height: 28px;
+        top: 8px;
+        right: 8px;
+        width: 36px;
+        height: 36px;
     }
 
     .wishlist-btn .heart-icon {
-        width: 14px;
-        height: 14px;
+        width: 22px;
+        height: 22px;
     }
 }
 
@@ -523,18 +529,6 @@
         aspect-ratio: 1 / 1.35;
     }
 
-    .wishlist-btn {
-        top: 10px;
-        right: 10px;
-        width: 36px;
-        height: 36px;
-    }
-
-    .wishlist-btn .heart-icon {
-        width: 18px;
-        height: 18px;
-    }
-
     .product-info {
         padding: 10px 4px;
         min-height: 105px;
@@ -542,7 +536,9 @@
 
     .product-title {
         font-size: 15px;
-        margin-bottom: 3px;
+         color: #111;
+        font-weight: 500;
+        margin-bottom: 0px;
         line-height: 1.25;
     }
 
@@ -608,7 +604,7 @@
         top: 6px;
         left: 6px;
         padding: 3px 7px;
-        font-size: 11px;
+        font-size: 14px;
     }
 
     .image-bottom-badge {
@@ -632,18 +628,6 @@
         aspect-ratio: 1 / 1.35;
     }
 
-    .wishlist-btn {
-        top: 8px;
-        right: 8px;
-        width: 32px;
-        height: 32px;
-    }
-
-    .wishlist-btn .heart-icon {
-        width: 16px;
-        height: 16px;
-    }
-
     .product-info {
         padding: 8px 3px;
         min-height: 95px;
@@ -651,7 +635,9 @@
 
     .product-title {
         font-size: 14px;
-        margin-bottom: 2px;
+         color: #111;
+        font-weight: 500;
+        margin-bottom: 0px;
         line-height: 1.2;
     }
 
@@ -717,7 +703,7 @@
         top: 5px;
         left: 5px;
         padding: 2px 6px;
-        font-size: 10px;
+        font-size: 14px;
     }
 
     .image-bottom-badge {
@@ -740,26 +726,16 @@
         aspect-ratio: 1 / 1.35;
     }
 
-    .wishlist-btn {
-        top: 6px;
-        right: 6px;
-        width: 28px;
-        height: 28px;
-    }
-
-    .wishlist-btn .heart-icon {
-        width: 14px;
-        height: 14px;
-    }
-
     .product-info {
-        padding: 6px 2px;
+        padding: 2px 2px;
         min-height: 88px;
     }
 
     .product-title {
-        font-size: 13px;
-        margin-bottom: 2px;
+        font-size: 18px;
+        color: #111;
+        font-weight: 500;
+        margin-bottom: 0px;
         line-height: 1.2;
     }
 
@@ -784,12 +760,12 @@
     }
 
     .price-sale-badge {
-        font-size: 10px;
+        font-size: 13px;
         padding: 1px 3px;
     }
 
     .product-variants-row {
-        margin-bottom: 2px;
+        margin-bottom: 6px;
         min-height: 14px;
     }
 
@@ -799,7 +775,7 @@
     }
 
     .product-variants .variant-main {
-        font-size: 12px;           /* DÜZELTILDI: 10px -> 12px */
+        font-size: 14px;           /* DÜZELTILDI: 10px -> 12px */
     }
 
     .product-variants .variant-single {
@@ -807,7 +783,7 @@
     }
 
     .product-variants .variant-extra-badge {
-        font-size: 9px;            /* DÜZELTILDI: 8px -> 9px */
+        font-size: 12px;            /* DÜZELTILDI: 8px -> 9px */
         padding: 1px 5px;          /* EKLENDI */
     }
 
@@ -825,7 +801,7 @@
         top: 4px;
         left: 4px;
         padding: 2px 5px;
-        font-size: 9px;
+        font-size: 12px;
     }
 
     .image-bottom-badge {
