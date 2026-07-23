@@ -214,53 +214,67 @@ if (typeof showStockWarning === 'undefined') {
     }
 
     function attachItemEvents() {
-        document.querySelectorAll('.qty-btn.plus').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-                const index = parseInt(e.target.dataset.index);
-                let cart = getCart();
-                const item = cart[index];
-                const currentQty = item.quantity || 1;
-                const newQty = currentQty + 1;
+      document.querySelectorAll('.qty-btn.plus').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+        const index = parseInt(e.target.dataset.index);
+        let cart = getCart();
+        const item = cart[index];
+        const currentQty = item.quantity || 1;
+        const newQty = currentQty + 1;
 
-                // Butonu gecici olarak devre disi birak (cift tiklamayi engelle)
-                btn.disabled = true;
-                btn.style.opacity = '0.5';
+        // Butonu gecici olarak devre disi birak (cift tiklamayi engelle)
+        btn.disabled = true;
+        btn.style.opacity = '0.5';
 
-                try {
-                    // Stok kontrolu
-                    const variantLabel = (item.isM2 || item.isGardin) && item.size 
-                        ? item.size 
-                        : (item.variants || 'Standard');
+        try {
+            // Stok kontrolu
+            const variantLabel = (item.isM2 || item.isGardin) && item.size 
+                ? item.size 
+                : (item.variants || 'Standard');
 
-                    const stockInfo = await fetchProductStock(item.id, variantLabel, item);
-                    const maxStock = stockInfo.stock;
+            const stockInfo = await fetchProductStock(item.id, variantLabel, item);
+            const maxStock = stockInfo.stock;
 
-                    if (newQty > maxStock) {
-                        showStockWarning(`Endast ${maxStock} st. i lager för "${item.name}"`);
-                        btn.disabled = false;
-                        btn.style.opacity = '1';
-                        return;
-                    }
+            // M2 urunlerde: toplam m2 = quantity * m2
+            let totalNeeded;
+            if (item.isM2 && item.m2) {
+                totalNeeded = newQty * parseFloat(item.m2);
+            } else {
+                totalNeeded = newQty;
+            }
 
-                    item.quantity = newQty;
-                    saveCart(cart);
-                    renderCheckoutItems();
-                    // Sepet degisince Payment Intent'i yeniden olustur
-                    initPaymentForm();
+            if (totalNeeded > maxStock) {
+                const maxAllowed = item.isM2 && item.m2 
+                    ? Math.floor(maxStock / parseFloat(item.m2))
+                    : maxStock;
+                    
+                const unitLabel = item.isM2 ? 'm²' : 'st';
+                showStockWarning(`Endast ${maxStock} ${unitLabel} i lager för "${item.name}" (max ${maxAllowed} st)`);
+                
+                btn.disabled = false;
+                btn.style.opacity = '1';
+                return;
+            }
 
-                } catch (err) {
-                    console.error('[Checkout] Stok kontrol hatasi:', err);
-                    // Hata durumunda yine de artir ama uyar
-                    item.quantity = newQty;
-                    saveCart(cart);
-                    renderCheckoutItems();
-                    initPaymentForm();
-                } finally {
-                    btn.disabled = false;
-                    btn.style.opacity = '1';
-                }
-            });
-        });
+            item.quantity = newQty;
+            saveCart(cart);
+            renderCheckoutItems();
+            // Sepet degisince Payment Intent'i yeniden olustur
+            initPaymentForm();
+
+        } catch (err) {
+            console.error('[Checkout] Stok kontrol hatasi:', err);
+            // Hata durumunda yine de artir ama uyar
+            item.quantity = newQty;
+            saveCart(cart);
+            renderCheckoutItems();
+            initPaymentForm();
+        } finally {
+            btn.disabled = false;
+            btn.style.opacity = '1';
+        }
+    });
+});
 
         document.querySelectorAll('.qty-btn.minus').forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -569,12 +583,37 @@ if (typeof showStockWarning === 'undefined') {
             const city = document.getElementById('billing_city').value.trim();
 
             // Sepet ve müşteri bilgilerini localStorage'a kaydet (tack.html'de kullanacak)
-            const cart = getCart();
+             const cart = getCart();
+            
+            const enrichedItems = cart.map(item => {
+                if (item.isM2) {
+                    return {
+                        ...item,
+                        calculatorType: 'm2',
+                        calc_width_cm: item.en || 0,
+                        calc_length_cm: item.boy || 0,
+                        calc_m2: item.m2 || 0,
+                        calc_form: item.form || 'Rektangulär'
+                    };
+                }
+                if (item.isGardin) {
+                    return {
+                        ...item,
+                        calculatorType: 'gardin',
+                        calc_width_cm: item.en || 0,
+                        calc_length_cm: item.boy || 0,
+                        calc_meters: item.metre || 0,
+                        calc_suspension: item.suspension || 'Gardinskena (Veckband)'
+                    };
+                }
+                return item;
+            });
+            
             const customerData = { firstName, lastName, email, phone, address, postcode, city };
             
             localStorage.setItem('dkrug_pending_order', JSON.stringify({
                 paymentIntentId: currentPaymentIntentId,
-                items: cart,
+                items: enrichedItems,
                 customer: customerData,
                 timestamp: Date.now()
             }));
