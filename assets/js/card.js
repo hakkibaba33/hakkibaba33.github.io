@@ -158,6 +158,18 @@ function toggleWishlistItem(productId, name, price, image) {
 }
 
 // ===== ÜRÜN KARTI OLUŞTURMA =====
+function truncateWords(text, maxWords) {
+    if (!text) return 'Produkt';
+    const words = text.trim().split(/\s+/);
+    if (words.length <= maxWords) return text;
+    return words.slice(0, maxWords).join(' ') + '...';
+}
+
+// ===== EKRAN BOYUTUNA GÖRE KELİME SAYISI =====
+function getMaxWords() {
+    return window.innerWidth < 768 ? 2 : 3;
+}
+
 function createProductCard(product, isWishlisted) {
     const hasDiscount = product.discount_price && product.discount_price < product.base_price;
     const price = getDisplayPrice(product);
@@ -209,7 +221,7 @@ function createProductCard(product, isWishlisted) {
             </button>
         </div>
         <div class="product-info">
-            <h3 class="product-title">${escapeHtml(product.name || 'Produkt')}</h3>
+            <h3 class="product-title">${escapeHtml(truncateWords(product.name, getMaxWords()))}</h3>
             <div class="product-variants-row">
                 ${variantText ? `<div class="product-variants">${variantText}</div>` : ''}
             </div>

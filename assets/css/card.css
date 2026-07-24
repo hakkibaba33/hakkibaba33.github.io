@@ -284,6 +284,22 @@
 }
 
 
+
+.product-title {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--dk-primary, #1a1a1a);
+    margin-bottom: 4px;
+    
+    /* Taşmayı önle - tek satır sabit */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.3;
+    max-height: 1.3em;
+}
+
+
 /* -----------------------------------------------------------
    6. PRODUCT META (Ölçü) - ESKI KOD, KULLANILMIYOR
    ----------------------------------------------------------- */
