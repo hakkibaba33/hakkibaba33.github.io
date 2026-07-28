@@ -595,7 +595,7 @@ button:not(:disabled),
 
 /* Tüm direkt çocuklara padding */
 .product-accordion-content > * {
-    padding: 14px 18px;
+    padding: 5px 10px;
     margin: 0;
 }
 
@@ -839,7 +839,7 @@ button:not(:disabled),
     }
 
     .product-accordion-content > * {
-        padding: 12px 16px;
+        padding: 5px 10px;
     }
 
     .product-accordion-content p,
