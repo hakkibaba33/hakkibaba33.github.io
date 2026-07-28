@@ -484,7 +484,7 @@ button:not(:disabled),
     margin-top: 28px;
     margin-bottom: 20px;
     border: 1px solid var(--dk-border, #e8e8e8);
-    border-radius: 14px;
+    border-radius: 2px;
     background: var(--dk-white, #fff);
     overflow: hidden;
     box-shadow: 0 1px 3px rgba(0,0,0,0.03);
@@ -587,53 +587,64 @@ button:not(:disabled),
     transition: max-height 0.5s ease-in-out;
 }
 
-/* İçerik padding alanı */
-.product-accordion-content > div,
-.product-accordion-content > p,
-.product-accordion-content > ul,
-.product-accordion-content > ol {
-    padding: 22px 24px;
-}
-
-/* === DÜZ METİN DESTEĞİ (JS'den düz string gelirse) === */
+/* === TEMEL TİPOGRAFİ === */
 .product-accordion-content {
-    white-space: pre-line; /* \n karakterlerini satır sonuna çevirir */
-    font-size: 14.5px;
-    line-height: 1.8;
-    color: var(--dk-text, #444);
+    font-size: 15px;
+    line-height: 1.75;
+    color: var(--dk-text, #333);
 }
 
-/* Ama HTML etiketleri varsa white-space normal olsun */
-.product-accordion-content > div,
-.product-accordion-content p,
-.product-accordion-content ul,
-.product-accordion-content ol,
-.product-accordion-content .spec-grid,
-.product-accordion-content .delivery-info-list {
-    white-space: normal;
+/* Tüm direkt çocuklara padding */
+.product-accordion-content > * {
+    padding: 20px 24px;
+    margin: 0;
 }
 
 /* === PARAGRAF === */
 .product-accordion-content p {
-    margin: 0 0 14px 0;
-    font-size: 14.5px;
-    line-height: 1.8;
-    color: var(--dk-text, #444);
+    margin-bottom: 14px;
+    font-size: 15px;
+    line-height: 1.75;
+    color: var(--dk-text, #333);
 }
 
 .product-accordion-content p:last-child {
     margin-bottom: 0;
 }
 
-/* Drop cap (isteğe bağlı, ilk paragrafın ilk harfi büyük) */
-.product-accordion-content > p:first-child::first-letter {
-    font-size: 2.8em;
-    float: left;
-    line-height: 0.8;
-    padding-right: 8px;
-    padding-top: 4px;
+/* === BAŞLIKLAR (İçerikte h2, h3, h4 varsa) === */
+.product-accordion-content h2 {
+    font-size: 18px;
     font-weight: 700;
     color: var(--dk-primary, #1a1a1a);
+    margin: 24px 0 12px 0;
+    padding: 0 24px;
+    line-height: 1.3;
+}
+
+.product-accordion-content h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--dk-primary, #1a1a1a);
+    margin: 20px 0 10px 0;
+    padding: 0 24px;
+    line-height: 1.3;
+}
+
+.product-accordion-content h4 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--dk-primary, #1a1a1a);
+    margin: 16px 0 8px 0;
+    padding: 0 24px;
+    line-height: 1.3;
+}
+
+/* İlk başlığın üst margin'i kaldır */
+.product-accordion-content > h2:first-child,
+.product-accordion-content > h3:first-child,
+.product-accordion-content > h4:first-child {
+    margin-top: 0;
 }
 
 /* === VURGU & LİNK === */
@@ -641,6 +652,12 @@ button:not(:disabled),
 .product-accordion-content b {
     font-weight: 600;
     color: var(--dk-primary, #1a1a1a);
+}
+
+.product-accordion-content em,
+.product-accordion-content i {
+    font-style: italic;
+    color: var(--dk-text, #444);
 }
 
 .product-accordion-content a {
@@ -658,55 +675,35 @@ button:not(:disabled),
 /* === SIRALI & SIRASIZ LİSTELER === */
 .product-accordion-content ul,
 .product-accordion-content ol {
-    margin: 0;
-    padding-left: 0;
-    list-style: none;
+    margin: 0 0 16px 0;
+    padding: 0 24px 0 44px;
+    list-style-position: outside;
+}
+
+.product-accordion-content ul {
+    list-style-type: disc;
+}
+
+.product-accordion-content ol {
+    list-style-type: decimal;
 }
 
 .product-accordion-content ul li,
 .product-accordion-content ol li {
-    position: relative;
-    padding-left: 24px;
-    margin-bottom: 10px;
-    font-size: 14.5px;
+    margin-bottom: 8px;
+    font-size: 15px;
     line-height: 1.7;
-    color: var(--dk-text, #444);
+    color: var(--dk-text, #333);
 }
 
-.product-accordion-content ul li::before {
-    content: '';
-    position: absolute;
-    left: 2px;
-    top: 10px;
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--dk-accent, #c9a96e);
-}
-
-.product-accordion-content ol {
-    counter-reset: accordion-list;
-}
-
-.product-accordion-content ol li {
-    counter-increment: accordion-list;
-}
-
-.product-accordion-content ol li::before {
-    content: counter(accordion-list);
-    position: absolute;
-    left: 0;
-    top: 1px;
-    font-weight: 700;
-    font-size: 12px;
+.product-accordion-content ul li::marker,
+.product-accordion-content ol li::marker {
     color: var(--dk-accent, #c9a96e);
-    width: 18px;
-    height: 18px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1.5px solid var(--dk-accent, #c9a96e);
-    border-radius: 50%;
+    font-weight: 600;
+}
+
+.product-accordion-content li:last-child {
+    margin-bottom: 0;
 }
 
 /* === SPEC GRID (2 Sütunlu Tablo) === */
@@ -717,7 +714,12 @@ button:not(:disabled),
     border: 1px solid var(--dk-border, #e8e8e8);
     border-radius: 10px;
     overflow: hidden;
-    margin-bottom: 0;
+    margin: 0 24px 0 24px;
+    /* Padding'i kaldır çünkü grid kendi içinde halleder */
+}
+
+.product-accordion-content > .spec-grid {
+    padding: 0;
 }
 
 .spec-grid .spec-row {
@@ -805,11 +807,11 @@ button:not(:disabled),
     color: var(--dk-primary, #1a1a1a);
 }
 
-/* === BİLGİ KUTUSU (İsteğe bağlı) === */
+/* === BİLGİ KUTUSU === */
 .accordion-notice {
     padding: 14px 18px;
     border-radius: 8px;
-    margin-bottom: 16px;
+    margin: 0 24px 16px 24px;
     font-size: 14px;
     line-height: 1.6;
     display: flex;
@@ -823,6 +825,12 @@ button:not(:disabled),
     color: #1e40af;
 }
 
+/* === DÜZ METİN DESTEĞİ (JS düz string atarsa) === */
+/* Eğer JS direkt text atıyorsa, \n karakterleri için */
+.product-accordion-content {
+    white-space: normal;
+}
+
 /* === MOBİL === */
 @media (max-width: 767px) {
     .product-accordion-header {
@@ -833,15 +841,39 @@ button:not(:disabled),
         font-size: 14px;
     }
 
-    .product-accordion-content > div,
-    .product-accordion-content > p,
-    .product-accordion-content > ul,
-    .product-accordion-content > ol {
-        padding: 18px 20px;
+    .product-accordion-content > * {
+        padding: 16px 20px;
+    }
+
+    .product-accordion-content p,
+    .product-accordion-content ul li,
+    .product-accordion-content ol li {
+        font-size: 14.5px;
+    }
+
+    .product-accordion-content h2 {
+        font-size: 17px;
+        padding: 0 20px;
+    }
+
+    .product-accordion-content h3 {
+        font-size: 15px;
+        padding: 0 20px;
+    }
+
+    .product-accordion-content h4 {
+        font-size: 14px;
+        padding: 0 20px;
+    }
+
+    .product-accordion-content ul,
+    .product-accordion-content ol {
+        padding: 0 20px 0 40px;
     }
 
     .spec-grid {
         grid-template-columns: 1fr;
+        margin: 0 20px;
     }
 
     .spec-grid .spec-label {
@@ -865,8 +897,11 @@ button:not(:disabled),
     .delivery-info-item {
         padding: 12px 14px;
     }
-}
 
+    .accordion-notice {
+        margin: 0 20px 12px 20px;
+    }
+}
 
 
 /* ==========================================
