@@ -217,6 +217,37 @@ if (window.__productPageInitialized) {
         });
     }
 
+    function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function formatAccordionText(text) {
+    if (!text) return '<p>Ingen beskrivning tillgänglig.</p>';
+    
+    const blocks = text.split(/\n\s*\n/).filter(b => b.trim());
+    
+    return blocks.map(block => {
+        block = block.trim();
+        const lines = block.split('\n').map(l => l.trim()).filter(l => l);
+        const isList = lines.every(l => l.startsWith('- ') || l.startsWith('• '));
+        
+        if (isList && lines.length > 0) {
+            const items = lines.map(line => {
+                const clean = line.replace(/^[-•]\s*/, '');
+                return `<li>${escapeHtml(clean)}</li>`;
+            }).join('');
+            return `<ul>${items}</ul>`;
+        }
+        
+        const withBreaks = block.replace(/\n/g, '<br>');
+        return `<p>${withBreaks}</p>`;
+    }).join('');
+}
+
+
     async function initProductPage() {
         let slug = null;
         const path = window.location.pathname;
@@ -293,13 +324,13 @@ if (window.__productPageInitialized) {
             if (sizeDisplayEl) sizeDisplayEl.style.display = 'none';
             if (sizeValueEl) sizeValueEl.textContent = '---';
 
-            setHTML('product-description', f.Description || '');
+            setHTML('product-description', formatAccordionText(f.Description));
             setText('delivery-time-display', f.Delivery_time);
             setText('delivery-time-text', 'Leveranstid: ' + f.Delivery_time);
 
-            setHTML('product-specs', f.Product_info ? '<div class="specs-content-placeholder">' + f.Product_info.split('\n').join('<br>') + '</div>' : '<div class="specs-content-placeholder"><p>Material, skötselråd och övrig produktinformation visas här.</p></div>');
+            setHTML('product-specs', f.Product_info ? formatAccordionText(f.Product_info) : '<div class="specs-content-placeholder"><p>Material, skötselråd och övrig produktinformation visas här.</p></div>');
 
-            setHTML('product-delivery', f.Delivery_return ? '<div class="delivery-content-placeholder">' + f.Delivery_return.split('\n').join('<br>') + '</div>' : '<div class="delivery-content-placeholder"><p><strong>Leveranstid:</strong> <span id="delivery-time-display">' + f.Delivery_time + '</span></p><p><strong>Frakt:</strong> Fri frakt vid köp över 500 Kr</p><p><strong>Retur:</strong> 30 dagars öppet köp</p></div>');
+            setHTML('product-delivery', f.Delivery_return ? '<div class="delivery-content-placeholder">' + f.Delivery_return.split('\n').join('<br>') + '</div>' : '...');
 
             if (typeof setupSizeDrawer === 'function') setupSizeDrawer(f.Size_tooltip, f.Variants);
 

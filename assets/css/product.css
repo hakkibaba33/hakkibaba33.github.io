@@ -475,22 +475,23 @@ button:not(:disabled),
     transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
 }
 
+
 /* ==========================================
    3 AKORDİYON — PROFESYONEL TİPOGRAFİ
    ========================================== */
 
 .product-accordion-wrapper {
-    margin-top: 24px;
-    margin-bottom: 16px;
-    border: 1px solid var(--dk-border, #e5e5e5);
-    border-radius: 12px;
+    margin-top: 28px;
+    margin-bottom: 20px;
+    border: 1px solid var(--dk-border, #e8e8e8);
+    border-radius: 14px;
     background: var(--dk-white, #fff);
     overflow: hidden;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
 }
 
 .product-accordion-item {
-    border-bottom: 1px solid var(--dk-border, #e5e5e5);
+    border-bottom: 1px solid var(--dk-border, #e8e8e8);
 }
 
 .product-accordion-item:last-child {
@@ -503,13 +504,14 @@ button:not(:disabled),
     justify-content: space-between;
     align-items: center;
     width: 100%;
-    padding: 16px 20px;
+    padding: 18px 22px;
     cursor: pointer;
     background: transparent;
     border: none;
     outline: none;
-    transition: background 0.25s ease, padding-left 0.25s ease;
+    transition: all 0.25s ease;
     position: relative;
+    gap: 12px;
 }
 
 .product-accordion-header::before {
@@ -519,15 +521,15 @@ button:not(:disabled),
     top: 50%;
     transform: translateY(-50%) scaleY(0);
     width: 3px;
-    height: 24px;
+    height: 20px;
     background: var(--dk-accent, #c9a96e);
     border-radius: 0 3px 3px 0;
     transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .product-accordion-header:hover {
-    background: rgba(0,0,0,0.02);
-    padding-left: 24px;
+    background: rgba(0,0,0,0.015);
+    padding-left: 26px;
 }
 
 .product-accordion-header:hover::before {
@@ -535,7 +537,7 @@ button:not(:disabled),
 }
 
 .product-accordion-item.active .product-accordion-header {
-    background: rgba(0,0,0,0.015);
+    background: rgba(0,0,0,0.01);
 }
 
 .product-accordion-item.active .product-accordion-header::before {
@@ -548,19 +550,22 @@ button:not(:disabled),
     color: var(--dk-primary, #1a1a1a);
     margin: 0;
     letter-spacing: -0.2px;
+    text-align: left;
+    flex: 1;
 }
 
 .product-accordion-header i {
     transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
     font-size: 13px;
-    color: var(--dk-text-light, #888);
+    color: var(--dk-text-light, #999);
     width: 28px;
     height: 28px;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    background: rgba(0,0,0,0.03);
+    background: rgba(0,0,0,0.04);
+    flex-shrink: 0;
 }
 
 .product-accordion-item.active .product-accordion-header i {
@@ -569,7 +574,7 @@ button:not(:disabled),
     background: rgba(201,169,110,0.1);
 }
 
-/* === CONTENT ALANI === */
+/* === CONTENT KAPSAYICI === */
 .product-accordion-content {
     max-height: 0;
     overflow: hidden;
@@ -582,49 +587,78 @@ button:not(:disabled),
     transition: max-height 0.5s ease-in-out;
 }
 
-/* İçerik container'ı */
+/* İçerik padding alanı */
 .product-accordion-content > div,
-.product-accordion-content .custom-specs-content {
-    padding: 20px 22px;
+.product-accordion-content > p,
+.product-accordion-content > ul,
+.product-accordion-content > ol {
+    padding: 22px 24px;
 }
 
-/* === PARAGRAF & TEMEL METİN === */
-.product-accordion-content p {
+/* === DÜZ METİN DESTEĞİ (JS'den düz string gelirse) === */
+.product-accordion-content {
+    white-space: pre-line; /* \n karakterlerini satır sonuna çevirir */
     font-size: 14.5px;
-    line-height: 1.75;
+    line-height: 1.8;
     color: var(--dk-text, #444);
-    margin-bottom: 14px;
-    margin-top: 0;
+}
+
+/* Ama HTML etiketleri varsa white-space normal olsun */
+.product-accordion-content > div,
+.product-accordion-content p,
+.product-accordion-content ul,
+.product-accordion-content ol,
+.product-accordion-content .spec-grid,
+.product-accordion-content .delivery-info-list {
+    white-space: normal;
+}
+
+/* === PARAGRAF === */
+.product-accordion-content p {
+    margin: 0 0 14px 0;
+    font-size: 14.5px;
+    line-height: 1.8;
+    color: var(--dk-text, #444);
 }
 
 .product-accordion-content p:last-child {
     margin-bottom: 0;
 }
 
-/* === KALIN/VURGU METİN === */
+/* Drop cap (isteğe bağlı, ilk paragrafın ilk harfi büyük) */
+.product-accordion-content > p:first-child::first-letter {
+    font-size: 2.8em;
+    float: left;
+    line-height: 0.8;
+    padding-right: 8px;
+    padding-top: 4px;
+    font-weight: 700;
+    color: var(--dk-primary, #1a1a1a);
+}
+
+/* === VURGU & LİNK === */
 .product-accordion-content strong,
 .product-accordion-content b {
     font-weight: 600;
     color: var(--dk-primary, #1a1a1a);
 }
 
-/* === LİNKLER === */
 .product-accordion-content a {
     color: var(--dk-accent, #c9a96e);
     text-decoration: none;
     font-weight: 500;
     border-bottom: 1px solid transparent;
-    transition: border-color 0.2s ease, color 0.2s ease;
+    transition: border-color 0.2s ease;
 }
 
 .product-accordion-content a:hover {
     border-bottom-color: var(--dk-accent, #c9a96e);
 }
 
-/* === LİSTELER (Custom Bullet) === */
+/* === SIRALI & SIRASIZ LİSTELER === */
 .product-accordion-content ul,
 .product-accordion-content ol {
-    margin: 0 0 16px 0;
+    margin: 0;
     padding-left: 0;
     list-style: none;
 }
@@ -632,7 +666,7 @@ button:not(:disabled),
 .product-accordion-content ul li,
 .product-accordion-content ol li {
     position: relative;
-    padding-left: 22px;
+    padding-left: 24px;
     margin-bottom: 10px;
     font-size: 14.5px;
     line-height: 1.7;
@@ -642,13 +676,12 @@ button:not(:disabled),
 .product-accordion-content ul li::before {
     content: '';
     position: absolute;
-    left: 0;
-    top: 9px;
-    width: 7px;
-    height: 7px;
+    left: 2px;
+    top: 10px;
+    width: 6px;
+    height: 6px;
     border-radius: 50%;
     background: var(--dk-accent, #c9a96e);
-    opacity: 0.8;
 }
 
 .product-accordion-content ol {
@@ -660,24 +693,31 @@ button:not(:disabled),
 }
 
 .product-accordion-content ol li::before {
-    content: counter(accordion-list) ".";
+    content: counter(accordion-list);
     position: absolute;
     left: 0;
-    top: 0;
+    top: 1px;
     font-weight: 700;
-    font-size: 13px;
+    font-size: 12px;
     color: var(--dk-accent, #c9a96e);
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1.5px solid var(--dk-accent, #c9a96e);
+    border-radius: 50%;
 }
 
-/* === SPEC LİSTESİ (2 Sütunlu Grid) === */
+/* === SPEC GRID (2 Sütunlu Tablo) === */
 .spec-grid {
     display: grid;
-    grid-template-columns: 140px 1fr;
+    grid-template-columns: 130px 1fr;
     gap: 0;
-    border: 1px solid var(--dk-border, #e5e5e5);
-    border-radius: 8px;
+    border: 1px solid var(--dk-border, #e8e8e8);
+    border-radius: 10px;
     overflow: hidden;
-    margin-bottom: 16px;
+    margin-bottom: 0;
 }
 
 .spec-grid .spec-row {
@@ -686,17 +726,17 @@ button:not(:disabled),
 
 .spec-grid .spec-label,
 .spec-grid .spec-value {
-    padding: 12px 16px;
+    padding: 14px 18px;
     font-size: 14px;
     line-height: 1.5;
-    border-bottom: 1px solid var(--dk-border, #e5e5e5);
+    border-bottom: 1px solid var(--dk-border, #e8e8e8);
 }
 
 .spec-grid .spec-label {
     background: #fafafa;
     font-weight: 600;
     color: var(--dk-primary, #1a1a1a);
-    border-right: 1px solid var(--dk-border, #e5e5e5);
+    border-right: 1px solid var(--dk-border, #e8e8e8);
 }
 
 .spec-grid .spec-value {
@@ -708,7 +748,64 @@ button:not(:disabled),
     border-bottom: none;
 }
 
-/* === BİLGİ KUTULARI (Notice / Info / Warning) === */
+/* === LEVERANS KARTLARI === */
+.delivery-info-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.delivery-info-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    background: #fafafa;
+    border-radius: 10px;
+    border: 1px solid var(--dk-border, #e8e8e8);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.delivery-info-item:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+}
+
+.delivery-info-item .delivery-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: var(--dk-white, #fff);
+    border: 1px solid var(--dk-border, #e8e8e8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--dk-accent, #c9a96e);
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+.delivery-info-item .delivery-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.delivery-info-item .delivery-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--dk-text-light, #888);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+}
+
+.delivery-info-item .delivery-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--dk-primary, #1a1a1a);
+}
+
+/* === BİLGİ KUTUSU (İsteğe bağlı) === */
 .accordion-notice {
     padding: 14px 18px;
     border-radius: 8px;
@@ -726,85 +823,10 @@ button:not(:disabled),
     color: #1e40af;
 }
 
-.accordion-notice.success {
-    background: #f0fdf4;
-    border-left: 3px solid #22c55e;
-    color: #166534;
-}
-
-.accordion-notice.warning {
-    background: #fffbeb;
-    border-left: 3px solid #f59e0b;
-    color: #92400e;
-}
-
-.accordion-notice i {
-    margin-top: 2px;
-    font-size: 16px;
-    flex-shrink: 0;
-}
-
-/* === LEVERANS & RETUR ÖZEL STİL === */
-.delivery-info-list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.delivery-info-item {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 14px 16px;
-    background: #fafafa;
-    border-radius: 10px;
-    border: 1px solid var(--dk-border, #e5e5e5);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.delivery-info-item:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-}
-
-.delivery-info-item .delivery-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 10px;
-    background: var(--dk-white, #fff);
-    border: 1px solid var(--dk-border, #e5e5e5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--dk-accent, #c9a96e);
-    font-size: 16px;
-    flex-shrink: 0;
-}
-
-.delivery-info-item .delivery-text {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-.delivery-info-item .delivery-label {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--dk-text-light, #888);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.delivery-info-item .delivery-value {
-    font-size: 14.5px;
-    font-weight: 600;
-    color: var(--dk-primary, #1a1a1a);
-}
-
 /* === MOBİL === */
 @media (max-width: 767px) {
     .product-accordion-header {
-        padding: 14px 16px;
+        padding: 16px 18px;
     }
 
     .product-accordion-header h3 {
@@ -812,14 +834,10 @@ button:not(:disabled),
     }
 
     .product-accordion-content > div,
-    .product-accordion-content .custom-specs-content {
-        padding: 16px 18px;
-    }
-
-    .product-accordion-content p,
-    .product-accordion-content ul li,
-    .product-accordion-content ol li {
-        font-size: 14px;
+    .product-accordion-content > p,
+    .product-accordion-content > ul,
+    .product-accordion-content > ol {
+        padding: 18px 20px;
     }
 
     .spec-grid {
@@ -829,25 +847,27 @@ button:not(:disabled),
     .spec-grid .spec-label {
         border-right: none;
         border-bottom: none;
-        padding-bottom: 4px;
+        padding-bottom: 2px;
         background: transparent;
-        font-size: 13px;
+        font-size: 12px;
         color: var(--dk-text-light, #888);
     }
 
     .spec-grid .spec-value {
-        padding-top: 4px;
+        padding-top: 2px;
         padding-bottom: 14px;
     }
 
     .spec-grid .spec-row:not(:last-child) .spec-value {
-        border-bottom: 1px solid var(--dk-border, #e5e5e5);
+        border-bottom: 1px solid var(--dk-border, #e8e8e8);
     }
 
     .delivery-info-item {
         padding: 12px 14px;
     }
 }
+
+
 
 /* ==========================================
    GÜVEN ROZETLERİ
