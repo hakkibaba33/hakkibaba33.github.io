@@ -318,46 +318,86 @@ if (window.location.hash && window.location.hash.includes('/produkt/')) {
 
                     <!-- 3 AKORDİYON -->
                     <div class="product-accordion-wrapper">
-                        <!-- 1. Produktbeskrivning -->
-                        <div class="product-accordion-item">
-                            <button class="product-accordion-header">
-                                <h3>Produktbeskrivning</h3>
-                                <i class="fa-solid fa-chevron-down"></i>
-                            </button>
-                            <div class="product-accordion-content" id="product-description"></div>
-                        </div>
+    <!-- 1. Produktbeskrivning -->
+    <div class="product-accordion-item">
+        <button class="product-accordion-header">
+            <h3>Produktbeskrivning</h3>
+            <i class="fa-solid fa-chevron-down"></i>
+        </button>
+        <div class="product-accordion-content" id="product-description">
+            <!-- JS ile doldurulacak örnek içerik: -->
+            <!--
+            <p>Denna exklusiva matta är handvävd av certifierade ullgarn...</p>
+            <ul>
+                <li>Handvävd kvalitet</li>
+                <li>100% nyzeeländsk ull</li>
+                <li>Antistatisk behandling</li>
+            </ul>
+            -->
+        </div>
+    </div>
 
-                        <!-- 2. Produktinformation -->
-                        <div class="product-accordion-item">
-                            <button class="product-accordion-header">
-                                <h3>Produktinformation</h3>
-                                <i class="fa-solid fa-chevron-down"></i>
-                            </button>
-                            <div class="product-accordion-content" id="product-specs">
-                                <div class="specs-content-placeholder">
-                                    <p>Material, skötselråd och övrig produktinformation visas här.</p>
-                                </div>
-                            </div>
-                        </div>
+    <!-- 2. Produktinformation -->
+    <div class="product-accordion-item">
+        <button class="product-accordion-header">
+            <h3>Produktinformation</h3>
+            <i class="fa-solid fa-chevron-down"></i>
+        </button>
+        <div class="product-accordion-content" id="product-specs">
+            <div class="spec-grid">
+                <div class="spec-row">
+                    <div class="spec-label">Material</div>
+                    <div class="spec-value">100% Ull</div>
+                </div>
+                <div class="spec-row">
+                    <div class="spec-label">Storlek</div>
+                    <div class="spec-value">200 × 300 cm</div>
+                </div>
+                <div class="spec-row">
+                    <div class="spec-label">Vikt</div>
+                    <div class="spec-value">12 kg</div>
+                </div>
+                <div class="spec-row">
+                    <div class="spec-label">Skötselråd</div>
+                    <div class="spec-value">Dammsug regelbundet, professionell rengöring rekommenderas</div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-                        <!-- 3. Leverans & Retur -->
-                        <div class="product-accordion-item">
-                            <button class="product-accordion-header">
-                                <h3>Leverans & Retur</h3>
-                                <i class="fa-solid fa-chevron-down"></i>
-                            </button>
-                            <div class="product-accordion-content" id="product-delivery">
-                                <div class="delivery-content-placeholder">
-                                    <p><strong>Leveranstid:</strong> <span id="delivery-time-display">3-7 arbetsdagar</span></p>
-                                    <p><strong>Frakt:</strong> Fri frakt vid köp över 500 SEK</p>
-                                    <p><strong>Retur:</strong> 30 dagars öppet köp</p>
-                                </div>
-                            </div>
-                        </div>
+    <!-- 3. Leverans & Retur -->
+    <div class="product-accordion-item">
+        <button class="product-accordion-header">
+            <h3>Leverans & Retur</h3>
+            <i class="fa-solid fa-chevron-down"></i>
+        </button>
+        <div class="product-accordion-content" id="product-delivery">
+            <div class="delivery-info-list">
+                <div class="delivery-info-item">
+                    <div class="delivery-icon"><i class="fa-solid fa-truck-fast"></i></div>
+                    <div class="delivery-text">
+                        <span class="delivery-label">Leveranstid</span>
+                        <span class="delivery-value">3–7 arbetsdagar</span>
+                    </div>
+                </div>
+                <div class="delivery-info-item">
+                    <div class="delivery-icon"><i class="fa-solid fa-box-open"></i></div>
+                    <div class="delivery-text">
+                        <span class="delivery-label">Frakt</span>
+                        <span class="delivery-value">Fri frakt vid köp över 500 SEK</span>
+                    </div>
+                </div>
+                <div class="delivery-info-item">
+                    <div class="delivery-icon"><i class="fa-solid fa-rotate-left"></i></div>
+                    <div class="delivery-text">
+                        <span class="delivery-label">Retur</span>
+                        <span class="delivery-value">30 dagars öppet köp</span>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
+</div>
 
         <!-- ========== ILGILI URUNLER SLIDER ========== -->
         <section class="related-products-section" id="related-products-section" style="display: none;">
