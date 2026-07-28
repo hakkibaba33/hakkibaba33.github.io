@@ -154,32 +154,42 @@
 
 .hero-scroll {
     position: absolute;
-    bottom: 40px;
-    left: 50%;
-    transform: translateX(-50%);
+    bottom: 50px;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    z-index: 2;
+    animation: fadeInUp 0.8s ease 1s both;
+}
+
+.hero-scroll-inner {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
-    color: rgba(255,255,255,0.5);
+    gap: 10px;
+    color: rgba(255,255,255,0.45);
     font-size: 0.75rem;
-    letter-spacing: 2px;
+    font-weight: 500;
+    letter-spacing: 3px;
     text-transform: uppercase;
-    animation: bounceScroll 2s ease-in-out infinite, fadeInUp 0.8s ease 1s both;
     cursor: pointer;
+    animation: bounceScroll 2s ease-in-out infinite;
 }
 
-.hero-scroll svg {
-    width: 20px;
-    height: 20px;
+.scroll-arrow {
+    width: 24px;
+    height: 24px;
     stroke: currentColor;
     fill: none;
-    stroke-width: 2;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
 }
 
 @keyframes bounceScroll {
-    0%, 100% { transform: translateX(-50%) translateY(0); }
-    50% { transform: translateX(-50%) translateY(8px); }
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(6px); }
 }
 
 @keyframes fadeInUp {
@@ -189,7 +199,7 @@
 
 /* ===== TRUST BAR ===== */
 .trust-bar-section {
-    padding: 20px;
+     padding: 12px 20px;
     background: var(--dk-white);
     border-bottom: 1px solid var(--dk-border);
     position: relative;
@@ -270,7 +280,7 @@
 .container {
     max-width: 1280px;
     margin: 0 auto;
-    padding: 0 24px;
+    padding: 0 4px;
 }
 
 /* ===== SECTION HEADER ===== */
@@ -304,7 +314,7 @@
 
 /* ===== CATEGORIES ===== */
 .categories-preview {
-    padding: 100px 0;
+    padding: 20px 0;
     background: var(--dk-white);
 }
 
@@ -961,4 +971,37 @@
     .features-grid { grid-template-columns: 1fr; }
     .newsletter-box { padding: 40px 20px; }
     .trust-item { flex-direction: column; text-align: center; gap: 8px; }
+}
+
+
+
+@media (max-width: 768px) {
+    /* ... diğer kurallar ... */
+
+    .trust-bar {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px 16px;
+    }
+
+    .trust-item {
+        flex-direction: column;
+        align-items: center;
+        padding: 8px;
+        flex: unset;
+        justify-content: unset;
+    }
+
+    .trust-icon {
+        width: 56px;
+        height: 56px;
+    }
+
+    .trust-text {
+        align-items: center;
+        text-align: center;
+    }
+
+    .trust-text span { display: none; }
+    .trust-divider { display: none; }
 }

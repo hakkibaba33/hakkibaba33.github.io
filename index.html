@@ -197,10 +197,14 @@
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
             </a>
         </div>
-        <div class="hero-scroll">
-            <span>Scrolla ner</span>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
-        </div>
+    <div class="hero-scroll">
+    <div class="hero-scroll-inner">
+        <span>Scrolla när</span>
+        <svg class="scroll-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 8l6 6 6-6M6 14l6 6 6-6"/>
+        </svg>
+    </div>
+</div>
     </section>
 
     <!-- ========== TRUST BAR ========== -->
@@ -500,76 +504,6 @@
             </div>
         </div>
     </section>
-
-<!-- ========== NEWSLETTER (Güncellenmiş - İndirim Kodu Sistemi) ========== -->
-<section class="newsletter-section" id="newsletter-section">
-    <div class="container">
-        <div class="newsletter-box fade-in">
-            <div class="section-label">Nyhetsbrev</div>
-            <h3>Få 10% rabatt på första köpet</h3>
-            <p>Prenumerera på vårt nyhetsbrev och få en exklusiv rabattkod direkt till din inkorg.</p>
-
-            <!-- Adım 1: Email Girişi -->
-            <div id="newsletter-step-1" class="newsletter-step">
-                <form class="newsletter-form" id="newsletter-form" onsubmit="event.preventDefault(); handleNewsletterSubmit(this);">
-                    <input type="email" id="newsletter-email" placeholder="Din e-postadress" required autocomplete="email">
-                    <button type="submit" id="newsletter-submit-btn">Få 10% rabatt</button>
-                </form>
-                <p class="newsletter-disclaimer">Genom att prenumerera godkänner du vår <a href="/integritetspolicy/">integritetspolicy</a>. Avsluta när du vill.</p>
-            </div>
-
-            <!-- Adım 2: Başarılı Kayıt + İndirim Kodu -->
-            <div id="newsletter-step-2" class="newsletter-step" style="display: none;">
-                <div class="discount-success">
-                    <div class="success-icon">✓</div>
-                    <h4>Tack för din prenumeration!</h4>
-                    <p class="discount-message">Din rabattkod har skickats till <strong id="newsletter-email-display"></strong></p>
-
-                    <div class="discount-code-box">
-                        <span class="discount-code-label">Din rabattkod:</span>
-                        <div class="discount-code-wrapper">
-                            <code id="discount-code-display" class="discount-code">DKRUG10</code>
-                            <button class="copy-code-btn" id="copy-discount-btn" onclick="copyDiscountCode()">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-                                Kopiera
-                            </button>
-                        </div>
-                        <span class="discount-code-hint">Klicka för att kopiera</span>
-                    </div>
-
-                    <div class="discount-terms">
-                        <p>✓ Gäller på hela sortimentet</p>
-                        <p>✓ Kan inte kombineras med andra erbjudanden</p>
-                        <p>✓ Giltig i 30 dagar</p>
-                    </div>
-
-                    <a href="/mattor/" class="hero-btn" style="margin-top: 20px;">
-                        Shoppa Nu
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-                    </a>
-                </div>
-            </div>
-
-            <!-- Adım 3: Zaten Kayıtlı -->
-            <div id="newsletter-step-3" class="newsletter-step" style="display: none;">
-                <div class="discount-already-subscribed">
-                    <div class="info-icon">ℹ</div>
-                    <h4>Du prenumererar redan!</h4>
-                    <p>Du har redan fått din välkomstrabatt. Håll utkik efter fler erbjudanden i din inkorg.</p>
-                    <a href="/mattor/" class="hero-btn outline" style="margin-top: 20px;">
-                        Fortsätt Shoppa
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-                    </a>
-                </div>
-            </div>
-
-            <!-- Hata Mesajı -->
-            <div id="newsletter-error" class="newsletter-error" style="display: none;">
-                <p id="newsletter-error-message"></p>
-            </div>
-        </div>
-    </div>
-</section>
 
     <!-- ========== GOOGLE REVIEWS ========== -->
     <section class="google-reviews-section">

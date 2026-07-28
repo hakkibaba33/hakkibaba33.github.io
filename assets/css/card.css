@@ -10,18 +10,20 @@
     flex-direction: column;
     box-sizing: border-box;
     margin: 0;
+    height: 100%; /* Grid hizalama için */
 }
 
 /* -----------------------------------------------------------
-   2. IMAGE BOX - Zıplama Sorunu Çözüldü
+   2. IMAGE BOX - 1200x1800 (2:3) Oranına Göre Ayarlandı
    ----------------------------------------------------------- */
 
 .image-box {
     background: #f5f5f5;
-    aspect-ratio: 1 / 1.35;
+    aspect-ratio: 2 / 3;        /* DÜZELTİLDİ: 1/1.35 -> 2/3 (0.6667) */
     position: relative;
     overflow: hidden;
     width: 100%;
+    flex-shrink: 0;             /* EKLENDİ: Boyutun küçülmesini engelle */
 }
 
 /* Shimmer placeholder - resim yüklenene kadar */
@@ -105,8 +107,7 @@
     opacity: 0;
     visibility: hidden;
     transform: scale(0.8);
-    transition: opacity 0.25s ease, visibility 0.25s ease, transform 0.25s ease, background 0.2s ease;
-   
+    transition: opacity 0.25s ease, visibility 0.25s ease, transform 0.25s ease;
 }
 
 /* Kart uzerine gelince ikonu goster */
@@ -118,29 +119,29 @@
 
 /* Ikon rengi - siyah belirgin */
 .wishlist-btn .heart-icon {
-    width: 25px;
-    height: 25px;
+    width: 20px;
+    height: 20px;
     color: #111;
     transition: all 0.2s ease;
 }
 
-/* Hover durumunda - hafif buyut */
+/* Hover durumunda - hafif buyut, arka plan YOK */
 .wishlist-btn:hover {
-    background: #fff;
-    transform: scale(1.1);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    background: transparent !important;
+    transform: scale(1.15);
+    box-shadow: none;
 }
 
 .wishlist-btn:hover .heart-icon {
     color: #111;
 }
 
-/* Aktif (favoride) - kirmizi */
+/* Aktif (favoride) - kirmizi, arka plan YOK */
 .wishlist-btn.active {
     opacity: 1;
     visibility: visible;
     transform: scale(1);
-    background: #fff;
+    background: transparent !important;
 }
 
 .wishlist-btn.active .heart-icon {
@@ -149,14 +150,12 @@
     stroke: #D30000;
 }
 
-/* Aktif hover */
+/* Aktif hover - arka plan YOK */
 .wishlist-btn.active:hover {
-    transform: scale(1.1);
+    transform: scale(1.15);
+    background: transparent !important;
+    box-shadow: none;
 }
-
-
-
-
 
 /* === MOBIL/TABLET: Her zaman görünür wishlist butonu === */
 @media (max-width: 1023px) {
@@ -172,6 +171,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        background: transparent !important; /* EKLENDI */
     }
 
     .wishlist-btn .heart-icon {
@@ -186,6 +186,7 @@
         right: 10px;
         width: 40px;
         height: 40px;
+        background: transparent !important; /* EKLENDI */
     }
 
     .wishlist-btn .heart-icon {
@@ -200,6 +201,7 @@
         right: 8px;
         width: 36px;
         height: 36px;
+        background: transparent !important; /* EKLENDI */
     }
 
     .wishlist-btn .heart-icon {
@@ -207,7 +209,6 @@
         height: 22px;
     }
 }
-
 
 /* -----------------------------------------------------------
    4. BADGES (Rozetler)
@@ -260,14 +261,16 @@
 
 
 /* -----------------------------------------------------------
-   5. PRODUCT INFO
+   5. PRODUCT INFO - DÜZELTİLMİŞ (Esnek Yükseklik)
    ----------------------------------------------------------- */
 
 .product-info {
     padding: 12px 5px;
-    min-height: 120px;
+    /* DÜZELTİLDİ: min-height kaldırıldı, flex-grow eklendi */
     display: flex;
     flex-direction: column;
+    flex-grow: 1;               /* EKLENDİ: Kartı doldur */
+    justify-content: flex-start; /* EKLENDİ: Üstten hizala */
 }
 
 .product-title {
@@ -338,6 +341,7 @@
     gap: 8px;
     margin-bottom: 4px;
     flex-wrap: wrap;
+    margin-top: 2px;           /* EKLENDİ: Fiyatı alta it */
 }
 
 .price-container {
@@ -439,6 +443,7 @@
     align-items: center;
     gap: 8px;
     margin-top: 2px;
+    margin-top: auto;           /* EKLENDİ: Renkleri alta it */
 }
 
 .product-colors-swatches {
@@ -481,7 +486,7 @@
 
 .skeleton-image {
     width: 100%;
-    aspect-ratio: 1 / 1.35;
+    aspect-ratio: 2 / 3;        /* DÜZELTİLDİ: 1/1.35 -> 2/3 */
     background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
     background-size: 200% 100%;
     animation: skeleton-shimmer 1.5s infinite ease-in-out;
@@ -542,12 +547,12 @@
     }
 
     .image-box {
-        aspect-ratio: 1 / 1.35;
+        aspect-ratio: 2 / 3;    /* DÜZELTİLDİ: 1/1.35 -> 2/3 */
     }
 
     .product-info {
         padding: 10px 4px;
-        min-height: 105px;
+        /* DÜZELTİLDİ: min-height kaldırıldı */
     }
 
     .product-title {
@@ -641,12 +646,12 @@
 /* === MOBIL (480px - 767px) === */
 @media (max-width: 767px) {
     .image-box {
-        aspect-ratio: 1 / 1.35;
+        aspect-ratio: 2 / 3;    /* DÜZELTİLDİ: 1/1.35 -> 2/3 */
     }
 
     .product-info {
         padding: 8px 3px;
-        min-height: 95px;
+        /* DÜZELTİLDİ: min-height kaldırıldı */
     }
 
     .product-title {
@@ -739,16 +744,16 @@
 /* === KUCUK MOBIL (479px ve alti) === */
 @media (max-width: 479px) {
     .image-box {
-        aspect-ratio: 1 / 1.35;
+        aspect-ratio: 2 / 3;    /* DÜZELTİLDİ: 1/1.35 -> 2/3 */
     }
 
     .product-info {
-        padding: 2px 2px;
-        min-height: 88px;
+        padding: 6px 3px;       /* DÜZELTİLDİ: 2px -> 6px (çok yapışık duruyordu) */
+        /* DÜZELTİLDİ: min-height kaldırıldı */
     }
 
     .product-title {
-        font-size: 18px;
+        font-size: 13px;        /* DÜZELTİLDİ: 18px -> 13px (mobilde dev duruyordu) */
         color: #111;
         font-weight: 500;
         margin-bottom: 0px;
@@ -776,7 +781,7 @@
     }
 
     .price-sale-badge {
-        font-size: 13px;
+        font-size: 12px;
         padding: 1px 3px;
     }
 
@@ -791,7 +796,7 @@
     }
 
     .product-variants .variant-main {
-        font-size: 14px;           /* DÜZELTILDI: 10px -> 12px */
+        font-size: 12px;           /* DÜZELTILDI: 14px -> 12px */
     }
 
     .product-variants .variant-single {
@@ -799,7 +804,7 @@
     }
 
     .product-variants .variant-extra-badge {
-        font-size: 12px;            /* DÜZELTILDI: 8px -> 9px */
+        font-size: 9px;            /* DÜZELTILDI: 12px -> 9px */
         padding: 1px 5px;          /* EKLENDI */
     }
 

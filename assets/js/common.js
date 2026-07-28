@@ -1359,3 +1359,33 @@ function loadFacebookPixel() {
     
     console.log('[Tracking] Facebook Pixel loaded');
 }
+
+
+
+// Yukarı çık butonunu oluştur
+const scrollBtn = document.createElement('button');
+scrollBtn.id = 'scrollTopBtn';
+scrollBtn.innerHTML = `
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="18 15 12 9 6 15"></polyline>
+  </svg>
+`;
+scrollBtn.title = 'Gå upp';
+scrollBtn.setAttribute('aria-label', 'Sayfanın en üstüne çık');
+
+// Sayfaya ekle
+document.body.appendChild(scrollBtn);
+
+// Tıklama olayı
+scrollBtn.addEventListener('click', () => {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
+// Scroll olayını dinle
+window.addEventListener('scroll', () => {
+  if (window.scrollY > 300) {
+    scrollBtn.classList.add('visible');
+  } else {
+    scrollBtn.classList.remove('visible');
+  }
+});
