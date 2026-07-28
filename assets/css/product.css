@@ -484,7 +484,7 @@ button:not(:disabled),
     margin-top: 20px;
     margin-bottom: 16px;
     border: 1px solid var(--dk-border, #e8e8e8);
-    border-radius: 6px;
+    border-radius: 2px;
     background: var(--dk-white, #fff);
     overflow: hidden;
 }
@@ -590,6 +590,7 @@ button:not(:disabled),
 .product-accordion-content {
     font-size: 14px;
     line-height: 1.65;
+    font-weight: 500;
     color: var(--dk-text, #333);
 }
 

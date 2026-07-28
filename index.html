@@ -609,11 +609,11 @@
             <div class="method-box">
                 <h4>Betalningsalternativ</h4>
                 <div class="icons-row">
-                    <img src="/assets/images/klarna.svg" alt="Klarna">
-                    <img src="/assets/images/visa.svg" alt="Visa">
-                    <img src="/assets/images/mastercard.svg" alt="Mastercard">
-                    <img src="/assets/images/swish.svg" alt="Swish" style="height: 25px; width: 60px; background-color: #ffffff; padding: 4px 8px; border-radius: 0px; display: inline-block; vertical-align: middle;">
-                </div>
+                 <img src="/assets/images/klarna.svg" alt="Klarna">
+                 <img src="/assets/images/visa.svg" alt="Visa">
+                 <img src="/assets/images/mastercard.svg" alt="Mastercard">
+                 <img src="/assets/images/swish.svg" alt="Swish">
+               </div>
             </div>
         </div>
     </div>
@@ -679,6 +679,24 @@ window.__fadeObserver = new IntersectionObserver((entries) => {
 document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.fade-in').forEach(el => window.__fadeObserver.observe(el));
 });
+
+document.addEventListener('DOMContentLoaded', function() {
+    const bar = document.getElementById('announcement-bar');
+    const closeBtn = document.getElementById('announcement-close');
+    
+    // Eğer kullanıcı son 24 saat içinde kapattıysa gösterme
+    const closedAt = localStorage.getItem('announcementClosedAt');
+    if (closedAt && (Date.now() - parseInt(closedAt)) < 24 * 60 * 60 * 1000) {
+        bar.style.display = 'none';
+    }
+    
+    closeBtn.addEventListener('click', function() {
+        bar.style.display = 'none';
+        localStorage.setItem('announcementClosedAt', Date.now().toString());
+    });
+});
 </script>
+
+
 </body>
 </html>
