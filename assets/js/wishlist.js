@@ -1,6 +1,6 @@
 // ==========================================
-// WISHLIST.JS - SUPABASE UYUMLU (v2.2 - SKELETON + URL FIX)
-// Urun linkleri: /produkt/{slug} formatinda
+// WISHLIST.JS - SUPABASE UYUMLU (v3.0 - CARD.JS INTEGRATION)
+// FIX: createProductCard kullanımı ile kategori sayfasıyla birebir aynı kart yapısı
 // ==========================================
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Supabase'den urunleri cek
     try {
-        // Tum aktif urunleri cek (Supabase'de 'in' ile coklu ID sorgusu)
+        // Tum aktif urunleri cek
         const products = await supabaseGet('products', {
             select: '*',
             active: 'eq.true'
@@ -80,19 +80,27 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Urunleri map'le
         const mappedProducts = filteredProducts.map(product => {
-            const productVariants = variants.filter(v => String(v.product_id) === String(product.id));
-            return {
-                id: product.id,
-                name: product.name || 'Urun',
-                price: product.discount_price || product.base_price || 0,
-                base_price: product.base_price || 0,
-                discount_price: product.discount_price || null,
-                image: product.images && product.images[0] ? product.images[0] : '',
-                slug: product.slug || '',
-                colors: product.colors || [],
-                variants: productVariants,
-            };
-        });
+    const productVariants = variants.filter(v => String(v.product_id) === String(product.id));
+    return {
+        id: product.id,
+        name: product.name || 'Urun',
+        price: product.discount_price || product.base_price || 0,
+        base_price: product.base_price || 0,
+        discount_price: product.discount_price || null,
+        image: product.images && product.images[0] ? product.images[0] : '',
+        slug: product.slug || '',
+        colors: product.colors || [],
+        // Eğer product_variants tablosundan veri geldiyse onu kullan, 
+        // yoksa products tablosundaki variants JSON'ını koru
+        variants: productVariants.length > 0 ? productVariants : (product.variants || []),
+        // Kategori sayfalarıyla birebir aynı veri yapısını koru
+        measurements: product.measurements || [],
+        m2_available_widths: product.m2_available_widths || [],
+        m2_calculator_active: product.m2_calculator_active || false,
+        gardin_measurements: product.gardin_measurements || [],
+        gardin_calculator_active: product.gardin_calculator_active || false,
+    };
+});
 
         hideSkeleton();
         renderProducts(mappedProducts);
@@ -110,8 +118,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function showSkeleton() {
+        // card.js'deki skeleton yapisiyla uyumlu
         const skeletonHTML = Array(6).fill(`
-            <div class="product-item-wrapper skeleton-card">
+            <div class="product-card skeleton-card">
                 <div class="skeleton-image"></div>
                 <div class="skeleton-body">
                     <div class="skeleton-line title"></div>
@@ -137,80 +146,64 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function renderProducts(products) {
-        grid.innerHTML = products.map(product => {
-            const productUrl = product.slug
-                ? `/produkt/${product.slug}`
-                : `/produkt/${product.id}`;
+    grid.innerHTML = products.map(product => {
+        const cardProduct = {
+            id: product.id,
+            name: product.name,
+            base_price: product.base_price || 0,
+            discount_price: product.discount_price || null,
+            image: product.image,
+            slug: product.slug || '',
+            colors: product.colors || [],
+            variants: (product.variants || []).map(v => ({
+                size: v.size || '',
+                color: v.color || null,
+                price: v.price || 0,
+                discount_price: v.discount_price || null,
+                stock: v.stock || 0
+            })),
+            // Kategori sayfalarıyla birebir aynı veri yapısını koru
+            measurements: product.measurements || [],
+            m2_available_widths: product.m2_available_widths || [],
+            m2_calculator_active: product.m2_calculator_active || false,
+            gardin_measurements: product.gardin_measurements || [],
+            gardin_calculator_active: product.gardin_calculator_active || false
+        };
 
-            // İNDİRİM KONTROLÜ
-            const hasDiscount = product.discount_price && product.discount_price < product.base_price;
-            const displayPrice = product.discount_price || product.base_price || 0;
+        return createProductCard(cardProduct, true);
+    }).join('');
+
+    initLazyImages();
+        
+        // Wishlist butonlarını override et: favorilerden kaldır
+        grid.querySelectorAll('.wishlist-btn').forEach(btn => {
+            const newBtn = btn.cloneNode(true);
+            btn.parentNode.replaceChild(newBtn, btn);
             
-            const priceHTML = hasDiscount 
-                ? `<span class="current-price price-discount">${displayPrice.toLocaleString('sv-SE')} SEK</span>
-                   <span class="original-price">${product.base_price.toLocaleString('sv-SE')} SEK</span>`
-                : `<span class="current-price">${displayPrice.toLocaleString('sv-SE')} SEK</span>`;
+            newBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                removeFromWishlist(newBtn.dataset.productId);
+            });
+        });
 
-            // VARYANT GÖSTERİMİ
-            const variantText = product.variants && product.variants.length > 0
-                ? (product.variants.length === 1 
-                    ? `<span class="variant-single">${product.variants[0].size || 'Standard'}</span>`
-                    : `<span class="variant-main">${product.variants[0].size || ''}</span><span class="variant-extra-badge">+${product.variants.length - 1} storlekar</span>`)
-                : '';
+        // Başlıklara link ekle (createProductCard düz başlık üretiyor)
+        grid.querySelectorAll('.product-card').forEach((card, index) => {
+            const product = products[index];
+            if (!product || !product.slug) return;
+            
+            const titleEl = card.querySelector('.product-title');
+            if (titleEl) {
+                const link = document.createElement('a');
+                link.href = `/produkt/${product.slug}`;
+                link.style.cssText = 'text-decoration:none; color:inherit; display:block;';
+                link.innerHTML = titleEl.innerHTML;
+                titleEl.innerHTML = '';
+                titleEl.appendChild(link);
+            }
+        });
 
-            // RENK SWATCH'LARI
-            const colorsHTML = product.colors && product.colors.length > 0 
-                ? `<div class="product-colors-wrapper">
-                    <div class="product-colors-swatches">
-                        ${product.colors.slice(0, 5).map(color => `
-                            <span class="swatch-circle" 
-                                  style="background: ${getColorStyle(color)};"
-                                  title="${color}"></span>
-                        `).join('')}
-                    </div>
-                    ${product.colors.length > 5 ? '<span class="color-count-text">+' + (product.colors.length - 5) + ' farger</span>' : ''}
-                </div>` 
-                : '';
-
-            return `
-            <div class="product-item-wrapper product-card" data-id="${String(product.id)}">
-                <div class="image-box">
-                    <a href="${productUrl}" class="product-image-link">
-                        <img data-src="${product.image}"
-                             alt="${product.name}"
-                             loading="lazy"
-                             onerror="this.style.display='none'">
-                    </a>
-                    ${hasDiscount ? '<span class="discount-badge">REA</span>' : ''}
-                    <button class="wishlist-btn active"
-                            data-product-id="${String(product.id)}"
-                            onclick="removeFromWishlist('${String(product.id)}')"
-                            aria-label="Ta bort från favoriter">
-                        <svg class="heart-icon" viewBox="0 0 24 24" fill="#D30000" stroke="#D30000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                        </svg>
-                    </button>
-                </div>
-                <div class="product-info">
-                    <h3 class="product-title">
-                        <a href="${productUrl}" style="text-decoration:none; color:inherit;">${product.name}</a>
-                    </h3>
-                    <div class="product-variants-row">
-                        ${variantText ? `<div class="product-variants">${variantText}</div>` : ''}
-                    </div>
-                    <div class="product-price">
-                        ${priceHTML}
-                    </div>
-                    ${colorsHTML}
-                </div>
-            </div>
-            `;
-        }).join('');
-
-        // Lazy loading baslat
-        if (typeof initLazyImages === 'function') {
-            initLazyImages();
-        }
+        countText.textContent = `Du har ${products.length} sparade produkter.`;
     }
 });
 
@@ -239,7 +232,7 @@ function removeFromWishlist(productId) {
             card.remove();
 
             // Tumu silindiyse bos state goster
-            const remaining = document.querySelectorAll('.product-item-wrapper');
+            const remaining = document.querySelectorAll('.product-card');
             if (remaining.length === 0) {
                 document.getElementById('wishlist-grid').innerHTML = '';
                 document.getElementById('wishlist-count-text').textContent = '';

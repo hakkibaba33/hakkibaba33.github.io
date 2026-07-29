@@ -416,22 +416,17 @@
 
 /* +3 storlekar badge - ARTIK GÖRÜNÜR */
 .product-variants .variant-extra-badge {
-    background: #f0f0f0;          /* EKLENDI */
+     background: #f0f0f0;          /* EKLENDI */
     padding: 3px 10px;            /* EKLENDI */
     border-radius: 13px;
-    font-size: 13px;
-    font-weight: 600;
+    font-size: 14px;
+    font-weight: 500;
     color: #555;                  /* DEĞIŞTI: #333 -> #555 (daha soft) */
     transition: all 0.2s ease;
     white-space: nowrap;
     line-height: 1.3;
 }
 
-/* Varyant satırı hover efekti */
-.product-variants .variant-extra-badge:hover {
-    background: #e0e0e0;
-    color: #333;
-}
 
 
 /* -----------------------------------------------------------
