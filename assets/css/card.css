@@ -888,3 +888,68 @@
         padding: 2px 5px;
     }
 }
+
+/* ==========================================
+   KÖŞE BADGE (Sağ Alt - Materyal/Etiket)
+   ========================================== */
+
+.card-corner-badge {
+    position: absolute;
+    bottom: 10px;
+    right: 60px;
+    background: #fff;
+    color: var(--dk-primary, #1a1a1a);
+    padding: 5px 12px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    border-radius: 2px;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    line-height: 1;
+    pointer-events: none;
+}
+
+@media (max-width: 767px) {
+    .card-corner-badge {
+        bottom: 8px;
+        right: 8px;
+        padding: 4px 10px;
+        font-size: 10px;
+        letter-spacing: 0.5px;
+    }
+}
+
+
+/* İkinci badge — sol alt köşe (birinciden farklı pozisyon) */
+.card-corner-badge-secondary {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;          /* ← sol alt */
+    background: #1a1a1a; /* ← farklı renk, örn: siyah */
+    color: #fff;
+    padding: 5px 12px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    border-radius: 3px;
+    z-index: 9999;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    line-height: 1;
+    pointer-events: none;
+}
+
+@media (max-width: 767px) {
+    .card-corner-badge-secondary {
+        bottom: 8px;
+        left: 8px;
+        padding: 4px 10px;
+        font-size: 10px;
+    }
+}
+
+

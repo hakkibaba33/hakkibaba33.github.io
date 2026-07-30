@@ -90,15 +90,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         image: product.images && product.images[0] ? product.images[0] : '',
         slug: product.slug || '',
         colors: product.colors || [],
-        // Eğer product_variants tablosundan veri geldiyse onu kullan, 
-        // yoksa products tablosundaki variants JSON'ını koru
         variants: productVariants.length > 0 ? productVariants : (product.variants || []),
-        // Kategori sayfalarıyla birebir aynı veri yapısını koru
         measurements: product.measurements || [],
         m2_available_widths: product.m2_available_widths || [],
         m2_calculator_active: product.m2_calculator_active || false,
         gardin_measurements: product.gardin_measurements || [],
         gardin_calculator_active: product.gardin_calculator_active || false,
+        // ⬇️ BUNLARI EKLE
+        card_badge: product.card_badge || '',
+        card_badge_secondary: product.card_badge_secondary || ''
     };
 });
 
@@ -162,12 +162,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                 discount_price: v.discount_price || null,
                 stock: v.stock || 0
             })),
-            // Kategori sayfalarıyla birebir aynı veri yapısını koru
             measurements: product.measurements || [],
             m2_available_widths: product.m2_available_widths || [],
             m2_calculator_active: product.m2_calculator_active || false,
             gardin_measurements: product.gardin_measurements || [],
-            gardin_calculator_active: product.gardin_calculator_active || false
+            gardin_calculator_active: product.gardin_calculator_active || false,
+            // ⬇️ BUNLARI EKLE
+            card_badge: product.card_badge || '',
+            card_badge_secondary: product.card_badge_secondary || ''
         };
 
         return createProductCard(cardProduct, true);

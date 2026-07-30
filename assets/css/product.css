@@ -2078,3 +2078,92 @@ svg[fill="currentColor"] {
     transform: rotate(90deg);
     color:#000);
 }
+
+
+/* ==========================================
+   GALERİ BADGE OVERRIDE
+   card.css'deki bottom/left/right konumlarını tamamen ez
+   ========================================== */
+
+.main-image-column,
+.mobile-gallery-slide {
+    position: relative;
+    overflow: hidden;
+}
+
+/* card.css'deki TÜM konumlandırmaları ez */
+.main-image-column .card-corner-badge,
+.main-image-column .card-corner-badge-secondary,
+.mobile-gallery-slide .card-corner-badge,
+.mobile-gallery-slide .card-corner-badge-secondary {
+    position: absolute !important;
+    
+    /* Tüm eski konumları sıfırla */
+    top: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+    right: auto !important;
+    
+    /* Boyutları içeriğe sığdır */
+    display: inline-block !important;
+    width: auto !important;
+    height: auto !important;
+    
+    /* Flex çakışmalarını engelle */
+    align-items: initial !important;
+    justify-content: initial !important;
+    
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    line-height: 1;
+    white-space: nowrap;
+    pointer-events: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+    backdrop-filter: none !important;
+    border: none !important;
+}
+
+/* Birincil badge (METERVARA) → İlk resim SOL ÜST */
+.main-image-column:first-child .card-corner-badge,
+.mobile-gallery-slide:first-child .card-corner-badge {
+    top: 12px !important;
+    left: 12px !important;
+    background: linear-gradient(135deg, #fff 0%, #fff 100%) !important;
+    color: #1a1a1a !important;
+}
+
+/* İkincil badge (TVÄTTBAR) → İkinci resim SAĞ ÜST */
+.main-image-column:nth-child(2) .card-corner-badge-secondary,
+.mobile-gallery-slide:nth-child(2) .card-corner-badge-secondary {
+    top: 12px !important;
+    right: 12px !important;
+    background: linear-gradient(135deg, #fff 0%, #fff 100%) !important;
+    color: #1a1a1a !important;
+}
+
+/* Mobil */
+@media (max-width: 768px) {
+    .main-image-column .card-corner-badge,
+    .main-image-column .card-corner-badge-secondary,
+    .mobile-gallery-slide .card-corner-badge,
+    .mobile-gallery-slide .card-corner-badge-secondary {
+        font-size: 10px;
+        padding: 5px 10px;
+    }
+    
+    .main-image-column:first-child .card-corner-badge,
+    .mobile-gallery-slide:first-child .card-corner-badge {
+        top: 8px !important;
+        left: 8px !important;
+    }
+    
+    .main-image-column:nth-child(2) .card-corner-badge-secondary,
+    .mobile-gallery-slide:nth-child(2) .card-corner-badge-secondary {
+        top: 8px !important;
+        right: 8px !important;
+    }
+}

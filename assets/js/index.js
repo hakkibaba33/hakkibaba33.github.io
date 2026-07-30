@@ -75,46 +75,48 @@ if (window.__indexPageInitialized) {
             }
 
             // Ürünleri zenginleştir
-            allProducts = products.map(p => {
-                const productVariants = variants.filter(v => v.product_id === p.id);
+             allProducts = products.map(p => {
+    const productVariants = variants.filter(v => v.product_id === p.id);
 
-                // Varyant yoksa simple_size kullan
-                let finalVariants = productVariants;
-                if (productVariants.length === 0 && p.simple_size) {
-                    finalVariants = [{
-                        size: p.simple_size,
-                        color: null,
-                        price: p.base_price || 0,
-                        discount_price: p.discount_price || null,
-                        stock: 999
-                    }];
-                }
+    let finalVariants = productVariants;
+    if (productVariants.length === 0 && p.simple_size) {
+        finalVariants = [{
+            size: p.simple_size,
+            color: null,
+            price: p.base_price || 0,
+            discount_price: p.discount_price || null,
+            stock: 999
+        }];
+    }
 
-                return {
-                    id: p.id,
-                    name: p.name || 'Produkt',
-                    price: getDisplayPrice(p),
-                    base_price: p.base_price || 0,
-                    discount_price: p.discount_price || null,
-                    image: p.images && p.images[0] ? p.images[0] : '',
-                    slug: p.slug || '',
-                    description: p.description || '',
-                    variants: finalVariants,
-                    colors: p.colors || [],
-                    sizes: finalVariants.map(v => v.size),
-                    measurements: p.measurements || [],
-                    m2_available_widths: p.m2_available_widths || [],
-                    m2_calculator_active: p.m2_calculator_active || false,
-                    gardin_measurements: p.gardin_measurements || [],
-                    gardin_calculator_active: p.gardin_calculator_active || false,
-                    stock: finalVariants.length > 0 
-                        ? (finalVariants.some(v => v.stock > 0) ? 'In Stock' : 'Out of Stock')
-                        : 'In Stock',
-                    delivery_time: p.delivery_time || '3-7 arbetsdagar',
-                    is_bestseller: p.is_bestseller || false,
-                    featured: p.featured || false
-                };
-            });
+    return {
+        id: p.id,
+        name: p.name || 'Produkt',
+        price: getDisplayPrice(p),
+        base_price: p.base_price || 0,
+        discount_price: p.discount_price || null,
+        image: p.images && p.images[0] ? p.images[0] : '',
+        slug: p.slug || '',
+        description: p.description || '',
+        variants: finalVariants,
+        colors: p.colors || [],
+        sizes: finalVariants.map(v => v.size),
+        measurements: p.measurements || [],
+        m2_available_widths: p.m2_available_widths || [],
+        m2_calculator_active: p.m2_calculator_active || false,
+        gardin_measurements: p.gardin_measurements || [],
+        gardin_calculator_active: p.gardin_calculator_active || false,
+        stock: finalVariants.length > 0 
+            ? (finalVariants.some(v => v.stock > 0) ? 'In Stock' : 'Out of Stock')
+            : 'In Stock',
+        delivery_time: p.delivery_time || '3-7 arbetsdagar',
+        is_bestseller: p.is_bestseller || false,
+        featured: p.featured || false,
+        // ⬇️ BUNLARI EKLE
+        card_badge: p.card_badge || '',
+        card_badge_secondary: p.card_badge_secondary || ''
+    };
+});
 
             // Kategorize et
             saleProducts = allProducts.filter(p => p.discount_price && p.discount_price < p.base_price).slice(0, 10);

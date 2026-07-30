@@ -195,6 +195,14 @@ function createProductCard(product, isWishlisted) {
 
     const variantText = getVariantDisplayText(product);
 
+        const cornerBadgeHTML = product.card_badge 
+        ? `<span class="card-corner-badge">${escapeHtml(product.card_badge)}</span>` 
+        : '';
+
+        const secondaryBadgeHTML = product.card_badge_secondary 
+    ? `<span class="card-corner-badge-secondary">${escapeHtml(product.card_badge_secondary)}</span>` 
+    : '';
+
     const productUrl = product.slug
         ? '/produkt/' + encodeURIComponent(String(product.slug).trim())
         : '/produkt/index.html?id=' + encodeURIComponent(String(product.id));
@@ -225,6 +233,8 @@ function createProductCard(product, isWishlisted) {
                 >
             </a>
             ${hasDiscount ? '<span class="discount-badge">REA</span>' : ''}
+             ${cornerBadgeHTML}
+             ${secondaryBadgeHTML}
               <button class="wishlist-btn ${isWishlisted ? 'active' : ''}" 
         data-product-id="${String(product.id)}"
         aria-label="${isWishlisted ? 'Ta bort från favoriter' : 'Lägg till favoriter'}"

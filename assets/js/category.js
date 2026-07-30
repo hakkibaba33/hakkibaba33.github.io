@@ -538,7 +538,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     }];
                 }
                 
-                return {
+                   return {
                     id: product.id,
                     name: product.name || 'Urun',
                     price: getDisplayPrice(product),
@@ -556,11 +556,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                     gardin_measurements: product.gardin_measurements || [],
                     gardin_calculator_active: product.gardin_calculator_active || false,
                     stock: productVariants.length > 0 
-                        ? (productVariants.some(v => v.stock > 0) ? 'In Stock' : 'Out of Stock')
-                        : 'In Stock',
-                    delivery_time: product.delivery_time || '3-7 arbetsdagar'
-                };
-            });
+                    ? (productVariants.some(v => v.stock > 0) ? 'In Stock' : 'Out of Stock')
+                      : 'In Stock',
+                    delivery_time: product.delivery_time || '3-7 arbetsdagar',
+                    card_badge: product.card_badge || null,
+                    card_badge_secondary: product.card_badge_secondary || null,
+                   };
+                });
 
             filteredProducts = [...allProducts];
 

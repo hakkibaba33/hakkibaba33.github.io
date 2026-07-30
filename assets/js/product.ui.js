@@ -729,7 +729,9 @@ function renderRelatedProducts(products) {
             m2_available_widths: product.m2_available_widths || [],
             m2_calculator_active: product.m2_calculator_active || false,
             gardin_measurements: product.gardin_measurements || [],
-            gardin_calculator_active: product.gardin_calculator_active || false
+            gardin_calculator_active: product.gardin_calculator_active || false,
+            card_badge: product.card_badge || '',
+            card_badge_secondary: product.card_badge_secondary || ''
         };
 
         const isWishlisted = isInWishlist(product.id);
@@ -1059,30 +1061,39 @@ function updateSliderButtons() {
       }  
 
     function renderDesktopGallery() {
-        const container = document.getElementById('desktop-gallery');
-        const thumbContainer = document.getElementById('gallery-thumbnail-list');
-        const mobileGallery = document.getElementById('mobile-gallery');
+    const container = document.getElementById('desktop-gallery');
+    const thumbContainer = document.getElementById('gallery-thumbnail-list');
+    const mobileGallery = document.getElementById('mobile-gallery');
 
-        if (container) container.style.display = 'flex';
-        if (thumbContainer) thumbContainer.style.display = 'flex';
-        if (mobileGallery) mobileGallery.style.display = 'none';
+    if (container) container.style.display = 'flex';
+    if (thumbContainer) thumbContainer.style.display = 'flex';
+    if (mobileGallery) mobileGallery.style.display = 'none';
 
-        if (!container) return;
+    if (!container) return;
 
-        let mainHTML = '';
-        const count = Math.min(2, currentImages.length);
+    // ⬇️ BADGE HTML'LERINI HAZIRLA
+    const cornerBadgeHTML = currentProduct.card_badge 
+        ? `<span class="card-corner-badge">${escapeHtml(currentProduct.card_badge)}</span>` 
+        : '';
+    const secondaryBadgeHTML = currentProduct.card_badge_secondary 
+        ? `<span class="card-corner-badge-secondary">${escapeHtml(currentProduct.card_badge_secondary)}</span>` 
+        : '';
 
-        for (let i = 0; i < count; i++) {
-            mainHTML += `
-                <div class="main-image-column" data-index="${i}">
-                    <img src="${currentImages[i]}" 
-                         alt="${currentProduct.name} - ${i+1}" 
-                         class="main-image"
-                         data-lightbox-index="${i}">
-                </div>
-            `;
-        }
-        container.innerHTML = mainHTML;
+    let mainHTML = '';
+    const count = Math.min(2, currentImages.length);
+
+    for (let i = 0; i < count; i++) {
+    mainHTML += `
+        <div class="main-image-column" data-index="${i}">
+            ${i === 0 ? cornerBadgeHTML : ''}${i === 1 ? secondaryBadgeHTML : ''}
+            <img src="${currentImages[i]}" 
+                 alt="${currentProduct.name} - ${i+1}" 
+                 class="main-image"
+                 data-lightbox-index="${i}">
+        </div>
+    `;
+}
+    container.innerHTML = mainHTML;
 
         // Lightbox event listener'lari ekle
         container.querySelectorAll('.main-image').forEach((img, i) => {
@@ -1122,26 +1133,35 @@ function updateSliderButtons() {
     };
 
     function renderMobileGallery() {
-        const container = document.getElementById('desktop-gallery');
-        const thumbContainer = document.getElementById('gallery-thumbnail-list');
-        const mobileGallery = document.getElementById('mobile-gallery');
-        const track = document.getElementById('mobile-gallery-track');
+    const container = document.getElementById('desktop-gallery');
+    const thumbContainer = document.getElementById('gallery-thumbnail-list');
+    const mobileGallery = document.getElementById('mobile-gallery');
+    const track = document.getElementById('mobile-gallery-track');
 
-        if (container) container.style.display = 'none';
-        if (thumbContainer) thumbContainer.style.display = 'none';
-        if (mobileGallery) mobileGallery.style.display = 'block';
+    if (container) container.style.display = 'none';
+    if (thumbContainer) thumbContainer.style.display = 'none';
+    if (mobileGallery) mobileGallery.style.display = 'block';
 
-        if (!track) return;
+    if (!track) return;
 
-        let html = '';
-        currentImages.forEach((img, i) => {
-            html += `
-                <div class="mobile-gallery-slide" data-index="${i}">
-                    <img src="${img}" alt="${currentProduct.name} - ${i+1}">
-                </div>
-            `;
-        });
-        track.innerHTML = html;
+    // ⬇️ BADGE HTML'LERINI HAZIRLA
+    const cornerBadgeHTML = currentProduct.card_badge 
+        ? `<span class="card-corner-badge">${escapeHtml(currentProduct.card_badge)}</span>` 
+        : '';
+    const secondaryBadgeHTML = currentProduct.card_badge_secondary 
+        ? `<span class="card-corner-badge-secondary">${escapeHtml(currentProduct.card_badge_secondary)}</span>` 
+        : '';
+
+    let html = '';
+    currentImages.forEach((img, i) => {
+        html += `
+             <div class="mobile-gallery-slide" data-index="${i}">
+            ${i === 0 ? cornerBadgeHTML : ''}${i === 1 ? secondaryBadgeHTML : ''}
+            <img src="${img}" alt="${currentProduct.name} - ${i+1}">
+        </div>
+        `;
+    });
+    track.innerHTML = html;
 
         updateMobileCounter();
         setupMobileSwipe();
