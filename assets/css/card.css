@@ -890,66 +890,84 @@
 }
 
 /* ==========================================
-   KÖŞE BADGE (Sağ Alt - Materyal/Etiket)
+   BADGE WRAPPER — Sol Altta, Kartın Parçası Gibi
    ========================================== */
 
-.card-corner-badge {
+.card-badges-wrapper {
     position: absolute;
     bottom: 10px;
-    right: 60px;
+    left: 0;                    /* ← tam sola yapıştır */
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;                   /* badge'ler arası ince boşluk */
+    z-index: 100;
+    pointer-events: none;
+    align-items: center;
+    
+    /* ← Sol tarafa kalın border, kartın bir parçası gibi */
+    border-left: 3px solid var(--dk-accent, #c9a96e);
+    padding-left: 2px;          /* border ile badge arası nefes */
+    
+    /* Hafif iç padding üst/alt, tam yapışık görünmesin */
+    padding-top: 2px;
+    padding-bottom: 2px;
+}
+
+/* Birincil badge */
+.card-corner-badge {
+    display: inline-block;
     background: #fff;
     color: var(--dk-primary, #1a1a1a);
-    padding: 5px 12px;
-    font-size: 11px;
-    font-weight: 700;
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 600;
     letter-spacing: 0.8px;
-    text-transform: uppercase;
-    border-radius: 2px;
-    z-index: 100;
+    
+    
+    /* ← Sol taraf düz, sağ taraf yuvarlak (karttan çıkıyor efekti) */
+    border-radius: 0 3px 3px 0;
+    
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     backdrop-filter: blur(4px);
     border: 1px solid rgba(0, 0, 0, 0.06);
     line-height: 1;
-    pointer-events: none;
+    white-space: nowrap;
 }
 
+/* İkincil badge */
+.card-corner-badge-secondary {
+    display: inline-block;
+    background: #fff;
+    color: #1a1a1a;
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.8px;
+    
+    
+    /* ← Sol taraf düz, sağ taraf yuvarlak */
+    border-radius: 0 3px 3px 0;
+    
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    line-height: 1;
+    white-space: nowrap;
+}
+
+/* Mobil */
 @media (max-width: 767px) {
-    .card-corner-badge {
+    .card-badges-wrapper {
         bottom: 8px;
-        right: 8px;
+        gap: 3px;
+        border-left-width: 2px;  /* mobilde biraz ince */
+        padding-left: 6px;
+    }
+    
+    .card-corner-badge,
+    .card-corner-badge-secondary {
         padding: 4px 10px;
         font-size: 10px;
         letter-spacing: 0.5px;
+        border-radius: 0 2px 2px 0;
     }
 }
-
-
-/* İkinci badge — sol alt köşe (birinciden farklı pozisyon) */
-.card-corner-badge-secondary {
-    position: absolute;
-    bottom: 10px;
-    left: 10px;          /* ← sol alt */
-    background: #1a1a1a; /* ← farklı renk, örn: siyah */
-    color: #fff;
-    padding: 5px 12px;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.8px;
-    text-transform: uppercase;
-    border-radius: 3px;
-    z-index: 9999;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-    line-height: 1;
-    pointer-events: none;
-}
-
-@media (max-width: 767px) {
-    .card-corner-badge-secondary {
-        bottom: 8px;
-        left: 8px;
-        padding: 4px 10px;
-        font-size: 10px;
-    }
-}
-
 

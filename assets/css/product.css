@@ -2081,41 +2081,33 @@ svg[fill="currentColor"] {
 
 
 /* ==========================================
-   GALERİ BADGE OVERRIDE
-   card.css'deki bottom/left/right konumlarını tamamen ez
+   GALERİ BADGE — Z-INDEX FIX
    ========================================== */
 
 .main-image-column,
 .mobile-gallery-slide {
     position: relative;
     overflow: hidden;
+    z-index: 1;  /* katman oluştur */
 }
 
-/* card.css'deki TÜM konumlandırmaları ez */
+/* Tüm eski konumları sıfırla ve Z-INDEX'İ MAX yap */
 .main-image-column .card-corner-badge,
 .main-image-column .card-corner-badge-secondary,
 .mobile-gallery-slide .card-corner-badge,
 .mobile-gallery-slide .card-corner-badge-secondary {
     position: absolute !important;
-    
-    /* Tüm eski konumları sıfırla */
     top: auto !important;
     bottom: auto !important;
     left: auto !important;
     right: auto !important;
     
-    /* Boyutları içeriğe sığdır */
     display: inline-block !important;
     width: auto !important;
     height: auto !important;
     
-    /* Flex çakışmalarını engelle */
-    align-items: initial !important;
-    justify-content: initial !important;
-    
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 700;
-    text-transform: uppercase;
     letter-spacing: 0.6px;
     padding: 6px 12px;
     border-radius: 20px;
@@ -2125,24 +2117,36 @@ svg[fill="currentColor"] {
     box-shadow: 0 2px 8px rgba(0,0,0,0.18);
     backdrop-filter: none !important;
     border: none !important;
+    
+    /* ⬇️ Z-INDEX'İ RESİMDEN VE OVERLAY'DEN YÜKSEK TUT */
+    z-index: 9999 !important;
 }
 
-/* Birincil badge (METERVARA) → İlk resim SOL ÜST */
+/* Resmin kendisini altta tut — bazen img'nin z-index'i yüksek oluyor */
+.main-image-column .main-image,
+.mobile-gallery-slide img {
+    position: relative;
+    z-index: 1 !important;
+}
+
+/* Birincil badge → İlk resim SOL ÜST */
 .main-image-column:first-child .card-corner-badge,
 .mobile-gallery-slide:first-child .card-corner-badge {
     top: 12px !important;
     left: 12px !important;
     background: linear-gradient(135deg, #fff 0%, #fff 100%) !important;
     color: #1a1a1a !important;
+    z-index: 9999 !important;
 }
 
-/* İkincil badge (TVÄTTBAR) → İkinci resim SAĞ ÜST */
+/* İkincil badge → İkinci resim SAĞ ÜST */
 .main-image-column:nth-child(2) .card-corner-badge-secondary,
 .mobile-gallery-slide:nth-child(2) .card-corner-badge-secondary {
     top: 12px !important;
     right: 12px !important;
     background: linear-gradient(135deg, #fff 0%, #fff 100%) !important;
     color: #1a1a1a !important;
+    z-index: 9999 !important;
 }
 
 /* Mobil */
