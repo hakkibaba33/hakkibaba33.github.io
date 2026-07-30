@@ -39,15 +39,17 @@
     filter: contrast(1.02) brightness(1.01);
 }
 
+/* Thumbnail'ler — ana resimlerin altına tam otursun */
 .gallery-thumbnail-list {
-    display: flex;           /* Grid yerine flex */
-    gap: 5px;
+    display: flex;
+    gap: 10px;              /* ana resimlerle aynı gap */
     width: 100%;
 }
 
 .gallery-thumbnail-list .thumbnail-item {
-    flex: 1;                /* Eşit paylaşım - her biri %25 */
-    width: 20%;             /* Ana resmin %25'i kadar */
+    flex: 1;                /* ← eşit paylaşım, kaç tane olursa olsun */
+    /* width: 20%; */       /* ← BUNU SİL */
+    min-width: 0;           /* ← taşmayı engelle */
     aspect-ratio: 3 / 4;
     object-fit: cover;
     border: 2px solid transparent;

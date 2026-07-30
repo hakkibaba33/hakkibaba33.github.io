@@ -152,7 +152,7 @@ if (window.location.hash && window.location.hash.includes('/produkt/')) {
 <div class="mini-cart-overlay" id="mini-cart-overlay"></div>
 <div class="mini-cart-drawer" id="mini-cart-drawer">
     <div class="mini-cart-header">
-        <h3>Din Varukorg</h3>
+        <h3>Din Kundvagn</h3>
         <button class="mini-cart-close" id="close-mini-cart" aria-label="Stäng varukorg">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
         </button>
@@ -166,21 +166,21 @@ if (window.location.hash && window.location.hash.includes('/produkt/')) {
         <div class="cart-filled-state" id="cart-filled-state" style="display: none;"></div>
     </div>
     <div class="mini-cart-footer" id="mini-cart-footer" style="display: none;">
-        <div class="cart-summary-line">
-            <span class="summary-label">Frakt</span>
-            <span class="summary-value" style="color: #c9a96e; font-weight: 600;">Fri frakt</span>
-        </div>
-        <div class="cart-summary-line discount-line" id="discount-wrapper" style="display: none;">
-            <span class="summary-label">Du sparar:</span>
-            <span class="summary-value discount-amount" id="cart-total-discount"></span>
-        </div>
-        <hr class="cart-divider">
-        <div class="cart-summary-line grand-total-line">
-            <span class="summary-label">Totalt (inkl moms)</span>
-            <span class="summary-value" id="cart-grand-total"></span>
-        </div>
-        <a href="/kassa" class="checkout-btn">Till kassan</a>
+    <div class="cart-summary-line">
+        <span class="summary-label">Frakt</span>
+        <span class="summary-value" id="cart-shipping-cost">Fri frakt</span>
     </div>
+    <div class="cart-summary-line discount-line" id="discount-wrapper" style="display: none;">
+        <span class="summary-label">Rabatt:</span>
+        <span class="summary-value discount-amount" id="cart-total-discount"></span>
+    </div>
+    <hr class="cart-divider">
+    <div class="cart-summary-line grand-total-line">
+        <span class="summary-label">Totalt <span class="tax-note">(inkl moms)</span></span>
+        <span class="summary-value" id="cart-grand-total"></span>
+    </div>
+    <a href="/kassa" class="checkout-btn">Till kassan</a>
+ </div>
 </div>
 
 

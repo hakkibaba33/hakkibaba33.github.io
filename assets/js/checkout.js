@@ -187,7 +187,9 @@ if (typeof showStockWarning === 'undefined') {
             const productEl = document.createElement('div');
             productEl.className = 'summary-item';
             productEl.innerHTML = `
+                <a href="${item.url || '#'}" class="item-thumb-link">
                 <img src="${item.image || ''}" alt="${item.name || ''}" class="item-thumb" onerror="this.style.display='none'">
+                </a>
                 <div class="item-details-wrapper">
                     <div class="item-info-left">
                         <p class="item-name">${item.name || 'Urun'}</p>

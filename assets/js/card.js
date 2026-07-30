@@ -66,7 +66,7 @@ function getVariantDisplayText(product) {
         if (m2Widths.length === 1) {
             return `<span class="variant-main">${firstWidth} cm</span>`;
         }
-        return `<span class="variant-main">${firstWidth} cm</span><span class="variant-extra-badge">+${extraCount} storlek</span>`;
+        return `<span class="variant-main">${firstWidth} cm</span><span class="variant-extra-badge">(${extraCount} storlekar)</span>`;
     }
 
     const gardinMeasurements = product.gardin_measurements || [];
@@ -76,7 +76,7 @@ function getVariantDisplayText(product) {
         if (gardinMeasurements.length === 1) {
             return `<span class="variant-main">${firstMeasurement} cm</span>`;
         }
-        return `<span class="variant-main">${firstMeasurement} cm</span><span class="variant-extra-badge">+${extraCount} storlek</span>`;
+        return `<span class="variant-main">${firstMeasurement} cm</span><span class="variant-extra-badge">(${extraCount} storlekar)</span>`;
     }
 
     const measurements = product.measurements || [];
@@ -86,7 +86,7 @@ function getVariantDisplayText(product) {
         if (measurements.length === 1) {
             return `<span class="variant-main">${firstMeasurement}</span>`;
         }
-        return `<span class="variant-main">${firstMeasurement}</span><span class="variant-extra-badge">+${extraCount} storlekar</span>`;
+        return `<span class="variant-main">${firstMeasurement}</span><span class="variant-extra-badge">(${extraCount} storlekar)</span>`;
     }
 
     const variants = product.variants || [];
@@ -96,7 +96,7 @@ function getVariantDisplayText(product) {
     if (variants.length === 1) {
         return `<span class="variant-main">${firstSize}</span>`;
     }
-    return `<span class="variant-main">${firstSize}</span><span class="variant-extra-badge">+${extraCount} storlekar</span>`;
+    return `<span class="variant-main">${firstSize}</span><span class="variant-extra-badge">(${extraCount} storlekar)</span>`;
 }
 
 // ===== HTML ESCAPE =====
@@ -236,7 +236,7 @@ const badgesWrapperHTML = (product.card_badge || product.card_badge_secondary)
                     onerror="this.style.display='none'"
                 >
             </a>
-            ${hasDiscount ? '<span class="discount-badge">REA</span>' : ''}
+            ${hasDiscount ? '<span class="discount-badge">Deal</span>' : ''}
              ${badgesWrapperHTML}
               <button class="wishlist-btn ${isWishlisted ? 'active' : ''}" 
         data-product-id="${String(product.id)}"

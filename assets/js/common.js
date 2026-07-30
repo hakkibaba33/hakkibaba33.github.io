@@ -416,17 +416,19 @@ function updateMiniCartUI() {
             if (itemDiscount > 0 && originalPrice > currentPrice) {
                 priceHtml = `
                     <div class="price-stack">
-                        <span class="original-price">${itemOriginalTotal.toLocaleString('sv-SE')} SEK</span>
-                        <span class="discounted-price">${itemCurrentTotal.toLocaleString('sv-SE')} SEK</span>
+                        <span class="original-price">${itemOriginalTotal.toLocaleString('sv-SE')} Kr</span>
+                        <span class="discounted-price">${itemCurrentTotal.toLocaleString('sv-SE')} Kr</span>
                     </div>
                 `;
             } else {
-                priceHtml = `<span class="item-price">${itemCurrentTotal.toLocaleString('sv-SE')} SEK</span>`;
+                priceHtml = `<span class="item-price">${itemCurrentTotal.toLocaleString('sv-SE')} Kr</span>`;
             }
             
             return `<div class="mini-cart-item" data-cart-item-id="${itemId}">
+                <a href="${item.url || '#'}" class="item-image-link">
                 <img src="${item.image || ''}" alt="${item.name || ''}" class="item-image" onerror="this.style.display='none'">
-                <div class="item-details-left">
+                </a>
+                  <div class="item-details-left">
                     <span class="item-name">${item.name || 'Urun'}</span>
                     <span class="item-variant">${variantDisplay}</span>
                     <div class="quantity-control">
@@ -450,14 +452,14 @@ function updateMiniCartUI() {
         if (discountWrapper && discountAmount) {
             if (totalDiscount > 0) {
                 discountWrapper.style.display = 'flex';
-                discountAmount.textContent = '-' + totalDiscount.toLocaleString('sv-SE') + ' SEK';
+                discountAmount.textContent = '-' + totalDiscount.toLocaleString('sv-SE') + ' Kr';
             } else {
                 discountWrapper.style.display = 'none';
             }
         }
         
         const grandTotalEl = document.getElementById('cart-grand-total');
-        if (grandTotalEl) grandTotalEl.textContent = grandTotal.toLocaleString('sv-SE') + ' SEK';
+        if (grandTotalEl) grandTotalEl.textContent = grandTotal.toLocaleString('sv-SE') + ' Kr';
     }
 }
 
@@ -819,7 +821,7 @@ function performSearch(query) {
                 </div>
                 <div class="search-item-info">
                     <h4 class="search-item-title">${highlightedName}</h4>
-                    <span class="search-item-price">${product.price.toLocaleString('sv-SE')} SEK</span>
+                    <span class="search-item-price">${product.price.toLocaleString('sv-SE')} Kr</span>
                 </div>
             </a>`;
         }).join('');
