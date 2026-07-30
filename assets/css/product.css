@@ -556,7 +556,7 @@ button:not(:disabled),
     flex: 1;
 }
 
-.product-accordion-header i {
+.product-accordion-header svg {
     transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     font-size: 12px;
     color: var(--dk-text-light, #999);
@@ -570,7 +570,7 @@ button:not(:disabled),
     flex-shrink: 0;
 }
 
-.product-accordion-item.active .product-accordion-header i {
+.product-accordion-item.active .product-accordion-header svg {
     transform: rotate(180deg);
     color: var(--dk-accent, #c9a96e);
     background: rgba(201,169,110,0.1);
@@ -932,7 +932,7 @@ button:not(:disabled),
     font-family: var(--dk-font-body);
 }
 
-.badge-item i {
+.badge-item svg {
     color: var(--dk-accent);
     font-size: 16px;
     width: 24px;
@@ -940,7 +940,7 @@ button:not(:disabled),
     transition: var(--dk-transition);
 }
 
-.product-trust-badges:hover .badge-item i {
+.product-trust-badges:hover .badge-item svg {
     color: var(--dk-accent-hover);
 }
 
@@ -964,7 +964,7 @@ button:not(:disabled),
 .product-content {
     display: flex;
     gap: 20px;
-    margin-top: 10px;
+    margin-top: 60px;
     align-items: flex-start;
 }
 
@@ -1037,7 +1037,7 @@ button:not(:disabled),
     box-shadow: var(--dk-shadow-lg);
 }
 
-.add-to-cart-btn i {
+.add-to-cart-btn svg {
     margin-right: 10px;
 }
 
@@ -1428,16 +1428,12 @@ body.drawer-open {
         transition-delay: 0.2s;
     }
 }
+
 /* ==========================================
-   FAVORİ / WISHLIST
+   FAVORİ / WISHLIST — ÜRÜN SAYFASI
    ========================================== */
 
-.wishlist-btn {
-    position: absolute !important;
-    top: 10px !important;
-    right: 10px !important;
-}
-
+/* Buton kutusu: sepete ekle butonunun yanında inline durur */
 .ana-urun-favori-buton {
     position: relative !important;
     top: auto !important;
@@ -1455,6 +1451,7 @@ body.drawer-open {
     padding: 0 !important;
     vertical-align: middle;
     transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease !important;
+    overflow: visible !important; /* Kalp patlama animasyonu için */
 }
 
 .ana-urun-favori-buton:hover {
@@ -1463,11 +1460,104 @@ body.drawer-open {
     box-shadow: 0 0 0 1px var(--dk-primary) !important;
 }
 
-.ana-urun-favori-buton i {
-    font-size: 1.3rem !important;
-    color: var(--dk-accent) !important;
-    display: block !important;
+/* ==========================================
+   KALP İKONU — Karttaki ile aynı stil
+   ========================================== */
+
+.ana-urun-favori-buton svg,
+.ana-urun-favori-buton .heart-icon {
+    width: 22px;
+    height: 22px;
+     color: #111;
+    transition: color 0.2s ease;
+    display: block;
 }
+
+/* Hover & Active — Karttaki ile birebir aynı */
+.ana-urun-favori-buton:hover svg,
+.ana-urun-favori-buton.active svg,
+.ana-urun-favori-buton:hover .heart-icon,
+.ana-urun-favori-buton.active .heart-icon {
+    color: #D30000;
+}
+
+/* Eğer kartta fill/stroke da varsa ürün sayfasında da ekle */
+.ana-urun-favori-buton.active svg,
+.ana-urun-favori-buton.active .heart-icon {
+    fill: #D30000;
+    stroke: #D30000;
+}
+
+/* ==========================================
+   KALP PATLAMA ANİMASYONU — Ürün Sayfası
+   ========================================== */
+
+.ana-urun-favori-buton {
+    /* Taşan parçacıkların görünmesi için */
+    overflow: visible !important;
+    position: relative;
+}
+
+/* Kalp zıplama */
+.ana-urun-favori-buton.animating svg {
+    animation: heartPop 0.35s cubic-bezier(0.17, 0.89, 0.32, 1.49) forwards;
+}
+
+@keyframes heartPop {
+    0%   { transform: scale(1); }
+    30%  { transform: scale(0.75); }
+    70%  { transform: scale(1.35); }
+    100% { transform: scale(1); }
+}
+
+/* Konfeti / Baloncuk konteyneri */
+.ana-urun-favori-buton .heart-burst {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+}
+
+.ana-urun-favori-buton .heart-burst .dot {
+    position: absolute;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background-color: #D30000;
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0);
+}
+
+/* Sadece animating class'ı geldiğinde patlasın */
+.ana-urun-favori-buton.animating .heart-burst .dot {
+    animation: burstParticle 0.38s ease-out forwards;
+}
+
+/* 6 farklı yöne dağılım */
+.ana-urun-favori-buton .heart-burst .d1 { --tx: 0px;   --ty: -18px; animation-delay: 0.02s; }
+.ana-urun-favori-buton .heart-burst .d2 { --tx: 16px;  --ty: -8px;  animation-delay: 0.04s; }
+.ana-urun-favori-buton .heart-burst .d3 { --tx: 16px;  --ty: 10px;  animation-delay: 0.02s; }
+.ana-urun-favori-buton .heart-burst .d4 { --tx: 0px;   --ty: 18px;  animation-delay: 0.05s; }
+.ana-urun-favori-buton .heart-burst .d5 { --tx: -16px; --ty: 10px;  animation-delay: 0.03s; }
+.ana-urun-favori-buton .heart-burst .d6 { --tx: -16px; --ty: -8px;  animation-delay: 0.01s; }
+
+@keyframes burstParticle {
+    0% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(0.4);
+    }
+    60% {
+        opacity: 0.9;
+        transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) scale(1.2);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(calc(-50% + var(--tx) * 1.2), calc(-50% + var(--ty) * 1.2)) scale(0);
+    }
+}
+
 
 
 
@@ -1864,3 +1954,127 @@ body.drawer-open {
 }
 
 
+
+
+
+
+
+/* ==========================================
+   INLINE SVG GLOBAL STILLER
+   ========================================== */
+
+/* SVG ikonlar genel ayar */
+svg[stroke="currentColor"],
+svg[fill="currentColor"] {
+    display: inline-block;
+    vertical-align: middle;
+    flex-shrink: 0;
+}
+
+/* --- ACCORDION CHEVRON (Ok) --- */
+.product-accordion-header svg {
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    color: var(--dk-text-light, #999);
+    width: 26px;           /* 22 → 26 */
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.04);
+    flex-shrink: 0;
+    padding: 4px;          /* 3 → 4 (dokunmatik alan için) */
+    box-sizing: border-box;
+}
+
+.product-accordion-item.active .product-accordion-header svg {
+    transform: rotate(180deg);
+    color: var(--dk-accent, #c9a96e);
+    background: rgba(201,169,110,0.1);
+}
+
+
+
+/* --- SLIDER OKLARI (İlgili Ürünler) --- */
+.slider-arrow svg {
+    width: 20px;           /* 16 → 20 */
+    height: 20px;
+    color: var(--dk-primary);
+}
+
+/* --- LIGHTBOX OKLARI & KAPATMA --- */
+.lightbox-nav-btn svg,
+.lightbox-close-btn svg {
+    width: 20px;           /* 16 → 20 */
+    height: 20px;
+    color: var(--dk-primary);
+}
+
+/* --- VARIANT DRAWER KAPATMA --- */
+.close-drawer-btn svg {
+    width: 22px;           /* 20 → 22 */
+    height: 22px;
+    color: var(--dk-primary);
+}
+
+/* --- BADGE İKONLARI (Kamyon, Dönüş, Kalkan) --- */
+.badge-item svg {
+    color: var(--dk-accent);
+    width: 22px;           /* 20 → 22 */
+    height: 22px;
+    transition: var(--dk-transition);
+}
+
+.product-trust-badges:hover .badge-item svg {
+    color: var(--dk-accent-hover);
+}
+
+/* --- DELIVERY İKONLARI --- */
+.delivery-info-item .delivery-icon svg {
+    width: 18px;           /* 16 → 18 */
+    height: 18px;
+    color: var(--dk-accent, #c9a96e);
+}
+
+/* --- FOOTER ACCORDION CHEVRON --- */
+.acc-trigger svg {
+    width: 16px;           /* 14 → 16 */
+    height: 16px;
+    transition: transform 0.3s ease;
+    color: var(--dk-text-light);
+}
+
+.acc-trigger.active svg,
+.acc-trigger[aria-expanded="true"] svg {
+    transform: rotate(180deg);
+}
+
+
+/* --- VARIANT CHECK İKONU --- */
+.variant-check svg {
+    width: 22px;           /* 20 → 22 */
+    height: 22px;
+    color: var(--dk-accent);
+}
+
+/* Google reviews yıldızları */
+.review-stars {
+    color: var(--dk-accent);
+    font-size: 14px;
+    letter-spacing: 1px;
+}
+
+.variant-accordion-header .accordion-chevron {
+    width: 22px;
+    height: 22px;
+    color: var(--dk-text-light, #000);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    flex-shrink: 0;
+}
+
+/* Açık durumda 90 derece döndür (sağ ok → aşağı ok) */
+.variant-accordion-box.open .variant-accordion-header .accordion-chevron,
+.variant-accordion-header[aria-expanded="true"] .accordion-chevron {
+    transform: rotate(90deg);
+    color:#000);
+}

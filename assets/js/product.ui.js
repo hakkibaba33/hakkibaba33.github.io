@@ -754,40 +754,48 @@ function attachRelatedWishlistEvents() {
         const newBtn = btn.cloneNode(true);
         btn.parentNode.replaceChild(newBtn, btn);
 
-        newBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
+          newBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
 
-            const productId = newBtn.dataset.productId;
-            if (!productId) return;
+    const productId = newBtn.dataset.productId;
+    if (!productId) return;
 
-            let wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
-            const index = wishlist.findIndex(item => 
-                (typeof item === 'string' ? item : String(item.id)) === String(productId)
-            );
+    let wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
+    const index = wishlist.findIndex(item => 
+        (typeof item === 'string' ? item : String(item.id)) === String(productId)
+    );
 
-            if (index > -1) {
-                wishlist.splice(index, 1);
-                newBtn.classList.remove('active');
-                newBtn.querySelector('i').className = 'fa-regular fa-heart';
-            } else {
-                const card = newBtn.closest('.product-card');
-                const name = card.querySelector('.product-title')?.textContent || 'Urun';
-                const priceText = card.querySelector('.current-price')?.textContent || '0';
-                const price = parseInt(priceText.replace(/[^0-9]/g, '')) || 0;
-                const image = card.querySelector('img')?.src || '';
+    if (index > -1) {
+        wishlist.splice(index, 1);
+        newBtn.classList.remove('active');
+        const svg = newBtn.querySelector('svg');
+        if (svg) {
+            svg.innerHTML = '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>';
+            svg.setAttribute('fill', 'none');
+        }
+    } else {
+        const card = newBtn.closest('.product-card');
+        const name = card.querySelector('.product-title')?.textContent || 'Urun';
+        const priceText = card.querySelector('.current-price')?.textContent || '0';
+        const price = parseInt(priceText.replace(/[^0-9]/g, '')) || 0;
+        const image = card.querySelector('img')?.src || '';
 
-                wishlist.push({ id: productId, name, price, image });
-                newBtn.classList.add('active');
-                newBtn.querySelector('i').className = 'fa-solid fa-heart';
+        wishlist.push({ id: productId, name, price, image });
+        newBtn.classList.add('active');
+        const svg = newBtn.querySelector('svg');
+        if (svg) {
+            svg.innerHTML = '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>';
+            svg.setAttribute('fill', 'currentColor');
+        }
 
-                newBtn.classList.add('animate-pop');
-                setTimeout(() => newBtn.classList.remove('animate-pop'), 500);
-            }
+        newBtn.classList.add('animate-pop');
+        setTimeout(() => newBtn.classList.remove('animate-pop'), 500);
+    }
 
-            localStorage.setItem('wishlistItems', JSON.stringify(wishlist));
-            if (typeof updateWishlistBadge === 'function') updateWishlistBadge();
-        });
+    localStorage.setItem('wishlistItems', JSON.stringify(wishlist));
+    if (typeof updateWishlistBadge === 'function') updateWishlistBadge();
+});
     });
 }
 
@@ -861,58 +869,77 @@ function updateSliderButtons() {
     nextBtn.style.opacity = nextBtn.disabled ? '0.35' : '1';
 }
 
-    function setupWishlistButton(fields) {
-        const btn = document.querySelector('.ana-urun-favori-buton');
-        if (!btn) return;
+      function setupWishlistButton(fields) {
+    const btn = document.querySelector('.ana-urun-favori-buton');
+    if (!btn) return;
 
-        const productId = currentProduct.id;
-        updateWishlistButtonState(btn, productId);
+    const productId = currentProduct.id;
+    updateWishlistButtonState(btn, productId);
 
-                 btn.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
+    btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
 
-            let wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
-            const index = wishlist.findIndex(item => (typeof item === 'string' ? item : String(item.id)) === String(productId));
+        let wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
+        const index = wishlist.findIndex(item => 
+            (typeof item === 'string' ? item : String(item.id)) === String(productId)
+        );
 
-            if (index > -1) {
-                wishlist.splice(index, 1);
-            } else {
-                wishlist.push({
-                    id: currentProduct.id,
-                    name: fields.Name,
-                    price: getDisplayPrice(currentProduct, selectedVariant),
-                    image: currentImages.length > 0 ? currentImages[0] : ''
-                });
-                
-                // ✅ Kalp pop animasyonu (sadece eklemede)
-                btn.classList.add('animate-pop');
-                setTimeout(() => btn.classList.remove('animate-pop'), 500);
-            }
+        const isAdding = index === -1;  // ← Ekleme mi yapılıyor?
 
-            localStorage.setItem('wishlistItems', JSON.stringify(wishlist));
-            updateWishlistButtonState(btn, productId);
-            if (typeof updateWishlistBadge === 'function') updateWishlistBadge();
-        });
-    }
-
-    function updateWishlistButtonState(btn, productId) {
-        const wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
-        const isWishlisted = wishlist.some(item => (typeof item === 'string' ? item : String(item.id)) === String(productId));
-
-        const icon = btn.querySelector('i');
-        if (icon) {
-            icon.className = isWishlisted ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
-        }
-
-        if (isWishlisted) {
-            btn.classList.add('active');
-            btn.style.color = '#D30000';
+        if (index > -1) {
+            wishlist.splice(index, 1);
         } else {
-            btn.classList.remove('active');
-            btn.style.color = '';
+            wishlist.push({
+                id: currentProduct.id,
+                name: fields.Name,
+                price: getDisplayPrice(currentProduct, selectedVariant),
+                image: currentImages.length > 0 ? currentImages[0] : ''
+            });
+        }
+
+        localStorage.setItem('wishlistItems', JSON.stringify(wishlist));
+        updateWishlistButtonState(btn, productId);
+        if (typeof updateWishlistBadge === 'function') updateWishlistBadge();
+
+        // ✅ SADECE EKLEME YAPILDIĞINDA PATLAMA ANİMASYONU
+        if (isAdding) {
+            btn.classList.remove('animating');
+            void btn.offsetWidth;  // Reflow hack
+            btn.classList.add('animating');
+            
+            setTimeout(() => {
+                btn.classList.remove('animating');
+            }, 400);
+        }
+    });
+}
+
+       function updateWishlistButtonState(btn, productId) {
+    const wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
+    const isWishlisted = wishlist.some(item => (typeof item === 'string' ? item : String(item.id)) === String(productId));
+
+    const svg = btn.querySelector('svg');
+    if (svg) {
+        if (isWishlisted) {
+            // Dolu kalp
+            svg.innerHTML = '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>';
+            svg.setAttribute('fill', 'currentColor');
+        } else {
+            // Boş kalp
+            svg.innerHTML = '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>';
+            svg.setAttribute('fill', 'none');
         }
     }
+
+    if (isWishlisted) {
+        btn.classList.add('active');
+        btn.style.color = '#D30000';
+    } else {
+        btn.classList.remove('active');
+        btn.style.color = '';
+    }
+} 
 
     function setupSizeDrawer(sizeTooltipHtml, variants) {
         const drawerBody = document.getElementById('drawer-body');
@@ -1490,30 +1517,33 @@ function updateSliderButtons() {
             const hasDiscount = variant.discount_price && variant.discount_price < variant.price;
 
             html += `
-                <div class="variant-drawer-item ${isSelected ? 'selected' : ''} ${variant.stock <= 0 ? 'out-of-stock' : ''}" 
-                     data-index="${index}" 
-                     onclick="selectVariantFromFiltered(${index})">
-                    <div class="variant-drawer-image">
-                        <img src="${variant.variant_image || (currentImages.length > 0 ? currentImages[0] : '')}" 
-                             alt="${productName} ${variant.size}"
-                             onerror="this.style.display='none'">
-                    </div>
-                    <div class="variant-drawer-info">
-                        <span class="variant-size">${variant.size || '-'}</span>
-                        <span class="variant-price">
-                            ${hasDiscount 
-                                ? '<span class="current-price price-discount">' + displayPrice + ' Kr</span> <span class="original-price">' + originalPrice + ' Kr</span>' 
-                                : '<span class="current-price">' + displayPrice + ' Kr</span>'}
-                        </span>
-                        <span class="variant-stock ${variant.stock > 0 ? (variant.stock <= 3 ? 'low' : 'in-stock') : 'out'}">
-                            ${variant.stock > 0 ? (variant.stock <= 3 ? 'Endast ' + variant.stock + ' tillgängliga' : 'I lager (' + variant.stock + ' st)') : 'Slutsåld'}
-                        </span>
-                    </div>
-                    <div class="variant-check">
-                        ${isSelected ? '<i class="fa-solid fa-check-circle"></i>' : '<i class="fa-regular fa-circle"></i>'}
-                    </div>
-                </div>
-            `;
+    <div class="variant-drawer-item ${isSelected ? 'selected' : ''} ${variant.stock <= 0 ? 'out-of-stock' : ''}" 
+         data-index="${index}" 
+         onclick="selectVariantFromFiltered(${index})">
+        <div class="variant-drawer-image">
+            <img src="${variant.variant_image || (currentImages.length > 0 ? currentImages[0] : '')}" 
+                 alt="${productName} ${variant.size}"
+                 onerror="this.style.display='none'">
+        </div>
+        <div class="variant-drawer-info">
+            <span class="variant-size">${variant.size || '-'}</span>
+            <span class="variant-price">
+                ${hasDiscount 
+                    ? '<span class="current-price price-discount">' + displayPrice + ' Kr</span> <span class="original-price">' + originalPrice + ' Kr</span>' 
+                    : '<span class="current-price">' + displayPrice + ' Kr</span>'}
+            </span>
+            <span class="variant-stock ${variant.stock > 0 ? (variant.stock <= 3 ? 'low' : 'in-stock') : 'out'}">
+                ${variant.stock > 0 ? (variant.stock <= 3 ? 'Endast ' + variant.stock + ' tillgängliga' : 'I lager (' + variant.stock + ' st)') : 'Slutsåld'}
+            </span>
+        </div>
+        <div class="variant-check">
+            ${isSelected 
+                ? '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>' 
+                : '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/></svg>'}
+        </div>
+    </div>
+`;
+                  
         });
         body.innerHTML = html;
 
@@ -1562,14 +1592,18 @@ function updateSliderButtons() {
         }
     }
 
-    window.selectVariantFromFiltered = function(index, closeDrawer = true) {
-        selectedVariant = currentFilteredVariants[index];
+      window.selectVariantFromFiltered = function(index, closeDrawer = true) {
+    selectedVariant = currentFilteredVariants[index];
 
-        document.querySelectorAll('.variant-drawer-item').forEach((item, i) => {
-            item.classList.toggle('selected', i === index);
-            const icon = item.querySelector('.variant-check i');
-            if (icon) icon.className = i === index ? 'fa-solid fa-check-circle' : 'fa-regular fa-circle';
-        });
+    document.querySelectorAll('.variant-drawer-item').forEach((item, i) => {
+        item.classList.toggle('selected', i === index);
+        const iconWrap = item.querySelector('.variant-check');
+        if (iconWrap) {
+            iconWrap.innerHTML = i === index 
+                ? '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>'
+                : '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/></svg>';
+        }
+    });
 
         updateAccordionDisplay();
 
@@ -1624,17 +1658,21 @@ function updateSliderButtons() {
         }
     };
 
-    window.selectVariant = function(index) {
-        selectedVariant = currentVariants[index];
-        document.querySelectorAll('.variant-drawer-item').forEach((item, i) => {
-            item.classList.toggle('selected', i === index);
-            const icon = item.querySelector('.variant-check i');
-            if (icon) icon.className = i === index ? 'fa-solid fa-check-circle' : 'fa-regular fa-circle';
-        });
+       window.selectVariant = function(index) {
+    selectedVariant = currentVariants[index];
+    document.querySelectorAll('.variant-drawer-item').forEach((item, i) => {
+        item.classList.toggle('selected', i === index);
+        const iconWrap = item.querySelector('.variant-check');
+        if (iconWrap) {
+            iconWrap.innerHTML = i === index 
+                ? '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>'
+                : '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/></svg>';
+        }
+    });
 
-        updateAccordionDisplay();
-        closeVariantDrawer();
-    };
+    updateAccordionDisplay();
+    closeVariantDrawer();
+};
 
     function setupAddToCart(fields) {
         const btn = document.getElementById('add-to-cart-btn');

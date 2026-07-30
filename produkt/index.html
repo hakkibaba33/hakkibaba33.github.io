@@ -32,7 +32,6 @@
     <link rel="stylesheet" href="/assets/css/reset.css">
     <link rel="stylesheet" href="/assets/css/category.css">
     <link rel="stylesheet" href="/assets/css/variant-selector.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
 <script>
 // Hash router'ı kaldır, normal URL'ye yönlendir
@@ -275,7 +274,7 @@ if (window.location.hash && window.location.hash.includes('/produkt/')) {
                             </div>
                             <div class="accordion-right">
                                 <span class="accordion-status" id="variant-status" style="display:none;">Vald</span>
-                                <i class="fa-solid fa-chevron-right accordion-chevron"></i>
+                                <svg class="accordion-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
                             </div>
                         </button>
                     </div>
@@ -286,7 +285,19 @@ if (window.location.hash && window.location.hash.includes('/produkt/')) {
                     <!-- 3. SEPETE EKLE -->
                     <div class="action-buttons">
                         <button class="add-to-cart-btn" id="add-to-cart-btn">Lägg i Varukorg</button>
-                        <button class="ana-urun-favori-buton"><i class="fa-regular fa-heart"></i></button>
+                        <button class="ana-urun-favori-buton" id="main-wishlist-btn">
+                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                         </svg>
+                         <span class="heart-burst">
+                         <span class="dot d1"></span>
+                         <span class="dot d2"></span>
+                         <span class="dot d3"></span>
+                         <span class="dot d4"></span>
+                         <span class="dot d5"></span>
+                         <span class="dot d6"></span>
+                        </span>
+                      </button>
                     </div>
 
                     <!-- 4. STOK BİLGİSİ -->
@@ -305,15 +316,15 @@ if (window.location.hash && window.location.hash.includes('/produkt/')) {
 
                     <div class="product-trust-badges">
                         <div class="badge-item">
-                            <i class="fa-solid fa-truck-fast"></i>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
                             <span><strong>Snabb leverans</strong> & fri frakt</span>
                         </div>
                         <div class="badge-item">
-                            <i class="fa-solid fa-arrow-rotate-left"></i>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
                             <span>Enkel retur – <strong>30 dagars öppet köp</strong></span>
                         </div>
                         <div class="badge-item">
-                            <i class="fa-solid fa-shield-halved"></i>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M12 22V2"/></svg>
                             <span>Säkra betalningar med <strong>Klarna</strong></span>
                         </div>
                     </div>
@@ -325,7 +336,7 @@ if (window.location.hash && window.location.hash.includes('/produkt/')) {
     <div class="product-accordion-item">
         <button class="product-accordion-header" type="button">
             <h3>Produktbeskrivning</h3>
-            <i class="fa-solid fa-chevron-down"></i>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
         <div class="product-accordion-content" id="product-description">
             <!-- JS ile formatlanmış HTML gelecek -->
@@ -336,7 +347,7 @@ if (window.location.hash && window.location.hash.includes('/produkt/')) {
     <div class="product-accordion-item">
         <button class="product-accordion-header" type="button">
             <h3>Produktinformation</h3>
-            <i class="fa-solid fa-chevron-down"></i>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
         <div class="product-accordion-content" id="product-specs">
             <div class="spec-grid">
@@ -364,13 +375,13 @@ if (window.location.hash && window.location.hash.includes('/produkt/')) {
     <div class="product-accordion-item">
         <button class="product-accordion-header" type="button">
             <h3>Leverans & Retur</h3>
-            <i class="fa-solid fa-chevron-down"></i>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
         <div class="product-accordion-content" id="product-delivery">
             <div class="delivery-info-list">
                 <div class="delivery-info-item">
                     <div class="delivery-icon">
-                        <i class="fa-solid fa-truck-fast"></i>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
                     </div>
                     <div class="delivery-text">
                         <span class="delivery-label">Leveranstid</span>
@@ -379,7 +390,7 @@ if (window.location.hash && window.location.hash.includes('/produkt/')) {
                 </div>
                 <div class="delivery-info-item">
                     <div class="delivery-icon">
-                        <i class="fa-solid fa-box-open"></i>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8"/><path d="M12 2l-9 4h18l-9-4z"/><path d="M12 22V12"/><path d="m3 8 9 4 9-4"/></svg>
                     </div>
                     <div class="delivery-text">
                         <span class="delivery-label">Frakt</span>
@@ -388,7 +399,7 @@ if (window.location.hash && window.location.hash.includes('/produkt/')) {
                 </div>
                 <div class="delivery-info-item">
                     <div class="delivery-icon">
-                        <i class="fa-solid fa-rotate-left"></i>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
                     </div>
                     <div class="delivery-text">
                         <span class="delivery-label">Retur</span>
@@ -410,7 +421,7 @@ if (window.location.hash && window.location.hash.includes('/produkt/')) {
                 <h2 class="related-title">Du kanske också gillar</h2>
                 <div class="related-slider-wrapper">
                     <button class="slider-arrow slider-prev" id="related-prev" aria-label="Föregående">
-                        <i class="fa-solid fa-chevron-left"></i>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
                     </button>
                     
                     <div class="related-slider-track" id="related-slider-track">
@@ -418,7 +429,7 @@ if (window.location.hash && window.location.hash.includes('/produkt/')) {
                     </div>
                     
                     <button class="slider-arrow slider-next" id="related-next" aria-label="Nästa">
-                        <i class="fa-solid fa-chevron-right"></i>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
                     </button>
                 </div>
             </div>
@@ -498,7 +509,7 @@ if (window.location.hash && window.location.hash.includes('/produkt/')) {
                 <div class="footer-col acc-col">
                     <h3 class="acc-trigger">
                         Kundservice & Villkor 
-                        <i class="fas fa-chevron-down"></i>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
                     </h3>
                     <ul class="acc-content">
                         <li><a href="/kontakt/">Kontakta Oss</a></li>
@@ -610,7 +621,7 @@ if (window.location.hash && window.location.hash.includes('/produkt/')) {
             <div class="variant-drawer-header">
                 <h3>Storlekar</h3>
                 <button class="close-drawer-btn" id="close-variant-drawer">
-                    <i class="fa-solid fa-xmark"></i>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 </button>
             </div>
             <div class="variant-drawer-body" id="variant-drawer-body"></div>
@@ -625,7 +636,7 @@ if (window.location.hash && window.location.hash.includes('/produkt/')) {
             </div>
             <div class="lightbox-main-area">
                 <button class="lightbox-close-btn" id="lightbox-close">
-                    <i class="fa-solid fa-xmark"></i>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 </button>
                 <div class="lightbox-image-container" id="lightbox-img-container">
                     <div class="lightbox-image-wrapper" id="lightbox-img-wrapper">
@@ -635,11 +646,11 @@ if (window.location.hash && window.location.hash.includes('/produkt/')) {
                 <div class="lightbox-zoom-hint">Dubbelklicka för att zooma</div>
                 <div class="lightbox-nav">
                     <button class="lightbox-nav-btn" id="lightbox-prev">
-                        <i class="fa-solid fa-chevron-left"></i>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
                     </button>
                     <span class="lightbox-counter" id="lightbox-counter">1 / 5</span>
                     <button class="lightbox-nav-btn" id="lightbox-next">
-                        <i class="fa-solid fa-chevron-right"></i>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
                     </button>
                 </div>
             </div>
