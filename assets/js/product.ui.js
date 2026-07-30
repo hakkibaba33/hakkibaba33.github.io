@@ -350,6 +350,65 @@ function formatAccordionText(text) {
                 });
                 renderColorSwatches(currentVariants);
                 setupVariantAccordion();
+
+                        // ✅ SAYFA AÇILINCA EN UCUZ VARYASYONU OTOMATİK SEÇ
+        if (currentVariants.length > 0 && !selectedVariant) {
+            selectedVariant = currentVariants[0];
+            currentFilteredVariants = [...currentVariants];
+            
+            // Fiyatı güncelle
+            const priceEl = document.getElementById('product-price');
+            if (priceEl) {
+                const displayPrice = getDisplayPrice(currentProduct, selectedVariant);
+                const originalPrice = getOriginalPrice(currentProduct, selectedVariant);
+                const hasDiscount = displayPrice < originalPrice;
+
+                if (hasDiscount) {
+                    priceEl.innerHTML = 
+                        '<span class="discount-price">' + displayPrice.toLocaleString('sv-SE') + ' Kr</span>' +
+                        '<span class="original-price">' + originalPrice.toLocaleString('sv-SE') + ' Kr</span>';
+                } else {
+                    priceEl.innerHTML = '<span class="normal-price">' + displayPrice.toLocaleString('sv-SE') + ' Kr</span>';
+                }
+            }
+            
+            // Subtitle'ı güncelle (ürün isminin altı)
+            updateProductSubtitle(selectedVariant);
+            
+            // Stok bilgisi
+            const stockInfo = document.getElementById('stock-info');
+            const stockText = stockInfo?.querySelector('.stock-text');
+            const stockDot = stockInfo?.querySelector('.stock-dot');
+            if (stockInfo && stockText && stockDot) {
+                stockInfo.classList.add('active');
+                if (selectedVariant.stock <= 0) {
+                    stockText.textContent = 'Slutsåld';
+                    stockText.className = 'stock-text out';
+                    stockDot.className = 'stock-dot out';
+                } else if (selectedVariant.stock <= 3) {
+                    stockText.textContent = 'Endast ' + selectedVariant.stock + ' tillgängliga';
+                    stockText.className = 'stock-text low';
+                    stockDot.className = 'stock-dot low';
+                } else {
+                    stockText.textContent = 'I lager';
+                    stockText.className = 'stock-text in-stock';
+                    stockDot.className = 'stock-dot in-stock';
+                }
+            }
+            
+            // Sepet butonunu aktif et
+            const addBtn = document.getElementById('add-to-cart-btn');
+            if (addBtn) {
+                addBtn.disabled = selectedVariant.stock <= 0;
+                addBtn.textContent = selectedVariant.stock > 0 ? 'Lägg i Varukorg' : 'Slutsåld';
+                addBtn.style.opacity = '1';
+                addBtn.style.pointerEvents = 'auto';
+            }
+            
+            // Accordion yazısını güncelle
+            updateAccordionDisplay();
+            renderVariantDrawerFiltered(currentFilteredVariants);
+        }
                
             } else {
                 const colorEl = document.getElementById('color-selector');
@@ -382,7 +441,7 @@ function formatAccordionText(text) {
                   }
                 }
 
-                const subtitleEl = document.getElementById('dynamic-product-subtitle');
+                                  const subtitleEl = document.getElementById('dynamic-product-subtitle');
                 if (subtitleEl) {
                     const sizeDisplay = subtitleEl.querySelector('.selected-size-display');
                     if (sizeDisplay) {
@@ -391,11 +450,11 @@ function formatAccordionText(text) {
                             const minWidth = Math.min(...p.m2_available_widths.map(w => parseFloat(w) || 999));
                             sizeDisplay.textContent = 'bredd: ' + minWidth + ' cm';
                         } else if (isGardinProduct && p.gardin_min_width) {
+                            sizeDisplay.className = 'selected-size-display gardin-size';
                             sizeDisplay.textContent = ' Min. bredd: ' + p.gardin_min_width + ' cm';
-                            sizeDisplay.style.color = '#666';
                         } else {
+                            sizeDisplay.className = 'selected-size-display normal-size';
                             sizeDisplay.textContent = displayPrice > 0 ? displayPrice.toLocaleString('sv-SE') + ' Kr' : '';
-                            sizeDisplay.style.color = '#333';
                         }
                     }
                 }
@@ -405,7 +464,7 @@ function formatAccordionText(text) {
                 const stockDot = stockInfo?.querySelector('.stock-dot');
                 if (stockInfo && stockText && stockDot) {
                     stockInfo.classList.add('active');
-                    stockText.textContent = 'I lager - Klar för leverans';
+                    stockText.textContent = 'I lager';
                     stockText.className = 'stock-text in-stock';
                     stockDot.className = 'stock-dot in-stock';
                 }
@@ -721,6 +780,9 @@ function attachRelatedWishlistEvents() {
                 wishlist.push({ id: productId, name, price, image });
                 newBtn.classList.add('active');
                 newBtn.querySelector('i').className = 'fa-solid fa-heart';
+
+                newBtn.classList.add('animate-pop');
+                setTimeout(() => newBtn.classList.remove('animate-pop'), 500);
             }
 
             localStorage.setItem('wishlistItems', JSON.stringify(wishlist));
@@ -806,7 +868,7 @@ function updateSliderButtons() {
         const productId = currentProduct.id;
         updateWishlistButtonState(btn, productId);
 
-        btn.addEventListener('click', (e) => {
+                 btn.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
 
@@ -822,6 +884,10 @@ function updateSliderButtons() {
                     price: getDisplayPrice(currentProduct, selectedVariant),
                     image: currentImages.length > 0 ? currentImages[0] : ''
                 });
+                
+                // ✅ Kalp pop animasyonu (sadece eklemede)
+                btn.classList.add('animate-pop');
+                setTimeout(() => btn.classList.remove('animate-pop'), 500);
             }
 
             localStorage.setItem('wishlistItems', JSON.stringify(wishlist));
@@ -960,10 +1026,10 @@ function updateSliderButtons() {
 
         const sizeDisplay = subtitleEl.querySelector('.selected-size-display');
         if (sizeDisplay) {
-            sizeDisplay.textContent = variant.size || 'Välj storlek';
-            sizeDisplay.style.color = '#333';
-        }
-    }
+        sizeDisplay.textContent = variant.size || 'Välj storlek';
+        sizeDisplay.classList.toggle('has-size', !!(variant && variant.size));
+       }
+      }  
 
     function renderDesktopGallery() {
         const container = document.getElementById('desktop-gallery');
@@ -1348,6 +1414,8 @@ function updateSliderButtons() {
                     return;
                 }
             }
+
+            renderVariantDrawerFiltered(currentFilteredVariants);
             openVariantDrawer();
         });
     }
@@ -1534,7 +1602,7 @@ function updateSliderButtons() {
                 stockText.className = 'stock-text low';
                 stockDot.className = 'stock-dot low';
             } else {
-                stockText.textContent = 'I lager - Klar för leverans';
+                stockText.textContent = 'I lager';
                 stockText.className = 'stock-text in-stock';
                 stockDot.className = 'stock-dot in-stock';
             }

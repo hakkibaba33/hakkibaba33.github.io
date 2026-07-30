@@ -183,7 +183,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    margin: 12px 0 16px 0;
+    margin: 12px 0 6px 0;
     padding: 0 4px;
     display: none; /* JS ile aktif edilecek */
 }
@@ -192,12 +192,24 @@
     display: flex;
 }
 
+
+
 .stock-dot {
-    width: 10px;
-    height: 10px;
+    width: 20px;
+    height: 20px;
+    color: #fff;
     border-radius: 50%;
     flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
+
+.stock-check {
+    width: 15px;
+    height: 15px;
+}
+
 
 .stock-dot.in-stock {
     background: #4caf50;
@@ -212,8 +224,8 @@
 }
 
 .stock-text {
-    font-size: 14px;
-    font-weight: 500;
+    font-size: 16px;
+    font-weight: 600;
 }
 
 .stock-text.in-stock {

@@ -157,6 +157,85 @@
     box-shadow: none;
 }
 
+
+/* -----------------------------------------------------------
+   WISHLIST EFEKT & ANİMASYONLARI (Burst & Pop)
+   ----------------------------------------------------------- */
+
+.wishlist-btn {
+    position: absolute;
+    /* Taşan baloncukların görünmesi için overflow visible olmalı */
+    overflow: visible !important; 
+}
+
+/* Kalp Zıplama Animasyonu */
+.wishlist-btn.animating .heart-icon {
+    animation: heartPop 0.35s cubic-bezier(0.17, 0.89, 0.32, 1.49) forwards;
+}
+
+@keyframes heartPop {
+    0% {
+        transform: scale(1);
+    }
+    30% {
+        transform: scale(0.75); /* Önce hafif içe çöker */
+    }
+    70% {
+        transform: scale(1.35); /* Sonra dışarı patlar */
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Baloncuk / Parçacık Konfeti Katmanı */
+.heart-burst {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+}
+
+.heart-burst .dot {
+    position: absolute;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background-color: #D30000;
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0);
+}
+
+/* Sadece animating sınıfı geldiğinde patlasın */
+.wishlist-btn.animating .heart-burst .dot {
+    animation: burstParticle 0.38s ease-out forwards;
+}
+
+/* Parçacıkların 6 farklı yöne dağılımı */
+.heart-burst .d1 { --tx: 0px;   --ty: -18px; animation-delay: 0.02s; }
+.heart-burst .d2 { --tx: 16px;  --ty: -8px;  animation-delay: 0.04s; }
+.heart-burst .d3 { --tx: 16px;  --ty: 10px;  animation-delay: 0.02s; }
+.heart-burst .d4 { --tx: 0px;   --ty: 18px;  animation-delay: 0.05s; }
+.heart-burst .d5 { --tx: -16px; --ty: 10px;  animation-delay: 0.03s; }
+.heart-burst .d6 { --tx: -16px; --ty: -8px;  animation-delay: 0.01s; }
+
+@keyframes burstParticle {
+    0% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(0.4);
+    }
+    60% {
+        opacity: 0.9;
+        transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) scale(1.2);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(calc(-50% + var(--tx) * 1.2), calc(-50% + var(--ty) * 1.2)) scale(0);
+    }
+}
+
 /* === MOBIL/TABLET: Her zaman görünür wishlist butonu === */
 @media (max-width: 1023px) {
     .wishlist-btn {
@@ -209,6 +288,7 @@
         height: 22px;
     }
 }
+
 
 /* -----------------------------------------------------------
    4. BADGES (Rozetler)

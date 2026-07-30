@@ -130,9 +130,11 @@ function updateWishlistBadge() {
     }
 }
 
-function toggleWishlistItem(productId, name, price, image) {
+  function toggleWishlistItem(productId, name, price, image) {
     let wishlist = JSON.parse(localStorage.getItem('wishlistItems')) || [];
     const index = wishlist.findIndex(item => (typeof item === 'string' ? item : String(item.id)) === String(productId));
+
+    const isAdding = index === -1;
 
     if (index > -1) {
         wishlist.splice(index, 1);
@@ -147,11 +149,23 @@ function toggleWishlistItem(productId, name, price, image) {
 
     // Tüm butonları güncelle
     document.querySelectorAll(`[data-product-id="${productId}"] .wishlist-btn, .wishlist-btn[data-product-id="${productId}"]`).forEach(btn => {
-        const isActive = index === -1;
-        btn.classList.toggle('active', isActive);
+        btn.classList.toggle('active', isAdding);
+        
+        // Sadece ekleme yapıldığında animasyon sınıfını tetikle
+        if (isAdding) {
+            btn.classList.remove('animating');
+            // DOM reflow için küçük bir hack
+            void btn.offsetWidth; 
+            btn.classList.add('animating');
+            
+            setTimeout(() => {
+                btn.classList.remove('animating');
+            }, 400);
+        }
+
         const icon = btn.querySelector('.heart-icon');
         if (icon) {
-            icon.style.fill = isActive ? 'currentColor' : 'none';
+            icon.style.fill = isAdding ? 'currentColor' : 'none';
             icon.style.stroke = 'currentColor';
         }
     });
@@ -211,14 +225,22 @@ function createProductCard(product, isWishlisted) {
                 >
             </a>
             ${hasDiscount ? '<span class="discount-badge">REA</span>' : ''}
-            <button class="wishlist-btn ${isWishlisted ? 'active' : ''}" 
-                    data-product-id="${String(product.id)}"
-                    aria-label="${isWishlisted ? 'Ta bort från favoriter' : 'Lägg till favoriter'}"
-                    onclick="event.preventDefault(); event.stopPropagation(); toggleWishlistItem('${String(product.id)}', '${escapeHtml(product.name || '')}', ${price}, '${escapeHtml(product.image || '')}')">
-                <svg class="heart-icon" viewBox="0 0 24 24" fill="${isWishlisted ? '#D30000' : 'none'}" stroke="${isWishlisted ? '#D30000' : '#111'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                </svg>
-            </button>
+              <button class="wishlist-btn ${isWishlisted ? 'active' : ''}" 
+        data-product-id="${String(product.id)}"
+        aria-label="${isWishlisted ? 'Ta bort från favoriter' : 'Lägg till favoriter'}"
+        onclick="event.preventDefault(); event.stopPropagation(); toggleWishlistItem('${String(product.id)}', '${escapeHtml(product.name || '')}', ${price}, '${escapeHtml(product.image || '')}')">
+    <svg class="heart-icon" viewBox="0 0 24 24" fill="${isWishlisted ? '#D30000' : 'none'}" stroke="${isWishlisted ? '#D30000' : '#111'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path class="heart-path" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+    </svg>
+    <span class="heart-burst">
+        <span class="dot d1"></span>
+        <span class="dot d2"></span>
+        <span class="dot d3"></span>
+        <span class="dot d4"></span>
+        <span class="dot d5"></span>
+        <span class="dot d6"></span>
+    </span>
+</button>
         </div>
         <div class="product-info">
             <h3 class="product-title">${escapeHtml(truncateWords(product.name, getMaxWords()))}</h3>

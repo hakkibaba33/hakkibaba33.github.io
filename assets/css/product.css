@@ -476,6 +476,9 @@ button:not(:disabled),
 }
 
 
+
+
+
 /* ==========================================
    3 AKORDİYON — KOMPAKT & MODERN
    ========================================== */
@@ -982,8 +985,8 @@ button:not(:disabled),
 
 /* Ürün İsmi */
 #product-main-name-desktop {
-    font-size: 1.4rem;
-    font-weight: 700;
+    font-size: 1.3rem;
+    font-weight: 600;
     margin-top: 10px;
     margin-bottom: 2px;
     line-height: 1.2;
@@ -1075,8 +1078,8 @@ button:not(:disabled),
 }
 
 .selected-size-display {
-    font-size: 14px;
-    color: #666;
+    font-size: 16px;
+    color: #999 !important;
     font-weight: 600;
 }
 
@@ -1084,24 +1087,16 @@ button:not(:disabled),
 .drawer-tooltip-toggle {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
     cursor: pointer;
     user-select: none;
-    padding: 6px 6px;
     border-radius: 20px;
-    background: rgba(0,0,0,0.03);
-    border: 1px solid rgba(0,0,0,0.06);
     transition: all 0.2s ease;
 }
 
-.drawer-tooltip-toggle:hover {
-    background: rgba(0,0,0,0.06);
-    border-color: rgba(0,0,0,0.12);
-}
 
 .drawer-tooltip-toggle svg {
-    width: 16px;
-    height: 16px;
+    width: 20px;
+    height: 20px;
     color: #666;
     flex-shrink: 0;
 }
@@ -1867,3 +1862,5 @@ body.drawer-open {
         display: none !important;
     }
 }
+
+
