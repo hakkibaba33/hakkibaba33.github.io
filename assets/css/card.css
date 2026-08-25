@@ -564,6 +564,7 @@
 @media (max-width: 1023px) {
     .product-card {
         width: 100%;
+        min-width: 0; 
     }
 
     .image-box {

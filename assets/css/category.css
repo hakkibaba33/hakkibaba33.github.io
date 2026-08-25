@@ -1054,7 +1054,7 @@ body.modal-open {
 @media (max-width: 991px) {
     .product-grid-container {
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 12px;
         width: 100%;
         margin: 10px 0;
@@ -1062,6 +1062,10 @@ body.modal-open {
         box-sizing: border-box;
     }
 
+    .product-grid-container > .product-card {
+        min-width: 0;
+        width: 100%;
+    }
 }
 
 @media (max-width: 768px) {
