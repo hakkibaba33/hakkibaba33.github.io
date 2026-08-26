@@ -35,7 +35,7 @@
 .hero-bg {
     position: absolute;
     inset: 0;
-    background: url('../images/hero-bg.jpg') center/cover no-repeat;
+    background: url('../images/hero-bg.webp') center/cover no-repeat;
     filter: brightness(0.4);
 }
 
