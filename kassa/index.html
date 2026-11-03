@@ -3,34 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Kategori Sayfası</title>
+    <title>Kategori Sayfası</title>
 
-       <meta name="google-site-verification" content="P3JBpD-WcyvGlOGQnA5MK-UTGKS9IDMeDCUqSXK3GKI" />
-    
-         <script async src="https://www.googletagmanager.com/gtag/js?id=G-GC40MGMLE1"></script>
-    
-    <!-- Temel meta tag'ler (JS ile güncellenecek) -->
-    <meta name="description" content="">
-    <meta name="keywords" content="">  <!-- 👈 BUNU EKLE -->
+    <meta name="google-site-verification" content="P3JBpD-WcyvGlOGQnA5MK-UTGKS9IDMeDCUqSXK3GKI" />
     <meta name="robots" content="index, follow">
+
+    <!-- Stripe Bağlantı Hızlandırma (Preconnect) -->
+    <link rel="preconnect" href="https://js.stripe.com">
+    <link rel="preconnect" href="https://m.stripe.network">
+
+    <!-- Temel meta tag'ler -->
+    <meta name="description" content="">
+    <meta name="keywords" content="">
     
-    <!-- Canonical (JS ile güncellenecek) -->
+    <!-- Canonical & Sosyal Medya Meta Tagleri -->
     <link rel="canonical" href="">
-    
-    <!-- Open Graph (JS ile güncellenecek) -->
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="DKRUG">
-    
-    <!-- Twitter Cards (JS ile güncellenecek) -->
-    <meta name="twitter:card" content="summary_large_image">
 
-    <script src="https://js.stripe.com/v3/"></script>
+    <!-- CSS Dosyaları (Sayfa düzeninin çizilmesi için en üste alındı) -->
+    <link rel="stylesheet" href="../assets/css/reset.css">
+    <link rel="stylesheet" href="../assets/css/common.css">
+    <link rel="stylesheet" href="../assets/css/checkout.css">
 
-<script src="../assets/js/config.js"></script>
-
-<link rel="stylesheet" href="../assets/css/checkout.css">
-<link rel="stylesheet" href="../assets/css/common.css">
-<link rel="stylesheet" href="../assets/css/reset.css">
+    <!-- Analitik & Ağır JS'ler (defer/async ile render-blocking kaldırıldı) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-GC40MGMLE1"></script>
+    <script src="https://js.stripe.com/v3/" defer></script>
+    <script src="../assets/js/config.js" defer></script>
 </head>
 
 <body>

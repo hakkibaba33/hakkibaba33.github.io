@@ -357,7 +357,7 @@ select.premium-input {
 
 .note-expandable-content.open {
     max-height: 300px;
-    padding: 16px;
+     padding: 16px;
     padding-top: 0;
 }
 
