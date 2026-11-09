@@ -1181,7 +1181,7 @@ document.addEventListener('DOMContentLoaded', function() {
     ccCss.href = 'https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.0.1/dist/cookieconsent.css';
     document.head.appendChild(ccCss);
 
-    // DKRUG teması için özel CSS
+    // DEKORIST teması için özel CSS
     const customCss = document.createElement('style');
     customCss.textContent = `
         #cc-main {

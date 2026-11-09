@@ -1789,7 +1789,7 @@ function updateProductMetaTags(product) {
     if (product.seo_title) {
         document.title = product.seo_title;
     } else {
-        document.title = `${product.name} | DKRUG`;
+        document.title = `${product.name} | DEKORIST`;
     }
     
     // 2. <meta name="description">
@@ -1815,7 +1815,7 @@ function updateProductMetaTags(product) {
     }
     
     // 4. <link rel="canonical">
-    const canonicalUrl = product.canonical_url || `https://dkrug.se/produkt/${product.slug}`;
+    const canonicalUrl = product.canonical_url || `https://DEKORIST.se/produkt/${product.slug}`;
     let canonical = document.querySelector('link[rel="canonical"]');
     if (!canonical) {
         canonical = document.createElement('link');
@@ -1966,7 +1966,7 @@ function updateProductMetaTags(product) {
         'sku': String(product.id),
         'brand': {
             '@type': 'Brand',
-            'name': 'DKRUG'
+            'name': 'DEKORIST'
         },
         'offers': {
             '@type': 'Offer',
@@ -1977,7 +1977,7 @@ function updateProductMetaTags(product) {
             'availability': availability,
             'seller': {
                 '@type': 'Organization',
-                'name': 'DKRUG'
+                'name': 'DEKORIST'
             }
         }
     };

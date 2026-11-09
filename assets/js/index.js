@@ -1,5 +1,5 @@
 // ==========================================
-// INDEX.JS v2.0 - DKRUG Anasayfa
+// INDEX.JS v2.0 - DEKORIST Anasayfa
 // Supabase'den ürün çekme, zengin kartlar, modern carousel
 // ==========================================
 

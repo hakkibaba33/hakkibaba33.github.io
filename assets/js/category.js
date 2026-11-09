@@ -42,7 +42,7 @@ function updatePageTitle(category) {
     let title = titleMap[category] || 'Produkter';
     const newTitle = 'Alla ' + title;
     
-    document.title = newTitle + ' | DKRUG';
+    document.title = newTitle + ' | DEKORIST';
 
     const pageTitle = document.getElementById('category-main-title');
     if (pageTitle && pageTitle.textContent !== newTitle) {
@@ -101,7 +101,7 @@ function updateCategoryMetaTags(seoData) {
     if (!seoData) return;
     
     // 1. <title>
-    document.title = seoData.title || 'Kategori | DKRUG';
+    document.title = seoData.title || 'Kategori | DEKORIST';
     
     // 2. <meta name="description">
     let metaDesc = document.querySelector('meta[name="description"]');
@@ -124,7 +124,7 @@ function updateCategoryMetaTags(seoData) {
     }
     
     // 4. <link rel="canonical">
-    const canonicalUrl = seoData.canonical_url || 'https://dkrug.se/' + window.location.pathname.replace(/^\/+|\/+$/g, '');
+    const canonicalUrl = seoData.canonical_url || 'https://DEKORIST.se/' + window.location.pathname.replace(/^\/+|\/+$/g, '');
     let canonical = document.querySelector('link[rel="canonical"]');
     if (!canonical) {
         canonical = document.createElement('link');
@@ -207,7 +207,7 @@ function updateCategoryMetaTags(seoData) {
                 '@type': 'ListItem',
                 'position': 1,
                 'name': 'Hem',
-                'item': 'https://dkrug.se/'
+                'item': 'https://DEKORIST.se/'
             },
             {
                 '@type': 'ListItem',
@@ -597,11 +597,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                     } else {
                         console.log('SEO verisi bulunamadi, fallback kullaniliyor');
                         updateCategoryMetaTags({
-                            title: 'Alla ' + (titleMap[currentCategory] || 'Produkter') + ' | DKRUG',
-                            meta_description: 'Köp ' + (titleMap[currentCategory] || 'produkter') + ' online hos DKRUG. Stort utbud och snabb leverans.',
-                            keywords: (titleMap[currentCategory] || 'produkter') + ', köpa online, DKRUG',
+                            title: 'Alla ' + (titleMap[currentCategory] || 'Produkter') + ' | DEKORIST',
+                            meta_description: 'Köp ' + (titleMap[currentCategory] || 'produkter') + ' online hos DEKORIST. Stort utbud och snabb leverans.',
+                            keywords: (titleMap[currentCategory] || 'produkter') + ', köpa online, DEKORIST',
                             og_image: '',
-                            canonical_url: 'https://dkrug.se/' + currentCategory,
+                            canonical_url: 'https://DEKORIST.se/' + currentCategory,
                             schema_type: 'CollectionPage'
                         });
                     }

@@ -1,5 +1,5 @@
 {
-  "name": "dkrug-store",
+  "name": "DEKORIST-store",
   "version": "1.0.0",
   "scripts": {
     "build": "node build-config.js"

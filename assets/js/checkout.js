@@ -105,7 +105,7 @@ if (typeof showStockWarning === 'undefined') {
             postcode: document.getElementById('billing_postcode')?.value?.trim() || '',
             city: document.getElementById('billing_city')?.value?.trim() || ''
         };
-        localStorage.setItem('dkrug_checkout_customer', JSON.stringify(customerData));
+        localStorage.setItem('DEKORIST_checkout_customer', JSON.stringify(customerData));
     }
 
     let stripe = null;
@@ -613,7 +613,7 @@ if (typeof showStockWarning === 'undefined') {
             
             const customerData = { firstName, lastName, email, phone, address, postcode, city };
             
-            localStorage.setItem('dkrug_pending_order', JSON.stringify({
+            localStorage.setItem('DEKORIST_pending_order', JSON.stringify({
                 paymentIntentId: currentPaymentIntentId,
                 items: enrichedItems,
                 customer: customerData,

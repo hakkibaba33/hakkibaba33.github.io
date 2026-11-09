@@ -1,5 +1,5 @@
 // ==========================================
-// CARD.JS v1.0 - DKRUG Ürün Kartı Modülü
+// CARD.JS v1.0 - DEKORIST Ürün Kartı Modülü
 // Ortak: category.js + index.js
 // ==========================================
 

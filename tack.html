@@ -68,7 +68,7 @@
             // localStorage'dan sipariş bilgilerini al
             let pendingOrder = null;
             try {
-                pendingOrder = JSON.parse(localStorage.getItem('dkrug_pending_order'));
+                pendingOrder = JSON.parse(localStorage.getItem('dekorist_pending_order'));
             } catch (e) {
                 console.error('pendingOrder parse hatasi:', e);
             }
@@ -137,9 +137,9 @@
                 }
 
                 // Başarılı! Detayları göster
-                localStorage.removeItem('dkrug_pending_order');
+                localStorage.removeItem('dekorist_pending_order');
                 localStorage.removeItem('siteCartItems');
-                localStorage.removeItem('dkrug_checkout_customer');
+                localStorage.removeItem('DEKORIST_checkout_customer');
 
                 statusText.className = 'status-success';
                 statusText.innerHTML = '✅ Din beställning är bekräftad!';
